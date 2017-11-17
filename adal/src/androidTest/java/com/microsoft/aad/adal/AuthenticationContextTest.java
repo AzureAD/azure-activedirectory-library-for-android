@@ -1210,7 +1210,7 @@ public final class AuthenticationContextTest {
         // mock another silent request will only do token refresh
         Mockito.when(mockedConnection.getInputStream()).thenThrow(new IOException())
                 .thenReturn(Util.createInputStream(Util.getSuccessTokenResponse(true, true)),
-                Util.createInputStream(Util.getSuccessTokenResponse(true, false)));
+                        Util.createInputStream(Util.getSuccessTokenResponse(true, false)));
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_BAD_REQUEST, HttpURLConnection.HTTP_OK);
 
@@ -1345,8 +1345,8 @@ public final class AuthenticationContextTest {
     }
 
     /**
-     *  If multiple simultaneous acquireToken calls with the same authority are made without any authority cache,
-     *  only one authority validation network request is ever made.
+     * If multiple simultaneous acquireToken calls with the same authority are made without any authority cache,
+     * only one authority validation network request is ever made.
      */
     @Test
     public void testMultipleATCallsInDifferentThreadsOnlyOneAuthorityValidation() throws IOException, InterruptedException, ExecutionException {
