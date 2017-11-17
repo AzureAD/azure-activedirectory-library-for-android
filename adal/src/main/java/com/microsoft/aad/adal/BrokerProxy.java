@@ -22,9 +22,6 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.SharedPreferencesFileManager;
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerFuture;
@@ -33,11 +30,8 @@ import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -49,6 +43,9 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Base64;
+
+import com.microsoft.identity.common.SharedPreferencesFileManager;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -73,11 +70,11 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
-import static com.microsoft.aad.adal.AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT;
 import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.RT_AGE;
 import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_ERROR;
 import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_SUBERROR;
 import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.SPE_RING;
+import static com.microsoft.aad.adal.AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT;
 
 /**
  * Handles interactions to authenticator inside the Account Manager.
