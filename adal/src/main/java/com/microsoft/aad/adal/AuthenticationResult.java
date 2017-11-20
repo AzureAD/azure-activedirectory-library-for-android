@@ -23,6 +23,8 @@
 
 package com.microsoft.aad.adal;
 
+import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectoryTokenResponse;
+
 import java.io.Serializable;
 import java.util.Date;
 
@@ -383,5 +385,20 @@ public class AuthenticationResult implements Serializable {
 
     final void setCliTelemInfo(final CliTelemInfo cliTelemInfo) {
         mCliTelemInfo = cliTelemInfo;
+    }
+
+    /**
+     * Gets this AuthenticationResult as a {@link AzureActiveDirectoryTokenResponse}.
+     *
+     * @return The {@link AzureActiveDirectoryTokenResponse} representing this object.
+     */
+    public AzureActiveDirectoryTokenResponse asAADTokenResponse() {
+        final AzureActiveDirectoryTokenResponse adTokenResponse = new AzureActiveDirectoryTokenResponse();
+        adTokenResponse.setAccessToken(getAccessToken());
+        adTokenResponse.setTokenType(getAccessTokenType());
+        adTokenResponse.setRefreshToken(getRefreshToken());
+        adTokenResponse.setExpiresOn(String.valueOf(getExpiresOn().getTime()));
+        adTokenResponse.setIdToken(getIdToken());
+        return adTokenResponse;
     }
 }
