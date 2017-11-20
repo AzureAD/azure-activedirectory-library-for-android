@@ -23,8 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.app.Activity;
@@ -36,10 +34,10 @@ import android.os.Looper;
 import android.os.NetworkOnMainThreadException;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
-import com.microsoft.aad.adal.Logger;
 import android.util.SparseArray;
 
 import com.microsoft.aad.adal.AuthenticationRequest.UserIdentifierType;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -90,7 +88,7 @@ public class AuthenticationContext {
      * default cache that stores encrypted tokens.
      *
      * @param appContext        It needs to have handle to the {@link Context} to use
-     *                          the SharedPreferences as a Default cache storage. It does not
+     *                          the SharedPreferencesFileManager as a Default cache storage. It does not
      *                          need to be activity.
      * @param authority         Authority url to send code and token requests
      * @param validateAuthority validate authority before sending token request
@@ -152,7 +150,7 @@ public class AuthenticationContext {
 
     /**
      * Returns referenced cache. You can use default cache, which uses
-     * SharedPreferences and handles synchronization by itself.
+     * SharedPreferencesFileManager and handles synchronization by itself.
      *
      * @return ITokenCacheStore Current cache used
      */

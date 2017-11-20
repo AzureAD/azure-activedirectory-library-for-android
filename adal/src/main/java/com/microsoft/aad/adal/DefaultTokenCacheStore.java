@@ -23,20 +23,16 @@
 
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-
-import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
-
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Build;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.microsoft.identity.common.SharedPreferencesFileManager;
+import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -51,9 +47,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 /**
- * Store/Retrieve TokenCacheItem from private SharedPreferences.
- * SharedPreferences saves items when it is committed in an atomic operation.
- * One more retry is attempted in case there is a lock in commit.
+ * Store/Retrieve TokenCacheItem from SharedPreferencesFileManager.
+ * SharedPreferencesFileManager saves items when it is committed in an atomic operation.
  */
 public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuery {
 
@@ -63,17 +58,18 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     private static final String TAG = "DefaultTokenCacheStore";
 
-    private SharedPreferences mPrefs;
+    private SharedPreferencesFileManager mPrefs;
     private Context mContext;
 
     private Gson mGson = new GsonBuilder()
-    .registerTypeAdapter(Date.class, new DateTimeAdapter())
-    .create();
+            .registerTypeAdapter(Date.class, new DateTimeAdapter())
+            .create();
 
     @SuppressLint("StaticFieldLeak")
     private static StorageHelper sHelper;
 
     private static final Object LOCK = new Object();
+
     /**
      * @param context {@link Context}
      */
@@ -82,7 +78,9 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         if (context == null) {
             throw new IllegalArgumentException("Context is null");
         }
+
         mContext = context;
+
         if (!StringExtensions.isNullOrBlank(AuthenticationSettings.INSTANCE
                 .getSharedPrefPackageName())) {
             try {
@@ -99,11 +97,9 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
                         + " is not found");
             }
         }
-        mPrefs = mContext.getSharedPreferences(SHARED_PREFERENCE_NAME, Activity.MODE_PRIVATE);
-        if (mPrefs == null) {
-            throw new IllegalStateException(ADALError.DEVICE_SHARED_PREF_IS_NOT_AVAILABLE.getDescription());
-        }
-        
+
+        mPrefs = new SharedPreferencesFileManager(mContext, SHARED_PREFERENCE_NAME);
+
         // Check upfront when initializing DefaultTokenCacheStore. 
         // If it's under API 18 and secretkey is not provided, we should fail upfront to inform 
         // notify developers. 
@@ -138,7 +134,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         if (StringExtensions.isNullOrBlank(key)) {
             throw new IllegalArgumentException("key is null or blank");
         }
-        
+
         try {
             return getStorageHelper().decrypt(value);
         } catch (GeneralSecurityException | IOException e) {
@@ -156,7 +152,8 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         }
 
         if (mPrefs.contains(key)) {
-            String json = mPrefs.getString(key, "");
+            String json = mPrefs.getString(key);
+            json = null != json ? json : "";
             String decrypted = decrypt(key, json);
             if (decrypted != null) {
                 return mGson.fromJson(decrypted, TokenCacheItem.class);
@@ -173,10 +170,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         }
 
         if (mPrefs.contains(key)) {
-            Editor prefsEditor = mPrefs.edit();
-            prefsEditor.remove(key);
-            // apply will do Async disk write operation.
-            prefsEditor.apply();
+            mPrefs.remove(key);
         }
     }
 
@@ -193,11 +187,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         String json = mGson.toJson(item);
         String encrypted = encrypt(json);
         if (encrypted != null) {
-            Editor prefsEditor = mPrefs.edit();
-            prefsEditor.putString(key, encrypted);
-
-            // apply will do Async disk write operation.
-            prefsEditor.apply();
+            mPrefs.putString(key, encrypted);
         } else {
             Logger.e(TAG, "Encrypted output is null", "", ADALError.ENCRYPTION_FAILED);
         }
@@ -205,17 +195,14 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     @Override
     public void removeAll() {
-        Editor prefsEditor = mPrefs.edit();
-        prefsEditor.clear();
-        // apply will do Async disk write operation.
-        prefsEditor.apply();
+        mPrefs.clear();
     }
 
     // Extra helper methods can be implemented here for queries
 
     /**
      * User can query over iterator values.
-     * 
+     *
      * @return TokenCacheItem list iterator
      */
     @Override
@@ -225,13 +212,13 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
         // create objects
         final List<TokenCacheItem> tokens = new ArrayList<>(results.values().size());
-        
+
         Iterator<Entry<String, String>> tokenResultEntrySet = results.entrySet().iterator();
         while (tokenResultEntrySet.hasNext()) {
             final Entry<String, String> tokenEntry = tokenResultEntrySet.next();
             final String tokenKey = tokenEntry.getKey();
             final String tokenValue = tokenEntry.getValue();
-            
+
             final String decryptedValue = decrypt(tokenKey, tokenValue);
             if (decryptedValue != null) {
                 final TokenCacheItem tokenCacheItem = mGson.fromJson(decryptedValue, TokenCacheItem.class);
@@ -244,14 +231,14 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     /**
      * Unique users with tokens.
-     * 
+     *
      * @return unique users
      */
     @Override
     public Set<String> getUniqueUsersWithTokenCache() {
         Iterator<TokenCacheItem> results = this.getAll();
         final Set<String> users = new HashSet<>();
-        
+
         while (results.hasNext()) {
             final TokenCacheItem tokenCacheItem = results.next();
             if (tokenCacheItem.getUserInfo() != null && !users.contains(tokenCacheItem.getUserInfo().getUserId())) {
@@ -264,7 +251,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     /**
      * Tokens for resource.
-     * 
+     *
      * @param resource Resource identifier
      * @return list of {@link TokenCacheItem}
      */
@@ -286,7 +273,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     /**
      * Get tokens for user.
-     * 
+     *
      * @param userId userId
      * @return list of {@link TokenCacheItem}
      */
@@ -294,7 +281,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     public List<TokenCacheItem> getTokensForUser(String userId) {
         Iterator<TokenCacheItem> results = this.getAll();
         final List<TokenCacheItem> tokenItems = new ArrayList<>();
-        
+
         while (results.hasNext()) {
             final TokenCacheItem tokenCacheItem = results.next();
             if (tokenCacheItem.getUserInfo() != null
@@ -308,7 +295,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     /**
      * Clear tokens for user without additional retry.
-     * 
+     *
      * @param userId UserId
      */
     @Override
@@ -332,7 +319,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     /**
      * Get tokens about to expire.
-     * 
+     *
      * @return list of {@link TokenCacheItem}
      */
     @Override
@@ -342,10 +329,10 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
         while (results.hasNext()) {
             final TokenCacheItem tokenCacheItem = results.next();
-                if (isAboutToExpire(tokenCacheItem.getExpiresOn())) {
-                    tokenItems.add(tokenCacheItem);
-                }
+            if (isAboutToExpire(tokenCacheItem.getExpiresOn())) {
+                tokenItems.add(tokenCacheItem);
             }
+        }
 
 
         return tokenItems;
@@ -381,5 +368,5 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
         return mPrefs.contains(key);
     }
-    
+
 }

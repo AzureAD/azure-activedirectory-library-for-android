@@ -27,7 +27,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
@@ -40,6 +39,7 @@ import android.util.Base64;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.microsoft.identity.common.SharedPreferencesFileManager;
 
 import junit.framework.Assert;
 
@@ -1210,7 +1210,7 @@ public final class AuthenticationContextTest {
         // mock another silent request will only do token refresh
         Mockito.when(mockedConnection.getInputStream()).thenThrow(new IOException())
                 .thenReturn(Util.createInputStream(Util.getSuccessTokenResponse(true, true)),
-                Util.createInputStream(Util.getSuccessTokenResponse(true, false)));
+                        Util.createInputStream(Util.getSuccessTokenResponse(true, false)));
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_BAD_REQUEST, HttpURLConnection.HTTP_OK);
 
@@ -1345,8 +1345,8 @@ public final class AuthenticationContextTest {
     }
 
     /**
-     *  If multiple simultaneous acquireToken calls with the same authority are made without any authority cache,
-     *  only one authority validation network request is ever made.
+     * If multiple simultaneous acquireToken calls with the same authority are made without any authority cache,
+     * only one authority validation network request is ever made.
      */
     @Test
     public void testMultipleATCallsInDifferentThreadsOnlyOneAuthorityValidation() throws IOException, InterruptedException, ExecutionException {
@@ -1472,8 +1472,8 @@ public final class AuthenticationContextTest {
                 AuthenticationConstants.Browser.REQUEST_MESSAGE);
         assertTrue(requestMessage.getAuthority().contains("login.microsoftonline.com"));
 
-        final SharedPreferences sharedPreferences =  mockContext.getSharedPreferences("com.microsoft.aad.adal.cache", Activity.MODE_PRIVATE);
-        final Map<String, String> allTokens = (Map<String, String>) sharedPreferences.getAll();
+        final SharedPreferencesFileManager sharedPrefs = new SharedPreferencesFileManager(mockContext, "com.microsoft.aad.adal.cache");
+        final Map<String, String> allTokens = (Map<String, String>) sharedPrefs.getAll();
         final int expectedMapSize = 8;
         Assert.assertTrue(allTokens.size() == expectedMapSize);
         // also verify all the key are using preferred_cache
