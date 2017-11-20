@@ -24,6 +24,7 @@
 package com.microsoft.aad.adal;
 
 import org.json.JSONException;
+import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectoryTokenResponse;
 
 import java.io.Serializable;
 import java.util.Date;
