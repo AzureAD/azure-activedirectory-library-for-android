@@ -23,9 +23,8 @@
 
 package com.microsoft.aad.adal;
 
-import org.json.JSONException;
-import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectoryTokenResponse;
 
+import org.json.JSONException;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
@@ -454,4 +453,5 @@ public class AuthenticationResult implements Serializable {
             }
         }
     }
+
 }
