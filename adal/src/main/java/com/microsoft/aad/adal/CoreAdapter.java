@@ -22,6 +22,7 @@ final class CoreAdapter {
         adTokenResponse.setTokenType(result.getAccessTokenType());
         adTokenResponse.setRefreshToken(result.getRefreshToken());
         adTokenResponse.setExpiresOn(String.valueOf(result.getExpiresOn().getTime()));
+        adTokenResponse.setExtExpiresIn(String.valueOf(result.getExtendedExpiresOn().getTime()));
         adTokenResponse.setIdToken(result.getIdToken());
         // TODO populate other missing fields...
         return adTokenResponse;
