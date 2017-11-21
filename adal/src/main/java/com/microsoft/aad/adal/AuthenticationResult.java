@@ -384,5 +384,4 @@ public class AuthenticationResult implements Serializable {
     final void setCliTelemInfo(final CliTelemInfo cliTelemInfo) {
         mCliTelemInfo = cliTelemInfo;
     }
-
 }
