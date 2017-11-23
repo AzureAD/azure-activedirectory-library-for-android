@@ -69,7 +69,8 @@ interface IBrokerProxy {
      * @param request AuthenticationRequest
      * @return Intent
      */
-    Intent getIntentForBrokerActivity(final AuthenticationRequest request, final BrokerEvent brokerEvent);
+    Intent getIntentForBrokerActivity(final AuthenticationRequest request, final BrokerEvent brokerEvent)
+            throws AuthenticationException;
 
     /*
      * Gets user info from broker.

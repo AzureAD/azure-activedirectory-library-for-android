@@ -588,7 +588,8 @@ class BrokerProxy implements IBrokerProxy {
      * from calling app's activity to control the lifetime of the activity.
      */
     @Override
-    public Intent getIntentForBrokerActivity(final AuthenticationRequest request, final BrokerEvent brokerEvent) {
+    public Intent getIntentForBrokerActivity(final AuthenticationRequest request, final BrokerEvent brokerEvent)
+            throws AuthenticationException {
         final Bundle requestBundle = getBrokerOptions(request);
         final Intent intent;
         if (isBrokerAccountServiceSupported()) {

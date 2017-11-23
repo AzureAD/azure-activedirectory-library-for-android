@@ -75,6 +75,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
@@ -923,10 +924,13 @@ public class BrokerProxyTests {
 
         // action
         final BrokerProxy brokerProxy = new BrokerProxy(context);
-        final Intent intent = brokerProxy.getIntentForBrokerActivity(authRequest, null);
-
-        // assert
-        assertNull("Intent is null", intent);
+        try {
+            final Intent intent = brokerProxy.getIntentForBrokerActivity(authRequest, null);
+            // assert
+            assertNull("Intent is null", intent);
+        } catch (final AuthenticationException exc) {
+            fail("Not expected.");
+        }
     }
 
     @Test
@@ -951,12 +955,16 @@ public class BrokerProxyTests {
 
         // action
         final BrokerProxy brokerProxy = new BrokerProxy(context);
-        final Intent intent = brokerProxy.getIntentForBrokerActivity(authRequest, null);
+        try {
+            final Intent intent = brokerProxy.getIntentForBrokerActivity(authRequest, null);
 
-        // assert
-        assertNotNull("intent is not null", intent);
-        assertEquals("intent is not null", AuthenticationConstants.Broker.BROKER_REQUEST,
-                intent.getStringExtra(AuthenticationConstants.Broker.BROKER_REQUEST));
+            // assert
+            assertNotNull("intent is not null", intent);
+            assertEquals("intent is not null", AuthenticationConstants.Broker.BROKER_REQUEST,
+                    intent.getStringExtra(AuthenticationConstants.Broker.BROKER_REQUEST));
+        } catch (final AuthenticationException exc) {
+        fail("Not expected.");
+    }
     }
     
     /**
@@ -978,8 +986,12 @@ public class BrokerProxyTests {
         mockedContext.setMockedPackageManager(getMockedPackageManagerWithBrokerAccountServiceDisabled(mock(Signature.class),
                 AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, true));
         final BrokerProxy brokerProxy = new BrokerProxy(mockedContext);
-        final Intent returnedIntent = brokerProxy.getIntentForBrokerActivity(authenticationRequest, null);
-        assertTrue(returnedIntent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT).equalsIgnoreCase(PromptBehavior.Always.name()));
+        try {
+            final Intent returnedIntent = brokerProxy.getIntentForBrokerActivity(authenticationRequest, null);
+            assertTrue(returnedIntent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT).equalsIgnoreCase(PromptBehavior.Always.name()));
+        } catch (final AuthenticationException exc) {
+            fail("Not expected.");
+        }
     }
     
     /**
@@ -1004,8 +1016,12 @@ public class BrokerProxyTests {
                 AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, true));
 
         final BrokerProxy brokerProxy = new BrokerProxy(mockedContext);
-        final Intent returnedIntent = brokerProxy.getIntentForBrokerActivity(authenticationRequest, null);
-        assertTrue(returnedIntent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT).equalsIgnoreCase(PromptBehavior.FORCE_PROMPT.name()));
+        try {
+            final Intent returnedIntent = brokerProxy.getIntentForBrokerActivity(authenticationRequest, null);
+            assertTrue(returnedIntent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT).equalsIgnoreCase(PromptBehavior.FORCE_PROMPT.name()));
+        } catch (final AuthenticationException exc) {
+            fail("Not expected.");
+        }
     }
     
     /**
@@ -1030,9 +1046,12 @@ public class BrokerProxyTests {
                 AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, true));
 
         final BrokerProxy brokerProxy = new BrokerProxy(mockedContext);
-        final Intent returnedIntent = brokerProxy.getIntentForBrokerActivity(authenticationRequest, null);
-
-        assertTrue(returnedIntent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT).equalsIgnoreCase(PromptBehavior.Always.name()));
+        try {
+            final Intent returnedIntent = brokerProxy.getIntentForBrokerActivity(authenticationRequest, null);
+            assertTrue(returnedIntent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT).equalsIgnoreCase(PromptBehavior.Always.name()));
+        } catch (final AuthenticationException exc) {
+            fail("Not expected.");
+        }
     }
     
     private FileMockContext getMockedContext(final AccountManager mockedAccountManager) {
