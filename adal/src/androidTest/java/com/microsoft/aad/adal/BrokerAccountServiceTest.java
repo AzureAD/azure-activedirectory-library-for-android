@@ -260,9 +260,14 @@ public final class BrokerAccountServiceTest {
                 brokerEvent.setRequestId("1234");
                 Telemetry.getInstance().startEvent(brokerEvent.getTelemetryRequestId(), EventStrings.BROKER_REQUEST_INTERACTIVE);
 
-                final Intent intent = brokerProxy.getIntentForBrokerActivity(authRequest, brokerEvent);
-                assertTrue(Boolean.toString(true).equals(intent.getStringExtra(AuthenticationConstants.Broker.BROKER_SKIP_CACHE)));
-                assertTrue(claimsChallenge.equals(intent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_CLAIMS)));
+                try {
+                    final Intent intent = brokerProxy.getIntentForBrokerActivity(authRequest, brokerEvent);
+                    assertTrue(Boolean.toString(true).equals(intent.getStringExtra(AuthenticationConstants.Broker.BROKER_SKIP_CACHE)));
+                    assertTrue(claimsChallenge.equals(intent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_CLAIMS)));
+
+                } catch (final AuthenticationException exc) {
+                    fail("Exception is not expected.");
+                }
 
                 verifyBrokerEventList(brokerEvent);
                 latch.countDown();
