@@ -422,6 +422,24 @@ public class OauthTests {
     }
 
     @Test
+    public void testRefreshTokenWebResponseRetryAfterStatus() {
+        final int RetryAfter = 429;
+        MockWebRequestHandler webRequest = new MockWebRequestHandler();
+        webRequest.setReturnResponse(new HttpWebResponse(RetryAfter,
+                "responseBody", new HashMap<String, List<String>>()));
+
+        // send request
+        MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),
+                webRequest, "test");
+
+        // Verify that callback can receive this error
+        assertNull("AuthenticationResult is null", testResult.getAuthenticationResult());
+        assertNotNull("Exception is not null", testResult.getException());
+        assertTrue(testResult.getException() instanceof AuthenticationServiceException);
+        assertEquals("responseBody", ((AuthenticationServiceException)testResult.getException()).getBody());
+    }
+
+    @Test
     public void testRefreshTokenWebResponsePositive() {
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
         String json = "{\"access_token\":\"sometokenhere\",\"token_type\":\"Bearer\","
