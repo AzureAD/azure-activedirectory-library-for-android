@@ -227,12 +227,7 @@ final class BrokerAccountServiceHandler {
             }
         }
 
-        if (bundleResult.get() == null) {
-            Logger.e(TAG, "Get null intent from broker.", "", ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING);
-            throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, "Get null intent from broker.");
-        } else {
-            return bundleResult.getAndSet(null);
-        }
+        return bundleResult.getAndSet(null);
     }
 
     /**

@@ -266,7 +266,7 @@ public final class BrokerAccountServiceTest {
                     assertTrue(claimsChallenge.equals(intent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_CLAIMS)));
 
                 } catch (final AuthenticationException exc) {
-                    fail("Exception ia not expected.");
+                    fail("Exception is not expected.");
                 }
 
                 verifyBrokerEventList(brokerEvent);

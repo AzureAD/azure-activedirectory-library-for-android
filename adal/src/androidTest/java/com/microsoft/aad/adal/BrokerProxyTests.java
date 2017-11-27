@@ -75,7 +75,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
@@ -909,7 +908,7 @@ public class BrokerProxyTests {
 
     @Test
     public void testGetIntentForBrokerActivityEmptyIntent() throws NameNotFoundException, OperationCanceledException,
-            IOException, AuthenticatorException {
+            IOException, AuthenticatorException, AuthenticationException {
         final AuthenticationRequest authRequest = createAuthenticationRequest("https://login.windows.net/test", "resource", "client",
                 "redirect", "loginhint", PromptBehavior.Auto, "", UUID.randomUUID(), false);
         final AccountManager mockAcctManager = getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
@@ -924,18 +923,14 @@ public class BrokerProxyTests {
 
         // action
         final BrokerProxy brokerProxy = new BrokerProxy(context);
-        try {
-            final Intent intent = brokerProxy.getIntentForBrokerActivity(authRequest, null);
-            // assert
-            assertNull("Intent is null", intent);
-        } catch (final AuthenticationException exc) {
-            fail("Not expected.");
-        }
+        final Intent intent = brokerProxy.getIntentForBrokerActivity(authRequest, null);
+        // assert
+        assertNull("Intent is null", intent);
     }
 
     @Test
     public void testGetIntentForBrokerActivityHasIntent() throws NameNotFoundException, OperationCanceledException,
-            IOException, AuthenticatorException {
+            IOException, AuthenticatorException, AuthenticationException {
         final AuthenticationRequest authRequest = createAuthenticationRequest("https://login.windows.net/omercantest", "resource", "client",
                 "redirect", "loginhint", PromptBehavior.Auto, "", UUID.randomUUID(), false);
 
@@ -955,16 +950,12 @@ public class BrokerProxyTests {
 
         // action
         final BrokerProxy brokerProxy = new BrokerProxy(context);
-        try {
-            final Intent intent = brokerProxy.getIntentForBrokerActivity(authRequest, null);
+        final Intent intent = brokerProxy.getIntentForBrokerActivity(authRequest, null);
 
-            // assert
-            assertNotNull("intent is not null", intent);
-            assertEquals("intent is not null", AuthenticationConstants.Broker.BROKER_REQUEST,
-                    intent.getStringExtra(AuthenticationConstants.Broker.BROKER_REQUEST));
-        } catch (final AuthenticationException exc) {
-        fail("Not expected.");
-    }
+        // assert
+        assertNotNull("intent is not null", intent);
+        assertEquals("intent is not null", AuthenticationConstants.Broker.BROKER_REQUEST,
+                intent.getStringExtra(AuthenticationConstants.Broker.BROKER_REQUEST));
     }
     
     /**
@@ -972,7 +963,7 @@ public class BrokerProxyTests {
      * reset as always. 
      */
     @Test
-    public void testForcePromptFlagOldBroker() throws OperationCanceledException, IOException, AuthenticatorException, NameNotFoundException {
+    public void testForcePromptFlagOldBroker() throws OperationCanceledException, IOException, AuthenticatorException, NameNotFoundException, AuthenticationException {
         final Intent intent = new Intent();
         final AuthenticationRequest authenticationRequest = getAuthRequest(PromptBehavior.FORCE_PROMPT);
         intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT, authenticationRequest.getPrompt().name());
@@ -986,12 +977,8 @@ public class BrokerProxyTests {
         mockedContext.setMockedPackageManager(getMockedPackageManagerWithBrokerAccountServiceDisabled(mock(Signature.class),
                 AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, true));
         final BrokerProxy brokerProxy = new BrokerProxy(mockedContext);
-        try {
-            final Intent returnedIntent = brokerProxy.getIntentForBrokerActivity(authenticationRequest, null);
-            assertTrue(returnedIntent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT).equalsIgnoreCase(PromptBehavior.Always.name()));
-        } catch (final AuthenticationException exc) {
-            fail("Not expected.");
-        }
+        final Intent returnedIntent = brokerProxy.getIntentForBrokerActivity(authenticationRequest, null);
+        assertTrue(returnedIntent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT).equalsIgnoreCase(PromptBehavior.Always.name()));
     }
     
     /**
@@ -999,7 +986,7 @@ public class BrokerProxyTests {
      * as Force_Prompt. 
      */
     @Test
-    public void testForcePromptNewBroker() throws OperationCanceledException, IOException, AuthenticatorException, NameNotFoundException {
+    public void testForcePromptNewBroker() throws OperationCanceledException, IOException, AuthenticatorException, NameNotFoundException, AuthenticationException {
         final Intent intent = new Intent();
         final AuthenticationRequest authenticationRequest = getAuthRequest(PromptBehavior.FORCE_PROMPT);
         intent.putExtra(AuthenticationConstants.Broker.BROKER_VERSION, AuthenticationConstants.Broker.BROKER_PROTOCOL_VERSION);
@@ -1016,12 +1003,8 @@ public class BrokerProxyTests {
                 AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, true));
 
         final BrokerProxy brokerProxy = new BrokerProxy(mockedContext);
-        try {
-            final Intent returnedIntent = brokerProxy.getIntentForBrokerActivity(authenticationRequest, null);
-            assertTrue(returnedIntent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT).equalsIgnoreCase(PromptBehavior.FORCE_PROMPT.name()));
-        } catch (final AuthenticationException exc) {
-            fail("Not expected.");
-        }
+        final Intent returnedIntent = brokerProxy.getIntentForBrokerActivity(authenticationRequest, null);
+        assertTrue(returnedIntent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT).equalsIgnoreCase(PromptBehavior.FORCE_PROMPT.name()));
     }
     
     /**
@@ -1029,7 +1012,7 @@ public class BrokerProxyTests {
      * as always. 
      */
     @Test
-    public void testPromptAlwaysNewBroker() throws OperationCanceledException, IOException, AuthenticatorException, NameNotFoundException {
+    public void testPromptAlwaysNewBroker() throws OperationCanceledException, IOException, AuthenticatorException, NameNotFoundException, AuthenticationException {
         final Intent intent = new Intent();
         final AuthenticationRequest authenticationRequest = getAuthRequest(PromptBehavior.Always);
         intent.putExtra(AuthenticationConstants.Broker.BROKER_VERSION, AuthenticationConstants.Broker.BROKER_PROTOCOL_VERSION);
@@ -1046,12 +1029,8 @@ public class BrokerProxyTests {
                 AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, true));
 
         final BrokerProxy brokerProxy = new BrokerProxy(mockedContext);
-        try {
-            final Intent returnedIntent = brokerProxy.getIntentForBrokerActivity(authenticationRequest, null);
-            assertTrue(returnedIntent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT).equalsIgnoreCase(PromptBehavior.Always.name()));
-        } catch (final AuthenticationException exc) {
-            fail("Not expected.");
-        }
+        final Intent returnedIntent = brokerProxy.getIntentForBrokerActivity(authenticationRequest, null);
+        assertTrue(returnedIntent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT).equalsIgnoreCase(PromptBehavior.Always.name()));
     }
     
     private FileMockContext getMockedContext(final AccountManager mockedAccountManager) {
