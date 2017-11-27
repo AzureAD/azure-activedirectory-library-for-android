@@ -528,7 +528,7 @@ class Oauth2 {
                         throw e;
                     } else {
                         Logger.v(TAG, "WebResponse is not a success due to: " + response.getStatusCode());
-                        throw new AuthenticationException(ADALError.SERVER_ERROR, "WebResponse is not a success due to: " + response.getStatusCode());
+                        throw new AuthenticationServiceException(response);
                     }
                 }
                 ClientMetrics.INSTANCE.setLastError(null);
@@ -537,7 +537,7 @@ class Oauth2 {
                 // non-protocol related error
                 String errMessage = isBodyEmpty ? "Status code:" + response.getStatusCode() : response.getBody();
                 Logger.e(TAG, "Server error message", errMessage, ADALError.SERVER_ERROR);
-                throw new AuthenticationException(ADALError.SERVER_ERROR, errMessage);
+                throw new AuthenticationServiceException(response);
             } else {
                 ClientMetrics.INSTANCE.setLastErrorCodes(result.getErrorCodes());
             }
@@ -660,6 +660,7 @@ class Oauth2 {
         if (statusCode == HttpURLConnection.HTTP_OK
                 || statusCode == HttpURLConnection.HTTP_BAD_REQUEST
                 || statusCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
+            //If the status code is 200, 400 or 401
             try {
                 result = parseJsonResponse(webResponse.getBody());
                 if (result != null) {
@@ -672,9 +673,11 @@ class Oauth2 {
                 throw new AuthenticationException(ADALError.SERVER_INVALID_JSON_RESPONSE, "Can't parse server response " + webResponse.getBody(), jsonException);
             }
         } else if (statusCode >= HttpURLConnection.HTTP_INTERNAL_ERROR && statusCode <= MAX_RESILIENCY_ERROR_CODE) {
+            // If the status code is 5xx.
             throw new ServerRespondingWithRetryableException("Server Error " + statusCode + " " + webResponse.getBody());
         } else {
-            throw new AuthenticationException(ADALError.SERVER_ERROR, "Unexpected server response " + statusCode + " " + webResponse.getBody());
+            // The AuthenticationServiceException will be thrown for all other unexpected status code.
+            throw new AuthenticationServiceException(webResponse);
         }
 
         // Set correlationId in the result
