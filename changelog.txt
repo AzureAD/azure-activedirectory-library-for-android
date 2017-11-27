@@ -1,4 +1,4 @@
-Version 1.13.2.1
+Version 1.13.3
 -------------
 (Hotfix) Fix the crash when broker returns null for getIntentForInteractiveRequest
 
