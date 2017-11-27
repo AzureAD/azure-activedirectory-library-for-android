@@ -1,3 +1,7 @@
+Version 1.13.3
+-------------
+(Hotfix) Fix the crash when broker returns null for getIntentForInteractiveRequest
+
 Version 1.13.2
 -------------
 Add cache update for authority migration. New token will always be written into the preferred cache location. For read, try preferred_cache first, followed by provided authority and aliased authority.
