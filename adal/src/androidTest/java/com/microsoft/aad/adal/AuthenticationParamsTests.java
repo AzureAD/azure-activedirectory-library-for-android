@@ -30,6 +30,7 @@ import android.util.Log;
 import com.microsoft.aad.adal.AuthenticationParameters.AuthenticationParamCallback;
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
+import com.microsoft.identity.common.adal.error.ADALError;
 import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 

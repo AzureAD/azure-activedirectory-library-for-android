@@ -23,6 +23,9 @@
 
 package com.microsoft.aad.adal;
 
+import com.microsoft.identity.common.adal.error.ADALError;
+import com.microsoft.identity.common.adal.error.AuthenticationException;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.io.UnsupportedEncodingException;
@@ -102,7 +105,7 @@ class ChallengeResponseBuilder {
      * @return Return Device challenge response
      */
     public ChallengeResponse getChallengeResponseFromUri(final String redirectUri)
-            throws AuthenticationException  {
+            throws AuthenticationException {
         ChallengeRequest request = getChallengeRequest(redirectUri);
         return getDeviceCertResponse(request);
     }

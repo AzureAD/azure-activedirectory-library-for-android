@@ -28,6 +28,8 @@ import android.support.test.runner.AndroidJUnit4;
 import android.util.Base64;
 import android.util.Log;
 
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+
 import junit.framework.Assert;
 
 import org.junit.Test;

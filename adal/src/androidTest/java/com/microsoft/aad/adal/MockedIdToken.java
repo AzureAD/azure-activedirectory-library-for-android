@@ -24,6 +24,8 @@ package com.microsoft.aad.adal;
 
 import android.util.Base64;
 
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+
 import java.io.UnsupportedEncodingException;
 
 class MockedIdToken {

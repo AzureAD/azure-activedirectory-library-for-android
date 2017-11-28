@@ -24,6 +24,7 @@
 package com.microsoft.aad.adal;
 
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
+import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
 
 import junit.framework.Assert;
 

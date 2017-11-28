@@ -23,6 +23,9 @@
 
 package com.microsoft.aad.adal;
 
+import com.microsoft.identity.common.adal.error.ADALError;
+import com.microsoft.identity.common.adal.error.AuthenticationException;
+
 /**
  * ADAL exception for the case when server response doesn't have expected data
  * e.g. missing header, wrong status code, invalid format

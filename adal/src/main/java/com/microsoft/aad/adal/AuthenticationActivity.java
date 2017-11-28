@@ -23,9 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-
 import android.accounts.Account;
 import android.accounts.AccountAuthenticatorResponse;
 import android.accounts.AccountManager;
@@ -44,7 +41,6 @@ import android.security.KeyChain;
 import android.security.KeyChainAliasCallback;
 import android.security.KeyChainException;
 import android.support.v4.content.LocalBroadcastManager;
-import com.microsoft.aad.adal.Logger;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
@@ -56,6 +52,13 @@ import android.webkit.WebView;
 
 import com.google.gson.Gson;
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
+import com.microsoft.identity.common.adal.error.ADALError;
+import com.microsoft.identity.common.adal.error.AuthenticationException;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
+import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
+import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.io.IOException;
 import java.io.Serializable;
