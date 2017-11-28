@@ -363,7 +363,7 @@ class BrokerProxy implements IBrokerProxy {
             } catch (final AuthenticatorException e) {
                 // Error code BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN will be thrown if there was an error
                 // communicating with the authenticator or if the authenticator returned an invalid response.
-                if (!StringExtensions.isNullOrBlank(e.getMessage()) && e.getMessage().contains(INVALID_GRANT)){
+                if (!StringExtensions.isNullOrBlank(e.getMessage()) && e.getMessage().contains(INVALID_GRANT)) {
                     Logger.e(TAG, AUTHENTICATOR_CANCELS_REQUEST,
                             "Acquire token failed with 'invalid grant' error, cannot proceed with silent request.",
                             ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
@@ -462,7 +462,7 @@ class BrokerProxy implements IBrokerProxy {
                     if (msg.contains(ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION.getDescription())) {
                         adalErrorCode = ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION;
                         break;
-                    } else if (msg.contains(ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE.getDescription())){
+                    } else if (msg.contains(ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE.getDescription())) {
                         adalErrorCode = ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE;
                         break;
                     } else {
@@ -588,12 +588,18 @@ class BrokerProxy implements IBrokerProxy {
      * from calling app's activity to control the lifetime of the activity.
      */
     @Override
-    public Intent getIntentForBrokerActivity(final AuthenticationRequest request, final BrokerEvent brokerEvent) {
+    public Intent getIntentForBrokerActivity(final AuthenticationRequest request, final BrokerEvent brokerEvent)
+            throws AuthenticationException {
         final Bundle requestBundle = getBrokerOptions(request);
         final Intent intent;
         if (isBrokerAccountServiceSupported()) {
             intent = BrokerAccountServiceHandler.getInstance().getIntentForInteractiveRequest(mContext, brokerEvent);
-            intent.putExtras(requestBundle);
+            if (intent == null) {
+                Logger.e(TAG, "Received null intent from broker interactive request.", null, ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING);
+                throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, "Received null intent from broker interactive request.");
+            } else {
+                intent.putExtras(requestBundle);
+            }
         } else {
             intent = getIntentForBrokerActivityFromAccountManager(requestBundle);
         }

@@ -908,7 +908,7 @@ public class BrokerProxyTests {
 
     @Test
     public void testGetIntentForBrokerActivityEmptyIntent() throws NameNotFoundException, OperationCanceledException,
-            IOException, AuthenticatorException {
+            IOException, AuthenticatorException, AuthenticationException {
         final AuthenticationRequest authRequest = createAuthenticationRequest("https://login.windows.net/test", "resource", "client",
                 "redirect", "loginhint", PromptBehavior.Auto, "", UUID.randomUUID(), false);
         final AccountManager mockAcctManager = getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
@@ -924,14 +924,13 @@ public class BrokerProxyTests {
         // action
         final BrokerProxy brokerProxy = new BrokerProxy(context);
         final Intent intent = brokerProxy.getIntentForBrokerActivity(authRequest, null);
-
         // assert
         assertNull("Intent is null", intent);
     }
 
     @Test
     public void testGetIntentForBrokerActivityHasIntent() throws NameNotFoundException, OperationCanceledException,
-            IOException, AuthenticatorException {
+            IOException, AuthenticatorException, AuthenticationException {
         final AuthenticationRequest authRequest = createAuthenticationRequest("https://login.windows.net/omercantest", "resource", "client",
                 "redirect", "loginhint", PromptBehavior.Auto, "", UUID.randomUUID(), false);
 
@@ -964,7 +963,7 @@ public class BrokerProxyTests {
      * reset as always. 
      */
     @Test
-    public void testForcePromptFlagOldBroker() throws OperationCanceledException, IOException, AuthenticatorException, NameNotFoundException {
+    public void testForcePromptFlagOldBroker() throws OperationCanceledException, IOException, AuthenticatorException, NameNotFoundException, AuthenticationException {
         final Intent intent = new Intent();
         final AuthenticationRequest authenticationRequest = getAuthRequest(PromptBehavior.FORCE_PROMPT);
         intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT, authenticationRequest.getPrompt().name());
@@ -987,7 +986,7 @@ public class BrokerProxyTests {
      * as Force_Prompt. 
      */
     @Test
-    public void testForcePromptNewBroker() throws OperationCanceledException, IOException, AuthenticatorException, NameNotFoundException {
+    public void testForcePromptNewBroker() throws OperationCanceledException, IOException, AuthenticatorException, NameNotFoundException, AuthenticationException {
         final Intent intent = new Intent();
         final AuthenticationRequest authenticationRequest = getAuthRequest(PromptBehavior.FORCE_PROMPT);
         intent.putExtra(AuthenticationConstants.Broker.BROKER_VERSION, AuthenticationConstants.Broker.BROKER_PROTOCOL_VERSION);
@@ -1013,7 +1012,7 @@ public class BrokerProxyTests {
      * as always. 
      */
     @Test
-    public void testPromptAlwaysNewBroker() throws OperationCanceledException, IOException, AuthenticatorException, NameNotFoundException {
+    public void testPromptAlwaysNewBroker() throws OperationCanceledException, IOException, AuthenticatorException, NameNotFoundException, AuthenticationException {
         final Intent intent = new Intent();
         final AuthenticationRequest authenticationRequest = getAuthRequest(PromptBehavior.Always);
         intent.putExtra(AuthenticationConstants.Broker.BROKER_VERSION, AuthenticationConstants.Broker.BROKER_PROTOCOL_VERSION);
@@ -1031,7 +1030,6 @@ public class BrokerProxyTests {
 
         final BrokerProxy brokerProxy = new BrokerProxy(mockedContext);
         final Intent returnedIntent = brokerProxy.getIntentForBrokerActivity(authenticationRequest, null);
-
         assertTrue(returnedIntent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT).equalsIgnoreCase(PromptBehavior.Always.name()));
     }
     
