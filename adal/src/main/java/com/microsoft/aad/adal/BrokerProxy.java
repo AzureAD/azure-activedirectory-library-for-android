@@ -44,11 +44,11 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Base64;
 
-import com.microsoft.identity.common.SharedPreferencesFileManager;
 import com.microsoft.identity.common.adal.error.ADALError;
 import com.microsoft.identity.common.adal.error.AuthenticationException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
