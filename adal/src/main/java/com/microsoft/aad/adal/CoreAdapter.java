@@ -37,7 +37,7 @@ final class CoreAdapter {
      */
     public static UserInfo asUserInfo(final AzureActiveDirectoryAccount account) {
         return new UserInfo(
-                account.getUserIdentifier(),
+                account.getUserId(),
                 account.getName(),
                 null, // TODO Need to get the 'family name' attribute
                 account.getIdentityProvider(),
@@ -57,7 +57,7 @@ final class CoreAdapter {
         adTokenResponse.setTokenType(result.getAccessTokenType());
         adTokenResponse.setRefreshToken(result.getRefreshToken());
         adTokenResponse.setExpiresOn(String.valueOf(result.getExpiresOn().getTime()));
-        adTokenResponse.setExtExpiresIn(String.valueOf(result.getExtendedExpiresOn().getTime()));
+        adTokenResponse.setExtExpiresOn(String.valueOf(result.getExtendedExpiresOn().getTime()));
         adTokenResponse.setIdToken(result.getIdToken());
         // TODO populate other missing fields...
         return adTokenResponse;
