@@ -23,14 +23,14 @@
 
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
-
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import com.microsoft.aad.adal.AuthenticationConstants.AAD;
+import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
+import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 
 import org.junit.After;
 import org.junit.Before;

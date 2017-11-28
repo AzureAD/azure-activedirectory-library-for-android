@@ -23,12 +23,13 @@
 
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
-
 import android.content.Context;
 import android.os.Build;
 import android.os.Debug;
 import android.os.Process;
+
+import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
+import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 
 import java.io.BufferedReader;
 import java.io.Closeable;
