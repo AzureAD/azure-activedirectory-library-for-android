@@ -28,6 +28,8 @@ import android.accounts.OperationCanceledException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 
+import com.microsoft.identity.common.adal.error.AuthenticationException;
+
 import java.io.IOException;
 
 interface IBrokerProxy {

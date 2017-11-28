@@ -25,6 +25,8 @@ package com.microsoft.aad.adal;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import com.microsoft.identity.common.adal.error.AuthenticationException;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

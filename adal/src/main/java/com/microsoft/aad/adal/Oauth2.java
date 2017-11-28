@@ -23,15 +23,18 @@
 
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
-
 import android.net.Uri;
 import android.os.Build;
 import android.text.TextUtils;
 import android.util.Base64;
 
 import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
+import com.microsoft.identity.common.adal.error.ADALError;
+import com.microsoft.identity.common.adal.error.AuthenticationException;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
+import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -51,8 +54,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static com.microsoft.aad.adal.TelemetryUtils.CliTelemInfo;
-
-import static com.microsoft.aad.adal.AuthenticationConstants.HeaderField.X_MS_CLITELEM;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.HeaderField.X_MS_CLITELEM;
 
 /**
  * Base Oauth class.

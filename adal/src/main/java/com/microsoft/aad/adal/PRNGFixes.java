@@ -34,7 +34,7 @@ package com.microsoft.aad.adal;
 
 import android.os.Build;
 import android.os.Process;
-
+import com.microsoft.identity.common.adal.error.ADALError;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

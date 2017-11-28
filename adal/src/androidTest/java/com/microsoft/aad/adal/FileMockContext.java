@@ -42,6 +42,9 @@ import android.test.mock.MockContentResolver;
 import android.test.mock.MockContext;
 import android.test.mock.MockPackageManager;
 
+import com.microsoft.identity.common.adal.internal.PowerManagerWrapper;
+import com.microsoft.identity.common.adal.internal.UsageStatsManagerWrapper;
+
 import org.mockito.Mockito;
 
 import java.io.File;

@@ -25,6 +25,8 @@ package com.microsoft.aad.adal;
 
 
 import org.json.JSONException;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;

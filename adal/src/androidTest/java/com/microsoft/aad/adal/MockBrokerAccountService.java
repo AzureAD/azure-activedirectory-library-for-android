@@ -32,6 +32,9 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
 
+import com.microsoft.identity.common.adal.error.ADALError;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+
 import java.io.IOException;
 import java.util.Map;
 

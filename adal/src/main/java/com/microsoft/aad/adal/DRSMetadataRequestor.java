@@ -23,9 +23,11 @@
 
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
-
 import com.google.gson.JsonSyntaxException;
+import com.microsoft.identity.common.adal.error.ADALError;
+import com.microsoft.identity.common.adal.error.AuthenticationException;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -35,10 +37,10 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.microsoft.aad.adal.AuthenticationConstants.HeaderField.ACCEPT;
-import static com.microsoft.aad.adal.AuthenticationConstants.MediaType.APPLICATION_JSON;
 import static com.microsoft.aad.adal.DRSMetadataRequestor.Type.CLOUD;
 import static com.microsoft.aad.adal.DRSMetadataRequestor.Type.ON_PREM;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.HeaderField.ACCEPT;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.MediaType.APPLICATION_JSON;
 
 /**
  * Delegate class capable of fetching DRS discovery metadata documents.

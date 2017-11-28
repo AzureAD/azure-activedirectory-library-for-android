@@ -22,9 +22,6 @@
 //  THE SOFTWARE.
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
-
 import android.content.Context;
 import android.os.Build;
 import android.support.test.InstrumentationRegistry;
@@ -33,6 +30,13 @@ import android.support.test.runner.AndroidJUnit4;
 import android.test.suitebuilder.annotation.SmallTest;
 
 import com.microsoft.aad.adal.AuthenticationRequest.UserIdentifierType;
+import com.microsoft.identity.common.adal.error.ADALError;
+import com.microsoft.identity.common.adal.error.AuthenticationException;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
+import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
+import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import org.json.JSONException;
 import org.junit.After;

@@ -29,6 +29,8 @@ import android.support.test.runner.AndroidJUnit4;
 
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
+import com.microsoft.identity.common.adal.error.ADALError;
+import com.microsoft.identity.common.adal.error.AuthenticationException;
 
 import org.junit.After;
 import org.junit.Before;

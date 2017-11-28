@@ -23,8 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
-
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;
@@ -38,6 +36,11 @@ import android.support.test.runner.AndroidJUnit4;
 import android.test.RenamingDelegatingContext;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+
+import com.microsoft.identity.common.adal.error.ADALError;
+import com.microsoft.identity.common.adal.error.AuthenticationException;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 
 import org.junit.Before;
 import org.junit.Rule;

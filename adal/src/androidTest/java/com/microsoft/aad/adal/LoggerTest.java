@@ -27,6 +27,7 @@ import android.support.test.runner.AndroidJUnit4;
 
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
+import com.microsoft.identity.common.adal.error.ADALError;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

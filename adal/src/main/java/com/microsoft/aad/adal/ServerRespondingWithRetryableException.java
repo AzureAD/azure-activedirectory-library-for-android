@@ -23,6 +23,8 @@
 
 package com.microsoft.aad.adal;
 
+import com.microsoft.identity.common.adal.error.AuthenticationException;
+
 /**
  * server responding with retryable error.
  */

@@ -23,12 +23,14 @@
 
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-
 import android.util.Base64;
 
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
+import com.microsoft.identity.common.adal.error.ADALError;
+import com.microsoft.identity.common.adal.error.AuthenticationException;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;

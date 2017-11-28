@@ -27,9 +27,9 @@ import android.app.Application;
 import android.os.Build;
 import android.webkit.WebView;
 
-import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.Logger;
+import com.microsoft.identity.common.adal.error.ADALError;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;

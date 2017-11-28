@@ -22,8 +22,6 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -37,6 +35,10 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
+import com.microsoft.identity.common.adal.error.ADALError;
+import com.microsoft.identity.common.adal.error.AuthenticationException;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.util.HashMap;
 import java.util.Locale;
