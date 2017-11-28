@@ -33,9 +33,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.microsoft.aad.adal.AuthenticationCallback;
-import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.aad.adal.AuthenticationContext;
-import com.microsoft.aad.adal.AuthenticationException;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.CacheKey;
@@ -43,6 +41,8 @@ import com.microsoft.aad.adal.ITokenCacheStore;
 import com.microsoft.aad.adal.PromptBehavior;
 import com.microsoft.aad.adal.TokenCacheItem;
 import com.microsoft.aad.adal.UserInfo;
+import com.microsoft.identity.common.adal.error.AuthenticationException;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 
 import org.json.JSONException;
 import org.json.JSONObject;

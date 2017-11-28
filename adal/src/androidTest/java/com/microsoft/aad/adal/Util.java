@@ -22,10 +22,12 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-
 import android.util.Base64;
 import android.util.Log;
+
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import org.json.JSONException;
 import org.json.JSONObject;

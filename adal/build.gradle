@@ -102,7 +102,7 @@ dependencies {
     compile "com.android.support:support-v4:$rootProject.ext.supportLibraryVersion"
     compile project(":common")
 
-    // Android Instrumental Test Dependencies
+    // Android Instrumented Test Dependencies
     androidTestCompile "com.android.support.test:runner:$rootProject.ext.runnerVersion"
     androidTestCompile "com.android.support.test:rules:$rootProject.ext.rulesVersion"
     androidTestCompile "org.mockito:mockito-core:$rootProject.ext.mockitoCoreVersion"

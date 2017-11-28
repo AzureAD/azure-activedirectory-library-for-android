@@ -32,6 +32,8 @@ import android.support.test.InstrumentationRegistry;
 import android.util.Base64;
 import android.util.Log;
 
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+
 import org.junit.Before;
 
 import java.security.MessageDigest;

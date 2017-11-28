@@ -22,9 +22,15 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-
 import android.content.Context;
+
+import com.microsoft.identity.common.adal.error.ADALError;
+import com.microsoft.identity.common.adal.error.AuthenticationException;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.net.HttpWebRequest;
+import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
+import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -45,7 +51,7 @@ class AcquireTokenSilentHandler {
 
     /**
      * TODO: Remove(https://github.com/AzureAD/azure-activedirectory-library-for-android/issues/626). 
-     * {@link HttpUrlConnectionFactory} provides the possibility to 
+     * {@link com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory} provides the possibility to
      * mock the real connection. Needs to update the class to make different response based on 
      * post message. 
      */

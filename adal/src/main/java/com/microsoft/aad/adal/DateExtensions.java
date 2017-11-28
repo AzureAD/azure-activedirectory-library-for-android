@@ -22,12 +22,6 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-
-import android.net.Uri;
-
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Date;
 
 final class DateExtensions {

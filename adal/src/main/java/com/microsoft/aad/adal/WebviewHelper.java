@@ -23,12 +23,13 @@
 
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-
 import android.content.Intent;
 import android.text.TextUtils;
 
 import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
+import com.microsoft.identity.common.adal.error.AuthenticationException;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;

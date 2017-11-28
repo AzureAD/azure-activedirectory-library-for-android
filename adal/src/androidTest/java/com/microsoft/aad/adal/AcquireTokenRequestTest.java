@@ -39,10 +39,15 @@ import android.content.pm.Signature;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.test.runner.AndroidJUnit4;
 import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 import android.util.Base64;
 import android.util.Log;
+
+import com.microsoft.identity.common.adal.error.ADALError;
+import com.microsoft.identity.common.adal.error.AuthenticationException;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
 
 import org.json.JSONException;
 import org.junit.After;

@@ -23,10 +23,11 @@
 
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-
 import android.net.Uri;
 import android.os.Bundle;
+
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.io.Serializable;
 import java.util.Calendar;

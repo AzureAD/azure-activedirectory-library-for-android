@@ -23,12 +23,18 @@
 
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.internal.util.HashMapExtensions;
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
-
 import android.content.Context;
 import android.net.Uri;
+
+import com.microsoft.identity.common.adal.error.ADALError;
+import com.microsoft.identity.common.adal.error.AuthenticationException;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.net.HttpWebRequest;
+import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
+import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
+import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;
+import com.microsoft.identity.common.adal.internal.util.HashMapExtensions;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import org.json.JSONException;
 
