@@ -35,6 +35,7 @@ import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
 import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;
 import com.microsoft.identity.common.adal.internal.util.HashMapExtensions;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectory;
 
 import org.json.JSONException;
 
@@ -243,6 +244,13 @@ final class Discovery {
         try {
             queryUrl = buildQueryString(trustedHost, getAuthorizationCommonEndpoint(authorityUrl));
             final Map<String, String> discoveryResponse = sendRequest(queryUrl);
+
+            // Set the Cloud instance discovery metadata on the AAD IdentityProvider
+            AzureActiveDirectory.initializeCloudMetadata(
+                    authorityUrl.getHost().toLowerCase(Locale.US),
+                    discoveryResponse
+            );
+
             AuthorityValidationMetadataCache.processInstanceDiscoveryMetadata(authorityUrl, discoveryResponse);
             if (!AuthorityValidationMetadataCache.containsAuthorityHost(authorityUrl)) {
                 ArrayList<String> aliases = new ArrayList<String>();
