@@ -23,6 +23,7 @@
 
 package com.microsoft.aad.adal.example.userappwithbroker;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
@@ -39,20 +40,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
-import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationCallback;
 import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.IDispatcher;
-import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.PromptBehavior;
 import com.microsoft.aad.adal.Telemetry;
-import com.microsoft.aad.adal.UserInfo;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
@@ -66,7 +63,7 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
- * Sample for acquiring token via broker. 
+ * Sample for acquiring token via broker.
  */
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener,
         AcquireTokenFragment.OnFragmentInteractionListener {
@@ -74,6 +71,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private static final String TAG = "UserAppWithBroker.Main";
 
     private SharedPreferences mSharedPreference;
+    private Context mApplicationContext;
+
     private static final String SHARED_PREFERENCE_STORE_USER_UNIQUEID = "user.app.withbroker.uniqueidstorage";
 
     private String mLoginhint;
@@ -88,12 +87,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private RelativeLayout mContentMain;
 
-    private EditText mEditText;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mApplicationContext = getApplicationContext();
         setUpADALForCallingBroker();
 
         mContentMain = (RelativeLayout) findViewById(R.id.content_main);
@@ -113,8 +111,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             // auto select the first item
             onNavigationItemSelected(navigationView.getMenu().getItem(0));
         }
-
-        mEditText = (EditText)findViewById(R.id.extraQP);
     }
 
     @Override
@@ -161,7 +157,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         prepareRequestParameters(requestOptions);
 
         callAcquireTokenWithResource(requestOptions.getDataProfile().getText(), requestOptions.getBehavior(),
-                requestOptions.getLoginHint(), requestOptions.getClientId().getText(), requestOptions.getRedirectUri().getText());
+                requestOptions.getLoginHint(), requestOptions.getClientId().getText(), requestOptions.getRedirectUri().getText(), requestOptions.getExtraQp());
     }
 
     @Override
@@ -174,11 +170,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     void prepareRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions) {
-        mAuthority = requestOptions.getAuthorityType().getText();
-
-        if (mAuthContext == null || !mAuthContext.getAuthority().equals(mAuthority)) {
-            mAuthContext = new AuthenticationContext(getApplicationContext(), mAuthority, true);
+        final String authority = getAuthorityBasedOnUPN(requestOptions.getLoginHint());
+        if (null != authority && !authority.isEmpty()) {
+            mAuthority = authority;
+            mAuthContext = new AuthenticationContext(mApplicationContext, mAuthority, false);
+        } else {
+            mAuthority = requestOptions.getAuthorityType().getText();
+            if (mAuthContext == null) {
+                mAuthContext = new AuthenticationContext(mApplicationContext, mAuthority, true);
+            }
         }
+
         mLoginhint = requestOptions.getLoginHint();
         mPromptBehavior = requestOptions.getBehavior();
     }
@@ -205,40 +207,40 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     /**
      * To call broker, you have to ensure the following:
-     * 1) You have to call {@link AuthenticationSettings#INSTANCE#setUseBroker(boolean)}  
+     * 1) You have to call {@link AuthenticationSettings#INSTANCE#setUseBroker(boolean)}
      *    and the supplied value has to be true
-     * 2) You have to have to correct set of permissions. 
+     * 2) You have to have to correct set of permissions.
      *    If target API version is lower than 23:
      *    i) You have to have GET_ACCOUNTS, USE_CREDENTIAL, MANAGE_ACCOUNTS declared
-     *       in manifest. 
+     *       in manifest.
      *    If target API version is 23:
      *    i)  USE_CREDENTIAL and MANAGE_ACCOUNTS is already deprecated.
      *    ii) GET_ACCOUNTS permission is now at protection level "dangerous" calling app
-     *        is responsible for requesting it. 
-     * 3) If you're talking to the broker app without PRT support, you have to have an 
+     *        is responsible for requesting it.
+     * 3) If you're talking to the broker app without PRT support, you have to have an
      *    WPJ account existed in broker(enroll with intune, or register with Azure
-     *    Authentication app). 
-     * 4) The two broker apps(Company Portal or Azure Authenticator) cannot go through 
+     *    Authentication app).
+     * 4) The two broker apps(Company Portal or Azure Authenticator) cannot go through
      *    broker auth.
      */
     private void setUpADALForCallingBroker() {
         // Set the calling app will talk to broker
         // Note: Starting from version 1.1.14, calling app has to explicitly call
-        // AuthenticationSettings.Instance.setUserBroker(true) to call broker. 
-        // AuthenticationSettings.Instance.setSkipBroker(boolean) is already deprecated. 
+        // AuthenticationSettings.Instance.setUserBroker(true) to call broker.
+        // AuthenticationSettings.Instance.setSkipBroker(boolean) is already deprecated.
         AuthenticationSettings.INSTANCE.setUseBroker(true);
-        
+
         // Provide secret key for token encryption.
         try {
-            // For API version lower than 18, you have to provide the secret key. The secret key 
-            // needs to be 256 bits. You can use the following way to generate the secret key. And 
-            // use AuthenticationSettings.Instance.setSecretKey(secretKeyBytes) to supply us the key. 
+            // For API version lower than 18, you have to provide the secret key. The secret key
+            // needs to be 256 bits. You can use the following way to generate the secret key. And
+            // use AuthenticationSettings.Instance.setSecretKey(secretKeyBytes) to supply us the key.
             // For API version 18 and above, we use android keystore to generate keypair, and persist
             // the keypair in AndroidKeyStore. Current investigation shows 1)Keystore may be locked with
-            // a lock screen, if calling app has a lot of background activity, keystore cannot be 
+            // a lock screen, if calling app has a lot of background activity, keystore cannot be
             // accessed when locked, we'll be unable to decrypt the cache items 2) AndroidKeystore could
             // be reset when gesture to unlock the device is changed.
-            // We do recommend the calling app the supply us the key with the above two limitations. 
+            // We do recommend the calling app the supply us the key with the above two limitations.
             if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
                 // use same key for tests
                 SecretKeyFactory keyFactory = SecretKeyFactory
@@ -250,7 +252,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         } catch (NoSuchAlgorithmException | InvalidKeySpecException | UnsupportedEncodingException ex) {
             showMessage("Fail to generate secret key:" + ex.getMessage());
-        } 
+        }
 
         ApplicationInfo appInfo = getApplicationContext().getApplicationInfo();
         Log.v(TAG, "App info:" + appInfo.uid + " package:" + appInfo.packageName);
@@ -261,9 +263,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void callAcquireTokenWithResource(final String resource, PromptBehavior prompt, final String loginHint,
-                                              final String clientId, final String redirectUri) {
+                                              final String clientId, final String redirectUri, final String extraQp) {
         mAuthContext.acquireToken(MainActivity.this, resource, clientId, redirectUri, loginHint,
-                prompt, "", new AuthenticationCallback<AuthenticationResult>() {
+                prompt, extraQp, new AuthenticationCallback<AuthenticationResult>() {
 
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {
@@ -282,31 +284,33 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     }
                 });
     }
-    
+
     /**
      * Retrieves user unique id from {@link AuthenticationResult}, and save it into shared preference
-     * for later use.  
-     * To make the sample app easier, the saved data will be keyed by displayable id. 
+     * for later use.
+     * To make the sample app easier, the saved data will be keyed by displayable id.
      */
     private void saveUserIdFromAuthenticationResult(final AuthenticationResult authResult) {
         mSharedPreference = getSharedPreferences(SHARED_PREFERENCE_STORE_USER_UNIQUEID, MODE_PRIVATE);
 
         final SharedPreferences.Editor prefEditor = mSharedPreference.edit();
         prefEditor.putString(authResult.getUserInfo().getDisplayableId(), authResult.getUserInfo().getUserId());
-        
+        if (authResult.getAuthority() != null) {
+            prefEditor.putString(authResult.getUserInfo().getDisplayableId() + "authority", authResult.getAuthority());
+        }
         prefEditor.apply();
     }
-    
+
     /**
      * For the sake of simplicity of the sample app, used id stored in the shared preference is keyed
-     * by displayable id. 
+     * by displayable id.
      */
     private String getUserIdBasedOnUPN(final String upn) {
         mSharedPreference = getSharedPreferences(SHARED_PREFERENCE_STORE_USER_UNIQUEID, MODE_PRIVATE);
-        
+
         return mSharedPreference.getString(upn, null);
     }
-    
+
     /**
      * Silent acquire token call. Requires to pass the user unique id. If user unique id is not passed, 
      * silent call to broker will be skipped. 
@@ -325,6 +329,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 showMessage("Error occurred when acquiring token silently: " + exc.getMessage());
             }
         });
+    }
+
+    private String getAuthorityBasedOnUPN(final String upn) {
+        mSharedPreference = getSharedPreferences(SHARED_PREFERENCE_STORE_USER_UNIQUEID, MODE_PRIVATE);
+        return mSharedPreference.getString(upn+"authority", null);
     }
 
 }

@@ -217,6 +217,8 @@ public final class AuthenticationConstants {
         static final String EXT_EXPIRES_IN = "ext_expires_in";
 
         static final String CLAIMS = "claims";
+
+        static final String CLOUD_INSTANCE_HOST_NAME = "cloud_instance_host_name";
     }
 
     /**
@@ -491,7 +493,7 @@ public final class AuthenticationConstants {
         /** String for ssl prefix. */
         public static final String REDIRECT_SSL_PREFIX = "https://";
 
-        /** Integer for token expiration buffer. see AuthenticationSettings.mExpirationBuffer */
+        /** Integer for token expiration buffer. */
         public static final String EXPIRATION_BUFFER = "expiration.buffer";
 
         /**

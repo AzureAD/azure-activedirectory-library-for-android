@@ -91,6 +91,8 @@ public class AuthenticationResult implements Serializable {
 
     private Date mExtendedExpiresOn;
 
+    private String mAuthority;
+
     private CliTelemInfo mCliTelemInfo;
 
     AuthenticationResult() {
@@ -293,7 +295,7 @@ public class AuthenticationResult implements Serializable {
      * @return log info
      */
     public String getErrorLogInfo() {
-        return " ErrorCode:" + getErrorCode() + " ErrorDescription:" + getErrorDescription();
+        return " ErrorCode:" + getErrorCode();
     }
 
     /**
@@ -307,6 +309,13 @@ public class AuthenticationResult implements Serializable {
         }
 
         return TokenCacheItem.isTokenExpired(getExpiresOn());
+    }
+
+    // The token returned is cached with this authority as key.
+    // We expect the subsequent requests to AcquireToken will use this authority as the authority parameter else
+    // AcquireTokenSilent will fail
+    public final String getAuthority() {
+        return mAuthority;
     }
 
     String[] getErrorCodes() {
@@ -375,6 +384,12 @@ public class AuthenticationResult implements Serializable {
     
     final void setFamilyClientId(final String familyClientId) {
         mFamilyClientId = familyClientId;
+    }
+
+    final void setAuthority(final String authority) {
+        if (!StringExtensions.isNullOrBlank(authority)) {
+            mAuthority = authority;
+        }
     }
 
     final CliTelemInfo getCliTelemInfo() {

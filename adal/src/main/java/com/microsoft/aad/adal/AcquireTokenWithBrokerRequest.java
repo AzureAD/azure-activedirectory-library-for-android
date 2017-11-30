@@ -51,7 +51,7 @@ final class AcquireTokenWithBrokerRequest {
      */
     AuthenticationResult acquireTokenWithBrokerSilent()
             throws AuthenticationException {
-
+        final String methodName = ":acquireTokenWithBrokerSilent";
         mAuthRequest.setVersion(AuthenticationContext.getVersionName());
         mAuthRequest.setBrokerAccountName(mAuthRequest.getLoginHint());
 
@@ -62,13 +62,13 @@ final class AcquireTokenWithBrokerRequest {
         final AuthenticationResult authenticationResult;
         if (!StringExtensions.isNullOrBlank(mAuthRequest.getBrokerAccountName()) || !StringExtensions
                 .isNullOrBlank(mAuthRequest.getUserId())) {
-            Logger.v(TAG, "User is specified for background(silent) token request, trying to acquire token silently.");
+            Logger.v(TAG + methodName, "User is specified for background(silent) token request, trying to acquire token silently.");
             authenticationResult = mBrokerProxy.getAuthTokenInBackground(mAuthRequest, brokerEvent);
             if (null != authenticationResult && null != authenticationResult.getCliTelemInfo()) {
                 brokerEvent.setSpeRing(authenticationResult.getCliTelemInfo().getSpeRing());
             }
         } else {
-            Logger.v(TAG, "User is not specified, skipping background(silent) token request");
+            Logger.v(TAG + methodName, "User is not specified, skipping background(silent) token request.");
             authenticationResult = null;
         }
 
@@ -82,7 +82,8 @@ final class AcquireTokenWithBrokerRequest {
      */
     void acquireTokenWithBrokerInteractively(final IWindowComponent activity)
             throws AuthenticationException {
-        Logger.v(TAG, "Launch activity for interactive authentication via broker.");
+        final String methodName = ":acquireTokenWithBrokerInteractively";
+        Logger.v(TAG + methodName, "Launch activity for interactive authentication via broker.");
         // Log the broker version for interactive request to broker
         final BrokerEvent brokerEvent = startBrokerTelemetryRequest(EventStrings.BROKER_REQUEST_INTERACTIVE);
         logBrokerVersion(brokerEvent);
@@ -97,7 +98,7 @@ final class AcquireTokenWithBrokerRequest {
             throw new AuthenticationException(ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED);
         }
 
-        Logger.v(TAG, "Calling activity pid:" + android.os.Process.myPid()
+        Logger.v(TAG + methodName, "Calling activity. " + "Pid:" + android.os.Process.myPid()
                 + " tid:" + android.os.Process.myTid() + "uid:"
                 + android.os.Process.myUid());
         Telemetry.getInstance().stopEvent(brokerEvent.getTelemetryRequestId(), brokerEvent, EventStrings.BROKER_REQUEST_INTERACTIVE);
@@ -108,10 +109,11 @@ final class AcquireTokenWithBrokerRequest {
     }
 
     private void logBrokerVersion(final BrokerEvent brokerEvent) {
+        final String methodName = ":logBrokerVersion";
         final String currentActiveBrokerPackageName =
                 mBrokerProxy.getCurrentActiveBrokerPackageName();
         if (StringExtensions.isNullOrBlank(currentActiveBrokerPackageName)) {
-            Logger.i(TAG, "Broker app package name is empty.", "");
+            Logger.i(TAG + methodName, "Broker app package name is empty.", "");
             return;
         }
         brokerEvent.setBrokerAppName(currentActiveBrokerPackageName);
@@ -127,7 +129,7 @@ final class AcquireTokenWithBrokerRequest {
 
         final String brokerLogging = "Broker app is: " + currentActiveBrokerPackageName
                 + ";Broker app version: " + brokerAppVersion;
-        Logger.i(TAG, brokerLogging, "");
+        Logger.i(TAG + methodName, brokerLogging, "");
     }
 
     private BrokerEvent startBrokerTelemetryRequest(final String brokerEventName) {

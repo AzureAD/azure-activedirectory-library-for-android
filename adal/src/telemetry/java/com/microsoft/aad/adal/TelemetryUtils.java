@@ -36,7 +36,7 @@ import static com.microsoft.aad.adal.EventStrings.USER_ID;
 
 final class TelemetryUtils {
 
-    final static Set<String> GDPR_FILTERED_FIELDS = new HashSet<>();
+    static final Set<String> GDPR_FILTERED_FIELDS = new HashSet<>();
 
     private static final String TAG = TelemetryUtils.class.getSimpleName();
 
@@ -154,7 +154,8 @@ final class TelemetryUtils {
             cliTelemInfo.setRefreshTokenAge(headerSegments[indexTokenAge]);
             cliTelemInfo.setSpeRing(headerSegments[indexSpeInfo]);
         } else { // unrecognized version
-            Logger.w(TAG, "Unexpected header version: " + headerVersion, null, ADALError.X_MS_CLITELEM_VERSION_UNRECOGNIZED);
+            Logger.w(TAG, "Unexpected header version. ",
+                    "Header version: " + headerVersion, ADALError.X_MS_CLITELEM_VERSION_UNRECOGNIZED);
             return null;
         }
 

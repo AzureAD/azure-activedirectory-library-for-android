@@ -233,14 +233,15 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
 
     @Test
     public void testExpireBuffer() throws AuthenticationException {
+        final String methodName = ":testExpireBuffer";
         final DefaultTokenCacheStore store = (DefaultTokenCacheStore) setupItems();
 
         List<TokenCacheItem> tokens = store.getTokensForUser("userid1");
         Calendar expireTime = Calendar.getInstance();
-        Logger.d(TAG, "Time now: " + expireTime.getTime());
+        Logger.d(TAG + methodName, "Time now: " + expireTime.getTime());
         final int timeAdjustmentSecs = 240;
         expireTime.add(Calendar.SECOND, timeAdjustmentSecs);
-        Logger.d(TAG, "Time modified: " + expireTime.getTime());
+        Logger.d(TAG + methodName, "Time modified: " + expireTime.getTime());
 
         // Sets token to expire if less than this buffer
         final int expirationBuffer = 300;
