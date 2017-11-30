@@ -37,6 +37,8 @@ import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
 import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectory;
+import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectoryCloud;
 
 import org.json.JSONException;
 import org.junit.After;
@@ -1217,8 +1219,10 @@ public final class AcquireTokenSilentHandlerTest {
 
     private void updateAuthorityMetadataCache() {
         final InstanceDiscoveryMetadata metadata = getInstanceDiscoveryMetadata();
+        final AzureActiveDirectoryCloud cloud = CoreAdapter.asAadCloud(metadata);
         for (final String alias : metadata.getAliases()) {
             AuthorityValidationMetadataCache.updateInstanceDiscoveryMap(alias, metadata);
+            AzureActiveDirectory.putCloud(alias, cloud);
         }
     }
 
