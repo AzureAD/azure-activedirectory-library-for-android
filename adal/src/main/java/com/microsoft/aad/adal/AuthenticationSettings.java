@@ -34,6 +34,32 @@ public enum AuthenticationSettings {
 
     private Class<?> mClazzDeviceCertProxy;
 
+    private String mActivityPackageName;
+
+    private boolean mEnableHardwareAcceleration = true;
+
+    /**
+     * SharedPreference package name to load this file from different context.
+     */
+    private String mSharedPrefPackageName;
+
+    /**
+     * set to be false in default.
+     * if user want to use broker
+     * the mUseBroker should be set explicitly by calling {@link #setUseBroker(boolean)}
+     */
+    private boolean mUseBroker = false;
+
+    /**
+     * Expiration buffer in seconds.
+     */
+    private int mExpirationBuffer = DEFAULT_EXPIRATION_BUFFER;
+
+    private int mConnectTimeOut = DEFAULT_READ_CONNECT_TIMEOUT;
+
+    private int mReadTimeOut = DEFAULT_READ_CONNECT_TIMEOUT;
+
+
     /**
      * Get bytes to derive secretKey to use in encrypt/decrypt.
      *

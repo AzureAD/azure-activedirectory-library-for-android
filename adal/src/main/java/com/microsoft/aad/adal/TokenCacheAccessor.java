@@ -64,7 +64,7 @@ class TokenCacheAccessor {
     private boolean mUseCommonCache = false;
     private OAuth2TokenCache mCommonCache = null;
     private boolean mValidateAuthorityHost = true;
-    
+
     TokenCacheAccessor(final Context appContext, final ITokenCacheStore tokenCacheStore, final String authority, final String telemetryRequestId) {
         if (tokenCacheStore == null) {
             throw new IllegalArgumentException("tokenCacheStore");
@@ -310,7 +310,6 @@ class TokenCacheAccessor {
         request.setClientId(clientId);
         request.setScope(resource);
         request.setAuthority(new URL(mAuthority));
-
 
         mCommonCache.saveTokens(strategy, request, tokenResponse);
 
