@@ -23,11 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.internal.*;
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-
-import java.util.concurrent.atomic.AtomicReference;
-
 /**
  * Settings to be used in AuthenticationContext.
  */
@@ -41,7 +36,7 @@ public enum AuthenticationSettings {
 
     /**
      * Get bytes to derive secretKey to use in encrypt/decrypt.
-     * 
+     *
      * @return byte[] secret data
      */
     public byte[] getSecretKeyData() {
@@ -51,7 +46,7 @@ public enum AuthenticationSettings {
     /**
      * set raw bytes to derive secretKey to use in encrypt/decrypt. KeySpec
      * algorithm is AES.
-     * 
+     *
      * @param rawKey App related key to use in encrypt/decrypt
      */
     public void setSecretKey(byte[] rawKey) {
@@ -60,7 +55,7 @@ public enum AuthenticationSettings {
 
     /**
      * Gets packagename for broker app that installed authenticator.
-     * 
+     *
      * @return packagename
      */
     public String getBrokerPackageName() {
@@ -69,7 +64,7 @@ public enum AuthenticationSettings {
 
     /**
      * Sets package name for broker app that installed authenticator.
-     * 
+     *
      * @param packageName package name related to broker
      */
     public void setBrokerPackageName(String packageName) {
@@ -78,7 +73,7 @@ public enum AuthenticationSettings {
 
     /**
      * Gets broker signature for broker app that installed authenticator.
-     * 
+     *
      * @return signature
      */
     public String getBrokerSignature() {
@@ -87,7 +82,7 @@ public enum AuthenticationSettings {
 
     /**
      * Sets broker app info for ADAL to use.
-     * 
+     *
      * @param brokerSignature Signature for broker
      */
     public void setBrokerSignature(String brokerSignature) {
@@ -97,7 +92,7 @@ public enum AuthenticationSettings {
     /**
      * set class for work place join related API. This is only used from
      * Authenticator side.
-     * 
+     *
      * @param clazz class for workplace join
      */
     public void setDeviceCertificateProxyClass(Class clazz) {
@@ -111,7 +106,7 @@ public enum AuthenticationSettings {
     /**
      * get class for work place join related API. This is only used from
      * Authenticator side.
-     * 
+     *
      * @return Class
      */
     public Class<?> getDeviceCertificateProxy() {
@@ -120,7 +115,7 @@ public enum AuthenticationSettings {
 
     /**
      * get package name to setup intent for AuthenticationActivity.
-     * 
+     *
      * @return Package name for activity
      */
     public String getActivityPackageName() {
@@ -129,7 +124,7 @@ public enum AuthenticationSettings {
 
     /**
      * set package name to setup intent for AuthenticationActivity.
-     * 
+     *
      * @param activityPackageName activity to use from different package
      */
     public void setActivityPackageName(String activityPackageName) {
@@ -137,28 +132,26 @@ public enum AuthenticationSettings {
     }
 
     /**
-     * @deprecated As of release 1.1.14, replaced by {@link #getUseBroker()}
-     *
      * @return true if broker is not used, false otherwise
+     * @deprecated As of release 1.1.14, replaced by {@link #getUseBroker()}
      */
-    @Deprecated 
+    @Deprecated
     public boolean getSkipBroker() {
         return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.getSkipBroker();
     }
 
     /**
-     * @deprecated As of release 1.1.14, replaced by {@link #setUseBroker(boolean)}
-     *
      * @param skip true if broker has to be skipped, false otherwise
+     * @deprecated As of release 1.1.14, replaced by {@link #setUseBroker(boolean)}
      */
-    @Deprecated 
+    @Deprecated
     public void setSkipBroker(boolean skip) {
         com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.setSkipBroker(skip);
     }
 
     /**
      * Get broker usage.
-     * 
+     *
      * @return true if broker is used.
      */
     public boolean getUseBroker() {
@@ -168,17 +161,17 @@ public enum AuthenticationSettings {
     /**
      * Set flag to use or skip broker.
      * By default, the flag value is false and ADAL will not talk to broker.
-     * 
+     *
      * @param useBroker True to use broker
      */
     public void setUseBroker(boolean useBroker) {
         com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.setUseBroker(useBroker);
     }
-    
+
     /**
      * Sets package name to use {@link DefaultTokenCacheStore} with sharedUserId
      * apps.
-     * 
+     *
      * @param packageNameForSharedFile Package name of other app
      */
     public void setSharedPrefPackageName(String packageNameForSharedFile) {
@@ -187,7 +180,7 @@ public enum AuthenticationSettings {
 
     /**
      * Gets package name provided for shared preferences.
-     * 
+     *
      * @return package name provided for shared preferences
      */
     public String getSharedPrefPackageName() {
@@ -196,7 +189,7 @@ public enum AuthenticationSettings {
 
     /**
      * Gets expiration buffer.
-     * 
+     *
      * @return the amount of buffer that is provided to the expiration time.
      */
     public int getExpirationBuffer() {
@@ -208,7 +201,7 @@ public enum AuthenticationSettings {
      * expiration is less than this value(in seconds). Example: Set to 300 to
      * give 5min buffer. Token with Expiry time of 12:04 will say expired when
      * actual time is 12:00 with 5min buffer.
-     * 
+     *
      * @param expirationBuffer the time buffer provided to expiration time.
      */
     public void setExpirationBuffer(int expirationBuffer) {
@@ -229,7 +222,7 @@ public enum AuthenticationSettings {
      * Connecting to a server will fail with a SocketTimeoutException if the
      * timeout elapses before a connection is established. Default value is
      * 30000 milliseconds.
-     * 
+     *
      * @param timeOutMillis the non-negative connect timeout in milliseconds.
      */
     public void setConnectTimeOut(int timeOutMillis) {
@@ -249,7 +242,7 @@ public enum AuthenticationSettings {
      * Sets the maximum time to wait for an input stream read to complete before
      * giving up. Reading will fail with a SocketTimeoutException if the timeout
      * elapses before data becomes available. The default value is 30000.
-     * 
+     *
      * @param timeOutMillis the read timeout in milliseconds. Non-negative
      */
     public void setReadTimeOut(int timeOutMillis) {
@@ -258,13 +251,11 @@ public enum AuthenticationSettings {
 
     /**
      * Method to enable/disable WebView hardware acceleration used in
-     * {@link AuthenticationActivity} and {@link AuthenticationDialog}. 
+     * {@link AuthenticationActivity} and {@link AuthenticationDialog}.
      * By default hardware acceleration is enable in WebView.
-     *  
-     * @param enable
-     *             if true, WebView would be hardwareAccelerated else it 
-     *             would be disable.
-     *             
+     *
+     * @param enable if true, WebView would be hardwareAccelerated else it
+     *               would be disable.
      * @see #getDisableWebViewHardwareAcceleration()
      */
     public void setDisableWebViewHardwareAcceleration(boolean enable) {
@@ -274,9 +265,8 @@ public enum AuthenticationSettings {
     /**
      * Method to check whether WebView used in {@link AuthenticationActivity} and
      * {@link AuthenticationDialog} would be hardware accelerated or not.
-     * 
+     *
      * @return true if WebView is hardwareAccelerated otherwise false
-     * 
      * @see #setDisableWebViewHardwareAcceleration(boolean)
      */
     public boolean getDisableWebViewHardwareAcceleration() {
