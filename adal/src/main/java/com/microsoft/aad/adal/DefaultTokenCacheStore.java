@@ -61,6 +61,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     private static final String TAG = "DefaultTokenCacheStore";
 
     private SharedPreferencesFileManager mPrefs;
+
     private Context mContext;
 
     private Gson mGson = new GsonBuilder()
@@ -107,6 +108,11 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         // notify developers. 
         validateSecretKeySetting();
     }
+
+    Context getContext() {
+        return mContext.getApplicationContext();
+    }
+
 
     /**
      * Method that allows to mock StorageHelper class and use custom encryption in UTs.

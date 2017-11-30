@@ -1304,6 +1304,6 @@ public final class AcquireTokenSilentHandlerTest {
     private AcquireTokenSilentHandler getAcquireTokenHandler(final Context context, final AuthenticationRequest authRequest,
                                                              final ITokenCacheStore mockCache) {
         return new AcquireTokenSilentHandler(context, authRequest,
-                new TokenCacheAccessor(mockCache, authRequest.getAuthority(), authRequest.getTelemetryRequestId()));
+                new TokenCacheAccessor(context.getApplicationContext(), mockCache, authRequest.getAuthority(), authRequest.getTelemetryRequestId()));
     }
 }
