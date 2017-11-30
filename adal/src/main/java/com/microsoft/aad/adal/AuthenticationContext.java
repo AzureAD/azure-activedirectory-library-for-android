@@ -1226,7 +1226,7 @@ public class AuthenticationContext {
          * apps. So the client ID for the FoCI token cache item is hard coded
          * below.
          */
-        final TokenCacheAccessor tokenCacheAccessor = new TokenCacheAccessor(mTokenCacheStore, this.getAuthority(),
+        final TokenCacheAccessor tokenCacheAccessor = new TokenCacheAccessor(this.mContext.getApplicationContext(), mTokenCacheStore, this.getAuthority(),
                 Telemetry.registerNewRequest());
         final TokenCacheItem tokenItem;
         try {

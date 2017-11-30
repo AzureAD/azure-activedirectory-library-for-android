@@ -22,11 +22,22 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
+import android.app.Application;
+import android.content.Context;
+
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
 import com.microsoft.identity.common.adal.error.ADALError;
 import com.microsoft.identity.common.adal.error.AuthenticationException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.internal.cache.ADALOAuth2TokenCache;
+import com.microsoft.identity.common.internal.cache.MSALOAuth2TokenCache;
+import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
+import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectory;
+import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectoryAuthorizationRequest;
+import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectoryTokenResponse;
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
@@ -49,8 +60,10 @@ class TokenCacheAccessor {
     private final ITokenCacheStore mTokenCacheStore;
     private String mAuthority; // Remove final to update the authority when preferred cache location is not the same as passed in authority
     private final String mTelemetryRequestId;
+    private boolean mUseCommonCache = false;
+    private OAuth2TokenCache mCommonCache = null;
     
-    TokenCacheAccessor(final ITokenCacheStore tokenCacheStore, final String authority, final String telemetryRequestId) {
+    TokenCacheAccessor(final Context appContext, final ITokenCacheStore tokenCacheStore, final String authority, final String telemetryRequestId) {
         if (tokenCacheStore == null) {
             throw new IllegalArgumentException("tokenCacheStore");
         }
@@ -66,6 +79,17 @@ class TokenCacheAccessor {
         mTokenCacheStore = tokenCacheStore;
         mAuthority = authority;
         mTelemetryRequestId = telemetryRequestId;
+
+        //Setup common cache implementation
+        List<IShareSingleSignOnState> sharedSSOCaches = new ArrayList<IShareSingleSignOnState>();
+        sharedSSOCaches.add(new MSALOAuth2TokenCache(appContext));
+        mCommonCache = new ADALOAuth2TokenCache(appContext, sharedSSOCaches);
+
+        if(mTokenCacheStore instanceof DefaultTokenCacheStore){
+            //If the default token cache is in use... delegate token operations to unified cache in common
+            //If not using default token cache then sharing SSO state between ADAL & MSAL cache implementations will not be possible anyway
+            mUseCommonCache = true;
+        }
     }
     
     /**
@@ -210,7 +234,7 @@ class TokenCacheAccessor {
             Logger.v(TAG, "AuthenticationResult is null, cannot update cache.");
             throw new IllegalArgumentException("result");
         }
-        
+
         if (result.getStatus() == AuthenticationStatus.Succeeded) {
             Logger.v(TAG, "Save returned AuthenticationResult into cache.");
             if (cachedItem != null && cachedItem.getUserInfo() != null && result.getUserInfo() == null) {
@@ -220,7 +244,11 @@ class TokenCacheAccessor {
             }
 
             try {
-                updateTokenCache(resource, clientId, result);
+                if(mUseCommonCache){
+                    updateTokenCacheUsingCommonCache(resource, clientId, result);
+                }else {
+                    updateTokenCache(resource, clientId, result);
+                }
             } catch (MalformedURLException e) {
                 throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e.getMessage(), e);
             }
@@ -254,6 +282,24 @@ class TokenCacheAccessor {
         // update for empty userid
         setItemToCacheForUser(resource, clientId, result, null);
     }
+
+
+    void updateTokenCacheUsingCommonCache(final String resource, final String clientId, final AuthenticationResult result) throws MalformedURLException{
+
+        //prepare request state for transfer to common cache
+        //TODO: Need to detect whether this is an AAD, ADFS or other IDP... so that we create the correct objects
+        AzureActiveDirectory ad = new AzureActiveDirectory();
+        AzureActiveDirectoryTokenResponse tokenResponse = CoreAdapter.asAadTokenResponse(result);
+        OAuth2Strategy strategy = ad.createOAuth2Strategy();
+        AzureActiveDirectoryAuthorizationRequest request = new AzureActiveDirectoryAuthorizationRequest();
+        request.setClientId(clientId);
+        request.setScope(resource);
+        request.setAuthority(new URL(mAuthority));
+
+        mCommonCache.saveTokens(strategy, request, tokenResponse);
+
+    }
+
     
     /**
      * Remove token from cache.

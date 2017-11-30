@@ -52,7 +52,7 @@ public enum AuthenticationSettings {
     private Class<?> mClazzDeviceCertProxy;
 
     private String mActivityPackageName;
-    
+
     private boolean mEnableHardwareAcceleration = true;
 
     /**
