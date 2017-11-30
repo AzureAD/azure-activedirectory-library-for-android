@@ -69,6 +69,12 @@ public class AuthenticationResult implements Serializable {
 
     private Date mExpiresOn;
 
+    //Number of seconds the token is valid
+    private Long mExpiresIn;
+
+    //Number of milliseconds since the unix epoch
+    private Long mResponseReceived;
+
     private String mErrorCode;
 
     private String mErrorDescription;
@@ -216,6 +222,14 @@ public class AuthenticationResult implements Serializable {
     public Date getExpiresOn() {
         return DateExtensions.createCopy(mExpiresOn);
     }
+
+    public Long getExpiresIn() { return mExpiresIn;}
+
+    public void setExpiresIn(final Long expiresIn) { mExpiresIn = expiresIn; }
+
+    public Long getResponseReceived() {return mResponseReceived;}
+
+    public void setResponseReceived(final Long responseReceived) { mResponseReceived = responseReceived;}
 
     /**
      * Multi-resource refresh tokens can be used to request token for another

@@ -2,6 +2,7 @@ package com.microsoft.aad.adal;
 
 import com.microsoft.identity.common.Account;
 import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectoryAccount;
+import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectoryCloud;
 import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectoryTokenResponse;
 
 /**
@@ -59,8 +60,16 @@ final class CoreAdapter {
         adTokenResponse.setExpiresOn(result.getExpiresOn());
         adTokenResponse.setExtExpiresOn(result.getExtendedExpiresOn());
         adTokenResponse.setIdToken(result.getIdToken());
+        adTokenResponse.setExpiresIn(result.getExpiresIn());
+        adTokenResponse.setResponseReceivedTime(result.getResponseReceived());
         // TODO populate other missing fields...
         return adTokenResponse;
+
+    }
+
+    public static AzureActiveDirectoryCloud asAadCloud(final InstanceDiscoveryMetadata cloud){
+        final AzureActiveDirectoryCloud adCloud = new AzureActiveDirectoryCloud(cloud.getPreferredNetwork(), cloud.getPreferredCache(), cloud.getAliases());
+        return adCloud;
     }
 
 }

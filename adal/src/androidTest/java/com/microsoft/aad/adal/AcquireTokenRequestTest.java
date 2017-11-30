@@ -48,6 +48,8 @@ import com.microsoft.identity.common.adal.error.ADALError;
 import com.microsoft.identity.common.adal.error.AuthenticationException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
+import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectory;
+import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectoryCloud;
 
 import org.json.JSONException;
 import org.junit.After;
@@ -128,7 +130,10 @@ public final class AcquireTokenRequestTest {
         }
 
         final InstanceDiscoveryMetadata metadata = new InstanceDiscoveryMetadata("login.microsoftonline.com", "login.windows.net");
+        final AzureActiveDirectoryCloud cloud = CoreAdapter.asAadCloud(metadata);
+
         AuthorityValidationMetadataCache.updateInstanceDiscoveryMap("login.windows.net", metadata);
+        AzureActiveDirectory.putCloud("login.windows.net", cloud);
     }
 
     @After
