@@ -269,9 +269,9 @@ public class AuthenticationActivity extends Activity {
                 mRedirectUrl = PackageHelper.getBrokerRedirectUrl(mCallingPackage, signatureDigest);
             }
 
-            Logger.v(TAG, "Broker redirectUrl: " + mRedirectUrl + " The calling package is: " + mCallingPackage
+            Logger.v(TAG + methodName, "", "Broker redirectUrl: " + mRedirectUrl + " The calling package is: " + mCallingPackage
                     + " Signature hash for calling package is: " + signatureDigest + " Current context package: "
-                    + getPackageName(), " Start url: " + mStartUrl, null);
+                    + getPackageName() + " Start url: " + mStartUrl, null);
         } else {
             Logger.v(TAG + methodName, "Non-broker request for package " + getCallingPackage(),
                     " Start url: " + mStartUrl, null);
@@ -967,8 +967,8 @@ public class AuthenticationActivity extends Activity {
                         userinfo.getDisplayableId());
             }
             result.mAccountName = name;
-            Logger.i(TAG, "Setting account in account manager. Package: " + mPackageName
-                    + " calling app UID:" + mAppCallingUID, " Account name: " + name);
+            Logger.i(TAG + methodName, "Setting account in account manager. ",
+                    "Package: " + mPackageName + " calling app UID:" + mAppCallingUID, " Account name: " + name);
 
 
             // Cache logic will be changed based on latest logic
