@@ -1251,11 +1251,11 @@ public class AuthenticationContext {
                     "Failed to export the FID because no family token cache item is found.");
         }
 
-        if (!StringExtensions.isNullOrBlank(tokenItem.getFamilyClientId())) {
-            return SSOStateSerializer.serialize(tokenItem);
-        } else {
+        if (StringExtensions.isNullOrBlank(tokenItem.getFamilyClientId())) {
             throw new UsageAuthenticationException(ADALError.FAIL_TO_EXPORT, "tokenItem does not contain family refresh token");
         }
+
+        return SSOStateSerializer.serialize(tokenItem);
     }
 
     /**
