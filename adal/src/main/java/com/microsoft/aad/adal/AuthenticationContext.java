@@ -1254,7 +1254,7 @@ public class AuthenticationContext {
         if (!StringExtensions.isNullOrBlank(tokenItem.getFamilyClientId())) {
             return SSOStateSerializer.serialize(tokenItem);
         } else {
-            throw new IllegalArgumentException("tokenItem does not contain family refresh token");
+            throw new UsageAuthenticationException(ADALError.FAIL_TO_EXPORT, "tokenItem does not contain family refresh token");
         }
     }
 
