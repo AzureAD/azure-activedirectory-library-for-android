@@ -595,13 +595,19 @@ class BrokerProxy implements IBrokerProxy {
      * from calling app's activity to control the lifetime of the activity.
      */
     @Override
-    public Intent getIntentForBrokerActivity(final AuthenticationRequest request, final BrokerEvent brokerEvent) {
+    public Intent getIntentForBrokerActivity(final AuthenticationRequest request, final BrokerEvent brokerEvent)
+            throws AuthenticationException {
         final String methodName = ":getIntentForBrokerActivity";
         final Bundle requestBundle = getBrokerOptions(request);
         final Intent intent;
         if (isBrokerAccountServiceSupported()) {
             intent = BrokerAccountServiceHandler.getInstance().getIntentForInteractiveRequest(mContext, brokerEvent);
-            intent.putExtras(requestBundle);
+            if (intent == null) {
+                Logger.e(TAG, "Received null intent from broker interactive request.", null, ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING);
+                throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, "Received null intent from broker interactive request.");
+            } else {
+                intent.putExtras(requestBundle);
+            }
         } else {
             intent = getIntentForBrokerActivityFromAccountManager(requestBundle);
         }
