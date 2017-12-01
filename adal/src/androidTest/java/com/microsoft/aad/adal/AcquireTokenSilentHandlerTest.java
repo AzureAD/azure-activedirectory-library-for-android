@@ -396,6 +396,8 @@ public final class AcquireTokenSilentHandlerTest {
         final TokenCacheItem frTokenCacheItem = getTokenCacheItemWithFoCI(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN, AuthenticationConstants.MS_FAMILY_ID);
         saveTokenIntoCache(mockCache, frTokenCacheItem);
 
+        addAzureADCloudForValidAuthority();
+
         final String resource = "resource";
         final String clientId = "clientId";
         final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, resource, clientId, false);
@@ -434,6 +436,15 @@ public final class AcquireTokenSilentHandlerTest {
         assertNotNull(mockCache.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, resource, clientId, TEST_IDTOKEN_UPN)));
 
         clearCache(mockCache);
+    }
+
+    private void addAzureADCloudForValidAuthority(){
+        List<String> aliases = new ArrayList<String>();
+        aliases.add("login.windows.net");
+        aliases.add("login.microsoftonline.com");
+        AzureActiveDirectoryCloud cloud = new AzureActiveDirectoryCloud("login.microsoftonline.com", "login.windows.net", aliases);
+
+        AzureActiveDirectory.putCloud("login.windows.net", cloud);
     }
 
     /**

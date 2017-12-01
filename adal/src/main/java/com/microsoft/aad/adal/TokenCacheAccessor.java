@@ -35,6 +35,7 @@ import com.microsoft.identity.common.internal.cache.MSALOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
 import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectoryAuthorizationRequest;
+import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectoryOAuth2Configuration;
 import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectoryTokenResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
@@ -62,6 +63,7 @@ class TokenCacheAccessor {
     private final String mTelemetryRequestId;
     private boolean mUseCommonCache = false;
     private OAuth2TokenCache mCommonCache = null;
+    private boolean mValidateAuthorityHost = true;
     
     TokenCacheAccessor(final Context appContext, final ITokenCacheStore tokenCacheStore, final String authority, final String telemetryRequestId) {
         if (tokenCacheStore == null) {
@@ -91,7 +93,15 @@ class TokenCacheAccessor {
             mUseCommonCache = true;
         }
     }
-    
+
+    public boolean isValidateAuthorityHost() {
+        return mValidateAuthorityHost;
+    }
+
+    public void setValidateAuthorityHost(boolean mValidateAuthorityHost) {
+        this.mValidateAuthorityHost = mValidateAuthorityHost;
+    }
+
     /**
      * @return Access token from cache. Could be null if AT does not exist or expired. 
      * This will be a strict match with the user passed in, could be unique userid, 
@@ -290,11 +300,14 @@ class TokenCacheAccessor {
         //TODO: Need to detect whether this is an AAD, ADFS or other IDP... so that we create the correct objects
         AzureActiveDirectory ad = new AzureActiveDirectory();
         AzureActiveDirectoryTokenResponse tokenResponse = CoreAdapter.asAadTokenResponse(result);
-        OAuth2Strategy strategy = ad.createOAuth2Strategy();
+        AzureActiveDirectoryOAuth2Configuration config = new AzureActiveDirectoryOAuth2Configuration();
+        config.setAuthorityHostValdiationEnabled(this.isValidateAuthorityHost());
+        OAuth2Strategy strategy = ad.createOAuth2Strategy(config);
         AzureActiveDirectoryAuthorizationRequest request = new AzureActiveDirectoryAuthorizationRequest();
         request.setClientId(clientId);
         request.setScope(resource);
         request.setAuthority(new URL(mAuthority));
+
 
         mCommonCache.saveTokens(strategy, request, tokenResponse);
 
