@@ -114,7 +114,7 @@ public final class AuthenticationContextTest {
      */
     private static final String VALID_AUTHORITY = "https://login.windows.net/test.onmicrosoft.com";
 
-    protected static final int CONTEXT_REQUEST_TIME_OUT = 20000;
+    protected static final int CONTEXT_REQUEST_TIME_OUT = 20000; //20000
 
     protected static final int ACTIVITY_TIME_OUT = 1000;
 
@@ -153,6 +153,13 @@ public final class AuthenticationContextTest {
             SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
             AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
         }
+
+        final InstanceDiscoveryMetadata metadata = new InstanceDiscoveryMetadata("login.microsoftonline.com", "login.windows.net");
+        final AzureActiveDirectoryCloud cloud = CoreAdapter.asAadCloud(metadata);
+
+        AuthorityValidationMetadataCache.updateInstanceDiscoveryMap("login.windows.net", metadata);
+        AzureActiveDirectory.putCloud("login.windows.net", cloud);
+
         AuthenticationSettings.INSTANCE.setUseBroker(false);
         // ADAL is set to this signature for now
         PackageInfo info = InstrumentationRegistry.getContext().getPackageManager()
@@ -1678,7 +1685,6 @@ public final class AuthenticationContextTest {
      * @throws AuthenticationException
      */
     @Test
-    @Suppress
     public void testAcquireTokenSilentSyncPositive() throws IOException, AuthenticationException,
             InterruptedException {
 
@@ -1690,7 +1696,10 @@ public final class AuthenticationContextTest {
         final MockActivity testActivity = new MockActivity();
         final CountDownLatch signal = new CountDownLatch(1);
         testActivity.mSignal = signal;
-        final String response = "{\"access_token\":\"TokenFortestRefreshTokenPositive\",\"token_type\":\"Bearer\","
+
+        final String response = "{\"id_token\":\""
+                + TEST_IDTOKEN
+                + "\",\"access_token\":\"TokenFortestRefreshTokenPositive\",\"token_type\":\"Bearer\","
                 + "\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\","
                 + "\"scope\":\"*\"}";
 
@@ -1798,11 +1807,6 @@ public final class AuthenticationContextTest {
                                             AuthenticationResult result) {
         assertNull("Error is null", resultException);
         assertEquals("Token is same", "TokenFortestRefreshTokenPositive", result.getAccessToken());
-        assertNotNull("Cache is NOT empty for this userid for regular token",
-                mockCache.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientId",
-                        TEST_IDTOKEN_USERID)));
-        assertNull("Cache is empty for multiresource token", mockCache.getItem(
-                CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, "clientId", TEST_IDTOKEN_USERID)));
         assertNotNull("Cache is NOT empty for this userid for regular token",
                 mockCache.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientId",
                         TEST_IDTOKEN_USERID)));
