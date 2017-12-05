@@ -108,13 +108,10 @@ class WebFingerMetadataRequestor
         );
 
         // build the url
-        final StringBuilder webFingerUrlBuilder =
-                new StringBuilder("https://")
-                        .append(passiveAuthEndpoint.getHost())
-                        .append("/.well-known/webfinger?resource=")
-                        .append(resource.toString());
-
-        final String webFingerUrl = webFingerUrlBuilder.toString();
+        final String webFingerUrl = "https://" +
+            passiveAuthEndpoint.getHost() +
+            "/.well-known/webfinger?resource=" +
+            resource.toString();
 
         Logger.i(TAG, "Validator will use WebFinger URL. ", "WebFinger URL: " + webFingerUrl);
 
