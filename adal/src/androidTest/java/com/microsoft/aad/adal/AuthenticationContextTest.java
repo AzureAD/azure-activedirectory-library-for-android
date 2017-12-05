@@ -44,6 +44,8 @@ import com.microsoft.identity.common.adal.error.AuthenticationException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
+import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectory;
+import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectoryCloud;
 
 import junit.framework.Assert;
 
@@ -65,6 +67,7 @@ import java.net.HttpURLConnection;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -110,6 +113,10 @@ public final class AuthenticationContextTest {
      */
     private static final String VALID_AUTHORITY = "https://login.windows.net/test.onmicrosoft.com";
 
+    /**
+     * This value Controls the timeout for CloudDownLatches used in various tests
+     * You may want to increase this value when debugging a test
+     */
     protected static final int CONTEXT_REQUEST_TIME_OUT = 20000;
 
     protected static final int ACTIVITY_TIME_OUT = 1000;
@@ -149,6 +156,13 @@ public final class AuthenticationContextTest {
             SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
             AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
         }
+
+        final InstanceDiscoveryMetadata metadata = new InstanceDiscoveryMetadata("login.microsoftonline.com", "login.windows.net");
+        final AzureActiveDirectoryCloud cloud = CoreAdapter.asAadCloud(metadata);
+
+        AuthorityValidationMetadataCache.updateInstanceDiscoveryMap("login.windows.net", metadata);
+        AzureActiveDirectory.putCloud("login.windows.net", cloud);
+
         AuthenticationSettings.INSTANCE.setUseBroker(false);
         // ADAL is set to this signature for now
         PackageInfo info = InstrumentationRegistry.getContext().getPackageManager()
@@ -935,7 +949,8 @@ public final class AuthenticationContextTest {
      * token response must match to result and cache.
      */
     @Test
-    public void testRefreshTokenPositive() throws IOException, InterruptedException, AuthenticationException {
+    public void
+    testRefreshTokenPositive() throws IOException, InterruptedException, AuthenticationException {
 
         FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
@@ -1191,6 +1206,14 @@ public final class AuthenticationContextTest {
         verifyFamilyIdStoredInTokenCacheItem(mockCache, CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientId",
                 TEST_IDTOKEN_UPN), "familyClientId");
         clearCache(context);
+    }
+
+    private void addAzureADCloudForValidAuthority() {
+        List<String> aliases = new ArrayList<String>();
+        aliases.add("login.windows.net");
+        aliases.add("login.microsoftonline.com");
+        AzureActiveDirectoryCloud cloud = new AzureActiveDirectoryCloud("login.microsoftonline.com", "login.windows.net", aliases);
+        AzureActiveDirectory.putCloud("login.windows.net", cloud);
     }
 
     /**
@@ -1675,7 +1698,10 @@ public final class AuthenticationContextTest {
         final MockActivity testActivity = new MockActivity();
         final CountDownLatch signal = new CountDownLatch(1);
         testActivity.mSignal = signal;
-        final String response = "{\"access_token\":\"TokenFortestRefreshTokenPositive\",\"token_type\":\"Bearer\","
+
+        final String response = "{\"id_token\":\""
+                + TEST_IDTOKEN
+                + "\",\"access_token\":\"TokenFortestRefreshTokenPositive\",\"token_type\":\"Bearer\","
                 + "\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\","
                 + "\"scope\":\"*\"}";
 
@@ -1783,11 +1809,6 @@ public final class AuthenticationContextTest {
                                             AuthenticationResult result) {
         assertNull("Error is null", resultException);
         assertEquals("Token is same", "TokenFortestRefreshTokenPositive", result.getAccessToken());
-        assertNotNull("Cache is NOT empty for this userid for regular token",
-                mockCache.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientId",
-                        TEST_IDTOKEN_USERID)));
-        assertNull("Cache is empty for multiresource token", mockCache.getItem(
-                CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, "clientId", TEST_IDTOKEN_USERID)));
         assertNotNull("Cache is NOT empty for this userid for regular token",
                 mockCache.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientId",
                         TEST_IDTOKEN_USERID)));

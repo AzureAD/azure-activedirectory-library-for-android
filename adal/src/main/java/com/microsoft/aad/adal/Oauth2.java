@@ -264,7 +264,10 @@ class Oauth2 {
             // Token response
             boolean isMultiResourceToken = false;
             String expiresIn = response.get(AuthenticationConstants.OAuth2.EXPIRES_IN);
+            Long expiresInLong;
             Calendar expires = new GregorianCalendar();
+
+            expiresInLong = (expiresIn == null || expiresIn.isEmpty() ? ((long) AuthenticationConstants.DEFAULT_EXPIRATION_TIME_SEC) : Long.parseLong(expiresIn));
 
             // Compute token expiration
             expires.add(
@@ -303,6 +306,9 @@ class Oauth2 {
             result = new AuthenticationResult(
                     response.get(AuthenticationConstants.OAuth2.ACCESS_TOKEN), refreshToken, expires.getTime(),
                     isMultiResourceToken, userinfo, tenantId, rawIdToken, null);
+
+            result.setExpiresIn(expiresInLong);
+            result.setResponseReceived(System.currentTimeMillis());
 
             if (response.containsKey(AuthenticationConstants.OAuth2.EXT_EXPIRES_IN)) {
                 final String extendedExpiresIn = response.get(AuthenticationConstants.OAuth2.EXT_EXPIRES_IN);

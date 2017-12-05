@@ -86,8 +86,9 @@ class AcquireTokenRequest {
         mDiscovery = new Discovery(mContext);
 
         if (authContext.getCache() != null && apiEvent != null) {
-            mTokenCacheAccessor = new TokenCacheAccessor(authContext.getCache(),
+            mTokenCacheAccessor = new TokenCacheAccessor(appContext.getApplicationContext(), authContext.getCache(),
                     authContext.getAuthority(), apiEvent.getTelemetryRequestId());
+            mTokenCacheAccessor.setValidateAuthorityHost(mAuthContext.getValidateAuthority());
         }
         mBrokerProxy = new BrokerProxy(appContext);
 

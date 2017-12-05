@@ -37,6 +37,8 @@ import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
 import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectory;
+import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectoryCloud;
 
 import org.json.JSONException;
 import org.junit.After;
@@ -394,6 +396,8 @@ public final class AcquireTokenSilentHandlerTest {
         final TokenCacheItem frTokenCacheItem = getTokenCacheItemWithFoCI(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN, AuthenticationConstants.MS_FAMILY_ID);
         saveTokenIntoCache(mockCache, frTokenCacheItem);
 
+        addAzureADCloudForValidAuthority();
+
         final String resource = "resource";
         final String clientId = "clientId";
         final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, resource, clientId, false);
@@ -432,6 +436,15 @@ public final class AcquireTokenSilentHandlerTest {
         assertNotNull(mockCache.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, resource, clientId, TEST_IDTOKEN_UPN)));
 
         clearCache(mockCache);
+    }
+
+    private void addAzureADCloudForValidAuthority() {
+        List<String> aliases = new ArrayList<String>();
+        aliases.add("login.windows.net");
+        aliases.add("login.microsoftonline.com");
+        AzureActiveDirectoryCloud cloud = new AzureActiveDirectoryCloud("login.microsoftonline.com", "login.windows.net", aliases);
+
+        AzureActiveDirectory.putCloud("login.windows.net", cloud);
     }
 
     /**
@@ -1212,8 +1225,10 @@ public final class AcquireTokenSilentHandlerTest {
 
     private void updateAuthorityMetadataCache() {
         final InstanceDiscoveryMetadata metadata = getInstanceDiscoveryMetadata();
+        final AzureActiveDirectoryCloud cloud = CoreAdapter.asAadCloud(metadata);
         for (final String alias : metadata.getAliases()) {
             AuthorityValidationMetadataCache.updateInstanceDiscoveryMap(alias, metadata);
+            AzureActiveDirectory.putCloud(alias, cloud);
         }
     }
 
@@ -1299,6 +1314,6 @@ public final class AcquireTokenSilentHandlerTest {
     private AcquireTokenSilentHandler getAcquireTokenHandler(final Context context, final AuthenticationRequest authRequest,
                                                              final ITokenCacheStore mockCache) {
         return new AcquireTokenSilentHandler(context, authRequest,
-                new TokenCacheAccessor(mockCache, authRequest.getAuthority(), authRequest.getTelemetryRequestId()));
+                new TokenCacheAccessor(context.getApplicationContext(), mockCache, authRequest.getAuthority(), authRequest.getTelemetryRequestId()));
     }
 }
