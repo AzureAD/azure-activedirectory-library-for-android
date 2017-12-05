@@ -83,7 +83,7 @@ public class AndroidTestHelper {
     }
 
     public void assertThrowsException(final Class<? extends Exception> expected, String hasMessage,
-            final ThrowableRunnable testCode) {
+                                      final ThrowableRunnable testCode) {
         try {
             testCode.run();
             Assert.fail("This is expecting an exception, but it was not thrown.");
@@ -100,7 +100,7 @@ public class AndroidTestHelper {
     }
 
     public void assertThrowsException(final Class<? extends Exception> expected, String hasMessage,
-            final Runnable testCode) {
+                                      final Runnable testCode) {
         try {
             testCode.run();
             Assert.fail("This is expecting an exception, but it was not thrown.");
@@ -117,7 +117,7 @@ public class AndroidTestHelper {
 
     /**
      * just run tests and wait until finished
-     * 
+     *
      * @param signal
      * @param testCode
      * @param runOnUI

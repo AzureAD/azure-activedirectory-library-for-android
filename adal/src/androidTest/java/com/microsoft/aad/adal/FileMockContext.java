@@ -67,9 +67,9 @@ class FileMockContext extends MockContext {
     private int mFileWriteMode;
 
     private Map<String, Integer> mPermissionMap = new HashMap<String, Integer>();
-    
+
     private boolean mIsConnectionAvailable = true;
-    
+
     private AccountManager mMockedAccountManager = null;
 
     private PackageManager mMockedPackageManager = null;
@@ -119,7 +119,7 @@ class FileMockContext extends MockContext {
             if (mMockedAccountManager == null) {
                 return mock(AccountManager.class);
             }
-            
+
             return mMockedAccountManager;
         } else if (name.equalsIgnoreCase("connectivity")) {
             final ConnectivityManager mockedConnectivityManager = mock(ConnectivityManager.class);
@@ -173,7 +173,7 @@ class FileMockContext extends MockContext {
     public void addPermission(String permissionName) {
         mPermissionMap.put(permissionName, PackageManager.PERMISSION_GRANTED);
     }
-    
+
     public void removePermission(String permissionName) {
         mPermissionMap.remove(permissionName);
     }
@@ -246,7 +246,7 @@ class FileMockContext extends MockContext {
             if (mPermissionMap.containsKey(permName)) {
                 return PackageManager.PERMISSION_GRANTED;
             }
-            
+
             return PackageManager.PERMISSION_DENIED;
         }
 

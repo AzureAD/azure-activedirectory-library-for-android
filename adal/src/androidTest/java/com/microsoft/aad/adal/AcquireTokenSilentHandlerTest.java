@@ -438,7 +438,7 @@ public final class AcquireTokenSilentHandlerTest {
         clearCache(mockCache);
     }
 
-    private void addAzureADCloudForValidAuthority(){
+    private void addAzureADCloudForValidAuthority() {
         List<String> aliases = new ArrayList<String>();
         aliases.add("login.windows.net");
         aliases.add("login.microsoftonline.com");

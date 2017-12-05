@@ -33,7 +33,6 @@ import android.content.pm.Signature;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.test.InstrumentationRegistry;
-import android.support.test.filters.Suppress;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.UiThreadTest;
 import android.util.Base64;
@@ -114,7 +113,11 @@ public final class AuthenticationContextTest {
      */
     private static final String VALID_AUTHORITY = "https://login.windows.net/test.onmicrosoft.com";
 
-    protected static final int CONTEXT_REQUEST_TIME_OUT = 20000; //20000
+    /**
+     * This value Controls the timeout for CloudDownLatches used in various tests
+     * You may want to increase this value when debugging a test
+     */
+    protected static final int CONTEXT_REQUEST_TIME_OUT = 20000;
 
     protected static final int ACTIVITY_TIME_OUT = 1000;
 
@@ -1205,7 +1208,7 @@ public final class AuthenticationContextTest {
         clearCache(context);
     }
 
-    private void addAzureADCloudForValidAuthority(){
+    private void addAzureADCloudForValidAuthority() {
         List<String> aliases = new ArrayList<String>();
         aliases.add("login.windows.net");
         aliases.add("login.microsoftonline.com");
