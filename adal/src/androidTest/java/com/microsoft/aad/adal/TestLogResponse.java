@@ -54,7 +54,7 @@ public class TestLogResponse {
 
             @Override
             public void Log(String tag, String message, String additionalMessage, LogLevel level,
-                    ADALError errorCode) {
+                            ADALError errorCode) {
 
                 if (message.contains(msg)) {
                     response.mTag = tag;
@@ -72,6 +72,7 @@ public class TestLogResponse {
 
     /**
      * Check log message for segments since some of the responses include server generated traceid, timeStamp etc.
+     *
      * @param msgs
      */
     public void listenLogForMessageSegments(final String... msgs) {
@@ -81,7 +82,7 @@ public class TestLogResponse {
 
             @Override
             public void Log(String tag, String message, String additionalMessage, LogLevel level,
-                    ADALError errorCode) {
+                            ADALError errorCode) {
                 for (String msg : msgs) {
                     if (message.contains(msg) || additionalMessage.contains(msg)) {
                         response.mTag = tag;

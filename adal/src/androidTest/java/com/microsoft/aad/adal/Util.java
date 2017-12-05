@@ -45,7 +45,8 @@ final class Util {
     /**
      * Private constructor to prevent the class from being initiated.
      */
-    private Util() { }
+    private Util() {
+    }
 
     public static final int TEST_PASSWORD_EXPIRATION = 1387227772;
     static final String TEST_IDTOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiJlNzBiMTE1ZS1hYzBhLTQ4MjMtODVkYS04ZjRiN2I0ZjAwZTYiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8zMGJhYTY2Ni04ZGY4LTQ4ZTctOTdlNi03N2NmZDA5OTU5NjMvIiwibmJmIjoxMzc2NDI4MzEwLCJleHAiOjEzNzY0NTcxMTAsInZlciI6IjEuMCIsInRpZCI6IjMwYmFhNjY2LThkZjgtNDhlNy05N2U2LTc3Y2ZkMDk5NTk2MyIsIm9pZCI6IjRmODU5OTg5LWEyZmYtNDExZS05MDQ4LWMzMjIyNDdhYzYyYyIsInVwbiI6ImFkbWluQGFhbHRlc3RzLm9ubWljcm9zb2Z0LmNvbSIsInVuaXF1ZV9uYW1lIjoiYWRtaW5AYWFsdGVzdHMub25taWNyb3NvZnQuY29tIiwic3ViIjoiVDU0V2hGR1RnbEJMN1VWYWtlODc5UkdhZEVOaUh5LXNjenNYTmFxRF9jNCIsImZhbWlseV9uYW1lIjoiU2VwZWhyaSIsImdpdmVuX25hbWUiOiJBZnNoaW4ifQ.";
@@ -69,15 +70,15 @@ final class Util {
         final String email = "emailField";
         final String claims = String.format(sIdTokenClaims, tid, oid, upn, uniqueName, sub, familyName,
                 givenName, altsecid, idp, email);
-        return String.format("%s.%s.", 
-                new String(Base64.encode(sIdTokenHeader.getBytes(AuthenticationConstants.ENCODING_UTF8), 
-                        Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE), 
-                        AuthenticationConstants.ENCODING_UTF8), 
-                new String(Base64.encode(claims.getBytes(AuthenticationConstants.ENCODING_UTF8), 
+        return String.format("%s.%s.",
+                new String(Base64.encode(sIdTokenHeader.getBytes(AuthenticationConstants.ENCODING_UTF8),
+                        Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE),
+                        AuthenticationConstants.ENCODING_UTF8),
+                new String(Base64.encode(claims.getBytes(AuthenticationConstants.ENCODING_UTF8),
                         Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE),
                         AuthenticationConstants.ENCODING_UTF8));
-        }
-    
+    }
+
     static TokenCacheItem getTokenCacheItem(final String authority, final String resource,
                                             final String clientId, final String userId,
                                             final String displayableId) {
@@ -92,8 +93,8 @@ final class Util {
         tokenCacheItem.setRefreshToken("refreshToken=");
         tokenCacheItem.setExpiresOn(expiredTime.getTime());
         tokenCacheItem.setUserInfo(new UserInfo(userId, "givenName", "familyName",
-            "identityProvider", displayableId));
-        
+                "identityProvider", displayableId));
+
         return tokenCacheItem;
     }
 
@@ -120,7 +121,7 @@ final class Util {
 
         return responseJsonObject.toString();
     }
-    
+
     static String getSuccessResponseWithoutRefreshToken() throws JSONException {
         return getCommonSuccessResponseData().toString();
     }
@@ -136,7 +137,7 @@ final class Util {
 
         return responseJsonObject;
     }
-    
+
     static String getErrorResponseBody(final String errorCode) throws JSONException {
         final JSONObject jsonObject = new JSONObject();
         jsonObject.put(AuthenticationConstants.OAuth2.ERROR, errorCode);
@@ -153,41 +154,41 @@ final class Util {
         jsonObject.put(AuthenticationConstants.AAD.CORRELATION_ID, "b73106d5-419b-4163-8bc6-d2c18f1b1a13");
         return jsonObject.toString();
     }
-    
-    static byte[] getPoseMessage(final String refreshToken, final String clientId, final String resource) 
+
+    static byte[] getPoseMessage(final String refreshToken, final String clientId, final String resource)
             throws UnsupportedEncodingException {
         return String.format("%s=%s&%s=%s&%s=%s&%s=%s",
                 AuthenticationConstants.OAuth2.GRANT_TYPE, urlFormEncode(AuthenticationConstants.OAuth2.REFRESH_TOKEN),
                 AuthenticationConstants.OAuth2.REFRESH_TOKEN, urlFormEncode(refreshToken),
-                AuthenticationConstants.OAuth2.CLIENT_ID, urlFormEncode(clientId), 
+                AuthenticationConstants.OAuth2.CLIENT_ID, urlFormEncode(clientId),
                 AuthenticationConstants.AAD.RESOURCE, urlFormEncode(resource)).getBytes();
     }
-    
+
     static String urlFormEncode(String source) throws UnsupportedEncodingException {
         return URLEncoder.encode(source, AuthenticationConstants.ENCODING_UTF8);
     }
-    
-    static AuthenticationResult getAuthenticationResult(final boolean isMRRT, final String displayableId, 
-            final String userId, final String familyClientId) {
+
+    static AuthenticationResult getAuthenticationResult(final boolean isMRRT, final String displayableId,
+                                                        final String userId, final String familyClientId) {
         Calendar expiredTime = new GregorianCalendar();
         Logger.d("Test", "Time now:" + expiredTime.toString());
         expiredTime.add(Calendar.MINUTE, -TOKENS_EXPIRES_MINUTE);
         final UserInfo userInfo = new UserInfo(userId, "GivenName", "FamilyName", "idp", displayableId);
-        final AuthenticationResult authResult = new AuthenticationResult("accessToken", "refresh_token", expiredTime.getTime(), 
+        final AuthenticationResult authResult = new AuthenticationResult("accessToken", "refresh_token", expiredTime.getTime(),
                 isMRRT, userInfo, "TenantId", "IdToken", null);
-        
+
         if (StringExtensions.isNullOrBlank(familyClientId)) {
             return authResult;
         }
-        
+
         authResult.setFamilyClientId(familyClientId);
         return authResult;
     }
-    
+
     static InputStream createInputStream(final String input) {
-        return  new ByteArrayInputStream(input.getBytes());
+        return new ByteArrayInputStream(input.getBytes());
     }
-    
+
     static void prepareMockedUrlConnection(final HttpURLConnection mockedConnection) throws IOException {
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Mockito.doNothing().when(mockedConnection).setConnectTimeout(Mockito.anyInt());

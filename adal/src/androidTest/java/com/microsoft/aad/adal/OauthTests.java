@@ -27,11 +27,11 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Base64;
 
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants.AAD;
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
 import com.microsoft.identity.common.adal.error.ADALError;
 import com.microsoft.identity.common.adal.error.AuthenticationException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants.AAD;
 import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
@@ -79,6 +79,7 @@ public class OauthTests {
     private static final String TEST_RETURNED_EXCEPTION = "test-returned-exception";
 
     private static final String TEST_AUTHORITY = "https://login.windows.net/common";
+
     @Before
     public void setUp() throws Exception {
         System.setProperty("dexmaker.dexcache", InstrumentationRegistry.getContext().getCacheDir().getPath());
@@ -556,7 +557,7 @@ public class OauthTests {
     }
 
     @Test
-    public void testprocessTokenResponse() throws  IOException {
+    public void testprocessTokenResponse() throws IOException {
 
         final AuthenticationRequest request = createAuthenticationRequest(TEST_AUTHORITY,
                 "resource", "client", "redirect", "loginhint", null, null, UUID.randomUUID(), false);
