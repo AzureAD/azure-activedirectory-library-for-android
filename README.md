@@ -68,6 +68,8 @@ Please check the releases for updates.
 
 ## Quick Start
 
+> Please note: this project's build scripts do not yet support Android Studio 3 / Java 8. For more information, please see our [Wiki](https://github.com/AzureAD/azure-activedirectory-library-for-android/wiki/ADAL-Compatibility-with-Android-Studio-3-&-Java-8).
+
 To build with Gradle,
 
 * Clone this repo in to a directory of your choice
