@@ -32,10 +32,10 @@ import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.cache.ADALOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
 import com.microsoft.identity.common.internal.cache.MSALOAuth2TokenCache;
-import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectory;
-import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectoryAuthorizationRequest;
-import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectoryOAuth2Configuration;
-import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectoryTokenResponse;
+import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
+import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryAuthorizationRequest;
+import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryOAuth2Configuration;
+import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryTokenResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 
