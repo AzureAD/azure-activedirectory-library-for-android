@@ -25,6 +25,14 @@ package com.microsoft.aad.adal;
 
 import android.content.Context;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 /**
  * ADAL exception.
  */
@@ -32,6 +40,12 @@ public class AuthenticationException extends Exception {
     static final long serialVersionUID = 1;
 
     private ADALError mCode;
+
+    private Map<String, String> mResponseBody;
+
+    private int mServiceStatusCode = -1;
+
+    private Map<String, List<String>> mHttpResponseHeaders;
 
     /**
      * Default constructor for {@link AuthenticationException}.
@@ -70,6 +84,89 @@ public class AuthenticationException extends Exception {
     public AuthenticationException(ADALError code, String details, Throwable throwable) {
         super(details, throwable);
         mCode = code;
+
+        if (null == throwable) {
+            return;
+        }
+
+        if (throwable instanceof AuthenticationException) {
+            mServiceStatusCode = ((AuthenticationException) throwable).getServiceStatusCode();
+            mResponseBody = ((AuthenticationException) throwable).getResponseBody();
+            mHttpResponseHeaders = ((AuthenticationException) throwable).getHttpResponseHeaders();
+        }
+    }
+
+    /**
+     * @param code Resource file related error code. Message will be derived
+     *            from resource with using app context
+     * @param details Details related to the error such as query string, request info.
+     * @param response HTTP web response
+     */
+    public AuthenticationException(ADALError code, String details, HttpWebResponse response) {
+        super(details);
+        mCode = code;
+
+        if (null == response) {
+            return;
+        }
+
+        mServiceStatusCode = response.getStatusCode();
+
+        if (null != response.getResponseHeaders()) {
+            mHttpResponseHeaders = response.getResponseHeaders();
+        }
+
+        if (null != response.getBody()) {
+            final String responseBodyStr = response.getBody();
+            try {
+                mResponseBody = new HashMap<>();
+                final JSONObject jsonObject = new JSONObject(responseBodyStr);
+                final Iterator<?> i = jsonObject.keys();
+                while (i.hasNext()) {
+                    final String key = (String) i.next();
+                    mResponseBody.put(key, jsonObject.getString(key));
+                }
+            } catch (final JSONException exc) {
+                return;
+            }
+        }
+    }
+
+    /**
+     * @param code Resource file related error code. Message will be derived
+     *            from resource with using app context
+     * @param details Details related to the error such as query string, request info.
+     * @param response HTTP web response
+     * @param throwable {@link Throwable}
+     */
+    public AuthenticationException(ADALError code, String details, HttpWebResponse response,
+                                   Throwable throwable) {
+        this(code, details, throwable);
+
+        if (null == response) {
+            return;
+        }
+
+        mServiceStatusCode = response.getStatusCode();
+
+        if (null != response.getResponseHeaders()) {
+            mHttpResponseHeaders = response.getResponseHeaders();
+        }
+
+        if (null != response.getBody()) {
+            final String responseBodyStr = response.getBody();
+            try {
+                mResponseBody = new HashMap<>();
+                final JSONObject jsonObject = new JSONObject(responseBodyStr);
+                final Iterator<?> i = jsonObject.keys();
+                while (i.hasNext()) {
+                    final String key = (String) i.next();
+                    mResponseBody.put(key, jsonObject.getString(key));
+                }
+            } catch (final JSONException exc) {
+                return;
+            }
+        }
     }
 
     /**
@@ -84,6 +181,33 @@ public class AuthenticationException extends Exception {
     @Override
     public String getMessage() {
         return getLocalizedMessage(null);
+    }
+
+    /**
+     * Gets the status code returned from http layer.
+     *
+     * @return status code from http layer. Return -1 if status code is not initialized.
+     */
+    public int getServiceStatusCode() {
+        return mServiceStatusCode;
+    }
+
+    /**
+     * Gets the response body that may be returned by the service.
+     *
+     * @return response body map, null if not initialized.
+     */
+    public Map<String, String> getResponseBody() {
+        return mResponseBody;
+    }
+
+    /**
+     * Get the response headers that indicated an error.
+     *
+     * @return The response headers for the network call, null if not initialized.
+     */
+    public Map<String, List<String>> getHttpResponseHeaders() {
+        return mHttpResponseHeaders;
     }
 
     /**

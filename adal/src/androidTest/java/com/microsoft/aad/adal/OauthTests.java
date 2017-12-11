@@ -417,9 +417,8 @@ public class OauthTests {
     public void testRefreshTokenWebResponseInvalidStatus() {
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
         webrequest.setReturnResponse(new HttpWebResponse(HttpURLConnection.HTTP_UNAVAILABLE,
-                null, null));
-        // Invalid status that cause some exception at webrequest
-        webrequest.setReturnException(TEST_RETURNED_EXCEPTION);
+                "{\"error\":\"no_internet\"}",
+                new HashMap<String, List<String>>()));
 
         // send request
         MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),
@@ -428,8 +427,8 @@ public class OauthTests {
         // Verify that callback can receive this error
         assertNull("AuthenticationResult is null", testResult.getAuthenticationResult());
         assertNotNull("Exception is not null", testResult.getException());
-        assertEquals("Exception has same error message", TEST_RETURNED_EXCEPTION,
-                testResult.getException().getMessage());
+        assertTrue(testResult.getException() instanceof AuthenticationException);
+        assertEquals(((AuthenticationException)testResult.getException()).getServiceStatusCode(), HttpURLConnection.HTTP_UNAVAILABLE);
     }
 
     @Test
@@ -503,6 +502,25 @@ public class OauthTests {
                 testResult.getAuthenticationResult().getAccessToken());
         assertEquals("Same refresh token", "refreshWithDeviceChallenge",
                 testResult.getAuthenticationResult().getRefreshToken());
+    }
+
+    @Test
+    public void testRefreshTokenWebResponseHeader() {
+        final int retry_after = 429;
+        Map<String, List<String>> headers = getHeader(
+                "Retry-After", "120");
+        MockWebRequestHandler mockWebRequest = new MockWebRequestHandler();
+        mockWebRequest.setReturnResponse(new HttpWebResponse(retry_after, "{\"body\":\"not_null\"}", headers));
+        // send request
+        MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),
+                mockWebRequest, "testRefreshToken");
+
+        // Verify that callback can receive this error
+        assertNotNull("Callback has error", testResult.getException());
+        assertNotNull(testResult.getException());
+        assertTrue(testResult.getException() instanceof AuthenticationException);
+        assertEquals(((AuthenticationException)testResult.getException()).getServiceStatusCode(), retry_after);
+        assertTrue(((AuthenticationException)testResult.getException()).getHttpResponseHeaders().containsKey("Retry-After"));
     }
 
     @SuppressWarnings("unchecked")

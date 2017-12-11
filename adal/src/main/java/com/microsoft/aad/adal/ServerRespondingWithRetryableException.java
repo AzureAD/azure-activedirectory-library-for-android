@@ -47,4 +47,8 @@ class ServerRespondingWithRetryableException extends AuthenticationException {
     public ServerRespondingWithRetryableException(String msg, Throwable throwable) {
         super(null, msg, throwable);
     }
+
+    public ServerRespondingWithRetryableException(String msg, HttpWebResponse response) {
+        super(null, msg, response);
+    }
 }
