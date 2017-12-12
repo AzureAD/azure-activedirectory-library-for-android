@@ -49,7 +49,6 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import javax.crypto.SecretKey;
@@ -193,7 +192,7 @@ public final class AcquireTokenSilentHandlerTest {
             assertTrue(authenticationException.getCause() instanceof AuthenticationException);
             final AuthenticationException throwable = (AuthenticationException) authenticationException.getCause();
             assertTrue(throwable.getCode() == ADALError.SERVER_ERROR);
-            assertNotNull(authenticationException.getResponseBody());
+            assertNotNull(authenticationException.getHttpResponseBody());
             assertNotNull(authenticationException.getHttpResponseHeaders());
             assertEquals(authenticationException.getServiceStatusCode(), HttpURLConnection.HTTP_INTERNAL_ERROR);
         }

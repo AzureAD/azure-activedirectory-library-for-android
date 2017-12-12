@@ -48,6 +48,11 @@ class ServerRespondingWithRetryableException extends AuthenticationException {
         super(null, msg, throwable);
     }
 
+    /**
+     * Constructs a new ServerRespondingWithRetryableException with message and the http web response.
+     * @param msg Detailed message for the reason causing the exception.
+     * @param response {@Link HttpWebResponse}
+     */
     public ServerRespondingWithRetryableException(String msg, HttpWebResponse response) {
         super(null, msg, response);
     }

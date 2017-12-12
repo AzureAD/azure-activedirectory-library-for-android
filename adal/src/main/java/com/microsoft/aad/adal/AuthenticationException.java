@@ -26,10 +26,7 @@ package com.microsoft.aad.adal;
 import android.content.Context;
 
 import org.json.JSONException;
-import org.json.JSONObject;
 
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -41,11 +38,11 @@ public class AuthenticationException extends Exception {
 
     private ADALError mCode;
 
-    private Map<String, String> mResponseBody;
+    private Map<String, String> mHttpResponseBody = null;
 
     private int mServiceStatusCode = -1;
 
-    private Map<String, List<String>> mHttpResponseHeaders;
+    private Map<String, List<String>> mHttpResponseHeaders = null;
 
     /**
      * Default constructor for {@link AuthenticationException}.
@@ -91,14 +88,14 @@ public class AuthenticationException extends Exception {
 
         if (throwable instanceof AuthenticationException) {
             mServiceStatusCode = ((AuthenticationException) throwable).getServiceStatusCode();
-            mResponseBody = ((AuthenticationException) throwable).getResponseBody();
+            mHttpResponseBody = ((AuthenticationException) throwable).getHttpResponseBody();
             mHttpResponseHeaders = ((AuthenticationException) throwable).getHttpResponseHeaders();
         }
     }
 
     /**
      * @param code Resource file related error code. Message will be derived
-     *            from resource with using app context
+     *            from resource using app context
      * @param details Details related to the error such as query string, request info.
      * @param response HTTP web response
      */
@@ -117,15 +114,8 @@ public class AuthenticationException extends Exception {
         }
 
         if (null != response.getBody()) {
-            final String responseBodyStr = response.getBody();
             try {
-                mResponseBody = new HashMap<>();
-                final JSONObject jsonObject = new JSONObject(responseBodyStr);
-                final Iterator<?> i = jsonObject.keys();
-                while (i.hasNext()) {
-                    final String key = (String) i.next();
-                    mResponseBody.put(key, jsonObject.getString(key));
-                }
+                mHttpResponseBody = HashMapExtensions.getJsonResponse(response);
             } catch (final JSONException exc) {
                 return;
             }
@@ -154,15 +144,8 @@ public class AuthenticationException extends Exception {
         }
 
         if (null != response.getBody()) {
-            final String responseBodyStr = response.getBody();
             try {
-                mResponseBody = new HashMap<>();
-                final JSONObject jsonObject = new JSONObject(responseBodyStr);
-                final Iterator<?> i = jsonObject.keys();
-                while (i.hasNext()) {
-                    final String key = (String) i.next();
-                    mResponseBody.put(key, jsonObject.getString(key));
-                }
+                mHttpResponseBody = HashMapExtensions.getJsonResponse(response);
             } catch (final JSONException exc) {
                 return;
             }
@@ -197,8 +180,8 @@ public class AuthenticationException extends Exception {
      *
      * @return response body map, null if not initialized.
      */
-    public Map<String, String> getResponseBody() {
-        return mResponseBody;
+    public Map<String, String> getHttpResponseBody() {
+        return mHttpResponseBody;
     }
 
     /**
