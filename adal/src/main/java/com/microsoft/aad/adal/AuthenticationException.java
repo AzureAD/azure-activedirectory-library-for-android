@@ -124,7 +124,7 @@ public class AuthenticationException extends Exception {
 
     /**
      * @param code Resource file related error code. Message will be derived
-     *            from resource with using app context
+     *            from resource using app context
      * @param details Details related to the error such as query string, request info.
      * @param response HTTP web response
      * @param throwable {@link Throwable}
