@@ -25,6 +25,8 @@ package com.microsoft.aad.adal;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 
 import static com.microsoft.aad.adal.TelemetryUtils.CliTelemInfo;
 
@@ -94,6 +96,12 @@ public class AuthenticationResult implements Serializable {
     private String mAuthority;
 
     private CliTelemInfo mCliTelemInfo;
+
+    private HashMap<String, String> mHttpResponseBody = null;
+
+    private int mServiceStatusCode = -1;
+
+    private HashMap<String, List<String>> mHttpResponseHeaders = null;
 
     AuthenticationResult() {
         mCode = null;
@@ -398,5 +406,29 @@ public class AuthenticationResult implements Serializable {
 
     final void setCliTelemInfo(final CliTelemInfo cliTelemInfo) {
         mCliTelemInfo = cliTelemInfo;
+    }
+
+    void setHttpResponseBody(HashMap<String, String> body) {
+        mHttpResponseBody = body;
+    }
+
+    public HashMap<String, String> getHttpResponseBody() {
+        return mHttpResponseBody;
+    }
+
+    void setHttpResponseHeaders(HashMap<String, List<String>> headers) {
+        mHttpResponseHeaders = headers;
+    }
+
+    public HashMap<String, List<String>> getHttpResponseHeaders() {
+        return mHttpResponseHeaders;
+    }
+
+    void setServiceStatusCode(int statusCode) {
+        mServiceStatusCode = statusCode;
+    }
+
+    public int getServiceStatusCode() {
+        return mServiceStatusCode;
     }
 }

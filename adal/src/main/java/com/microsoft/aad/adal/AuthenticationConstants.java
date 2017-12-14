@@ -172,6 +172,12 @@ public final class AuthenticationConstants {
         /** String of token type. */
         public static final String TOKEN_TYPE = "token_type";
 
+        public static final String HTTP_RESPONSE_BODY = "response_body";
+
+        public static final String HTTP_RESPONSE_HEADER = "response_headers";
+
+        public static final String HTTP_STATUS_CODE = "status_code";
+
         /** String of id token. */
         static final String ID_TOKEN = "id_token";
 

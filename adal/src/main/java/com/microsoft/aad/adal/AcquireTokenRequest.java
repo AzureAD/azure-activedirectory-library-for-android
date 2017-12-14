@@ -367,9 +367,13 @@ class AcquireTokenRequest {
                         "Prompt is not allowed and failed to get token. " + errorInfo,
                         authenticationRequest.getLogInfo(),
                         ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
-                throw new AuthenticationException(
+                final AuthenticationException authenticationException = new AuthenticationException(
                         ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, authenticationRequest.getLogInfo()
                         + " " + errorInfo);
+                authenticationException.setHttpResponseBody(authenticationResult.getHttpResponseBody());
+                authenticationException.setHttpResponseHeaders(authenticationResult.getHttpResponseHeaders());
+                authenticationException.setServiceStatusCode(authenticationResult.getServiceStatusCode());
+                throw authenticationException;
             }
 
             if (isAccessTokenReturned) {

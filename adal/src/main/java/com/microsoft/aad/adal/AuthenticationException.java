@@ -27,6 +27,7 @@ import android.content.Context;
 
 import org.json.JSONException;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -38,11 +39,11 @@ public class AuthenticationException extends Exception {
 
     private ADALError mCode;
 
-    private Map<String, String> mHttpResponseBody = null;
+    private HashMap<String, String> mHttpResponseBody = null;
 
     private int mServiceStatusCode = -1;
 
-    private Map<String, List<String>> mHttpResponseHeaders = null;
+    private HashMap<String, List<String>> mHttpResponseHeaders = null;
 
     /**
      * Default constructor for {@link AuthenticationException}.
@@ -88,8 +89,8 @@ public class AuthenticationException extends Exception {
 
         if (throwable instanceof AuthenticationException) {
             mServiceStatusCode = ((AuthenticationException) throwable).getServiceStatusCode();
-            mHttpResponseBody = ((AuthenticationException) throwable).getHttpResponseBody();
-            mHttpResponseHeaders = ((AuthenticationException) throwable).getHttpResponseHeaders();
+            mHttpResponseBody = new HashMap<>(((AuthenticationException) throwable).getHttpResponseBody());
+            mHttpResponseHeaders = new HashMap<>(((AuthenticationException) throwable).getHttpResponseHeaders());
         }
     }
 
@@ -110,12 +111,12 @@ public class AuthenticationException extends Exception {
         mServiceStatusCode = response.getStatusCode();
 
         if (null != response.getResponseHeaders()) {
-            mHttpResponseHeaders = response.getResponseHeaders();
+            mHttpResponseHeaders = new HashMap<>(response.getResponseHeaders());
         }
 
         if (null != response.getBody()) {
             try {
-                mHttpResponseBody = HashMapExtensions.getJsonResponse(response);
+                mHttpResponseBody = new HashMap<>(HashMapExtensions.getJsonResponse(response));
             } catch (final JSONException exc) {
                 return;
             }
@@ -140,12 +141,12 @@ public class AuthenticationException extends Exception {
         mServiceStatusCode = response.getStatusCode();
 
         if (null != response.getResponseHeaders()) {
-            mHttpResponseHeaders = response.getResponseHeaders();
+            mHttpResponseHeaders = new HashMap<>(response.getResponseHeaders());
         }
 
         if (null != response.getBody()) {
             try {
-                mHttpResponseBody = HashMapExtensions.getJsonResponse(response);
+                mHttpResponseBody = new HashMap<>(HashMapExtensions.getJsonResponse(response));
             } catch (final JSONException exc) {
                 return;
             }
@@ -180,7 +181,7 @@ public class AuthenticationException extends Exception {
      *
      * @return response body map, null if not initialized.
      */
-    public Map<String, String> getHttpResponseBody() {
+    public HashMap<String, String> getHttpResponseBody() {
         return mHttpResponseBody;
     }
 
@@ -189,8 +190,20 @@ public class AuthenticationException extends Exception {
      *
      * @return The response headers for the network call, null if not initialized.
      */
-    public Map<String, List<String>> getHttpResponseHeaders() {
+    public HashMap<String, List<String>> getHttpResponseHeaders() {
         return mHttpResponseHeaders;
+    }
+
+    void setHttpResponseBody(HashMap<String, String> body) {
+        mHttpResponseBody = body;
+    }
+
+    void setHttpResponseHeaders(HashMap<String, List<String>> headers) {
+        mHttpResponseHeaders = headers;
+    }
+
+    void setServiceStatusCode(int statusCode) {
+        mServiceStatusCode = statusCode;
     }
 
     /**

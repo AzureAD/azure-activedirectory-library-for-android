@@ -47,6 +47,8 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Base64;
 
+import org.json.JSONException;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -68,6 +70,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.List;
 
 import static com.microsoft.aad.adal.AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT;
@@ -481,8 +484,17 @@ class BrokerProxy implements IBrokerProxy {
 
             throw new AuthenticationException(adalErrorCode, msg);
         } else if (!StringExtensions.isNullOrBlank(oauth2ErrorCode) && request.isSilent()) {
-            throw new AuthenticationException(ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED,
+            final AuthenticationException exception = new AuthenticationException(ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED,
                     "Received error from broker, errorCode: " + oauth2ErrorCode + "; ErrorDescription: " + oauth2ErrorDescription);
+            try {
+                exception.setHttpResponseBody(HashMapExtensions.getResponseBody(bundleResult.getString(AuthenticationConstants.OAuth2.HTTP_RESPONSE_BODY)));
+                exception.setHttpResponseHeaders(HashMapExtensions.getResponseHeaders(bundleResult.getString(AuthenticationConstants.OAuth2.HTTP_RESPONSE_HEADER)));
+                exception.setServiceStatusCode(bundleResult.getInt(AuthenticationConstants.OAuth2.HTTP_STATUS_CODE));
+            } catch (final JSONException exc) {
+                Logger.e(TAG, "Json exception", ExceptionExtensions.getExceptionMessage(exception), ADALError.SERVER_INVALID_JSON_RESPONSE);
+            }
+
+            throw exception;
         } else {
             boolean initialRequest = bundleResult.getBoolean(AuthenticationConstants.Broker.ACCOUNT_INITIAL_REQUEST);
             if (initialRequest) {

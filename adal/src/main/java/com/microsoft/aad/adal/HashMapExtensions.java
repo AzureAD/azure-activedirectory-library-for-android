@@ -25,12 +25,15 @@ package com.microsoft.aad.adal;
 
 import android.text.TextUtils;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
@@ -110,4 +113,36 @@ final class HashMapExtensions {
         return response;
     }
 
+    static HashMap<String, String> getResponseBody(String bodyStr) throws JSONException {
+        final HashMap<String, String> responseBody = new HashMap<>();
+        if (!StringExtensions.isNullOrBlank(bodyStr)) {
+            JSONObject jsonObject = new JSONObject(bodyStr);
+            Iterator<?> i = jsonObject.keys();
+            while (i.hasNext()) {
+                final String key = (String) i.next();
+                responseBody.put(key, jsonObject.getString(key));
+            }
+        }
+
+        return responseBody;
+    }
+
+    static HashMap<String, List<String>> getResponseHeaders(String headerStr) throws JSONException {
+        final HashMap<String, List<String>> responseHeaders = new HashMap<>();
+        if (!StringExtensions.isNullOrBlank(headerStr)) {
+            JSONObject jsonObject = new JSONObject(headerStr);
+            Iterator<?> i = jsonObject.keys();
+            while (i.hasNext()) {
+                final String key = (String) i.next();
+                final List<String> list = new ArrayList<>();
+                final JSONArray json = new JSONArray(jsonObject.getString(key));
+                for (int index = 0; index < json.length(); index++) {
+                    list.add(json.get(index).toString());
+                }
+                responseHeaders.put(key, list);
+            }
+        }
+
+        return  responseHeaders;
+    }
 }
