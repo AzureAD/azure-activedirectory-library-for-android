@@ -705,9 +705,7 @@ class Oauth2 {
                 result = parseJsonResponse(webResponse.getBody());
 
                 if(null != result.getErrorCode()) {
-                    result.setHttpResponseHeaders(new HashMap<>(webResponse.getResponseHeaders()));
-                    result.setServiceStatusCode(webResponse.getStatusCode());
-                    result.setHttpResponseBody(new HashMap<>(HashMapExtensions.getResponseBody(webResponse.getBody())));
+                    result.setHttpResponse(webResponse);
                 }
                 if (result != null) {
                     final CliTelemInfo cliTelemInfo = new CliTelemInfo();

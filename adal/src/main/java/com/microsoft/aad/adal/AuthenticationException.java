@@ -103,24 +103,7 @@ public class AuthenticationException extends Exception {
     public AuthenticationException(ADALError code, String details, HttpWebResponse response) {
         super(details);
         mCode = code;
-
-        if (null == response) {
-            return;
-        }
-
-        mServiceStatusCode = response.getStatusCode();
-
-        if (null != response.getResponseHeaders()) {
-            mHttpResponseHeaders = new HashMap<>(response.getResponseHeaders());
-        }
-
-        if (null != response.getBody()) {
-            try {
-                mHttpResponseBody = new HashMap<>(HashMapExtensions.getJsonResponse(response));
-            } catch (final JSONException exc) {
-                return;
-            }
-        }
+        setHttpResponse(response);
     }
 
     /**
@@ -133,24 +116,7 @@ public class AuthenticationException extends Exception {
     public AuthenticationException(ADALError code, String details, HttpWebResponse response,
                                    Throwable throwable) {
         this(code, details, throwable);
-
-        if (null == response) {
-            return;
-        }
-
-        mServiceStatusCode = response.getStatusCode();
-
-        if (null != response.getResponseHeaders()) {
-            mHttpResponseHeaders = new HashMap<>(response.getResponseHeaders());
-        }
-
-        if (null != response.getBody()) {
-            try {
-                mHttpResponseBody = new HashMap<>(HashMapExtensions.getJsonResponse(response));
-            } catch (final JSONException exc) {
-                return;
-            }
-        }
+        setHttpResponse(response);
     }
 
     /**
@@ -204,6 +170,34 @@ public class AuthenticationException extends Exception {
 
     void setServiceStatusCode(int statusCode) {
         mServiceStatusCode = statusCode;
+    }
+
+    void setHttpResponse(HttpWebResponse response) {
+        if (null != response) {
+            mServiceStatusCode = response.getStatusCode();
+
+            if (null != response.getResponseHeaders()) {
+                mHttpResponseHeaders = new HashMap<>(response.getResponseHeaders());
+            }
+
+            if (null != response.getBody()) {
+                try {
+                    mHttpResponseBody = new HashMap<>(HashMapExtensions.getJsonResponse(response));
+                } catch (final JSONException exception) {
+                    Logger.e(AuthenticationException.class.getSimpleName(), "Json exception",
+                            ExceptionExtensions.getExceptionMessage(exception),
+                            ADALError.SERVER_INVALID_JSON_RESPONSE);
+                }
+            }
+        }
+    }
+
+    void setHttpResponse(final AuthenticationResult result) {
+        if (null != result) {
+            mHttpResponseBody = result.getHttpResponseBody();
+            mHttpResponseHeaders = result.getHttpResponseHeaders();
+            mServiceStatusCode = result.getServiceStatusCode();
+        }
     }
 
     /**

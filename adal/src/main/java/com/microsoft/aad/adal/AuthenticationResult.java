@@ -23,6 +23,8 @@
 
 package com.microsoft.aad.adal;
 
+import org.json.JSONException;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
@@ -408,7 +410,7 @@ public class AuthenticationResult implements Serializable {
         mCliTelemInfo = cliTelemInfo;
     }
 
-    void setHttpResponseBody(HashMap<String, String> body) {
+    void setHttpResponseBody(final HashMap<String, String> body) {
         mHttpResponseBody = body;
     }
 
@@ -416,7 +418,7 @@ public class AuthenticationResult implements Serializable {
         return mHttpResponseBody;
     }
 
-    void setHttpResponseHeaders(HashMap<String, List<String>> headers) {
+    void setHttpResponseHeaders(final HashMap<String, List<String>> headers) {
         mHttpResponseHeaders = headers;
     }
 
@@ -430,5 +432,25 @@ public class AuthenticationResult implements Serializable {
 
     public int getServiceStatusCode() {
         return mServiceStatusCode;
+    }
+
+    void setHttpResponse(final HttpWebResponse response) {
+        if (null != response) {
+            mServiceStatusCode = response.getStatusCode();
+
+            if (null != response.getResponseHeaders()) {
+                mHttpResponseHeaders = new HashMap<>(response.getResponseHeaders());
+            }
+
+            if (null != response.getBody()) {
+                try {
+                    mHttpResponseBody = new HashMap<>(HashMapExtensions.getJsonResponse(response));
+                } catch (final JSONException exception) {
+                    Logger.e(AuthenticationException.class.getSimpleName(), "Json exception",
+                            ExceptionExtensions.getExceptionMessage(exception),
+                            ADALError.SERVER_INVALID_JSON_RESPONSE);
+                }
+            }
+        }
     }
 }

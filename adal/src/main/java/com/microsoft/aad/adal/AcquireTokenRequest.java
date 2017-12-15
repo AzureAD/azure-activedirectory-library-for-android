@@ -370,9 +370,7 @@ class AcquireTokenRequest {
                 final AuthenticationException authenticationException = new AuthenticationException(
                         ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, authenticationRequest.getLogInfo()
                         + " " + errorInfo);
-                authenticationException.setHttpResponseBody(authenticationResult.getHttpResponseBody());
-                authenticationException.setHttpResponseHeaders(authenticationResult.getHttpResponseHeaders());
-                authenticationException.setServiceStatusCode(authenticationResult.getServiceStatusCode());
+                authenticationException.setHttpResponse(authenticationResult);
                 throw authenticationException;
             }
 
