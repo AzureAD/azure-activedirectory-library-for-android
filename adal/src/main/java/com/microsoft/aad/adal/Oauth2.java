@@ -703,11 +703,11 @@ class Oauth2 {
                 || statusCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
             try {
                 result = parseJsonResponse(webResponse.getBody());
-
-                if(null != result.getErrorCode()) {
-                    result.setHttpResponse(webResponse);
-                }
                 if (result != null) {
+                    if(null != result.getErrorCode()) {
+                        result.setHttpResponse(webResponse);
+                    }
+
                     final CliTelemInfo cliTelemInfo = new CliTelemInfo();
                     cliTelemInfo.setSpeRing(speRing);
                     result.setCliTelemInfo(cliTelemInfo);
