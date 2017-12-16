@@ -52,6 +52,7 @@ import org.json.JSONException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.GeneralSecurityException;
@@ -486,14 +487,17 @@ class BrokerProxy implements IBrokerProxy {
         } else if (!StringExtensions.isNullOrBlank(oauth2ErrorCode) && request.isSilent()) {
             final AuthenticationException exception = new AuthenticationException(ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED,
                     "Received error from broker, errorCode: " + oauth2ErrorCode + "; ErrorDescription: " + oauth2ErrorDescription);
-            try {
-                exception.setHttpResponseBody(HashMapExtensions.getResponseBody(bundleResult.getString(AuthenticationConstants.OAuth2.HTTP_RESPONSE_BODY)));
-                exception.setHttpResponseHeaders(HashMapExtensions.getResponseHeaders(bundleResult.getString(AuthenticationConstants.OAuth2.HTTP_RESPONSE_HEADER)));
-                exception.setServiceStatusCode(bundleResult.getInt(AuthenticationConstants.OAuth2.HTTP_STATUS_CODE));
-            } catch (final JSONException exc) {
-                Logger.e(TAG, "Json exception", ExceptionExtensions.getExceptionMessage(exception), ADALError.SERVER_INVALID_JSON_RESPONSE);
+            final Serializable responseBody = bundleResult.getSerializable(AuthenticationConstants.OAuth2.HTTP_RESPONSE_BODY);
+            final Serializable responseHeaders = bundleResult.getSerializable(AuthenticationConstants.OAuth2.HTTP_RESPONSE_HEADER);
+            if (null != responseBody && responseBody instanceof HashMap) {
+                exception.setHttpResponseBody((HashMap)responseBody);
             }
 
+            if (null != responseHeaders && responseHeaders instanceof HashMap) {
+                exception.setHttpResponseHeaders((HashMap)responseHeaders);
+            }
+            
+            exception.setServiceStatusCode(bundleResult.getInt(AuthenticationConstants.OAuth2.HTTP_STATUS_CODE));
             throw exception;
         } else {
             boolean initialRequest = bundleResult.getBoolean(AuthenticationConstants.Broker.ACCOUNT_INITIAL_REQUEST);
