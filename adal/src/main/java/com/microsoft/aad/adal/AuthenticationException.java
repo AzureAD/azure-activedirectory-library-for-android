@@ -89,8 +89,14 @@ public class AuthenticationException extends Exception {
 
         if (throwable instanceof AuthenticationException) {
             mServiceStatusCode = ((AuthenticationException) throwable).getServiceStatusCode();
-            mHttpResponseBody = new HashMap<>(((AuthenticationException) throwable).getHttpResponseBody());
-            mHttpResponseHeaders = new HashMap<>(((AuthenticationException) throwable).getHttpResponseHeaders());
+
+            if (null != ((AuthenticationException) throwable).getHttpResponseBody()) {
+                mHttpResponseBody = new HashMap<>(((AuthenticationException) throwable).getHttpResponseBody());
+            }
+
+            if (null != ((AuthenticationException) throwable).getHttpResponseHeaders()) {
+                mHttpResponseHeaders = new HashMap<>(((AuthenticationException) throwable).getHttpResponseHeaders());
+            }
         }
     }
 

@@ -193,7 +193,6 @@ public final class AcquireTokenSilentHandlerTest {
             final AuthenticationException throwable = (AuthenticationException) authenticationException.getCause();
             assertTrue(throwable.getCode() == ADALError.SERVER_ERROR);
             assertNotNull(authenticationException.getHttpResponseBody());
-            assertNotNull(authenticationException.getHttpResponseHeaders());
             assertEquals(authenticationException.getServiceStatusCode(), HttpURLConnection.HTTP_INTERNAL_ERROR);
         }
 
