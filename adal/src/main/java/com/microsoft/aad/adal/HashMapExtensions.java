@@ -25,12 +25,15 @@ package com.microsoft.aad.adal;
 
 import android.text.TextUtils;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
@@ -110,4 +113,48 @@ final class HashMapExtensions {
         return response;
     }
 
+    /**
+     * Parse json String into HashMap<String, String>.
+     * @param jsonString
+     * @return HashMap<String, String>
+     * @throws JSONException
+     */
+    static HashMap<String, String> jsonStringAsMap(String jsonString) throws JSONException {
+        final HashMap<String, String> responseItems = new HashMap<>();
+        if (!StringExtensions.isNullOrBlank(jsonString)) {
+            JSONObject jsonObject = new JSONObject(jsonString);
+            Iterator<?> i = jsonObject.keys();
+            while (i.hasNext()) {
+                final String key = (String) i.next();
+                responseItems.put(key, jsonObject.getString(key));
+            }
+        }
+
+        return responseItems;
+    }
+
+    /**
+     * Parse json String into HashMap<String, List<String>>.
+     * @param jsonString
+     * @return HashMap<String, List<String>>
+     * @throws JSONException
+     */
+    static HashMap<String, List<String>> jsonStringAsMapList(String jsonString) throws JSONException {
+        final HashMap<String, List<String>> responseItems = new HashMap<>();
+        if (!StringExtensions.isNullOrBlank(jsonString)) {
+            JSONObject jsonObject = new JSONObject(jsonString);
+            Iterator<?> i = jsonObject.keys();
+            while (i.hasNext()) {
+                final String key = (String) i.next();
+                final List<String> list = new ArrayList<>();
+                final JSONArray json = new JSONArray(jsonObject.getString(key));
+                for (int index = 0; index < json.length(); index++) {
+                    list.add(json.get(index).toString());
+                }
+                responseItems.put(key, list);
+            }
+        }
+
+        return  responseItems;
+    }
 }
