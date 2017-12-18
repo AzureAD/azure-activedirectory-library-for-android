@@ -113,10 +113,16 @@ final class HashMapExtensions {
         return response;
     }
 
-    static HashMap<String, String> jsonStringAsMap(String bodyStr) throws JSONException {
+    /**
+     * Parse json String into HashMap<String, String>.
+     * @param jsonString
+     * @return HashMap<String, String>
+     * @throws JSONException
+     */
+    static HashMap<String, String> jsonStringAsMap(String jsonString) throws JSONException {
         final HashMap<String, String> responseItems = new HashMap<>();
-        if (!StringExtensions.isNullOrBlank(bodyStr)) {
-            JSONObject jsonObject = new JSONObject(bodyStr);
+        if (!StringExtensions.isNullOrBlank(jsonString)) {
+            JSONObject jsonObject = new JSONObject(jsonString);
             Iterator<?> i = jsonObject.keys();
             while (i.hasNext()) {
                 final String key = (String) i.next();
@@ -127,10 +133,16 @@ final class HashMapExtensions {
         return responseItems;
     }
 
-    static HashMap<String, List<String>> jsonStringAsMapList(String headerStr) throws JSONException {
+    /**
+     * Parse json String into HashMap<String, List<String>>.
+     * @param jsonString
+     * @return HashMap<String, List<String>>
+     * @throws JSONException
+     */
+    static HashMap<String, List<String>> jsonStringAsMapList(String jsonString) throws JSONException {
         final HashMap<String, List<String>> responseItems = new HashMap<>();
-        if (!StringExtensions.isNullOrBlank(headerStr)) {
-            JSONObject jsonObject = new JSONObject(headerStr);
+        if (!StringExtensions.isNullOrBlank(jsonString)) {
+            JSONObject jsonObject = new JSONObject(jsonString);
             Iterator<?> i = jsonObject.keys();
             while (i.hasNext()) {
                 final String key = (String) i.next();
