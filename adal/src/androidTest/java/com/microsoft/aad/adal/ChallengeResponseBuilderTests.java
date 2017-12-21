@@ -308,14 +308,6 @@ public class ChallengeResponseBuilderTests extends AndroidTestHelper {
 
         try {
             m.invoke(handler, CERT_REDIRECT
-                    + "?Nonce=2&CertAuthoritiesMissing=ABC&Version=1.0&SubmitUrl=1&Context=1");
-            Assert.fail("No exception");
-        } catch (Exception ex) {
-            assertTrue("Argument exception", ex.getCause().getMessage().contains("CertAuthorities"));
-        }
-
-        try {
-            m.invoke(handler, CERT_REDIRECT
                     + "?Nonce=2&CertAuthorities=ABC&Version=1.0&SubmitUrlMissing=1&Context=1");
             Assert.fail("No exception");
         } catch (Exception ex) {

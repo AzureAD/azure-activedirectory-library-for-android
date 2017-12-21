@@ -76,6 +76,8 @@ class ChallengeResponseBuilder {
 
         /**
          * Authorization endpoint will return accepted authorities.
+         * The mCertAuthorities could be empty when either no certificate or no permission for ADFS
+         * service account for the Device container in AD.
          */
         private List<String> mCertAuthorities;
 
@@ -208,6 +210,10 @@ class ChallengeResponseBuilder {
                 key = key.trim();
                 value = StringExtensions.removeQuoteInHeaderValue(value.trim());
                 headerItems.put(key, value);
+            }  else if (pair.size() == 1 && !StringExtensions.isNullOrBlank(pair.get(0))) {
+                // The value list could be null when either no certificate or no permission
+                // for ADFS service account for the Device container in AD.
+                headerItems.put(StringExtensions.urlFormDecode(pair.get(0)).trim(), StringExtensions.urlFormDecode(""));
             } else {
                 // invalid format
                 throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
