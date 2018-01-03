@@ -80,6 +80,7 @@ final class HashMapExtensions {
                         value = StringExtensions.urlFormDecode(elements[1].trim());
                     } catch (UnsupportedEncodingException e) {
                         Logger.i(TAG, ADALError.ENCODING_IS_NOT_SUPPORTED.getDescription(), e.getMessage(), null);
+                        continue;
                     }
                 } else if (elements.length == 1) {
                     try {
@@ -87,6 +88,7 @@ final class HashMapExtensions {
                         value = "";
                     } catch (UnsupportedEncodingException e) {
                         Logger.i(TAG, ADALError.ENCODING_IS_NOT_SUPPORTED.getDescription(), e.getMessage(), null);
+                        continue;
                     }
                 }
 
