@@ -25,7 +25,6 @@ package com.microsoft.aad.adal;
 
 import android.content.Context;
 import android.os.Handler;
-import android.util.Log;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -200,7 +199,6 @@ public class AuthenticationParameters {
      */
     public static AuthenticationParameters createFromResponseAuthenticateHeader(final String authenticateHeader)
             throws ResourceAuthenticationChallengeException {
-        Log.e("TestParser", "Header value: " + authenticateHeader);
         if (StringExtensions.isNullOrBlank(authenticateHeader)) {
             throw new ResourceAuthenticationChallengeException(AUTH_HEADER_MISSING);
         }
@@ -244,54 +242,135 @@ public class AuthenticationParameters {
         throw new ResourceAuthenticationChallengeException(AUTH_HEADER_INVALID_FORMAT);
     }
 
+    /**
+     * An authentication challenge.
+     * Format follows <a href="https://tools.ietf.org/html/rfc7235#section-4.1">RFC-7235</a>.
+     *
+     * @see <a href-"https://tools.ietf.org/html/rfc7617">RFC-7617</a>
+     * @see <a href="https://tools.ietf.org/html/rfc6750">RFC-6750</a>
+     */
     private static class Challenge {
 
-        public static final String TEST_PARSER = "TestParser";
+        /**
+         * Regex sequence intended to be prefixed with another value. Whichever value precedes it
+         * will be parsed/grouped-out, assuming it is not bounded by a par of double-quotes ("").
+         */
+        private static final String REGEX_UNQUOTED_LOOKAHEAD = "(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)";
+
+        /**
+         * Regex sequence to parse unquoted equals (=) signs.
+         */
+        private static final String REGEX_SPLIT_UNQUOTED_EQUALS = "=" + REGEX_UNQUOTED_LOOKAHEAD;
+
+        /**
+         * Regex sequence to parse unquoted commas (,).
+         */
+        private static final String REGEX_SPLIT_UNQUOTED_COMMA = "," + REGEX_UNQUOTED_LOOKAHEAD;
+
+        /**
+         * Regex sequence to parse schemes from WWW-Authenticate header values.
+         */
+        private static final String REGEX_STRING_TOKEN_WITH_SCHEME = "^([^\\s|^=]+)[\\s|\\t]+([^=]*=[^=]*)+$";
+
+        /**
+         * Comma+space suffix used to preserve formatting during parsing.
+         */
+        private static final String SUFFIX_COMMA = ", ";
+
+        /**
+         * The authentication scheme of this challenge (ex. Basic, Bearer).
+         */
         private String mScheme;
 
+        /**
+         * The parameters of this scheme (ex. realm, authoritization_uri, scope).
+         */
         private Map<String, String> mParameters;
 
-        Challenge(final String scheme, final Map<String, String> params) {
+        /**
+         * Constructs a new Challenge.
+         *
+         * @param scheme The scheme used by this challenge.
+         * @param params The params which accompany this challenge.
+         */
+        private Challenge(final String scheme, final Map<String, String> params) {
             mScheme = scheme;
             mParameters = params;
         }
 
+        /**
+         * Gets the scheme.
+         *
+         * @return The scheme to get.
+         */
         public String getScheme() {
             return mScheme;
         }
 
+        /**
+         * Gets the parameters.
+         *
+         * @return The parameters to get.
+         */
         public Map<String, String> getParameters() {
             return mParameters;
         }
 
+        /**
+         * Parses a single challenge String, typically the value field of a WWW-Authenticate header.
+         *
+         * @param challenge The challenge String to parse.
+         * @return The Challenge object derived from challenge.
+         * @throws ResourceAuthenticationChallengeException If a parsing error is encountered or
+         *                                                  the String is malformed.
+         */
         static Challenge parseChallenge(final String challenge) throws ResourceAuthenticationChallengeException {
             final String scheme = parseScheme(challenge);
-            Log.e(TEST_PARSER, "Parsing scheme: " + scheme);
+            Logger.d(TAG, "Parsing scheme: " + scheme);
             final String challengeSansScheme = challenge.substring(scheme.length() + 1);
-            Log.e(TEST_PARSER, "Parsing schemeless params: " + challengeSansScheme);
             final Map<String, String> params = parseParams(challengeSansScheme);
             return new Challenge(scheme, params);
         }
 
+        /**
+         * Parses the scheme of a challenge String.
+         *
+         * @param challenge The challenge String to parse.
+         * @return The scheme portion of the challenge String.
+         * @throws ResourceAuthenticationChallengeException If a parsing error is encountered or
+         *                                                  the String is malformed.
+         */
         private static String parseScheme(String challenge) throws ResourceAuthenticationChallengeException {
             final int indexOfFirstSpace = challenge.indexOf(' ');
             final int indexOfFirstTab = challenge.indexOf('\t');
-            // We want to grab the lesser of these values so long as they're > -1
+            // We want to grab the lesser of these values so long as they're > -1...
             if (indexOfFirstSpace < 0 && indexOfFirstTab < 0) {
                 return challenge;
             }
 
+            // If there is a space and it occurs before the first tab character.
             if (indexOfFirstSpace > -1 && (indexOfFirstSpace < indexOfFirstTab || indexOfFirstTab < 0)) {
                 return challenge.substring(0, indexOfFirstSpace);
             }
 
+            // If there is a tab character and it occurs before the first space character.
             if (indexOfFirstTab > -1 && (indexOfFirstTab < indexOfFirstSpace || indexOfFirstSpace < 0)) {
                 return challenge.substring(0, indexOfFirstTab);
             }
 
+            // Unexpected/malformed/missing scheme.
             throw new ResourceAuthenticationChallengeException(AUTH_HEADER_INVALID_FORMAT);
         }
 
+        /**
+         * Parses the parameters of a challenge String which has had its scheme removed
+         * (from its prefix).
+         *
+         * @param challengeSansScheme The challenge String, minus the scheme.
+         * @return A Map of the keys/values in the parsed parameters.
+         * @throws ResourceAuthenticationChallengeException If a parsing error is encountered or
+         *                                                  the String is malformed.
+         */
         private static Map<String, String> parseParams(String challengeSansScheme) throws ResourceAuthenticationChallengeException {
             if (StringExtensions.isNullOrBlank(challengeSansScheme)) {
                 throw new ResourceAuthenticationChallengeException(AUTH_HEADER_INVALID_FORMAT);
@@ -324,27 +403,33 @@ public class AuthenticationParameters {
                             ADALError.DEVELOPER_BEARER_HEADER_MULTIPLE_ITEMS);
                 }
 
-                Log.e(TEST_PARSER, "put(" + key + ", " + value + ")");
+                // Add the key/value to the Map
                 params.put(key, value);
             }
 
-            if (params.isEmpty()) {
+            if (params.isEmpty()) { // To match the existing expected behavior, an Exception is thrown.
                 throw new ResourceAuthenticationChallengeException(AUTH_HEADER_INVALID_FORMAT);
             }
 
             return params;
         }
 
+        /**
+         * Parses multiple challenges in a single String, typically the value field of a WWW-Authenticate header.
+         *
+         * @param strChallenges The challenge String to parse.
+         * @return The Challenge object derived from challenge.
+         * @throws ResourceAuthenticationChallengeException If a parsing error is encountered or
+         *                                                  the String is malformed.
+         */
         static List<Challenge> parseChallenges(final String strChallenges) throws ResourceAuthenticationChallengeException {
+            // Initialize and out-List for our result.
             final List<Challenge> challenges = new ArrayList<>();
-            try {
+
+            try { // Separate the challenges.
                 List<String> strChallengesList = separateChallenges(strChallenges);
-                //
-                Log.e(TEST_PARSER, "Logging list contents");
-                for (String s : strChallengesList) {
-                    Log.e(TEST_PARSER, "\t" + s);
-                }
-                //
+
+                // Add each to the out-List
                 for (final String challenge : strChallengesList) {
                     challenges.add(parseChallenge(challenge));
                 }
@@ -357,12 +442,13 @@ public class AuthenticationParameters {
             return challenges;
         }
 
-        private static final String REGEX_UNQUOTED_LOOKAHEAD = "(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)";
-        private static final String REGEX_SPLIT_UNQUOTED_EQUALS = "=" + REGEX_UNQUOTED_LOOKAHEAD;
-        private static final String REGEX_SPLIT_UNQUOTED_COMMA = "," + REGEX_UNQUOTED_LOOKAHEAD;
-        private static final String REGEX_STRING_TOKEN_WITH_SCHEME = "^([^\\s|^=]+)[\\s|\\t]+([^=]*=[^=]*)+$";
-        private static final String SUFFIX_COMMA = ", ";
-
+        /**
+         * For multiple challenges in a WWW-Authenticate header value, separate them into multiple
+         * Strings for parsing.
+         *
+         * @param challenges The challenge values to parse.
+         * @return A List of separated challenges.
+         */
         private static List<String> separateChallenges(final String challenges) {
             // Split the supplied String on those commas which are not constrained by quotes
             String[] splitOnUnquotedCommas = challenges.split(REGEX_SPLIT_UNQUOTED_COMMA, -1);
@@ -375,7 +461,25 @@ public class AuthenticationParameters {
                 outStrings[ii] = "";
             }
 
-            int ii = -1;
+            writeParsedChallenges(splitOnUnquotedCommas, tokensContainingScheme, outStrings);
+
+            // Remove the suffix comma from the last element of each list...
+            sanitizeParsedSuffixes(outStrings);
+
+            // Collapse the results to a single list...
+            return Arrays.asList(outStrings);
+        }
+
+        /**
+         * Writes the parsed challenges to an output array.
+         *
+         * @param splitOnUnquotedCommas  The challenge String, split on unquoted commas.
+         * @param tokensContainingScheme String tokens in the target challenge which contain a
+         *                               scheme element.
+         * @param outStrings             The output array, modified in-place.
+         */
+        private static void writeParsedChallenges(String[] splitOnUnquotedCommas, List<String> tokensContainingScheme, String[] outStrings) {
+            int ii = -1; // Out-value index
             for (final String token : splitOnUnquotedCommas) {
                 if (tokensContainingScheme.contains(token)) {
                     // this is the start of a challenge...
@@ -384,18 +488,27 @@ public class AuthenticationParameters {
                     outStrings[ii] += token + SUFFIX_COMMA;
                 }
             }
+        }
 
-            // Remove the suffix comma from the last element of each list...
+        /**
+         * Removes trailing (suffixed) comma values from Strings in the supplied array.
+         *
+         * @param outStrings The String array to sanitize.
+         */
+        private static void sanitizeParsedSuffixes(String[] outStrings) {
             for (int jj = 0; jj < outStrings.length; jj++) {
                 if (outStrings[jj].endsWith(SUFFIX_COMMA)) {
                     outStrings[jj] = outStrings[jj].substring(0, outStrings[jj].length() - 2);
                 }
             }
-
-            // Collapse the results to a single list...
-            return Arrays.asList(outStrings);
         }
 
+        /**
+         * Extract a List of String tokens containing scheme elements from the supplied array.
+         *
+         * @param strArry The String array to inspect.
+         * @return A List of scheme-containing String tokens.
+         */
         private static List<String> extractTokensContainingScheme(final String[] strArry) {
             final List<String> tokensContainingScheme = new ArrayList<>();
 
@@ -408,13 +521,23 @@ public class AuthenticationParameters {
             return tokensContainingScheme;
         }
 
+        /**
+         * Heuristically check if a given String contains a scheme element.
+         *
+         * @param token The String token to inspect.
+         * @return True, if it contains a scheme. False otherwise.
+         */
         private static boolean containsScheme(final String token) {
             final Pattern startWithScheme = Pattern.compile(REGEX_STRING_TOKEN_WITH_SCHEME);
             final Matcher matcher = startWithScheme.matcher(token);
-            Log.e(TEST_PARSER, "Checking String:[" + token + "] containsScheme? " + matcher.matches());
             return matcher.matches();
         }
 
+        /**
+         * Trim whitespace from each array element.
+         *
+         * @param strArray The target String[].
+         */
         private static void sanitizeWhitespace(String[] strArray) {
             for (int ii = 0; ii < strArray.length; ii++) {
                 strArray[ii] = strArray[ii].trim();
@@ -431,7 +554,6 @@ public class AuthenticationParameters {
                 // if exists
                 List<String> headers = responseHeaders.get(AUTHENTICATE_HEADER);
                 if (headers != null && headers.size() > 0) {
-                    Log.e("TestParser", "Parsing..." + headers.get(0));
                     return createFromResponseAuthenticateHeader(headers.get(0));
                 }
             }
