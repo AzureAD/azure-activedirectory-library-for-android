@@ -118,5 +118,12 @@ public class HashMapExtensionTests extends AndroidTestHelper {
         assertTrue(result.containsKey("d"));
         assertTrue(result.containsValue("f"));
         assertTrue(result.size() == 1);
+
+        result = (HashMap<String, String>) m.invoke(object, "=b&c=");
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertTrue(result.containsKey("c"));
+        assertFalse(result.containsValue("b"));
+        assertTrue(result.size() == 1);
     }
 }
