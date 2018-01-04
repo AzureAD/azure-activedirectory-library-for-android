@@ -25,6 +25,7 @@ package com.microsoft.aad.adal;
 
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Log;
 
 import com.microsoft.aad.adal.AuthenticationParameters.AuthenticationParamCallback;
 import com.microsoft.aad.adal.Logger.ILogger;
@@ -109,7 +110,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
 
         // empty value inside the authorization_uri will throw exception
         assertThrowsException(ResourceAuthenticationChallengeException.class,
-                AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT.toLowerCase(), new ThrowableRunnable() {
+                AuthenticationParameters.AUTH_HEADER_MISSING_AUTHORITY.toLowerCase(), new ThrowableRunnable() {
 
                     @Override
                     public void run() throws ResourceAuthenticationChallengeException {
@@ -251,7 +252,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
         callParseResponseForException(
                 new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate",
                         "Bearer authorization_uri= ")),
-                AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
+                AuthenticationParameters.AUTH_HEADER_MISSING_AUTHORITY);
 
         callParseResponseForException(
                 new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate",
@@ -266,7 +267,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
         callParseResponseForException(
                 new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate",
                         "Bearer    \t authorization_uri=,something=a ")),
-                AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
+                AuthenticationParameters.AUTH_HEADER_MISSING_AUTHORITY);
     }
 
     class LogCallback implements ILogger {
@@ -313,9 +314,10 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
             param = (AuthenticationParameters) m.invoke(null, response);
             assertTrue("expected to fail", false);
         } catch (Exception exception) {
+            Log.e("TestParser", "msg: " + exception.getCause().getMessage());
             assertNotNull("Exception is not null", exception);
             assertNull("Param is expected to be null", param);
-            assertTrue("Check header exception", exception.getCause().getMessage() == message);
+            assertTrue("Check header exception", exception.getCause().getMessage().equals(message));
         }
     }
 

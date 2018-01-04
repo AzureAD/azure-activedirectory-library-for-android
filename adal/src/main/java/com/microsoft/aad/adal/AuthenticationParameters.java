@@ -143,7 +143,7 @@ public class AuthenticationParameters {
 
         /**
          * @param exception {@link Exception}
-         * @param param {@link AuthenticationParameters}
+         * @param param     {@link AuthenticationParameters}
          */
         void onCompleted(Exception exception, AuthenticationParameters param);
     }
@@ -151,12 +151,12 @@ public class AuthenticationParameters {
     /**
      * ADAL will make the call to get authority and resource info.
      *
-     * @param context {@link Context}
+     * @param context     {@link Context}
      * @param resourceUrl Url for resource to query for 401 response.
-     * @param callback  {@link AuthenticationParamCallback}
+     * @param callback    {@link AuthenticationParamCallback}
      */
     public static void createFromResourceUrl(Context context, final URL resourceUrl,
-            final AuthenticationParamCallback callback) {
+                                             final AuthenticationParamCallback callback) {
 
         if (callback == null) {
             throw new IllegalArgumentException("callback");
@@ -197,6 +197,7 @@ public class AuthenticationParameters {
 
     public static AuthenticationParameters createFromResponseAuthenticateHeader(final String headerValue)
             throws ResourceAuthenticationChallengeException {
+        Log.e("TestParser", "Header value: " + headerValue);
         if (StringExtensions.isNullOrBlank(headerValue)) {
             throw new ResourceAuthenticationChallengeException(AUTH_HEADER_MISSING);
         }
@@ -225,6 +226,10 @@ public class AuthenticationParameters {
 
             // Remove wrapping quotes (if present)
             authority = authority.replaceAll("^\"|\"$", "");
+
+            if (StringExtensions.isNullOrBlank(authority)) {
+                throw new ResourceAuthenticationChallengeException(AUTH_HEADER_MISSING_AUTHORITY);
+            }
 
             if (!StringExtensions.isNullOrBlank(resource)) {
                 resource = resource.replaceAll("^\"|\"$", "");
@@ -285,6 +290,10 @@ public class AuthenticationParameters {
         }
 
         private static Map<String, String> parseParams(String challengeSansScheme) throws ResourceAuthenticationChallengeException {
+            if (StringExtensions.isNullOrBlank(challengeSansScheme)) {
+                throw new ResourceAuthenticationChallengeException(AUTH_HEADER_INVALID_FORMAT);
+            }
+
             // Split on unquoted commas
             final Map<String, String> params = new HashMap<>();
             final String[] splitOnUnquotedCommas = challengeSansScheme.split(REGEX_SPLIT_UNQUOTED_COMMA, -1);
@@ -315,20 +324,31 @@ public class AuthenticationParameters {
                 Log.e(TEST_PARSER, "put(" + key + ", " + value + ")");
                 params.put(key, value);
             }
+
+            if (params.isEmpty()) {
+                throw new ResourceAuthenticationChallengeException(AUTH_HEADER_INVALID_FORMAT);
+            }
+
             return params;
         }
 
         static List<Challenge> parseChallenges(final String strChallenges) throws ResourceAuthenticationChallengeException {
             final List<Challenge> challenges = new ArrayList<>();
-            List<String> strChallengesList = separateChallenges(strChallenges);
-            //
-            Log.e(TEST_PARSER, "Logging list contents");
-            for (String s : strChallengesList){
-                Log.e(TEST_PARSER, "\t" + s);
-            }
-            //
-            for (final String challenge : strChallengesList) {
-                challenges.add(parseChallenge(challenge));
+            try {
+                List<String> strChallengesList = separateChallenges(strChallenges);
+                //
+                Log.e(TEST_PARSER, "Logging list contents");
+                for (String s : strChallengesList) {
+                    Log.e(TEST_PARSER, "\t" + s);
+                }
+                //
+                for (final String challenge : strChallengesList) {
+                    challenges.add(parseChallenge(challenge));
+                }
+            } catch (ResourceAuthenticationChallengeException e) {
+                throw e;
+            } catch (Exception e) {
+                throw new ResourceAuthenticationChallengeException(AUTH_HEADER_INVALID_FORMAT);
             }
 
             return challenges;
@@ -403,9 +423,10 @@ public class AuthenticationParameters {
     /**
      * ADAL will parse the header response to get the authority and the resource
      * info.
+     *
      * @param authenticateHeader Header to check authority and resource.
-     * @throws {@link ResourceAuthenticationChallengeException}
      * @return {@link AuthenticationParameters}
+     * @throws {@link ResourceAuthenticationChallengeException}
      */
     public static AuthenticationParameters createFromResponseAuthenticateHeader2(
             String authenticateHeader) throws ResourceAuthenticationChallengeException {
