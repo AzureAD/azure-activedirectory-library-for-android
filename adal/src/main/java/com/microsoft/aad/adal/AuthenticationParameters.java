@@ -109,7 +109,7 @@ public class AuthenticationParameters {
 
     /**
      * get authority from the header.
-     * 
+     *
      * @return Authority extracted from the header.
      */
     public String getAuthority() {
@@ -118,7 +118,7 @@ public class AuthenticationParameters {
 
     /**
      * get resource from the header.
-     * 
+     *
      * @return resource from the header.
      */
     public String getResource() {
@@ -150,7 +150,7 @@ public class AuthenticationParameters {
 
     /**
      * ADAL will make the call to get authority and resource info.
-     * 
+     *
      * @param context {@link Context}
      * @param resourceUrl Url for resource to query for 401 response.
      * @param callback  {@link AuthenticationParamCallback}
@@ -284,19 +284,36 @@ public class AuthenticationParameters {
             throw new ResourceAuthenticationChallengeException(AUTH_HEADER_INVALID_FORMAT);
         }
 
-        private static Map<String, String> parseParams(String challengeSansScheme) {
+        private static Map<String, String> parseParams(String challengeSansScheme) throws ResourceAuthenticationChallengeException {
             // Split on unquoted commas
             final Map<String, String> params = new HashMap<>();
             final String[] splitOnUnquotedCommas = challengeSansScheme.split(REGEX_SPLIT_UNQUOTED_COMMA, -1);
             for (final String paramSet : splitOnUnquotedCommas) {
+                // Split keys/values by the '='
                 final String[] splitOnUnquotedEquals = paramSet.split(REGEX_SPLIT_UNQUOTED_EQUALS, -1);
 
+                // We should now have a left-side and right-side
                 if (splitOnUnquotedEquals.length != 2) {
-                    continue;
+                    // Is this really what you want?
+                    throw new ResourceAuthenticationChallengeException(AUTH_HEADER_INVALID_FORMAT);
+                    //continue; // If there's no key/value pair, skip this token
                 }
 
-                Log.e(TEST_PARSER, "put(" + splitOnUnquotedEquals[0].trim() + ", " + splitOnUnquotedEquals[1].trim() + ")");
-                params.put(splitOnUnquotedEquals[0].trim(), splitOnUnquotedEquals[1].trim());
+                // Create the keys/values, trimming off any bogus whitespace
+                final String key = splitOnUnquotedEquals[0].trim();
+                final String value = splitOnUnquotedEquals[1].trim();
+
+                // if there is already a mapping for this key, we've seen this value before
+                // and should log a warning that this header looks fishy....
+                if (params.containsKey(key)) {
+                    Logger.w(TAG,
+                            "Key/value pair list contains redundant key. ",
+                            "Redundant key: " + key,
+                            ADALError.DEVELOPER_BEARER_HEADER_MULTIPLE_ITEMS);
+                }
+
+                Log.e(TEST_PARSER, "put(" + key + ", " + value + ")");
+                params.put(key, value);
             }
             return params;
         }
@@ -340,12 +357,13 @@ public class AuthenticationParameters {
             for (final String token : splitOnUnquotedCommas) {
                 if (tokensContainingScheme.contains(token)) {
                     // this is the start of a challenge...
-                    outStrings[++ii] = token + (splitOnUnquotedCommas[splitOnUnquotedCommas.length-1].equals(token) ? "" : SUFFIX_COMMA);
+                    outStrings[++ii] = token + SUFFIX_COMMA;
                 } else {
-                    outStrings[ii] += token + (splitOnUnquotedCommas[splitOnUnquotedCommas.length-1].equals(token) ? "" : SUFFIX_COMMA);
+                    outStrings[ii] += token + SUFFIX_COMMA;
                 }
             }
 
+            // Remove the suffix comma from the last element of each list...
             for (int jj = 0; jj < outStrings.length; jj++) {
                 if (outStrings[jj].endsWith(SUFFIX_COMMA)) {
                     outStrings[jj] = outStrings[jj].substring(0, outStrings[jj].length() - 2);
