@@ -182,6 +182,17 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
         Logger.getInstance().setExternalLogger(null);
     }
 
+    @Test
+    public void testSuccessfullyParsesWhenBearerNotFirstClaim()
+            throws ClassNotFoundException, InvocationTargetException, IllegalAccessException {
+        Method m = getParseResponseMethod();
+
+        verifyAuthenticationParam(
+                m,
+                "Basic realm=\"https://login.microsoftonline.com/tenant\", Bearer scope=\"blah=scope, scope=blah\" , authorization_uri=\"https://login.windows.net/tenant\"",
+                "https://login.windows.net/tenant", null);
+    }
+
     private void verifyAuthenticationParam(Method m, String headerValue, String authorizationUri,
                                            String resource) throws IllegalAccessException, InvocationTargetException {
         AuthenticationParameters param = (AuthenticationParameters) m.invoke(null,
