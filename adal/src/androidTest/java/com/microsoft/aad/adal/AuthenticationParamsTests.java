@@ -25,7 +25,6 @@ package com.microsoft.aad.adal;
 
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
-import android.util.Log;
 
 import com.microsoft.aad.adal.AuthenticationParameters.AuthenticationParamCallback;
 import com.microsoft.aad.adal.Logger.ILogger;
@@ -325,7 +324,6 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
             param = (AuthenticationParameters) m.invoke(null, response);
             assertTrue("expected to fail", false);
         } catch (Exception exception) {
-            Log.e("TestParser", "msg: " + exception.getCause().getMessage());
             assertNotNull("Exception is not null", exception);
             assertNull("Param is expected to be null", param);
             assertTrue("Check header exception", exception.getCause().getMessage().equals(message));
