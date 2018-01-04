@@ -86,8 +86,10 @@ public class Logger {
     }
 
     /**
-     * Enable/Disable log message with PII (personal identifiable information) info.
-     * By default, ADAL doesn't log any PII.
+     * ADAL provides logging callbacks that assist in diagnostics. The callback has two parameters,
+     * message and additionalMessage. All user information is put into additionalMessage.
+     * ADAL will clear this data unless the {@link #mEnablePII} is called with true.
+     * By default the library will not return any messages with user information in them.
      *
      * @param enablePII True if enabling PII info to be logged, false otherwise.
      */
