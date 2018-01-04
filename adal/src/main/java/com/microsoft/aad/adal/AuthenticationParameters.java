@@ -25,11 +25,14 @@ package com.microsoft.aad.adal;
 
 import android.content.Context;
 import android.os.Handler;
+import android.util.Log;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -192,6 +195,193 @@ public class AuthenticationParameters {
         });
     }
 
+    public static AuthenticationParameters createFromResponseAuthenticateHeader(final String headerValue)
+            throws ResourceAuthenticationChallengeException {
+        if (StringExtensions.isNullOrBlank(headerValue)) {
+            throw new ResourceAuthenticationChallengeException(AUTH_HEADER_MISSING);
+        }
+
+        //testing...
+        final List<Challenge> challenges = Challenge.parseChallenges(headerValue);
+
+        // Grab the Bearer challenge
+        Challenge bearerChallenge = null;
+
+        for (final Challenge challenge : challenges) {
+            if (challenge.getScheme().equalsIgnoreCase(BEARER)) {
+                bearerChallenge = challenge;
+                break;
+            }
+        }
+
+        if (null != bearerChallenge) {
+            final Map<String, String> challengeParams = bearerChallenge.getParameters();
+            String authority = challengeParams.get(AUTHORITY_KEY);
+            String resource = challengeParams.get(RESOURCE_KEY);
+
+            if (StringExtensions.isNullOrBlank(authority)) {
+                throw new ResourceAuthenticationChallengeException(AUTH_HEADER_MISSING_AUTHORITY);
+            }
+
+            // Remove wrapping quotes (if present)
+            authority = authority.replaceAll("^\"|\"$", "");
+
+            if (!StringExtensions.isNullOrBlank(resource)) {
+                resource = resource.replaceAll("^\"|\"$", "");
+            }
+
+            return new AuthenticationParameters(authority, resource);
+        }
+
+        throw new ResourceAuthenticationChallengeException(AUTH_HEADER_INVALID_FORMAT);
+    }
+
+    private static class Challenge {
+
+        public static final String TEST_PARSER = "TestParser";
+        private String mScheme;
+
+        private Map<String, String> mParameters;
+
+        Challenge(final String scheme, final Map<String, String> params) {
+            mScheme = scheme;
+            mParameters = params;
+        }
+
+        public String getScheme() {
+            return mScheme;
+        }
+
+        public Map<String, String> getParameters() {
+            return mParameters;
+        }
+
+        static Challenge parseChallenge(final String challenge) throws ResourceAuthenticationChallengeException {
+            final String scheme = parseScheme(challenge);
+            Log.e(TEST_PARSER, "Parsing scheme: " + scheme);
+            final String challengeSansScheme = challenge.substring(scheme.length() + 1);
+            Log.e(TEST_PARSER, "Parsing schemeless params: " + challengeSansScheme);
+            final Map<String, String> params = parseParams(challengeSansScheme);
+            return new Challenge(scheme, params);
+        }
+
+        private static String parseScheme(String challenge) throws ResourceAuthenticationChallengeException {
+            final int indexOfFirstSpace = challenge.indexOf(' ');
+            final int indexOfFirstTab = challenge.indexOf('\t');
+            // We want to grab the lesser of these values so long as they're > -1
+            if (indexOfFirstSpace < 0 && indexOfFirstTab < 0) {
+                return challenge;
+            }
+
+            if (indexOfFirstSpace > -1 && (indexOfFirstSpace < indexOfFirstTab || indexOfFirstTab < 0)) {
+                return challenge.substring(0, indexOfFirstSpace);
+            }
+
+            if (indexOfFirstTab > -1 && (indexOfFirstTab < indexOfFirstSpace || indexOfFirstSpace < 0)) {
+                return challenge.substring(0, indexOfFirstTab);
+            }
+
+            throw new ResourceAuthenticationChallengeException(AUTH_HEADER_INVALID_FORMAT);
+        }
+
+        private static Map<String, String> parseParams(String challengeSansScheme) {
+            // Split on unquoted commas
+            final Map<String, String> params = new HashMap<>();
+            final String[] splitOnUnquotedCommas = challengeSansScheme.split(REGEX_SPLIT_UNQUOTED_COMMA, -1);
+            for (final String paramSet : splitOnUnquotedCommas) {
+                final String[] splitOnUnquotedEquals = paramSet.split(REGEX_SPLIT_UNQUOTED_EQUALS, -1);
+
+                if (splitOnUnquotedEquals.length != 2) {
+                    continue;
+                }
+
+                Log.e(TEST_PARSER, "put(" + splitOnUnquotedEquals[0].trim() + ", " + splitOnUnquotedEquals[1].trim() + ")");
+                params.put(splitOnUnquotedEquals[0].trim(), splitOnUnquotedEquals[1].trim());
+            }
+            return params;
+        }
+
+        static List<Challenge> parseChallenges(final String strChallenges) throws ResourceAuthenticationChallengeException {
+            final List<Challenge> challenges = new ArrayList<>();
+            List<String> strChallengesList = separateChallenges(strChallenges);
+            //
+            Log.e(TEST_PARSER, "Logging list contents");
+            for (String s : strChallengesList){
+                Log.e(TEST_PARSER, "\t" + s);
+            }
+            //
+            for (final String challenge : strChallengesList) {
+                challenges.add(parseChallenge(challenge));
+            }
+
+            return challenges;
+        }
+
+        private static final String REGEX_SPLIT_UNQUOTED_EQUALS = "=(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)";
+        private static final String REGEX_SPLIT_UNQUOTED_COMMA = ",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)";
+        private static final String REGEX_STRING_TOKEN_WITH_SCHEME = "^([^\\s|^=]+)[\\s|\\t]+([^=]*=[^=]*)+$";
+        //private static final String REGEX_STRING_TOKEN_WITH_SCHEME = "^([^\\s|^=]+)\\s+([^=]*=[^=]*)+$";
+        //private static final String REGEX_STRING_TOKEN_WITH_SCHEME = "^([^\\s]+)\\s+([^=]*=[^=]*)+$";
+        private static final String SUFFIX_COMMA = ", ";
+
+        private static List<String> separateChallenges(final String challenges) {
+            // Split the supplied String on those commas which are not constrained by quotes
+            String[] splitOnUnquotedCommas = challenges.split(REGEX_SPLIT_UNQUOTED_COMMA, -1);
+            sanitizeWhitespace(splitOnUnquotedCommas);
+            List<String> tokensContainingScheme = extractTokensContainingScheme(splitOnUnquotedCommas);
+
+            // init an array to store the out-values
+            String[] outStrings = new String[tokensContainingScheme.size()];
+            for (int ii = 0; ii < outStrings.length; ii++) {
+                outStrings[ii] = "";
+            }
+
+            int ii = -1;
+            for (final String token : splitOnUnquotedCommas) {
+                if (tokensContainingScheme.contains(token)) {
+                    // this is the start of a challenge...
+                    outStrings[++ii] = token + (splitOnUnquotedCommas[splitOnUnquotedCommas.length-1].equals(token) ? "" : SUFFIX_COMMA);
+                } else {
+                    outStrings[ii] += token + (splitOnUnquotedCommas[splitOnUnquotedCommas.length-1].equals(token) ? "" : SUFFIX_COMMA);
+                }
+            }
+
+            for (int jj = 0; jj < outStrings.length; jj++) {
+                if (outStrings[jj].endsWith(SUFFIX_COMMA)) {
+                    outStrings[jj] = outStrings[jj].substring(0, outStrings[jj].length() - 2);
+                }
+            }
+
+            // Collapse the results to a single list...
+            return Arrays.asList(outStrings);
+        }
+
+        private static List<String> extractTokensContainingScheme(final String[] strArry) {
+            final List<String> tokensContainingScheme = new ArrayList<>();
+
+            for (final String token : strArry) {
+                if (containsScheme(token)) {
+                    tokensContainingScheme.add(token);
+                }
+            }
+
+            return tokensContainingScheme;
+        }
+
+        private static boolean containsScheme(final String token) {
+            final Pattern startWithScheme = Pattern.compile(REGEX_STRING_TOKEN_WITH_SCHEME);
+            final Matcher matcher = startWithScheme.matcher(token);
+            Log.e(TEST_PARSER, "Checking String:[" + token + "] containsScheme? " + matcher.matches());
+            return matcher.matches();
+        }
+
+        private static void sanitizeWhitespace(String[] strArray) {
+            for (int ii = 0; ii < strArray.length; ii++) {
+                strArray[ii] = strArray[ii].trim();
+            }
+        }
+    }
+
     /**
      * ADAL will parse the header response to get the authority and the resource
      * info.
@@ -199,7 +389,7 @@ public class AuthenticationParameters {
      * @throws {@link ResourceAuthenticationChallengeException}
      * @return {@link AuthenticationParameters}
      */
-    public static AuthenticationParameters createFromResponseAuthenticateHeader(
+    public static AuthenticationParameters createFromResponseAuthenticateHeader2(
             String authenticateHeader) throws ResourceAuthenticationChallengeException {
         final String methodName = ":createFromResponseAuthenticateHeader";
         final AuthenticationParameters authParams;
@@ -280,6 +470,7 @@ public class AuthenticationParameters {
                 // if exists
                 List<String> headers = responseHeaders.get(AUTHENTICATE_HEADER);
                 if (headers != null && headers.size() > 0) {
+                    Log.e("TestParser", "Parsing..." + headers.get(0));
                     return createFromResponseAuthenticateHeader(headers.get(0));
                 }
             }
