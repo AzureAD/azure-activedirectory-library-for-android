@@ -28,7 +28,6 @@ import android.os.Handler;
 import android.util.Log;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -88,10 +87,6 @@ public class AuthenticationParameters {
     public static final String RESOURCE_KEY = "resource_id";
 
     private static final String TAG = "AuthenticationParameters";
-
-    private static final String REGEX = "^Bearer\\s+([^,\\s=\"]+?)=\"([^\"]*?)\"\\s*(?:,\\s*([^,\\s=\"]+?)=\"([^\"]*?)\"\\s*)*$";
-
-    private static final String REGEX_VALUES = "\\s*([^,\\s=\"]+?)=\"([^\"]*?)\"";
 
     private String mAuthority;
 
@@ -195,15 +190,23 @@ public class AuthenticationParameters {
         });
     }
 
-    public static AuthenticationParameters createFromResponseAuthenticateHeader(final String headerValue)
+    /**
+     * ADAL will parse the header response to get the authority and the resource
+     * info.
+     *
+     * @param authenticateHeader Header to check authority and resource.
+     * @return {@link AuthenticationParameters}
+     * @throws {@link ResourceAuthenticationChallengeException}
+     */
+    public static AuthenticationParameters createFromResponseAuthenticateHeader(final String authenticateHeader)
             throws ResourceAuthenticationChallengeException {
-        Log.e("TestParser", "Header value: " + headerValue);
-        if (StringExtensions.isNullOrBlank(headerValue)) {
+        Log.e("TestParser", "Header value: " + authenticateHeader);
+        if (StringExtensions.isNullOrBlank(authenticateHeader)) {
             throw new ResourceAuthenticationChallengeException(AUTH_HEADER_MISSING);
         }
 
         //testing...
-        final List<Challenge> challenges = Challenge.parseChallenges(headerValue);
+        final List<Challenge> challenges = Challenge.parseChallenges(authenticateHeader);
 
         // Grab the Bearer challenge
         Challenge bearerChallenge = null;
@@ -354,11 +357,10 @@ public class AuthenticationParameters {
             return challenges;
         }
 
-        private static final String REGEX_SPLIT_UNQUOTED_EQUALS = "=(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)";
-        private static final String REGEX_SPLIT_UNQUOTED_COMMA = ",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)";
+        private static final String REGEX_UNQUOTED_LOOKAHEAD = "(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)";
+        private static final String REGEX_SPLIT_UNQUOTED_EQUALS = "=" + REGEX_UNQUOTED_LOOKAHEAD;
+        private static final String REGEX_SPLIT_UNQUOTED_COMMA = "," + REGEX_UNQUOTED_LOOKAHEAD;
         private static final String REGEX_STRING_TOKEN_WITH_SCHEME = "^([^\\s|^=]+)[\\s|\\t]+([^=]*=[^=]*)+$";
-        //private static final String REGEX_STRING_TOKEN_WITH_SCHEME = "^([^\\s|^=]+)\\s+([^=]*=[^=]*)+$";
-        //private static final String REGEX_STRING_TOKEN_WITH_SCHEME = "^([^\\s]+)\\s+([^=]*=[^=]*)+$";
         private static final String SUFFIX_COMMA = ", ";
 
         private static List<String> separateChallenges(final String challenges) {
@@ -418,86 +420,6 @@ public class AuthenticationParameters {
                 strArray[ii] = strArray[ii].trim();
             }
         }
-    }
-
-    /**
-     * ADAL will parse the header response to get the authority and the resource
-     * info.
-     *
-     * @param authenticateHeader Header to check authority and resource.
-     * @return {@link AuthenticationParameters}
-     * @throws {@link ResourceAuthenticationChallengeException}
-     */
-    public static AuthenticationParameters createFromResponseAuthenticateHeader2(
-            String authenticateHeader) throws ResourceAuthenticationChallengeException {
-        final String methodName = ":createFromResponseAuthenticateHeader";
-        final AuthenticationParameters authParams;
-
-        if (StringExtensions.isNullOrBlank(authenticateHeader)) {
-            throw new ResourceAuthenticationChallengeException(AUTH_HEADER_MISSING);
-        } else {
-            Pattern p = Pattern.compile(REGEX);
-            Matcher m = p.matcher(authenticateHeader);
-
-            // If the header is in the right format, REGEX_VALUES will extract
-            // individual
-            // name-value pairs. This regex is not as exclusive, so it relies on
-            // the previous check to guarantee correctness:
-            if (m.matches()) {
-
-                // Get matching value pairs inside the header value
-                Pattern valuePattern = Pattern.compile(REGEX_VALUES);
-                String headerSubFields = authenticateHeader.substring(BEARER.length());
-                Logger.v(TAG + methodName, "Parse the header response. ", "Values in here:" + headerSubFields, null);
-                Matcher values = valuePattern.matcher(headerSubFields);
-                final Map<String, String> headerItems = new HashMap<>();
-                while (values.find()) {
-
-                    // values.group(0) is matching string
-                    if (!StringExtensions.isNullOrBlank(values.group(1))
-                            && !StringExtensions.isNullOrBlank(values.group(2))) {
-                        String key = values.group(1);
-                        String value = values.group(2);
-
-                        try {
-                            key = StringExtensions.urlFormDecode(key);
-                            value = StringExtensions.urlFormDecode(value);
-                        } catch (UnsupportedEncodingException e) {
-                            Logger.v(TAG + methodName, ADALError.ENCODING_IS_NOT_SUPPORTED.getDescription(), e.getMessage(), null);
-                        }
-
-                        key = key.trim();
-                        value = StringExtensions.removeQuoteInHeaderValue(value.trim());
-
-                        if (headerItems.containsKey(key)) {
-                            Logger.w(TAG + methodName,
-                                    "Key/value pair list contains redundant key. ",
-                                    "Redundant key: " + key,
-                                    ADALError.DEVELOPER_BEARER_HEADER_MULTIPLE_ITEMS);
-                        }
-
-                        headerItems.put(key, value);
-                    } else {
-                        // invalid format
-                        throw new ResourceAuthenticationChallengeException(AUTH_HEADER_INVALID_FORMAT);
-                    }
-                }
-
-                String authority = headerItems.get(AUTHORITY_KEY);
-                if (!StringExtensions.isNullOrBlank(authority)) {
-                    authParams = new AuthenticationParameters(
-                            StringExtensions.removeQuoteInHeaderValue(authority),
-                            StringExtensions.removeQuoteInHeaderValue(headerItems.get(RESOURCE_KEY)));
-                } else {
-                    // invalid format
-                    throw new ResourceAuthenticationChallengeException(AUTH_HEADER_MISSING_AUTHORITY);
-                }
-            } else {
-                throw new ResourceAuthenticationChallengeException(AUTH_HEADER_INVALID_FORMAT);
-            }
-        }
-
-        return authParams;
     }
 
     private static AuthenticationParameters parseResponse(HttpWebResponse webResponse) throws ResourceAuthenticationChallengeException {
