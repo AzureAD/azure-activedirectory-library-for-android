@@ -29,6 +29,7 @@ package com.microsoft.aad.adal.example.userappwithbroker;
 
 public class Constants {
     enum AuthorityType {
+        AAD_GUEST("https://login.microsoftonline.com/nomfaad.onmicrosoft.com"),
         AAD_MSDEVEX("https://login.microsoftonline.com/msdevex.onmicrosoft.com"),
         AAD_COMMON("https://login.microsoftonline.com/common");
 
@@ -58,6 +59,7 @@ public class Constants {
 
 
     enum ClientId {
+        GUESTCLIENT("ea5c8087-2476-489c-ae03-ad44a2ac399d"),
         MSDEVEX("b92e0ba5-f86e-4411-8e18-6b5f928d968a"),
         ONEDRIVE("af124e86-4e96-495a-b70a-90f90ab96707"),
         OFFICE("d3590ed6-52b3-4102-aeff-aad2292ab01c"),
