@@ -59,7 +59,7 @@ public class HashMapExtensionTests extends AndroidTestHelper {
         final String methodName = "urlFormDecode";
         Object object = ReflectionUtils.getNonPublicInstance("com.microsoft.aad.adal.HashMapExtensions");
         Method m = ReflectionUtils.getTestMethod(object, methodName, String.class);
-        HashMap<String, String> result = (HashMap<String, String>) m.invoke(object, "nokeyvalue");
+        HashMap<String, String> result = (HashMap<String, String>) m.invoke(object, "");
         assertNotNull(result);
         assertTrue(result.isEmpty());
 
@@ -76,10 +76,6 @@ public class HashMapExtensionTests extends AndroidTestHelper {
         assertTrue(result.isEmpty());
 
         result = (HashMap<String, String>) m.invoke(object, "&=");
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-
-        result = (HashMap<String, String>) m.invoke(object, "&a=");
         assertNotNull(result);
         assertTrue(result.isEmpty());
 
@@ -121,6 +117,13 @@ public class HashMapExtensionTests extends AndroidTestHelper {
         assertFalse(result.isEmpty());
         assertTrue(result.containsKey("d"));
         assertTrue(result.containsValue("f"));
+        assertTrue(result.size() == 1);
+
+        result = (HashMap<String, String>) m.invoke(object, "=b&c=");
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertTrue(result.containsKey("c"));
+        assertFalse(result.containsValue("b"));
         assertTrue(result.size() == 1);
     }
 }

@@ -71,21 +71,29 @@ final class HashMapExtensions {
             while (parameterTokenizer.hasMoreTokens()) {
                 String pair = parameterTokenizer.nextToken();
                 String[] elements = pair.split("=");
+                String value = null;
+                String key = null;
 
                 if (elements.length == 2) {
-                    String key = null;
-                    String value = null;
                     try {
                         key = StringExtensions.urlFormDecode(elements[0].trim());
                         value = StringExtensions.urlFormDecode(elements[1].trim());
                     } catch (UnsupportedEncodingException e) {
                         Logger.i(TAG, ADALError.ENCODING_IS_NOT_SUPPORTED.getDescription(), e.getMessage(), null);
+                        continue;
                     }
+                } else if (elements.length == 1) {
+                    try {
+                        key = StringExtensions.urlFormDecode(elements[0].trim());
+                        value = "";
+                    } catch (UnsupportedEncodingException e) {
+                        Logger.i(TAG, ADALError.ENCODING_IS_NOT_SUPPORTED.getDescription(), e.getMessage(), null);
+                        continue;
+                    }
+                }
 
-                    if (!StringExtensions.isNullOrBlank(key)
-                            && !StringExtensions.isNullOrBlank(value)) {
-                        result.put(key, value);
-                    }
+                if (!StringExtensions.isNullOrBlank(key)) {
+                    result.put(key, value);
                 }
             }
         }
