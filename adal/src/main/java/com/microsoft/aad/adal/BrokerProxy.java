@@ -882,7 +882,7 @@ class BrokerProxy implements IBrokerProxy {
         } catch (NoSuchAlgorithmException e) {
             Logger.e(TAG + methodName, "Digest SHA algorithm does not exists", "", ADALError.DEVICE_NO_SUCH_ALGORITHM);
         } catch (final AuthenticationException | IOException | GeneralSecurityException e) {
-            Logger.e(TAG + methodName, e.getMessage(), "", ADALError.BROKER_VERIFICATION_FAILED, e);
+            Logger.e(TAG + methodName, ADALError.BROKER_VERIFICATION_FAILED.getDescription(), e.getMessage(), ADALError.BROKER_VERIFICATION_FAILED, e);
         }
 
         return false;
