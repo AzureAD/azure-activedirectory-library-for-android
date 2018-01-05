@@ -203,7 +203,6 @@ public class AuthenticationParameters {
             throw new ResourceAuthenticationChallengeException(AUTH_HEADER_MISSING);
         }
 
-        //testing...
         final List<Challenge> challenges = Challenge.parseChallenges(authenticateHeader);
 
         // Grab the Bearer challenge
