@@ -384,12 +384,10 @@ public class AuthenticationParameters {
 
                 // We should now have a left-side and right-side
                 if (splitOnUnquotedEquals.length != 2) {
-                    // Is this really what you want?
                     throw new ResourceAuthenticationChallengeException(AUTH_HEADER_INVALID_FORMAT);
-                    //continue; // If there's no key/value pair, skip this token
                 }
 
-                // Create the keys/values, trimming off any bogus whitespace
+                // Create the keys/values, trimming off any excess whitespace
                 final String key = splitOnUnquotedEquals[0].trim();
                 final String value = splitOnUnquotedEquals[1].trim();
 
