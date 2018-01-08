@@ -199,17 +199,23 @@ public class AuthenticationParameters {
      */
     public static AuthenticationParameters createFromResponseAuthenticateHeader(final String authenticateHeader)
             throws ResourceAuthenticationChallengeException {
+        final String methodName = ":createFromResponseAuthenticateHeader";
         if (StringExtensions.isNullOrBlank(authenticateHeader)) {
+            Logger.w(TAG + methodName, "authenticateHeader was null/empty.");
             throw new ResourceAuthenticationChallengeException(AUTH_HEADER_MISSING);
         }
 
+        Logger.v(TAG + methodName, "Parsing challenges - BEGIN");
         final List<Challenge> challenges = Challenge.parseChallenges(authenticateHeader);
+        Logger.v(TAG + methodName, "Parsing challenge - END");
 
         // Grab the Bearer challenge
         Challenge bearerChallenge = null;
 
+        Logger.v(TAG + methodName, "Looking for Bearer challenge.");
         for (final Challenge challenge : challenges) {
-            if (challenge.getScheme().equalsIgnoreCase(BEARER)) {
+            if (BEARER.equalsIgnoreCase(challenge.getScheme())) {
+                Logger.v(TAG + methodName, "Found Bearer challenge.");
                 bearerChallenge = challenge;
                 break;
             }
@@ -219,25 +225,34 @@ public class AuthenticationParameters {
             final Map<String, String> challengeParams = bearerChallenge.getParameters();
             String authority = challengeParams.get(AUTHORITY_KEY);
             String resource = challengeParams.get(RESOURCE_KEY);
+            Logger.i(TAG + methodName, "Bearer authority", "[" + authority + "]");
+            Logger.i(TAG + methodName, "Bearer resource", "[" + resource + "]");
 
             if (StringExtensions.isNullOrBlank(authority)) {
+                Logger.w(TAG + methodName, "Null/empty authority.");
                 throw new ResourceAuthenticationChallengeException(AUTH_HEADER_MISSING_AUTHORITY);
             }
 
             // Remove wrapping quotes (if present)
+            Logger.v(TAG + methodName, "Parsing leading/trailing \"\"'s (authority)");
             authority = authority.replaceAll("^\"|\"$", "");
+            Logger.i(TAG + methodName, "Sanitized authority value", "[" + authority + "]");
 
             if (StringExtensions.isNullOrBlank(authority)) {
+                Logger.w(TAG + methodName, "Sanitized authority is null/empty.");
                 throw new ResourceAuthenticationChallengeException(AUTH_HEADER_MISSING_AUTHORITY);
             }
 
             if (!StringExtensions.isNullOrBlank(resource)) {
+                Logger.v(TAG + methodName, "Parsing leading/trailing \"\"'s (resource)");
                 resource = resource.replaceAll("^\"|\"$", "");
+                Logger.i(TAG + methodName, "Sanitized resource value", "[" + authority + "]");
             }
 
             return new AuthenticationParameters(authority, resource);
         }
 
+        Logger.w(TAG + methodName, "Did not locate Bearer challenge.");
         throw new ResourceAuthenticationChallengeException(AUTH_HEADER_INVALID_FORMAT);
     }
 
@@ -324,8 +339,15 @@ public class AuthenticationParameters {
          *                                                  the String is malformed.
          */
         static Challenge parseChallenge(final String challenge) throws ResourceAuthenticationChallengeException {
+            final String methodName = ":parseChallenge";
+            if (StringExtensions.isNullOrBlank(challenge)) {
+                Logger.w(TAG + methodName, "Cannot parse null/empty challenge.");
+                throw new ResourceAuthenticationChallengeException(AUTH_HEADER_MISSING);
+            }
             final String scheme = parseScheme(challenge);
-            Logger.d(TAG, "Parsing scheme: " + scheme);
+            Logger.i(TAG + methodName, "Parsing scheme", "Scheme value [" + scheme + "]");
+            Logger.i(TAG + methodName, "Removing scheme from source challenge", "[" + challenge + "]");
+            Logger.v(TAG + methodName, "Parsing challenge substr. Total length: " + challenge.length() + " Scheme index: " + scheme.length() + 1);
             final String challengeSansScheme = challenge.substring(scheme.length() + 1);
             final Map<String, String> params = parseParams(challengeSansScheme);
             return new Challenge(scheme, params);
@@ -340,12 +362,22 @@ public class AuthenticationParameters {
          *                                                  the String is malformed.
          */
         private static String parseScheme(String challenge) throws ResourceAuthenticationChallengeException {
+            final String methodName = ":parseScheme";
+
+            if (StringExtensions.isNullOrBlank(challenge)) {
+                Logger.w(TAG + methodName, "Cannot parse an empty/blank challenge");
+                throw new ResourceAuthenticationChallengeException(AUTH_HEADER_MISSING);
+            }
+
             final int indexOfFirstSpace = challenge.indexOf(' ');
             final int indexOfFirstTab = challenge.indexOf('\t');
             // We want to grab the lesser of these values so long as they're > -1...
             if (indexOfFirstSpace < 0 && indexOfFirstTab < 0) {
+                Logger.w(TAG + methodName, "Couldn't locate space/tab char - returning input String");
                 return challenge;
             }
+
+            Logger.v(TAG + methodName, "Parsing scheme with indices: indexOfFirstSpace[" + indexOfFirstSpace + "] indexOfFirstTab[" + indexOfFirstTab + "]");
 
             // If there is a space and it occurs before the first tab character.
             if (indexOfFirstSpace > -1 && (indexOfFirstSpace < indexOfFirstTab || indexOfFirstTab < 0)) {
@@ -357,7 +389,7 @@ public class AuthenticationParameters {
                 return challenge.substring(0, indexOfFirstTab);
             }
 
-            // Unexpected/malformed/missing scheme.
+            Logger.w(TAG + methodName, "Unexpected/malformed/missing scheme.");
             throw new ResourceAuthenticationChallengeException(AUTH_HEADER_INVALID_FORMAT);
         }
 
@@ -371,25 +403,35 @@ public class AuthenticationParameters {
          *                                                  the String is malformed.
          */
         private static Map<String, String> parseParams(String challengeSansScheme) throws ResourceAuthenticationChallengeException {
+            final String methodName = ":parseParams";
             if (StringExtensions.isNullOrBlank(challengeSansScheme)) {
+                Logger.w(TAG + methodName, "ChallengeSansScheme was null/empty");
                 throw new ResourceAuthenticationChallengeException(AUTH_HEADER_INVALID_FORMAT);
             }
 
             // Split on unquoted commas
             final Map<String, String> params = new HashMap<>();
+            Logger.i(TAG + methodName, "Splitting on unquoted commas...", "in-value [" + challengeSansScheme + "]");
             final String[] splitOnUnquotedCommas = challengeSansScheme.split(REGEX_SPLIT_UNQUOTED_COMMA, -1);
+            Logger.i(TAG + methodName, "Splitting on unquoted commas...", "out-value [" + Arrays.toString(splitOnUnquotedCommas) + "]");
             for (final String paramSet : splitOnUnquotedCommas) {
                 // Split keys/values by the '='
+                Logger.i(TAG + methodName, "Splitting on unquoted equals...", "in-value [" + paramSet + "]");
                 final String[] splitOnUnquotedEquals = paramSet.split(REGEX_SPLIT_UNQUOTED_EQUALS, -1);
+                Logger.i(TAG + methodName, "Splitting on unquoted equals...", "out-value [" + Arrays.toString(splitOnUnquotedEquals) + "]");
 
                 // We should now have a left-side and right-side
                 if (splitOnUnquotedEquals.length != 2) {
+                    Logger.w(TAG + methodName, "Splitting on equals yielded mismatched key/value.");
                     throw new ResourceAuthenticationChallengeException(AUTH_HEADER_INVALID_FORMAT);
                 }
 
                 // Create the keys/values, trimming off any excess whitespace
+                Logger.v(TAG + methodName, "Trimming split-string whitespace");
                 final String key = splitOnUnquotedEquals[0].trim();
                 final String value = splitOnUnquotedEquals[1].trim();
+                Logger.i(TAG + methodName, "", "key[" + key + "]");
+                Logger.i(TAG + methodName, "", "value[" + value + "]");
 
                 // if there is already a mapping for this key, we've seen this value before
                 // and should log a warning that this header looks fishy....
@@ -401,10 +443,12 @@ public class AuthenticationParameters {
                 }
 
                 // Add the key/value to the Map
+                Logger.i(TAG + methodName, "", "put(" + key + ", " + value + ")");
                 params.put(key, value);
             }
 
             if (params.isEmpty()) { // To match the existing expected behavior, an Exception is thrown.
+                Logger.w(TAG + methodName, "Parsed params were empty.");
                 throw new ResourceAuthenticationChallengeException(AUTH_HEADER_INVALID_FORMAT);
             }
 
@@ -420,10 +464,18 @@ public class AuthenticationParameters {
          *                                                  the String is malformed.
          */
         static List<Challenge> parseChallenges(final String strChallenges) throws ResourceAuthenticationChallengeException {
+            final String methodName = ":parseChallenges";
+
+            if (StringExtensions.isNullOrBlank(strChallenges)) {
+                Logger.w(TAG + methodName, "Cannot parse empty/blank challenges.");
+                throw new ResourceAuthenticationChallengeException(AUTH_HEADER_MISSING);
+            }
+
             // Initialize and out-List for our result.
             final List<Challenge> challenges = new ArrayList<>();
 
             try { // Separate the challenges.
+                Logger.i(TAG + methodName, "Separating challenges...", "input[" + strChallenges + "]");
                 List<String> strChallengesList = separateChallenges(strChallenges);
 
                 // Add each to the out-List
@@ -431,8 +483,10 @@ public class AuthenticationParameters {
                     challenges.add(parseChallenge(challenge));
                 }
             } catch (ResourceAuthenticationChallengeException e) {
+                Logger.w(TAG + methodName, "Encountered error during parsing...", e.getMessage(), null);
                 throw e;
             } catch (Exception e) {
+                Logger.w(TAG + methodName, "Encountered error during parsing...", e.getMessage(), null);
                 throw new ResourceAuthenticationChallengeException(AUTH_HEADER_INVALID_FORMAT);
             }
 
@@ -446,9 +500,18 @@ public class AuthenticationParameters {
          * @param challenges The challenge values to parse.
          * @return A List of separated challenges.
          */
-        private static List<String> separateChallenges(final String challenges) {
+        private static List<String> separateChallenges(final String challenges) throws ResourceAuthenticationChallengeException {
+            final String methodName = ":separateChallenges";
+
+            if (StringExtensions.isNullOrBlank(challenges)) {
+                Logger.w(TAG + methodName, "Input String was null");
+                throw new ResourceAuthenticationChallengeException(AUTH_HEADER_INVALID_FORMAT);
+            }
+
             // Split the supplied String on those commas which are not constrained by quotes
+            Logger.i(TAG + methodName, "Splitting input String on unquoted commas", "input[" + challenges + "]");
             String[] splitOnUnquotedCommas = challenges.split(REGEX_SPLIT_UNQUOTED_COMMA, -1);
+            Logger.i(TAG + methodName, "Splitting input String on unquoted commas", "output[" + Arrays.toString(splitOnUnquotedCommas) + "]");
             sanitizeWhitespace(splitOnUnquotedCommas);
             List<String> tokensContainingScheme = extractTokensContainingScheme(splitOnUnquotedCommas);
 
@@ -506,7 +569,7 @@ public class AuthenticationParameters {
          * @param strArry The String array to inspect.
          * @return A List of scheme-containing String tokens.
          */
-        private static List<String> extractTokensContainingScheme(final String[] strArry) {
+        private static List<String> extractTokensContainingScheme(final String[] strArry) throws ResourceAuthenticationChallengeException {
             final List<String> tokensContainingScheme = new ArrayList<>();
 
             for (final String token : strArry) {
@@ -524,10 +587,20 @@ public class AuthenticationParameters {
          * @param token The String token to inspect.
          * @return True, if it contains a scheme. False otherwise.
          */
-        private static boolean containsScheme(final String token) {
+        private static boolean containsScheme(final String token) throws ResourceAuthenticationChallengeException {
+            final String methodName = ":containsScheme";
+
+            if (StringExtensions.isNullOrBlank(token)) {
+                Logger.w(TAG + methodName, "Null/blank potential scheme token");
+                throw new ResourceAuthenticationChallengeException(AUTH_HEADER_INVALID_FORMAT);
+            }
+
+            Logger.i(TAG + methodName, "Testing token contains scheme", "input[" + token + "]");
             final Pattern startWithScheme = Pattern.compile(REGEX_STRING_TOKEN_WITH_SCHEME);
             final Matcher matcher = startWithScheme.matcher(token);
-            return matcher.matches();
+            final boolean match = matcher.matches();
+            Logger.i(TAG + methodName, "Testing String contains scheme", "Matches? [" + match + "]");
+            return match;
         }
 
         /**
@@ -536,6 +609,8 @@ public class AuthenticationParameters {
          * @param strArray The target String[].
          */
         private static void sanitizeWhitespace(String[] strArray) {
+            final String methodName = ":sanitizeWhitespace";
+            Logger.v(TAG + methodName, "Sanitizing whitespace");
             for (int ii = 0; ii < strArray.length; ii++) {
                 strArray[ii] = strArray[ii].trim();
             }
