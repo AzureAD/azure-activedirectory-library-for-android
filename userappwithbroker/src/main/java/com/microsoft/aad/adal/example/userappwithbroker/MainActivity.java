@@ -165,18 +165,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         prepareRequestParameters(requestOptions);
 
-        callAcquireTokenSilent(requestOptions.getDataProfile().getText(),getUserIdBasedOnUPN(requestOptions.getLoginHint()),
+        callAcquireTokenSilent(requestOptions.getDataProfile().getText(),getUserIdBasedOnUPN(requestOptions.getLoginHint()+requestOptions.getAuthorityType().getText()),
                 requestOptions.getClientId().getText());
     }
 
     void prepareRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions) {
-        final String authority = getAuthorityBasedOnUPN(requestOptions.getLoginHint());
+        final String authority = getAuthorityBasedOnUPN(requestOptions.getLoginHint() + requestOptions.getAuthorityType().getText());
         if (null != authority && !authority.isEmpty()) {
             mAuthority = authority;
             mAuthContext = new AuthenticationContext(mApplicationContext, mAuthority, false);
         } else {
             mAuthority = requestOptions.getAuthorityType().getText();
-            if (mAuthContext == null) {
+            if (mAuthContext == null ||!mAuthority.equals(mAuthContext.getAuthority())) {
                 mAuthContext = new AuthenticationContext(mApplicationContext, mAuthority, true);
             }
         }
@@ -274,7 +274,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                         // Update this user for next call
                         if (authenticationResult.getUserInfo() != null) {
-                            saveUserIdFromAuthenticationResult(authenticationResult);
+                            saveUserIdFromAuthenticationResult(authenticationResult, mAuthContext.getAuthority());
                         }
                     }
 
@@ -290,13 +290,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      * for later use.
      * To make the sample app easier, the saved data will be keyed by displayable id.
      */
-    private void saveUserIdFromAuthenticationResult(final AuthenticationResult authResult) {
+    private void saveUserIdFromAuthenticationResult(final AuthenticationResult authResult, final String authority) {
         mSharedPreference = getSharedPreferences(SHARED_PREFERENCE_STORE_USER_UNIQUEID, MODE_PRIVATE);
 
         final SharedPreferences.Editor prefEditor = mSharedPreference.edit();
-        prefEditor.putString(authResult.getUserInfo().getDisplayableId(), authResult.getUserInfo().getUserId());
-        if (authResult.getAuthority() != null) {
-            prefEditor.putString(authResult.getUserInfo().getDisplayableId() + "authority", authResult.getAuthority());
+        prefEditor.putString(authResult.getUserInfo().getDisplayableId() + authority, authResult.getUserInfo().getUserId());
+        if (authority != null) {
+            prefEditor.putString(authResult.getUserInfo().getDisplayableId() + authority + "authority", authority);
         }
         prefEditor.apply();
     }
