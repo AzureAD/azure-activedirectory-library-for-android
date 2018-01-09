@@ -99,7 +99,7 @@ public class AuthenticationContext {
         // The fixes need to be applied before any use of Java Cryptography
         // Architecture primitives. Default cache uses encryption
         PRNGFixes.apply();
-        initialize(appContext, authority, new DefaultTokenCacheStore(appContext), validateAuthority, true);
+        initialize(appContext.getApplicationContext(), authority, new DefaultTokenCacheStore(appContext.getApplicationContext()), validateAuthority, true);
     }
 
     /**
@@ -113,7 +113,7 @@ public class AuthenticationContext {
      */
     public AuthenticationContext(Context appContext, String authority, boolean validateAuthority,
                                  ITokenCacheStore tokenCacheStore) {
-        initialize(appContext, authority, tokenCacheStore, validateAuthority, false);
+        initialize(appContext.getApplicationContext(), authority, tokenCacheStore, validateAuthority, false);
     }
 
     /**
@@ -127,7 +127,7 @@ public class AuthenticationContext {
      */
     public AuthenticationContext(Context appContext, String authority,
                                  ITokenCacheStore tokenCacheStore) {
-        initialize(appContext, authority, tokenCacheStore, true, false);
+        initialize(appContext.getApplicationContext(), authority, tokenCacheStore, true, false);
     }
 
     private void initialize(Context appContext, String authority, ITokenCacheStore tokenCacheStore,
