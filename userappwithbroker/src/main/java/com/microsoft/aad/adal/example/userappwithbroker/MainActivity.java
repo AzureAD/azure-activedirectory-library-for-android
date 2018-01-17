@@ -29,6 +29,7 @@ import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -262,6 +263,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Telemetry.getInstance().registerDispatcher(telemetryDispatcher, true);
     }
 
+    private void verifyThread() {
+        final boolean onUiThread = Looper.getMainLooper().getThread() == Thread.currentThread();
+        Log.d(TAG, "AuthenticationCallback returned on UI thread? [" + onUiThread + "]");
+    }
+
     private void callAcquireTokenWithResource(final String resource, PromptBehavior prompt, final String loginHint,
                                               final String clientId, final String redirectUri, final String extraQp) {
         mAuthContext.acquireToken(MainActivity.this, resource, clientId, redirectUri, loginHint,
@@ -269,6 +275,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {
+                        verifyThread();
                         mAuthResult = authenticationResult;
                         showMessage("Response from broker: " + authenticationResult.getAccessToken());
 
@@ -280,6 +287,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                     @Override
                     public void onError(Exception exc) {
+                        verifyThread();
                         showMessage("MainActivity userapp:" + exc.getMessage());
                     }
                 });
@@ -320,12 +328,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
+                verifyThread();
                 mAuthResult = authenticationResult;
                 showMessage("Response from broker: " + authenticationResult.getAccessToken());
             }
 
             @Override
             public void onError(Exception exc) {
+                verifyThread();
                 showMessage("Error occurred when acquiring token silently: " + exc.getMessage());
             }
         });
