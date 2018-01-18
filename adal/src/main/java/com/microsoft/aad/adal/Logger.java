@@ -44,11 +44,11 @@ public class Logger {
     private LogLevel mLogLevel  = LogLevel.Verbose;
     private ILogger mExternalLogger = null;
     private static final String CUSTOM_LOG_ERROR = "Custom log failed to log message:%s";
-    private boolean mAndroidLogEnabled = true;
+    private boolean mAndroidLogEnabled = false;
     private String mCorrelationId = null;
 
     // Disable to log PII by default.
-    private boolean mEnablePII = true;
+    private boolean mEnablePII = false;
 
     /**
      * @return The single instance of {@link Logger}.
