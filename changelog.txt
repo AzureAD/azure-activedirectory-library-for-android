@@ -11,6 +11,9 @@ Fix the utilization of locks in PRNGFixes.
 Fix thrown exception to be UsageAuthenticationException for AuthenticationContext#serialize when FRT missing.
 Update the sample app to support guest accounts scenarios.
 
+Known Issue[s]:
+    - AuthenticationCallback methods not invoked on a UI thread. See GitHub issue #1076 @ https://github.com/AzureAD/azure-activedirectory-library-for-android/issues/1076
+
 Version 1.13.3
 -------------
 (Hotfix) Fix the crash when broker returns null for getIntentForInteractiveRequest
