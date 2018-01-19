@@ -68,8 +68,6 @@ Please check the releases for updates.
 
 ## Quick Start
 
-> Please note: this project's build scripts do not yet support Android Studio 3 / Java 8. For more information, please see our [Wiki](https://github.com/AzureAD/azure-activedirectory-library-for-android/wiki/ADAL-Compatibility-with-Android-Studio-3-&-Java-8).
-
 To build with Gradle,
 
 * Clone this repo in to a directory of your choice
@@ -214,6 +212,8 @@ You can get the jar file from maven the repo and drop into the *libs* folder in 
     ```
 
 9. To ask for a token, you define a callback
+
+    * NOTE: In releases `1.13.2`, `1.13.3`, and `1.14.0` the `onError(Exception)` and `onSuccess(AuthenticationResult)` callbacks may not be invoked on the UI thread. This issue is tracked [here](https://github.com/AzureAD/azure-activedirectory-library-for-android/issues/1076).
 
     ```Java
     private AuthenticationCallback<AuthenticationResult> callback = new AuthenticationCallback<AuthenticationResult>() {
