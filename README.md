@@ -383,6 +383,19 @@ Future<AuthenticationResult> result = mContext.acquireTokenSilent(resource, clie
 
 You can also make sync call with this method. You can set null to callback or use acquireTokenSilentSync.
 
+### ProGuard
+
+If you are using ProGuard, we suggest disabling shrinking and obfuscation of ADAL classes so that our development team may assist you should issues arise. Additionally, portions of our unit and automation test code rely heavily on reflection and may not execute predictably across different versions of ProGuard.
+
+To disable obfuscation of ADAL classes:
+
+```
+-keep class com.microsoft.aad.adal.** {
+  *;
+}
+
+```
+
 ### Diagnostics
 
 The following are the primary sources of information for diagnosing issues:
