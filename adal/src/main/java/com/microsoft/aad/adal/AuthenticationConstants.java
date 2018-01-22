@@ -290,7 +290,7 @@ public final class AuthenticationConstants {
         public static final String ADAL_ID_DM = "x-client-DM";
 
         /** String of platform value for the sdk. */
-        public static final String ADAL_ID_PLATFORM_VALUE = "Android";
+        public static final String ADAL_ID_PLATFORM_VALUE = "ADAL.Android";
 
         /** String for request id returned from Evo. **/
         public static final String REQUEST_ID_HEADER = "x-ms-request-id";
