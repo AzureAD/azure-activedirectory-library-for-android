@@ -197,13 +197,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void showMessage(final String msg) {
         Log.v(TAG, msg);
-        getHandler().post(new Runnable() {
-
-            @Override
-            public void run() {
-                Toast.makeText(MainActivity.this, msg, Toast.LENGTH_LONG).show();
-            }
-        });
+        Toast.makeText(MainActivity.this, msg, Toast.LENGTH_LONG).show();
     }
 
     /**
