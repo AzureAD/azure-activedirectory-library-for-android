@@ -82,7 +82,7 @@ public class WebRequestHandler implements IWebRequestHandler {
             headers.put(AuthenticationConstants.AAD.CLIENT_REQUEST_ID, mRequestCorrelationId.toString());
         }
 
-        headers.put(AuthenticationConstants.AAD.ADAL_ID_PLATFORM, "Android");
+        headers.put(AuthenticationConstants.AAD.ADAL_ID_PLATFORM, AuthenticationConstants.AAD.ADAL_ID_PLATFORM_VALUE);
         headers.put(AuthenticationConstants.AAD.ADAL_ID_VERSION, AuthenticationContext.getVersionName());
         headers.put(AuthenticationConstants.AAD.ADAL_ID_OS_VER, "" + Build.VERSION.SDK_INT);
         headers.put(AuthenticationConstants.AAD.ADAL_ID_DM, android.os.Build.MODEL);
