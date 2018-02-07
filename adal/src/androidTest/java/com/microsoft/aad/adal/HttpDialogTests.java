@@ -30,7 +30,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.support.test.InstrumentationRegistry;
 import android.util.Base64;
-import android.util.Log;
 
 import org.junit.Before;
 
@@ -69,6 +68,6 @@ public class HttpDialogTests {
         AuthenticationSettings.INSTANCE.setBrokerSignature(mTestTag);
         AuthenticationSettings.INSTANCE
                 .setBrokerPackageName(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
-        Log.d(TAG, "mTestSignature is set");
+        Logger.d(TAG, "mTestSignature is set");
     }
 }

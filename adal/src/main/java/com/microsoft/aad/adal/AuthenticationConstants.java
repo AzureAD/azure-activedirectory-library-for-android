@@ -172,6 +172,15 @@ public final class AuthenticationConstants {
         /** String of token type. */
         public static final String TOKEN_TYPE = "token_type";
 
+        /** String of http web response body. */
+        public static final String HTTP_RESPONSE_BODY = "response_body";
+
+        /** String of http web response headers. */
+        public static final String HTTP_RESPONSE_HEADER = "response_headers";
+
+        /** String of http web response status code. */
+        public static final String HTTP_STATUS_CODE = "status_code";
+
         /** String of id token. */
         static final String ID_TOKEN = "id_token";
 
@@ -217,6 +226,8 @@ public final class AuthenticationConstants {
         static final String EXT_EXPIRES_IN = "ext_expires_in";
 
         static final String CLAIMS = "claims";
+
+        static final String CLOUD_INSTANCE_HOST_NAME = "cloud_instance_host_name";
     }
 
     /**
@@ -317,6 +328,7 @@ public final class AuthenticationConstants {
         /** String of broker protocol version with PRT support. */
         public static final String BROKER_PROTOCOL_VERSION = "v2";
 
+        /** String of broker skip cache. */
         public static final String BROKER_SKIP_CACHE = "skip.cache";
 
         /** String of broker result returned. */
@@ -490,17 +502,35 @@ public final class AuthenticationConstants {
         /** String for ssl prefix. */
         public static final String REDIRECT_SSL_PREFIX = "https://";
 
+        /** Integer for token expiration buffer. */
+        public static final String EXPIRATION_BUFFER = "expiration.buffer";
+
+        /**
+         * Bundle identifiers for x-ms-clitelem info.
+         */
         public static final class CliTelemInfo {
 
-            private static final String sPrefix = "cliteleminfo.";
+            private static final String PREFIX = "cliteleminfo.";
 
-            public static final String SERVER_ERROR = sPrefix + "server_error";
+            /**
+             * Bundle id for server errors.
+             */
+            public static final String SERVER_ERROR = PREFIX + "server_error";
 
-            public static final String SERVER_SUBERROR = sPrefix + "server_suberror";
+            /**
+             * Bundle id for server suberrors.
+             */
+            public static final String SERVER_SUBERROR = PREFIX + "server_suberror";
 
-            public static final String RT_AGE = sPrefix + "rt_age";
+            /**
+             * Bundle id for refresh token age.
+             */
+            public static final String RT_AGE = PREFIX + "rt_age";
 
-            public static final String SPE_RING = sPrefix + "spe_ring";
+            /**
+             * Bundle id for spe_ring info.
+             */
+            public static final String SPE_RING = PREFIX + "spe_ring";
         }
     }
 
@@ -525,7 +555,7 @@ public final class AuthenticationConstants {
         static final String ACCEPT = "Accept";
 
         /**
-         * Header used to track SPE Ring for telemetry
+         * Header used to track SPE Ring for telemetry.
          */
         static final String X_MS_CLITELEM = "x-ms-clitelem";
     }

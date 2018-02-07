@@ -62,6 +62,8 @@ class Oauth2 {
 
     private IJWSBuilder mJWSBuilder = new JWSBuilder();
 
+    private String mTokenEndpoint;
+
     private static final String TAG = "Oauth";
 
     private boolean mRetryOnce = true;
@@ -74,16 +76,20 @@ class Oauth2 {
 
     private static final String DEFAULT_TOKEN_ENDPOINT = "/oauth2/token";
 
+    private static final String HTTPS_PROTOCOL_STRING = "https";
+
     Oauth2(AuthenticationRequest request) {
         mRequest = request;
         mWebRequestHandler = null;
         mJWSBuilder = null;
+        setTokenEndpoint(mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT);
     }
 
     public Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler) {
         mRequest = request;
         mWebRequestHandler = webRequestHandler;
         mJWSBuilder = null;
+        setTokenEndpoint(mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT);
     }
 
     public Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler,
@@ -91,6 +97,7 @@ class Oauth2 {
         mRequest = request;
         mWebRequestHandler = webRequestHandler;
         mJWSBuilder = jwsMessageBuilder;
+        setTokenEndpoint(mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT);
     }
 
     public String getAuthorizationEndpoint() {
@@ -98,7 +105,7 @@ class Oauth2 {
     }
 
     public String getTokenEndpoint() {
-        return mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT;
+        return mTokenEndpoint;
     }
 
     public String getAuthorizationEndpointQueryParameters() throws UnsupportedEncodingException {
@@ -204,7 +211,6 @@ class Oauth2 {
     public String buildRefreshTokenRequestMessage(String refreshToken)
             throws UnsupportedEncodingException {
         Logger.v(TAG, "Building request message for redeeming token with refresh token.");
-        
         String message = String.format("%s=%s&%s=%s&%s=%s",
                 AuthenticationConstants.OAuth2.GRANT_TYPE,
                 StringExtensions.urlFormEncode(AuthenticationConstants.OAuth2.REFRESH_TOKEN),
@@ -223,7 +229,7 @@ class Oauth2 {
         return message;
     }
 
-    public static AuthenticationResult processUIResponseParams(Map<String, String> response) throws AuthenticationException {
+    public AuthenticationResult processUIResponseParams(Map<String, String> response) throws AuthenticationException {
 
         final AuthenticationResult result;
 
@@ -243,18 +249,32 @@ class Oauth2 {
                 }
             }
 
-            Logger.v(
-                    TAG,
-                    "OAuth2 error:" + response.get(AuthenticationConstants.OAuth2.ERROR)
-                            + " Description:"
-                            + response.get(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION));
+            Logger.i(TAG,
+                    "OAuth2 error:" + response.get(AuthenticationConstants.OAuth2.ERROR),
+                    " Description:" + response.get(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION));
 
             result = new AuthenticationResult(response.get(AuthenticationConstants.OAuth2.ERROR),
                     response.get(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION),
                     response.get(AuthenticationConstants.OAuth2.ERROR_CODES));
 
         } else if (response.containsKey(AuthenticationConstants.OAuth2.CODE)) {
+            // The header cloud_instance_host_name points to the right sovereign cloud to use for the given user
+            // Using this host name we construct the authority that will get the token request and we use this authority
+            // to save the token in the cache. The app should reinitialize AuthenticationContext with this authority for
+            // all subsequent requests.
             result = new AuthenticationResult(response.get(AuthenticationConstants.OAuth2.CODE));
+            final String cloudInstanceHostName = response.get(AuthenticationConstants.OAuth2.CLOUD_INSTANCE_HOST_NAME);
+            if (!StringExtensions.isNullOrBlank(cloudInstanceHostName)) {
+
+                final URL authorityUrl = StringExtensions.getUrl(mRequest.getAuthority());
+                final String newAuthorityUrlString = new Uri.Builder().scheme(HTTPS_PROTOCOL_STRING)
+                        .authority(cloudInstanceHostName)
+                        .path(authorityUrl.getPath())
+                        .build().toString();
+
+                setTokenEndpoint(newAuthorityUrlString + DEFAULT_TOKEN_ENDPOINT);
+                result.setAuthority(newAuthorityUrlString);
+            }
         } else if (response.containsKey(AuthenticationConstants.OAuth2.ACCESS_TOKEN)) {
             // Token response
             boolean isMultiResourceToken = false;
@@ -335,7 +355,7 @@ class Oauth2 {
             AuthenticationException {
         final String requestMessage;
         if (mWebRequestHandler == null) {
-            Logger.v(TAG, "Web request is not set correctly");
+            Logger.v(TAG, "Web request is not set correctly.");
             throw new IllegalArgumentException("webRequestHandler is null.");
         }
 
@@ -343,7 +363,11 @@ class Oauth2 {
         try {
             requestMessage = buildRefreshTokenRequestMessage(refreshToken);
         } catch (UnsupportedEncodingException encoding) {
-            Logger.e(TAG, encoding.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, encoding);
+            Logger.e(TAG,
+                    ADALError.ENCODING_IS_NOT_SUPPORTED.getDescription(),
+                    encoding.getMessage(),
+                    ADALError.ENCODING_IS_NOT_SUPPORTED,
+                    encoding);
             return null;
         }
 
@@ -397,7 +421,13 @@ class Oauth2 {
                 if (result != null && result.getCode() != null && !result.getCode().isEmpty()) {
 
                     // Get token and use external callback to set result
-                    return getTokenForCode(result.getCode());
+                    final AuthenticationResult tokenResult = getTokenForCode(result.getCode());
+                    if (!StringExtensions.isNullOrBlank(result.getAuthority())) {
+                        tokenResult.setAuthority(result.getAuthority());
+                    } else {
+                        tokenResult.setAuthority(mRequest.getAuthority());
+                    }
+                    return tokenResult;
                 }
 
                 return result;
@@ -419,7 +449,7 @@ class Oauth2 {
      * @throws AuthenticationException
      */
     public AuthenticationResult getTokenForCode(String code) throws IOException, AuthenticationException {
-
+        final String methodName = ":getTokenForCode";
         final String requestMessage;
         if (mWebRequestHandler == null) {
             throw new IllegalArgumentException("webRequestHandler");
@@ -429,18 +459,23 @@ class Oauth2 {
         try {
             requestMessage = buildTokenRequestMessage(code);
         } catch (UnsupportedEncodingException encoding) {
-            Logger.e(TAG, encoding.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, encoding);
+            Logger.e(TAG + methodName,
+                    ADALError.ENCODING_IS_NOT_SUPPORTED.getDescription(),
+                    encoding.getMessage(),
+                    ADALError.ENCODING_IS_NOT_SUPPORTED,
+                    encoding);
             return null;
         }
 
         final Map<String, String> headers = getRequestHeaders();
 
-        Logger.v(TAG, "Sending request to redeem token with auth code.");
+        Logger.v(TAG + methodName, "Sending request to redeem token with auth code.");
         return postMessage(requestMessage, headers);
     }
 
     private AuthenticationResult postMessage(String requestMessage, Map<String, String> headers)
             throws IOException, AuthenticationException {
+        final String methodName = ":postMessage";
         AuthenticationResult result = null;
         final HttpEvent httpEvent = startHttpEvent();
 
@@ -473,7 +508,8 @@ class Oauth2 {
                     // in 401 header.
                     String challengeHeader = response.getResponseHeaders()
                             .get(AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER).get(0);
-                    Logger.v(TAG, "Device certificate challenge request:" + challengeHeader);
+                    Logger.i(TAG + methodName, "Device certificate challenge request. ",
+                            "Challenge header: " + challengeHeader);
                     if (!StringExtensions.isNullOrBlank(challengeHeader)) {
 
                         // Handle each specific challenge header
@@ -481,16 +517,16 @@ class Oauth2 {
                                 AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE)) {
                             final HttpEvent challengeHttpEvent = startHttpEvent();
                             challengeHttpEvent.setHttpPath(authority);
-                            Logger.v(TAG, "Received pkeyAuth device challenge.");
+                            Logger.v(TAG + methodName, "Received pkeyAuth device challenge.");
                             ChallengeResponseBuilder certHandler = new ChallengeResponseBuilder(
                                     mJWSBuilder);
-                            Logger.v(TAG, "Processing device challenge");
+                            Logger.v(TAG + methodName, "Processing device challenge.");
                             final ChallengeResponse challengeResponse = certHandler
                                     .getChallengeResponseFromHeader(challengeHeader,
                                             authority.toString());
                             headers.put(AuthenticationConstants.Broker.CHALLENGE_RESPONSE_HEADER,
                                     challengeResponse.getAuthorizationHeaderValue());
-                            Logger.v(TAG, "Sending request with challenge response");
+                            Logger.v(TAG + methodName, "Sending request with challenge response.");
                             response = mWebRequestHandler.sendPost(authority, headers,
                                     requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
                                     "application/x-www-form-urlencoded");
@@ -501,12 +537,12 @@ class Oauth2 {
                     } else {
                         throw new AuthenticationException(
                                 ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
-                                "Challenge header is empty");
+                                "Challenge header is empty", response);
                     }
                 } else {
                     // AAD server returns 401 response for wrong request
                     // messages
-                    Logger.v(TAG, "401 http status code is returned without authorization header");
+                    Logger.v(TAG + methodName, "401 http status code is returned without authorization header.");
                 }
             }
 
@@ -514,7 +550,7 @@ class Oauth2 {
             if (!isBodyEmpty) {
                 // Protocol related errors will read the error stream and report
                 // the error and error description
-                Logger.v(TAG, "Token request does not have exception");
+                Logger.v(TAG + methodName, "Token request does not have exception.");
                 try {
                     result = processTokenResponse(response, httpEvent);
                 } catch (final ServerRespondingWithRetryableException e) {
@@ -524,11 +560,11 @@ class Oauth2 {
                     }
 
                     if (mRequest.getIsExtendedLifetimeEnabled()) {
-                        Logger.v(TAG, "WebResponse is not a success due to: " + response.getStatusCode());
+                        Logger.v(TAG + methodName, "WebResponse is not a success due to: " + response.getStatusCode());
                         throw e;
                     } else {
-                        Logger.v(TAG, "WebResponse is not a success due to: " + response.getStatusCode());
-                        throw new AuthenticationException(ADALError.SERVER_ERROR, "WebResponse is not a success due to: " + response.getStatusCode());
+                        Logger.v(TAG + methodName, "WebResponse is not a success due to: " + response.getStatusCode());
+                        throw new AuthenticationException(ADALError.SERVER_ERROR, "WebResponse is not a success due to: " + response.getStatusCode(), response);
                     }
                 }
                 ClientMetrics.INSTANCE.setLastError(null);
@@ -536,14 +572,17 @@ class Oauth2 {
             if (result == null) {
                 // non-protocol related error
                 String errMessage = isBodyEmpty ? "Status code:" + response.getStatusCode() : response.getBody();
-                Logger.e(TAG, "Server error message", errMessage, ADALError.SERVER_ERROR);
-                throw new AuthenticationException(ADALError.SERVER_ERROR, errMessage);
+                Logger.e(TAG + methodName, ADALError.SERVER_ERROR.getDescription(), errMessage, ADALError.SERVER_ERROR);
+                throw new AuthenticationException(ADALError.SERVER_ERROR, errMessage, response);
             } else {
                 ClientMetrics.INSTANCE.setLastErrorCodes(result.getErrorCodes());
             }
         } catch (final UnsupportedEncodingException e) {
             ClientMetrics.INSTANCE.setLastError(null);
-            Logger.e(TAG, e.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
+            Logger.e(TAG + methodName,
+                    ADALError.ENCODING_IS_NOT_SUPPORTED.getDescription(),
+                    e.getMessage(),
+                    ADALError.ENCODING_IS_NOT_SUPPORTED, e);
             throw e;
         } catch (final SocketTimeoutException e) {
             result = retry(requestMessage, headers);
@@ -553,15 +592,15 @@ class Oauth2 {
 
             ClientMetrics.INSTANCE.setLastError(null);
             if (mRequest.getIsExtendedLifetimeEnabled()) {
-                Logger.e(TAG, e.getMessage(), "", ADALError.SERVER_ERROR, e);
+                Logger.e(TAG + methodName, ADALError.SERVER_ERROR.getDescription(), e.getMessage(), ADALError.SERVER_ERROR, e);
                 throw new ServerRespondingWithRetryableException(e.getMessage(), e);
             } else {
-                Logger.e(TAG, e.getMessage(), "", ADALError.SERVER_ERROR, e);
+                Logger.e(TAG + methodName, ADALError.SERVER_ERROR.getDescription(), e.getMessage(), ADALError.SERVER_ERROR, e);
                 throw e;
             }
         } catch (final IOException e) {
             ClientMetrics.INSTANCE.setLastError(null);
-            Logger.e(TAG, e.getMessage(), "", ADALError.SERVER_ERROR, e);
+            Logger.e(TAG + methodName, ADALError.SERVER_ERROR.getDescription(), e.getMessage(), ADALError.SERVER_ERROR, e);
             throw e;
         } finally {
             ClientMetrics.INSTANCE.endClientMetricsRecord(ClientMetricsEndpointType.TOKEN,
@@ -571,16 +610,17 @@ class Oauth2 {
     }
 
     private AuthenticationResult retry(String requestMessage, Map<String, String> headers) throws IOException, AuthenticationException {
+        final String methodName = ":retry";
         //retry once if there is an observation of a network timeout by the client 
         if (mRetryOnce) {
             mRetryOnce = false;
             try {
                 Thread.sleep(DELAY_TIME_PERIOD);
             } catch (final InterruptedException exception) {
-                Logger.v(TAG, "The thread is interrupted while it is sleeping. " + exception);
+                Logger.v(TAG + methodName, "The thread is interrupted while it is sleeping. ");
             }
 
-            Logger.v(TAG, "Try again...");
+            Logger.v(TAG + methodName, "Try again...");
             return postMessage(requestMessage, headers);
         }
 
@@ -617,6 +657,7 @@ class Oauth2 {
      */
     private AuthenticationResult processTokenResponse(HttpWebResponse webResponse, final HttpEvent httpEvent)
             throws AuthenticationException {
+        final String methodName = ":processTokenResponse";
         AuthenticationResult result;
         String correlationIdInHeader = null;
         String speRing = null;
@@ -636,7 +677,7 @@ class Oauth2 {
                 List<String> listOfHeaders = webResponse.getResponseHeaders().get(
                         AuthenticationConstants.AAD.REQUEST_ID_HEADER);
                 if (listOfHeaders != null && listOfHeaders.size() > 0) {
-                    Logger.v(TAG, "x-ms-request-id: " + listOfHeaders.get(0));
+                    Logger.v(TAG + methodName, "Set request id header. " + "x-ms-request-id: " + listOfHeaders.get(0));
                     httpEvent.setRequestIdHeader(listOfHeaders.get(0));
                 }
             }
@@ -663,18 +704,27 @@ class Oauth2 {
             try {
                 result = parseJsonResponse(webResponse.getBody());
                 if (result != null) {
+                    if(null != result.getErrorCode()) {
+                        result.setHttpResponse(webResponse);
+                    }
+
                     final CliTelemInfo cliTelemInfo = new CliTelemInfo();
                     cliTelemInfo.setSpeRing(speRing);
                     result.setCliTelemInfo(cliTelemInfo);
                     httpEvent.setOauthErrorCode(result.getErrorCode());
                 }
             } catch (final JSONException jsonException) {
-                throw new AuthenticationException(ADALError.SERVER_INVALID_JSON_RESPONSE, "Can't parse server response " + webResponse.getBody(), jsonException);
+                throw new AuthenticationException(ADALError.SERVER_INVALID_JSON_RESPONSE,
+                        "Can't parse server response. " + webResponse.getBody(),
+                        webResponse, jsonException);
             }
         } else if (statusCode >= HttpURLConnection.HTTP_INTERNAL_ERROR && statusCode <= MAX_RESILIENCY_ERROR_CODE) {
-            throw new ServerRespondingWithRetryableException("Server Error " + statusCode + " " + webResponse.getBody());
+            throw new ServerRespondingWithRetryableException("Server Error " + statusCode + " "
+                    + webResponse.getBody(), webResponse);
         } else {
-            throw new AuthenticationException(ADALError.SERVER_ERROR, "Unexpected server response " + statusCode + " " + webResponse.getBody());
+            throw new AuthenticationException(ADALError.SERVER_ERROR,
+                    "Unexpected server response " + statusCode + " " + webResponse.getBody(),
+                    webResponse);
         }
 
         // Set correlationId in the result
@@ -682,13 +732,13 @@ class Oauth2 {
             try {
                 UUID correlation = UUID.fromString(correlationIdInHeader);
                 if (!correlation.equals(mRequest.getCorrelationId())) {
-                    Logger.w(TAG, "CorrelationId is not matching", "",
+                    Logger.w(TAG + methodName, "CorrelationId is not matching", "",
                             ADALError.CORRELATION_ID_NOT_MATCHING_REQUEST_RESPONSE);
                 }
 
-                Logger.v(TAG, "Response correlationId:" + correlationIdInHeader);
+                Logger.v(TAG + methodName, "Response correlationId:" + correlationIdInHeader);
             } catch (IllegalArgumentException ex) {
-                Logger.e(TAG, "Wrong format of the correlation ID:" + correlationIdInHeader, "",
+                Logger.e(TAG + methodName, "Wrong format of the correlation ID:" + correlationIdInHeader, "",
                         ADALError.CORRELATION_ID_FORMAT, ex);
             }
         }
@@ -715,5 +765,9 @@ class Oauth2 {
     private void stopHttpEvent(final HttpEvent httpEvent) {
         Telemetry.getInstance().stopEvent(mRequest.getTelemetryRequestId(), httpEvent,
                 EventStrings.HTTP_EVENT);
+    }
+
+    private void setTokenEndpoint(final String tokenEndpoint) {
+        mTokenEndpoint = tokenEndpoint;
     }
 }

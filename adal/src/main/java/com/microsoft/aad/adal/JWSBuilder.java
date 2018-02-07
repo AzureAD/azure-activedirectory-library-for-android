@@ -59,7 +59,7 @@ class JWSBuilder implements IJWSBuilder {
     /**
      * Payload for JWS.
      */
-    class Claims {
+    final class Claims {
         @SerializedName("aud")
         private String mAudience;
 
@@ -70,7 +70,7 @@ class JWSBuilder implements IJWSBuilder {
         private String mNonce;
 
         /**
-         * No args constructor for use in serialization for Gson to prevent usage of sun.misc.Unsafe
+         * No args constructor for use in serialization for Gson to prevent usage of sun.misc.Unsafe.
          */
         @SuppressWarnings("unused")
         private Claims() {
@@ -80,7 +80,7 @@ class JWSBuilder implements IJWSBuilder {
     /**
      * Header that includes algorithm, type, thumbprint, keys, and keyid.
      */
-    class JwsHeader {
+    final class JwsHeader {
         @SerializedName("alg")
         private String mAlgorithm;
 
@@ -91,7 +91,7 @@ class JWSBuilder implements IJWSBuilder {
         private String[] mCert;
 
         /**
-         * No args constructor for use in serialization for Gson to prevent usage of sun.misc.Unsafe
+         * No args constructor for use in serialization for Gson to prevent usage of sun.misc.Unsafe.
          */
         @SuppressWarnings("unused")
         private JwsHeader() {
@@ -112,6 +112,7 @@ class JWSBuilder implements IJWSBuilder {
         // concatenated in that order, with the three strings being separated by
         // two period ('.') characters.
         // Base64 encoding without padding, wrapping and urlsafe.
+        final String methodName = ":generateSignedJWT";
         if (StringExtensions.isNullOrBlank(nonce)) {
             throw new IllegalArgumentException("nonce");
         }
@@ -154,7 +155,8 @@ class JWSBuilder implements IJWSBuilder {
             // redundant but current ADFS code base is looking for
             String headerJsonString = gson.toJson(header);
             String claimsJsonString = gson.toJson(claims);
-            Logger.v(TAG, "Client certificate challenge response JWS Header:" + headerJsonString);
+            Logger.v(TAG + methodName, "Generate client certificate challenge response JWS Header. ",
+                    "Header: " + headerJsonString, null);
             signingInput = StringExtensions.encodeBase64URLSafeString(headerJsonString
                     .getBytes(AuthenticationConstants.ENCODING_UTF8))
                     + "."

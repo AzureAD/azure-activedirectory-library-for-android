@@ -31,8 +31,6 @@ import com.microsoft.aad.adal.Logger.LogLevel;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
@@ -49,6 +47,7 @@ public class LoggerTest extends AndroidTestHelper {
     public void testSetCallback() {
 
         final TestLogResponse response = new TestLogResponse();
+        Logger.getInstance().setEnablePII(true);
         Logger.getInstance().setExternalLogger(new ILogger() {
 
             @Override
@@ -100,6 +99,7 @@ public class LoggerTest extends AndroidTestHelper {
     public void testCallbackNullMessages() {
 
         final TestLogResponse response = new TestLogResponse();
+        Logger.getInstance().setEnablePII(true);
         Logger.getInstance().setExternalLogger(new ILogger() {
 
             @Override
@@ -133,7 +133,7 @@ public class LoggerTest extends AndroidTestHelper {
         Logger.d(null, "someMessage234");
         assertNull("null log tag since not logging this", response.getTag());
         assertTrue("log message", response.getMessage().contains("someMessage234"));
-        assertEquals("empty log detail message", "", response.getAdditionalMessage());
+        assertNull("null log detail message", response.getAdditionalMessage());
         response.reset();
 
         Logger.d(null, null);
@@ -193,22 +193,6 @@ public class LoggerTest extends AndroidTestHelper {
 
         assertTrue("Expected to come here", true);
         assertTrue("same log message", response.getMessage().contains("testMessage") && response.getMessage().contains(testId.toString()));
-    }
-
-    @Test
-    public void testLogMessage() throws IllegalArgumentException, ClassNotFoundException,
-            NoSuchMethodException, InstantiationException, IllegalAccessException,
-            InvocationTargetException {
-        Method m = ReflectionUtils.getStaticTestMethod(Logger.class, "getLogMessage", String.class,
-                String.class, ADALError.class);
-
-        String msg = (String) m.invoke(null, "logMsg", "logAdditionalMsg", ADALError.AUTH_FAILED);
-
-        assertTrue("Verify msg", msg.startsWith(ADALError.AUTH_FAILED.name()));
-
-        msg = (String) m.invoke(null, "logMsg", null, ADALError.AUTH_FAILED);
-
-        assertTrue("Verify message", msg.contains(ADALError.AUTH_FAILED.name()));
     }
 
     private void verifyLogMessage(final TestLogResponse response) {

@@ -31,7 +31,6 @@ import android.content.pm.Signature;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Base64;
-import android.util.Log;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -57,7 +56,7 @@ public class TelemetryTest {
 
     @Before
     public void setUp() throws Exception {
-        Log.d(TAG, "setup key at settings");
+        Logger.d(TAG, "setup key at settings");
         System.setProperty("dexmaker.dexcache", InstrumentationRegistry.getContext().getCacheDir().getPath());
     }
 
@@ -166,7 +165,8 @@ class AggregatedTelemetryTestClass implements IDispatcher {
 
     boolean checkNoPIIPresent(final String piiKey, final String piiValue) {
         try {
-            return mEventData.get(piiKey).equals(StringExtensions.createHash(piiValue));
+            final String value = mEventData.get(piiKey);
+            return null == value || value.equals(StringExtensions.createHash(piiValue));
         } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
             return false;
         }

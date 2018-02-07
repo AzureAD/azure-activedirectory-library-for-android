@@ -1,3 +1,15 @@
+Version 1.14.0
+-------------
+Add support for GDPR PII/OII Filtering.
+Add support for Sovereign Cloud.
+With this release and the corresponding broker release, ADAL Android now supports the guest scenario. 
+Add support to parse any/all challenges served in WWW-Authenticate headers
+Update the URI query parameter parsing to handle the situation when parsing the key with empty value case.
+Updated supported Android Studio to 3.0 and Gradle to v3.5.
+Add API to get the HTTP error response info in AuthenticationException, like http response headers, response body, error code, error description and status code.
+Fix the utilization of locks in PRNGFixes.
+Stopped crashing the app if TSL export of token fails.
+
 Version 1.13.3
 -------------
 (Hotfix) Fix the crash when broker returns null for getIntentForInteractiveRequest

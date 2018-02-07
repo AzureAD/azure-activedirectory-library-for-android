@@ -44,7 +44,7 @@ class WebFingerMetadataRequestor
             throws AuthenticationException {
         final URL domain = webFingerMetadataRequestParameters.getDomain();
         final DRSMetadata drsMetadata = webFingerMetadataRequestParameters.getDrsMetadata();
-        Logger.v(TAG, "Validating authority for auth endpoint: " + domain.toString());
+        Logger.i(TAG, "Validating authority for auth endpoint. ", "Auth endpoint: " + domain.toString());
         try {
             // create the URL
             URL webFingerUrl = buildWebFingerUrl(domain, drsMetadata);
@@ -83,7 +83,7 @@ class WebFingerMetadataRequestor
      */
     @Override
     WebFingerMetadata parseMetadata(final HttpWebResponse webResponse) throws AuthenticationException {
-        Logger.v(TAG, "Parsing WebFinger response");
+        Logger.v(TAG, "Parsing WebFinger response.");
         try {
             return parser().fromJson(webResponse.getBody(), WebFingerMetadata.class);
         } catch (JsonSyntaxException e) {
@@ -99,6 +99,7 @@ class WebFingerMetadataRequestor
      * @return the URL of the WebFinger document
      * @throws MalformedURLException if the URL could not be constructed
      */
+    @SuppressWarnings("PMD")
     static URL buildWebFingerUrl(final URL resource, final DRSMetadata drsMetadata)
             throws MalformedURLException {
         final URL passiveAuthEndpoint = new URL(
@@ -116,7 +117,7 @@ class WebFingerMetadataRequestor
 
         final String webFingerUrl = webFingerUrlBuilder.toString();
 
-        Logger.v(TAG, "Validator will use WebFinger URL: " + webFingerUrl);
+        Logger.i(TAG, "Validator will use WebFinger URL. ", "WebFinger URL: " + webFingerUrl);
 
         return new URL(webFingerUrl);
     }

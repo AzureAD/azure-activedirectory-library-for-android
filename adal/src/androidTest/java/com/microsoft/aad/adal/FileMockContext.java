@@ -77,11 +77,11 @@ class FileMockContext extends MockContext {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             UsageStatsManagerWrapper mockUsageStatsManagerWrapper = mock(UsageStatsManagerWrapper.class);
             Mockito.when(mockUsageStatsManagerWrapper.isAppInactive(any(Context.class))).thenReturn(false);
-            UsageStatsManagerWrapper.sInstance = mockUsageStatsManagerWrapper;
+            UsageStatsManagerWrapper.setInstance(mockUsageStatsManagerWrapper);
             PowerManagerWrapper mockPowerManagerWrapper = mock(PowerManagerWrapper.class);
             Mockito.when(mockPowerManagerWrapper.isDeviceIdleMode(any(Context.class))).thenReturn(false);
             Mockito.when(mockPowerManagerWrapper.isIgnoringBatteryOptimizations(any(Context.class))).thenReturn(false);
-            PowerManagerWrapper.sInstance = mockPowerManagerWrapper;
+            PowerManagerWrapper.setInstance(mockPowerManagerWrapper);
         }
 
         // default
@@ -191,7 +191,7 @@ class FileMockContext extends MockContext {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             UsageStatsManagerWrapper mockUsageStatsManagerWrapper = mock(UsageStatsManagerWrapper.class);
             Mockito.when(mockUsageStatsManagerWrapper.isAppInactive(any(Context.class))).thenReturn(true);
-            UsageStatsManagerWrapper.sInstance = mockUsageStatsManagerWrapper;
+            UsageStatsManagerWrapper.setInstance(mockUsageStatsManagerWrapper);
         }
     }
 
@@ -200,7 +200,7 @@ class FileMockContext extends MockContext {
             PowerManagerWrapper mockPowerManagerWrapper = mock(PowerManagerWrapper.class);
             Mockito.when(mockPowerManagerWrapper.isDeviceIdleMode(any(Context.class))).thenReturn(true);
             Mockito.when(mockPowerManagerWrapper.isIgnoringBatteryOptimizations(any(Context.class))).thenReturn(false);
-            PowerManagerWrapper.sInstance = mockPowerManagerWrapper;
+            PowerManagerWrapper.setInstance(mockPowerManagerWrapper);
         }
     }
 

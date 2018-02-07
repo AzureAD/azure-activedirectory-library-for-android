@@ -24,14 +24,16 @@
 package com.microsoft.aad.adal;
 
 import android.text.TextUtils;
-import android.util.Log;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
@@ -69,21 +71,29 @@ final class HashMapExtensions {
             while (parameterTokenizer.hasMoreTokens()) {
                 String pair = parameterTokenizer.nextToken();
                 String[] elements = pair.split("=");
+                String value = null;
+                String key = null;
 
                 if (elements.length == 2) {
-                    String key = null;
-                    String value = null;
                     try {
                         key = StringExtensions.urlFormDecode(elements[0].trim());
                         value = StringExtensions.urlFormDecode(elements[1].trim());
                     } catch (UnsupportedEncodingException e) {
-                        Log.d(TAG, e.getMessage());
+                        Logger.i(TAG, ADALError.ENCODING_IS_NOT_SUPPORTED.getDescription(), e.getMessage(), null);
+                        continue;
                     }
+                } else if (elements.length == 1) {
+                    try {
+                        key = StringExtensions.urlFormDecode(elements[0].trim());
+                        value = "";
+                    } catch (UnsupportedEncodingException e) {
+                        Logger.i(TAG, ADALError.ENCODING_IS_NOT_SUPPORTED.getDescription(), e.getMessage(), null);
+                        continue;
+                    }
+                }
 
-                    if (!StringExtensions.isNullOrBlank(key)
-                            && !StringExtensions.isNullOrBlank(value)) {
-                        result.put(key, value);
-                    }
+                if (!StringExtensions.isNullOrBlank(key)) {
+                    result.put(key, value);
                 }
             }
         }
@@ -111,4 +121,48 @@ final class HashMapExtensions {
         return response;
     }
 
+    /**
+     * Parse json String into HashMap<String, String>.
+     * @param jsonString
+     * @return HashMap<String, String>
+     * @throws JSONException
+     */
+    static HashMap<String, String> jsonStringAsMap(String jsonString) throws JSONException {
+        final HashMap<String, String> responseItems = new HashMap<>();
+        if (!StringExtensions.isNullOrBlank(jsonString)) {
+            JSONObject jsonObject = new JSONObject(jsonString);
+            Iterator<?> i = jsonObject.keys();
+            while (i.hasNext()) {
+                final String key = (String) i.next();
+                responseItems.put(key, jsonObject.getString(key));
+            }
+        }
+
+        return responseItems;
+    }
+
+    /**
+     * Parse json String into HashMap<String, List<String>>.
+     * @param jsonString
+     * @return HashMap<String, List<String>>
+     * @throws JSONException
+     */
+    static HashMap<String, List<String>> jsonStringAsMapList(String jsonString) throws JSONException {
+        final HashMap<String, List<String>> responseItems = new HashMap<>();
+        if (!StringExtensions.isNullOrBlank(jsonString)) {
+            JSONObject jsonObject = new JSONObject(jsonString);
+            Iterator<?> i = jsonObject.keys();
+            while (i.hasNext()) {
+                final String key = (String) i.next();
+                final List<String> list = new ArrayList<>();
+                final JSONArray json = new JSONArray(jsonObject.getString(key));
+                for (int index = 0; index < json.length(); index++) {
+                    list.add(json.get(index).toString());
+                }
+                responseItems.put(key, list);
+            }
+        }
+
+        return  responseItems;
+    }
 }

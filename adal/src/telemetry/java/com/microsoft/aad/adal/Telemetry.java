@@ -32,6 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class Telemetry {
     private static final String TAG = Telemetry.class.getSimpleName();
     private DefaultDispatcher mDispatcher = null;
+    private static boolean sAllowPii = false;
     private final Map<Pair<String, String>, String> mEventTracking = new ConcurrentHashMap<Pair<String, String>, String>();
     private static final Telemetry INSTANCE = new Telemetry();
 
@@ -41,6 +42,31 @@ public final class Telemetry {
      */
     public static synchronized Telemetry getInstance() {
         return INSTANCE;
+    }
+
+    /**
+     * Sets the PII/OII allow flag. If set to true, PII/OII fields will not be explicitly blocked
+     * in Telemetry data.
+     *
+     * Calling {@link #setAllowPii(boolean)} setAllowPii with true, will allow ADAL to return
+     * fields with user information in the telemetry events. ADAL does not send telemetry data
+     * by itself to any server. If apps want to collect ADAL telemetry with user information
+     * they must setup the telemetry callback and set this flag on. By default ADAL will not
+     * return any user information in telemetry.
+     *
+     * @param allowFlag true, if PII/OII should be allowed in Telemetry data. False otherwise.
+     */
+    public static void setAllowPii(final boolean allowFlag) {
+        sAllowPii = allowFlag;
+    }
+
+    /**
+     * Gets the state of the PII/OII allow flag.
+     *
+     * @return the flag state.
+     */
+    public static boolean getAllowPii() {
+        return sAllowPii;
     }
 
     /**

@@ -89,6 +89,7 @@ public class AuthenticationActivityUnitTest {
 
     private Intent mIntentToStartActivity;
 
+    @SuppressWarnings("checkstyle:visibilitymodifier")
     @Rule
     public final ActivityTestRule<AuthenticationActivity> mActivityRule = new ActivityTestRule<>(AuthenticationActivity.class, true, false);
 
@@ -451,7 +452,7 @@ public class AuthenticationActivityUnitTest {
         mActivityRule.launchActivity(mIntentToStartActivity);
         final TestLogResponse logResponse = new TestLogResponse();
         logResponse.listenForLogMessage(
-                "Webview onResume register broadcast receiver for requestId" + TEST_REQUEST_ID,
+                "Webview onResume register broadcast receiver for request. ",
                 null);
         ReflectionUtils.setFieldValue(mActivityRule.getActivity(), "mRegisterReceiver", true);
         final Method methodOnResume = ReflectionUtils.getTestMethod(mActivityRule.getActivity(), "onResume");

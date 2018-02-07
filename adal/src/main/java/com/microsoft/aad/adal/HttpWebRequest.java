@@ -83,7 +83,8 @@ class HttpWebRequest {
      * setupConnection before sending the request.
      */
     private HttpURLConnection setupConnection() throws IOException {
-        Logger.v(TAG, "HttpWebRequest setupConnection thread:" + android.os.Process.myTid());
+        final String methodName = ":setupConnection";
+        Logger.v(TAG + methodName, "HttpWebRequest setupConnection.", "Thread:" + android.os.Process.myTid(), null);
         if (mUrl == null) {
             throw new IllegalArgumentException("requestURL");
         }
@@ -102,7 +103,7 @@ class HttpWebRequest {
         // Apply the request headers
         final Set<Map.Entry<String, String>> headerEntries = mRequestHeaders.entrySet();
         for (final Map.Entry<String, String> entry : headerEntries) {
-            Logger.v(TAG, "Setting header: " + entry.getKey());
+            Logger.v(TAG + methodName, "Setting header. ", "Header: " + entry.getKey(), null);
             connection.setRequestProperty(entry.getKey(), entry.getValue());
         }
 
@@ -121,7 +122,8 @@ class HttpWebRequest {
      * send the request.
      */
     public HttpWebResponse send() throws IOException {
-        Logger.v(TAG, "HttpWebRequest send thread:" + Process.myTid());
+        final String methodName = ":send";
+        Logger.v(TAG + methodName, "HttpWebRequest send. ", " Thread: " + Process.myTid(), null);
         final HttpURLConnection connection = setupConnection();
         final HttpWebResponse response;
         InputStream responseStream = null;
@@ -129,7 +131,7 @@ class HttpWebRequest {
             try {
                 responseStream = connection.getInputStream();
             } catch (IOException ex) {
-                Logger.e(TAG, "IOException:" + ex.getMessage(), "", ADALError.SERVER_ERROR);
+                Logger.e(TAG + methodName, "IOException is thrown when sending the request. ", ex.getMessage(), ADALError.SERVER_ERROR);
                 // If it does not get the error stream, it will return
                 // exception in the httpresponse
                 responseStream = connection.getErrorStream();
@@ -145,15 +147,15 @@ class HttpWebRequest {
             // It will only run in debugger and set from outside for testing
             if (Debug.isDebuggerConnected() && DEBUG_SIMULATE_DELAY > 0) {
                 // sleep background thread in debugging mode
-                Logger.v(TAG, "Sleeping to simulate slow network response");
+                Logger.v(TAG + methodName, "Sleeping to simulate slow network response.");
                 try {
                     Thread.sleep(DEBUG_SIMULATE_DELAY);
                 } catch (InterruptedException e) {
-                    Logger.v(TAG, "Thread.sleep got interrupted exception " + e);
+                    Logger.v(TAG + methodName, "Thread.sleep got interrupted exception " + e);
                 }
             }
 
-            Logger.v(TAG, "Response is received");
+            Logger.v(TAG + methodName, "Response is received.");
             response = new HttpWebResponse(statusCode, responseBody, connection.getHeaderFields());
         } finally {
             safeCloseStream(responseStream);
@@ -255,7 +257,7 @@ class HttpWebRequest {
                 stream.close();
             } catch (IOException e) {
                 // swallow error in this case
-                Logger.e(TAG, "Failed to close the stream: ", "", ADALError.IO_EXCEPTION, e);
+                Logger.e(TAG, "Failed to close the stream. ", "", ADALError.IO_EXCEPTION, e);
             }
         }
     }

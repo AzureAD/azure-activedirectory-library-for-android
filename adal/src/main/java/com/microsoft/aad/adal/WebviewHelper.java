@@ -165,7 +165,7 @@ public class WebviewHelper {
         HashMap<String, String> parameters = StringExtensions
                 .getUrlParameters(challengeResponse.getSubmitUrl());
 
-        Logger.v(TAG, "SubmitUrl:" + challengeResponse.getSubmitUrl());
+        Logger.i(TAG, "Get submit url. ", "SubmitUrl:" + challengeResponse.getSubmitUrl());
 
         if (!parameters.containsKey(AuthenticationConstants.OAuth2.CLIENT_ID)) {
             loadUrl = loadUrl + "?" + mOauth.getAuthorizationEndpointQueryParameters();

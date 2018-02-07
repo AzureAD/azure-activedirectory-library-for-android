@@ -28,7 +28,6 @@ import android.annotation.TargetApi;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.support.test.runner.AndroidJUnit4;
-import android.util.Log;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -52,7 +51,7 @@ public class ADALErrorTest {
 
         AuthenticationSettings.INSTANCE
                 .setBrokerPackageName(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
-        Log.d(TAG, "mTestSignature is set");
+        Logger.d(TAG, "mTestSignature is set");
     }
 
     @Test
@@ -60,7 +59,7 @@ public class ADALErrorTest {
     public void testResourceOverwrite() {
         ADALError err = ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED;
         String msg = err.getDescription();
-        Log.v(TAG, "Test context packagename:" + getInstrumentation().getTargetContext().getPackageName());
+        Logger.i(TAG, "", "Test context packagename:" + getInstrumentation().getTargetContext().getPackageName());
         Locale locale2 = new Locale("de");
         Locale.setDefault(locale2);
         Configuration config = new Configuration();

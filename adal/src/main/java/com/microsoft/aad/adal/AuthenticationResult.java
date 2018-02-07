@@ -23,8 +23,12 @@
 
 package com.microsoft.aad.adal;
 
+import org.json.JSONException;
+
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 
 import static com.microsoft.aad.adal.TelemetryUtils.CliTelemInfo;
 
@@ -91,7 +95,15 @@ public class AuthenticationResult implements Serializable {
 
     private Date mExtendedExpiresOn;
 
+    private String mAuthority;
+
     private CliTelemInfo mCliTelemInfo;
+
+    private HashMap<String, String> mHttpResponseBody = null;
+
+    private int mServiceStatusCode = -1;
+
+    private HashMap<String, List<String>> mHttpResponseHeaders = null;
 
     AuthenticationResult() {
         mCode = null;
@@ -293,7 +305,7 @@ public class AuthenticationResult implements Serializable {
      * @return log info
      */
     public String getErrorLogInfo() {
-        return " ErrorCode:" + getErrorCode() + " ErrorDescription:" + getErrorDescription();
+        return " ErrorCode:" + getErrorCode();
     }
 
     /**
@@ -307,6 +319,13 @@ public class AuthenticationResult implements Serializable {
         }
 
         return TokenCacheItem.isTokenExpired(getExpiresOn());
+    }
+
+    // The token returned is cached with this authority as key.
+    // We expect the subsequent requests to AcquireToken will use this authority as the authority parameter else
+    // AcquireTokenSilent will fail
+    public final String getAuthority() {
+        return mAuthority;
     }
 
     String[] getErrorCodes() {
@@ -377,11 +396,61 @@ public class AuthenticationResult implements Serializable {
         mFamilyClientId = familyClientId;
     }
 
+    final void setAuthority(final String authority) {
+        if (!StringExtensions.isNullOrBlank(authority)) {
+            mAuthority = authority;
+        }
+    }
+
     final CliTelemInfo getCliTelemInfo() {
         return mCliTelemInfo;
     }
 
     final void setCliTelemInfo(final CliTelemInfo cliTelemInfo) {
         mCliTelemInfo = cliTelemInfo;
+    }
+
+    void setHttpResponseBody(final HashMap<String, String> body) {
+        mHttpResponseBody = body;
+    }
+
+    public HashMap<String, String> getHttpResponseBody() {
+        return mHttpResponseBody;
+    }
+
+    void setHttpResponseHeaders(final HashMap<String, List<String>> headers) {
+        mHttpResponseHeaders = headers;
+    }
+
+    public HashMap<String, List<String>> getHttpResponseHeaders() {
+        return mHttpResponseHeaders;
+    }
+
+    void setServiceStatusCode(int statusCode) {
+        mServiceStatusCode = statusCode;
+    }
+
+    public int getServiceStatusCode() {
+        return mServiceStatusCode;
+    }
+
+    void setHttpResponse(final HttpWebResponse response) {
+        if (null != response) {
+            mServiceStatusCode = response.getStatusCode();
+
+            if (null != response.getResponseHeaders()) {
+                mHttpResponseHeaders = new HashMap<>(response.getResponseHeaders());
+            }
+
+            if (null != response.getBody()) {
+                try {
+                    mHttpResponseBody = new HashMap<>(HashMapExtensions.getJsonResponse(response));
+                } catch (final JSONException exception) {
+                    Logger.e(AuthenticationException.class.getSimpleName(), "Json exception",
+                            ExceptionExtensions.getExceptionMessage(exception),
+                            ADALError.SERVER_INVALID_JSON_RESPONSE);
+                }
+            }
+        }
     }
 }

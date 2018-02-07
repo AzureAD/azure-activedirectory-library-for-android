@@ -25,7 +25,6 @@ package com.microsoft.aad.adal;
 
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
-import android.util.Log;
 
 import com.microsoft.aad.adal.AuthenticationParameters.AuthenticationParamCallback;
 import com.microsoft.aad.adal.Logger.ILogger;
@@ -76,7 +75,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
 
     @Test
     public void testCreateFromResourceUrlInvalidFormat() throws IOException, JSONException {
-        Log.d(TAG, "test:" + getClass().getName() + "thread:" + android.os.Process.myTid());
+        Logger.d(TAG, "test:" + getClass().getName() + "thread:" + android.os.Process.myTid());
 
         //mock http response
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
@@ -110,7 +109,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
 
         // empty value inside the authorization_uri will throw exception
         assertThrowsException(ResourceAuthenticationChallengeException.class,
-                AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT.toLowerCase(), new ThrowableRunnable() {
+                AuthenticationParameters.AUTH_HEADER_MISSING_AUTHORITY.toLowerCase(), new ThrowableRunnable() {
 
                     @Override
                     public void run() throws ResourceAuthenticationChallengeException {
@@ -125,7 +124,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
      */
     @Test
     public void testCreateFromResourceUrlPositive() throws IOException {
-        Log.d(TAG, "test:" + getClass().getName() + "thread:" + android.os.Process.myTid());
+        Logger.d(TAG, "test:" + getClass().getName() + "thread:" + android.os.Process.myTid());
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
@@ -145,7 +144,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
 
         assertNull("Exception is not null", testResponse.getException());
         assertNotNull("Check parameter", testResponse.getParam());
-        Log.d(TAG, "test:" + getClass().getName() + "authority:" + testResponse.getParam().getAuthority());
+        Logger.i(TAG, "test:" + getClass().getName(), "authority:" + testResponse.getParam().getAuthority());
         assertEquals("https://login.windows.net/test.onmicrosoft.com", testResponse.getParam()
                 .getAuthority().trim());
     }
@@ -180,6 +179,17 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
 
         assertTrue("Has warning for redudant items", callback.isCalled());
         Logger.getInstance().setExternalLogger(null);
+    }
+
+    @Test
+    public void testSuccessfullyParsesWhenBearerNotFirstClaim()
+            throws ClassNotFoundException, InvocationTargetException, IllegalAccessException {
+        Method m = getParseResponseMethod();
+
+        verifyAuthenticationParam(
+                m,
+                "Basic realm=\"https://login.microsoftonline.com/tenant\", Bearer scope=\"blah=scope, scope=blah\" , authorization_uri=\"https://login.windows.net/tenant\"",
+                "https://login.windows.net/tenant", null);
     }
 
     private void verifyAuthenticationParam(Method m, String headerValue, String authorizationUri,
@@ -252,7 +262,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
         callParseResponseForException(
                 new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate",
                         "Bearer authorization_uri= ")),
-                AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
+                AuthenticationParameters.AUTH_HEADER_MISSING_AUTHORITY);
 
         callParseResponseForException(
                 new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate",
@@ -267,7 +277,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
         callParseResponseForException(
                 new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate",
                         "Bearer    \t authorization_uri=,something=a ")),
-                AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
+                AuthenticationParameters.AUTH_HEADER_MISSING_AUTHORITY);
     }
 
     class LogCallback implements ILogger {
@@ -316,7 +326,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
         } catch (Exception exception) {
             assertNotNull("Exception is not null", exception);
             assertNull("Param is expected to be null", param);
-            assertTrue("Check header exception", exception.getCause().getMessage() == message);
+            assertTrue("Check header exception", exception.getCause().getMessage().equals(message));
         }
     }
 
@@ -368,7 +378,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
             public void onCompleted(Exception exception, AuthenticationParameters param) {
                 testResponse.setParam(param);
                 testResponse.setException(exception);
-                Log.d(TAG, "test " + android.os.Process.myTid());
+                Logger.d(TAG, "test " + android.os.Process.myTid());
                 signal.countDown();
             }
         };

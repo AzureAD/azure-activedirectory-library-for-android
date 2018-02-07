@@ -183,7 +183,7 @@ final class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, 
 
         final String requestUrlStr = requestUrl.toString();
 
-        Logger.v(TAG, "Requestor will use DRS url: " + requestUrlStr);
+        Logger.v(TAG, "Request will use DRS url. ", "URL: " + requestUrlStr, null);
 
         return requestUrlStr;
     }

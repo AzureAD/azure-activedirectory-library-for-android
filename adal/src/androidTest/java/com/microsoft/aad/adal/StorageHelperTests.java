@@ -29,7 +29,6 @@ import android.os.Build;
 import android.support.test.filters.Suppress;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Base64;
-import android.util.Log;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -67,7 +66,7 @@ public class StorageHelperTests extends AndroidTestHelper {
         super.setUp();
 
         if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null && Build.VERSION.SDK_INT < MIN_SDK_VERSION) {
-            Log.d(TAG, "setup key at settings");
+            Logger.d(TAG, "setup key at settings");
             setSecretKeyData();
         }
     }
@@ -168,14 +167,14 @@ public class StorageHelperTests extends AndroidTestHelper {
      */
     @Test
     public void testEncryptDecryptDifferentSizes() throws GeneralSecurityException, IOException, AuthenticationException {
-        Log.d(TAG, "Starting testEncryptDecrypt_differentSizes");
+        Logger.d(TAG, "Starting testEncryptDecrypt_differentSizes");
         // try different block sizes
         final int sizeRange = 1000;
         StringBuilder buf = new StringBuilder(sizeRange);
         for (int i = 0; i < sizeRange; i++) {
             encryptDecrypt(buf.append("a").toString());
         }
-        Log.d(TAG, "Finished testEncryptDecrypt_differentSizes");
+        Logger.d(TAG, "Finished testEncryptDecrypt_differentSizes");
     }
 
     private void encryptDecrypt(String clearText) throws GeneralSecurityException, IOException, AuthenticationException {
@@ -194,7 +193,7 @@ public class StorageHelperTests extends AndroidTestHelper {
         Context context = getInstrumentation().getTargetContext();
         final StorageHelper storageHelper = new StorageHelper(context);
         String clearText = "AAAAAAAA2pILN0mn3wlYIlWk7lqOZ5qjRWXHRnqDdzsq0s4aaUVgnMQo6oXfEUYL4fAxqVQ6dXh9sMAieFDjXVhTkp3mnL2gHSnAHJFwmj9mnlgaU7kVcoujXRA3Je23PEtoqEQMQPaurakVcEl7jOsjUGWD7JdaAHsYTujd1KHoTUdBJQQ-jz4t6Cish25zn9BPocJzN56rLUqgX3dnoA1z-hY4FS_EIn_Xdvqnil29t4etVHLDZD5RJbc5R3p5MaUKqPBF8sAQvJcgW-f9ebPHzO8L87RrsVNu4keagKmOnP139KSuORBhNaD57nmEvecJWtWTIAA&redirect_uri=https%3a%2f%2fworkaad.com%2fdemoclient1&client_id=dba19db4-53de-441d-9c63-da8d6f229e5a";
-        Log.d(TAG, "Starting testEncryptSameText");
+        Logger.d(TAG, "Starting testEncryptSameText");
         String encrypted = storageHelper.encrypt(clearText);
         String encrypted2 = storageHelper.encrypt(clearText);
         String encrypted3 = storageHelper.encrypt(clearText);
@@ -212,7 +211,7 @@ public class StorageHelperTests extends AndroidTestHelper {
         assertEquals("Same as initial text", clearText, decrypted);
         assertEquals("Same as initial text", decrypted, decrypted2);
         assertEquals("Same as initial text", decrypted, decrypted3);
-        Log.d(TAG, "Finished testEncryptSameText");
+        Logger.d(TAG, "Finished testEncryptSameText");
     }
 
     @Test
@@ -261,7 +260,7 @@ public class StorageHelperTests extends AndroidTestHelper {
         // API level, data needs to be updated
         final int keyVersionLength = 4;
         String keyVersionCheck = new String(bytes, 0, keyVersionLength, "UTF-8");
-        Log.v(TAG, "Key version check:" + keyVersionCheck);
+        Logger.i(TAG, "Key version check. ", "Key version: " + keyVersionCheck);
         if (Build.VERSION.SDK_INT < MIN_SDK_VERSION || AuthenticationSettings.INSTANCE.getSecretKeyData() != null) {
             assertEquals("It should use user defined", "U001", keyVersionCheck);
         } else {
@@ -292,7 +291,7 @@ public class StorageHelperTests extends AndroidTestHelper {
 
     @TargetApi(MIN_SDK_VERSION)
     @Test
-    public void testKeyPair_AndroidKeyStore() throws
+    public void testKeyPairAndroidKeyStore() throws
             GeneralSecurityException, IOException {
         if (Build.VERSION.SDK_INT < MIN_SDK_VERSION) {
             return;
@@ -345,8 +344,8 @@ public class StorageHelperTests extends AndroidTestHelper {
         assertNotNull("Key is not null", key);
 
         SecretKey key2 = storageHelper.loadSecretKeyForEncryption();
-        Log.d(TAG, "Key1:" + key.toString());
-        Log.d(TAG, "Key1:" + key2.toString());
+        Logger.i(TAG, "Key1 ", key.toString());
+        Logger.i(TAG, "Key2 ", key2.toString());
         assertTrue("Key info is same", key.toString().equals(key2.toString()));
     }
     

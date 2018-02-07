@@ -23,7 +23,6 @@
 package com.microsoft.aad.adal;
 
 import android.util.Base64;
-import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -79,7 +78,7 @@ final class Util {
                                             final String clientId, final String userId,
                                             final String displayableId) {
         Calendar expiredTime = new GregorianCalendar();
-        Log.d("Test", "Time now:" + expiredTime.toString());
+        Logger.d("Test", "Time now:" + expiredTime.toString());
         expiredTime.add(Calendar.MINUTE, -TOKENS_EXPIRES_MINUTE);
         TokenCacheItem tokenCacheItem = new TokenCacheItem();
         tokenCacheItem.setAuthority(authority);
@@ -137,10 +136,13 @@ final class Util {
     static String getErrorResponseBody(final String errorCode) throws JSONException {
         final JSONObject jsonObject = new JSONObject();
         jsonObject.put(AuthenticationConstants.OAuth2.ERROR, errorCode);
-        jsonObject.put(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION, "AADSTS70000: Authentication failed. Refresh Token is not valid.\n" +
-                "Trace ID: bb27293d-74e4-4390-882b-037a63429026\n" +
-                "Correlation ID: b73106d5-419b-4163-8bc6-d2c18f1b1a13\n" +
-                "Timestamp: 2014-11-06 18:39:47Z");
+        jsonObject.put(
+                AuthenticationConstants.OAuth2.ERROR_DESCRIPTION,
+                "AADSTS70000: Authentication failed. Refresh Token is not valid.\n"
+                        + "Trace ID: bb27293d-74e4-4390-882b-037a63429026\n"
+                        + "Correlation ID: b73106d5-419b-4163-8bc6-d2c18f1b1a13\n"
+                        + "Timestamp: 2014-11-06 18:39:47Z"
+        );
         jsonObject.put(AuthenticationConstants.OAuth2.ERROR_CODES, "[70000]");
         jsonObject.put("timestamp", "2014-11-06 18:39:47Z");
         jsonObject.put("trace_id", "bb27293d-74e4-4390-882b-037a63429026");

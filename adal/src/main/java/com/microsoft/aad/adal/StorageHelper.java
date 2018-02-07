@@ -168,7 +168,8 @@ public class StorageHelper {
      */
     public String encrypt(final String clearText)
             throws GeneralSecurityException, IOException {
-        Logger.v(TAG, "Starting encryption");
+        final String methodName = ":encrypt";
+        Logger.v(TAG + methodName, "Starting encryption");
 
         if (StringExtensions.isNullOrBlank(clearText)) {
             throw new IllegalArgumentException("Input is empty or null");
@@ -178,7 +179,7 @@ public class StorageHelper {
         mKey = loadSecretKeyForEncryption();
         mHMACKey = getHMacKey(mKey);
         
-        Logger.v(TAG, "Encrypt version:" + mBlobVersion);
+        Logger.i(TAG + methodName, "", "Encrypt version:" + mBlobVersion);
         final byte[] blobVersion = mBlobVersion.getBytes(AuthenticationConstants.ENCODING_UTF8);
         final byte[] bytes = clearText.getBytes(AuthenticationConstants.ENCODING_UTF8);
 
@@ -216,7 +217,7 @@ public class StorageHelper {
 
         final String encryptedText = new String(Base64.encode(blobVerAndEncryptedDataAndIVAndMacDigest,
                 Base64.NO_WRAP), AuthenticationConstants.ENCODING_UTF8);
-        Logger.v(TAG, "Finished encryption");
+        Logger.v(TAG + methodName, "Finished encryption");
 
         return getEncodeVersionLengthPrefix() + ENCODE_VERSION + encryptedText;
     }
@@ -230,7 +231,8 @@ public class StorageHelper {
      */
     public String decrypt(final String encryptedBlob)
             throws GeneralSecurityException, IOException {
-        Logger.v(TAG, "Starting decryption");
+        final String methodName = ":decrypt";
+        Logger.v(TAG + methodName, "Starting decryption");
 
         if (StringExtensions.isNullOrBlank(encryptedBlob)) {
             throw new IllegalArgumentException("Input is empty or null");
@@ -255,7 +257,7 @@ public class StorageHelper {
         // API level, data needs to be updated
         final String keyVersion = new String(bytes, 0, KEY_VERSION_BLOB_LENGTH,
                 AuthenticationConstants.ENCODING_UTF8);
-        Logger.v(TAG, "Encrypt version:" + keyVersion);
+        Logger.i(TAG + methodName, "", "Encrypt version:" + keyVersion);
 
         final SecretKey secretKey = getKey(keyVersion);
         final SecretKey hmacKey = getHMacKey(secretKey);
@@ -290,7 +292,7 @@ public class StorageHelper {
         // Decrypt data bytes from 0 to ivindex
         final String decrypted = new String(cipher.doFinal(bytes, KEY_VERSION_BLOB_LENGTH,
                 encryptedLength), AuthenticationConstants.ENCODING_UTF8);
-        Logger.v(TAG, "Finished decryption");
+        Logger.v(TAG + methodName, "Finished decryption");
         return decrypted;
     }
 
@@ -340,6 +342,7 @@ public class StorageHelper {
      */
     private synchronized SecretKey getKeyOrCreate(final String keyVersion)
             throws GeneralSecurityException, IOException {
+        final String methodName = ":getKeyOrCreate";
         if (VERSION_USER_DEFINED.equals(keyVersion)) {
             return getSecretKey(AuthenticationSettings.INSTANCE.getSecretKeyData());
         }
@@ -347,7 +350,7 @@ public class StorageHelper {
         try {
             mSecretKeyFromAndroidKeyStore = getKey(keyVersion);
         } catch (final IOException | GeneralSecurityException exception) {
-            Logger.v(TAG, "Key does not exist in AndroidKeyStore, try to generate new keys.");
+            Logger.v(TAG + methodName, "Key does not exist in AndroidKeyStore, try to generate new keys.");
         }
 
         if (mSecretKeyFromAndroidKeyStore == null) {
@@ -393,10 +396,11 @@ public class StorageHelper {
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private synchronized KeyPair generateKeyPairFromAndroidKeyStore()
             throws GeneralSecurityException, IOException {
+        final String methodName = ":generateKeyPairFromAndroidKeyStore";
         final KeyStore keyStore = KeyStore.getInstance(ANDROID_KEY_STORE);
         keyStore.load(null);
 
-        Logger.v(TAG, "Generate KeyPair from AndroidKeyStore");
+        Logger.v(TAG + methodName, "Generate KeyPair from AndroidKeyStore");
         final Calendar start = Calendar.getInstance();
         final Calendar end = Calendar.getInstance();
         final int certValidYears = 100;
@@ -427,11 +431,12 @@ public class StorageHelper {
      * Read KeyPair from AndroidKeyStore. 
      */
     private synchronized KeyPair readKeyPair() throws GeneralSecurityException, IOException {
+        final String methodName = ":readKeyPair";
         if (!doesKeyPairExist()) {
             throw new KeyStoreException("KeyPair entry does not exist.");
         }
 
-        Logger.v(TAG, "Reading Key entry");
+        Logger.v(TAG + methodName, "Reading Key entry");
         final KeyStore keyStore = KeyStore.getInstance(ANDROID_KEY_STORE);
         keyStore.load(null);
 
@@ -554,22 +559,23 @@ public class StorageHelper {
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private synchronized SecretKey getUnwrappedSecretKey()
             throws GeneralSecurityException, IOException {
-        Logger.v(TAG, "Reading SecretKey");
+        final String methodName = ":getUnwrappedSecretKey";
+        Logger.v(TAG + methodName, "Reading SecretKey");
 
         final SecretKey unwrappedSecretKey;
         try {
             final byte[] wrappedSecretKey = readKeyData();
             unwrappedSecretKey = unwrap(wrappedSecretKey);
-            Logger.v(TAG, "Finished reading SecretKey");
+            Logger.v(TAG + methodName, "Finished reading SecretKey");
         } catch (final GeneralSecurityException | IOException ex) {
             // Reset KeyPair info so that new request will generate correct KeyPairs.
             // All tokens with previous SecretKey are not possible to decrypt.
-            Logger.e(TAG, "Unwrap failed for AndroidKeyStore", "",
+            Logger.e(TAG + methodName, "Unwrap failed for AndroidKeyStore", "",
                     ADALError.ANDROIDKEYSTORE_FAILED, ex);
             mKeyPair = null;
             deleteKeyFile();
             resetKeyPairFromAndroidKeyStore();
-            Logger.v(TAG, "Removed previous key pair info.");
+            Logger.v(TAG + methodName, "Removed previous key pair info.");
             throw ex;
         }
         
@@ -578,12 +584,13 @@ public class StorageHelper {
 
     private void deleteKeyFile() {
         // Store secret key in a file after wrapping
+        final String methodName = ":deleteKeyFile";
         final File keyFile = new File(mContext.getDir(mContext.getPackageName(),
                 Context.MODE_PRIVATE), ADALKS);
         if (keyFile.exists()) {
-            Logger.v(TAG, "Delete KeyFile");
+            Logger.v(TAG + methodName, "Delete KeyFile");
             if (!keyFile.delete()) {
-                Logger.v(TAG, "Delete KeyFile failed");
+                Logger.v(TAG + methodName, "Delete KeyFile failed");
             }
         }
     }

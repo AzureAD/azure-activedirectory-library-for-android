@@ -24,16 +24,39 @@
 package com.microsoft.aad.adal;
 
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.microsoft.aad.adal.EventStrings.LOGIN_HINT;
+import static com.microsoft.aad.adal.EventStrings.TENANT_ID;
+import static com.microsoft.aad.adal.EventStrings.USER_ID;
+
 final class TelemetryUtils {
+
+    static final Set<String> GDPR_FILTERED_FIELDS = new HashSet<>();
+
+    private static final String TAG = TelemetryUtils.class.getSimpleName();
+
+    static {
+        initializeGdprFilteredFields();
+    }
 
     private TelemetryUtils() {
         // Intentionally left blank.
     }
 
-    private static final String TAG = TelemetryUtils.class.getSimpleName();
+    private static void initializeGdprFilteredFields() {
+        GDPR_FILTERED_FIELDS.addAll(
+                Arrays.asList(
+                        LOGIN_HINT,
+                        USER_ID,
+                        TENANT_ID
+                )
+        );
+    }
 
     static class CliTelemInfo implements Serializable {
 
@@ -47,40 +70,40 @@ final class TelemetryUtils {
             return mVersion;
         }
 
-        void setVersion(String mVersion) {
-            this.mVersion = mVersion;
+        void setVersion(String version) {
+            this.mVersion = version;
         }
 
         String getServerErrorCode() {
             return mServerErrorCode;
         }
 
-        void setServerErrorCode(String mServerErrorCode) {
-            this.mServerErrorCode = mServerErrorCode;
+        void setServerErrorCode(String serverErrorCode) {
+            this.mServerErrorCode = serverErrorCode;
         }
 
         String getServerSubErrorCode() {
             return mServerSubErrorCode;
         }
 
-        void setServerSubErrorCode(String mServerSubErrorCode) {
-            this.mServerSubErrorCode = mServerSubErrorCode;
+        void setServerSubErrorCode(String serverSubErrorCode) {
+            this.mServerSubErrorCode = serverSubErrorCode;
         }
 
         String getRefreshTokenAge() {
             return mRefreshTokenAge;
         }
 
-        void setRefreshTokenAge(String mRefreshTokenAge) {
-            this.mRefreshTokenAge = mRefreshTokenAge;
+        void setRefreshTokenAge(String refreshTokenAge) {
+            this.mRefreshTokenAge = refreshTokenAge;
         }
 
         String getSpeRing() {
             return mSpeRing;
         }
 
-        void setSpeRing(String mSpeRing) {
-            this.mSpeRing = mSpeRing;
+        void setSpeRing(String speRing) {
+            this.mSpeRing = speRing;
         }
     }
 
@@ -131,7 +154,8 @@ final class TelemetryUtils {
             cliTelemInfo.setRefreshTokenAge(headerSegments[indexTokenAge]);
             cliTelemInfo.setSpeRing(headerSegments[indexSpeInfo]);
         } else { // unrecognized version
-            Logger.w(TAG, "Unexpected header version: " + headerVersion, null, ADALError.X_MS_CLITELEM_VERSION_UNRECOGNIZED);
+            Logger.w(TAG, "Unexpected header version. ",
+                    "Header version: " + headerVersion, ADALError.X_MS_CLITELEM_VERSION_UNRECOGNIZED);
             return null;
         }
 

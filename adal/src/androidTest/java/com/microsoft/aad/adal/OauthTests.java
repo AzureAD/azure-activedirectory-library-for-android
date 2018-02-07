@@ -287,6 +287,17 @@ public class OauthTests {
     }
 
     @Test
+    public void testGetCodeRequestUrlWithInstanceAwareInExtraQP() throws UnsupportedEncodingException {
+        final UUID correlationId = UUID.randomUUID();
+        final AuthenticationRequest request = new AuthenticationRequest("authority51", "resource52", "client53", "redirect54",
+                "loginhint55", PromptBehavior.Always, "instance_aware=true", correlationId, false, null);
+
+        final Oauth2 oauth2 = createOAuthInstance(request);
+        final String codeRequestUrl = oauth2.getCodeRequestUrl();
+        assertTrue(codeRequestUrl.contains("instance_aware=true"));
+    }
+
+    @Test
     public void testGetCodeRequestUrlClientTrace() throws UnsupportedEncodingException {
         // with login hint
         final AuthenticationRequest request = createAuthenticationRequest("http://www.something.com",
@@ -406,9 +417,8 @@ public class OauthTests {
     public void testRefreshTokenWebResponseInvalidStatus() {
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
         webrequest.setReturnResponse(new HttpWebResponse(HttpURLConnection.HTTP_UNAVAILABLE,
-                null, null));
-        // Invalid status that cause some exception at webrequest
-        webrequest.setReturnException(TEST_RETURNED_EXCEPTION);
+                "{\"error\":\"no_internet\"}",
+                new HashMap<String, List<String>>()));
 
         // send request
         MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),
@@ -417,8 +427,8 @@ public class OauthTests {
         // Verify that callback can receive this error
         assertNull("AuthenticationResult is null", testResult.getAuthenticationResult());
         assertNotNull("Exception is not null", testResult.getException());
-        assertEquals("Exception has same error message", TEST_RETURNED_EXCEPTION,
-                testResult.getException().getMessage());
+        assertTrue(testResult.getException() instanceof AuthenticationException);
+        assertEquals(((AuthenticationException)testResult.getException()).getServiceStatusCode(), HttpURLConnection.HTTP_UNAVAILABLE);
     }
 
     @Test
@@ -492,6 +502,25 @@ public class OauthTests {
                 testResult.getAuthenticationResult().getAccessToken());
         assertEquals("Same refresh token", "refreshWithDeviceChallenge",
                 testResult.getAuthenticationResult().getRefreshToken());
+    }
+
+    @Test
+    public void testRefreshTokenWebResponseHeader() {
+        final int retry_after = 429;
+        Map<String, List<String>> headers = getHeader(
+                "Retry-After", "120");
+        MockWebRequestHandler mockWebRequest = new MockWebRequestHandler();
+        mockWebRequest.setReturnResponse(new HttpWebResponse(retry_after, "{\"body\":\"not_null\"}", headers));
+        // send request
+        MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),
+                mockWebRequest, "testRefreshToken");
+
+        // Verify that callback can receive this error
+        assertNotNull("Callback has error", testResult.getException());
+        assertNotNull(testResult.getException());
+        assertTrue(testResult.getException() instanceof AuthenticationException);
+        assertEquals(((AuthenticationException)testResult.getException()).getServiceStatusCode(), retry_after);
+        assertTrue(((AuthenticationException)testResult.getException()).getHttpResponseHeaders().containsKey("Retry-After"));
     }
 
     @SuppressWarnings("unchecked")
@@ -640,13 +669,16 @@ public class OauthTests {
     public void testprocessUIResponseParams() throws AuthenticationException {
         final Map<String, String> response = new HashMap<>();
 
-        AuthenticationResult result = Oauth2.processUIResponseParams(response);
+        final AuthenticationRequest request = new AuthenticationRequest(
+                "https://login.microsoftonline.com/test.com", "resource", "dummy-clientid", false);
+        final Oauth2 oauth2 = new Oauth2(request);
+        AuthenticationResult result = oauth2.processUIResponseParams(response);
         assertNull("Result is null", result);
 
         // call when response has error
         response.put(AuthenticationConstants.OAuth2.ERROR, "error");
         response.put(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION, "error description");
-        result = Oauth2.processUIResponseParams(response);
+        result = oauth2.processUIResponseParams(response);
         assertEquals("Failed status", AuthenticationStatus.Failed, result.getStatus());
         assertEquals("Error is same", "error", result.getErrorCode());
         assertEquals("Error description is same", "error description", result.getErrorDescription());
@@ -654,25 +686,43 @@ public class OauthTests {
         // add token
         response.clear();
         response.put(AuthenticationConstants.OAuth2.ACCESS_TOKEN, "token");
-        result = Oauth2.processUIResponseParams(response);
+        result = oauth2.processUIResponseParams(response);
         assertEquals("Success status", AuthenticationStatus.Succeeded, result.getStatus());
         assertEquals("Token is same", "token", result.getAccessToken());
         assertFalse("MultiResource token", result.getIsMultiResourceRefreshToken());
 
         // resource returned in JSON response, but RT is not returned.
         response.put(AuthenticationConstants.AAD.RESOURCE, "resource");
-        result = Oauth2.processUIResponseParams(response);
+        result = oauth2.processUIResponseParams(response);
         assertEquals("Success status", AuthenticationStatus.Succeeded, result.getStatus());
         assertEquals("Token is same", "token", result.getAccessToken());
         assertFalse("MultiResource token", result.getIsMultiResourceRefreshToken());
 
         // resource returned in JSON response and RT is also returned.
         response.put(AuthenticationConstants.OAuth2.REFRESH_TOKEN, "refresh_token");
-        result = Oauth2.processUIResponseParams(response);
+        result = oauth2.processUIResponseParams(response);
         assertEquals("Success status", AuthenticationStatus.Succeeded, result.getStatus());
         assertEquals("Token is same", "token", result.getAccessToken());
         assertEquals("RT is the same", "refresh_token", result.getRefreshToken());
         assertTrue("MultiResource token", result.getIsMultiResourceRefreshToken());
+    }
+
+    @Test
+    public void testprocessUIResponseParamsForSovereignCloud() throws AuthenticationException {
+        final Map<String, String> response = new HashMap<>();
+
+        final AuthenticationRequest request = new AuthenticationRequest(
+                "https://login.microsoftonline.com/test.com", "resource",
+                "dummy-clientid", false);
+        final Oauth2 oauth2 = new Oauth2(request);
+
+        // call when response has error
+        response.put(AuthenticationConstants.OAuth2.CODE, "12345");
+        response.put(AuthenticationConstants.OAuth2.CLOUD_INSTANCE_HOST_NAME, "login.microsoftonline.de");
+        final AuthenticationResult result = oauth2.processUIResponseParams(response);
+        assertEquals("Success status", AuthenticationStatus.Succeeded, result.getStatus());
+        assertEquals("Authority is same", "https://login.microsoftonline.de/test.com", result.getAuthority());
+        assertEquals("Token endpoint is correct", "https://login.microsoftonline.de/test.com/oauth2/token", oauth2.getTokenEndpoint());
     }
 
     private AuthenticationRequest getValidAuthenticationRequest() {

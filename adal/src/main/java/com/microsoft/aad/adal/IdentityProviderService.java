@@ -36,7 +36,7 @@ final class IdentityProviderService {
     private String mPassiveAuthEndpoint;
 
     /**
-     * No args constructor for use in serialization for Gson to prevent usage of sun.misc.Unsafe
+     * No args constructor for use in serialization for Gson to prevent usage of sun.misc.Unsafe.
      */
     @SuppressWarnings("unused")
     IdentityProviderService() {
