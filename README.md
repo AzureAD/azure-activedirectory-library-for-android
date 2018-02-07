@@ -6,7 +6,7 @@ The ADAL SDK for Android gives you the ability to add support for Work Accounts 
 
 A Work Account is an identity you use to get work done at your business or on a college campus. Anywhere you need to get access to your work life you'll use a Work Account. The Work Account can be tied to an Active Directory server running in your datacenter or live completely in the cloud like when you use Office365. A Work Account will be how your users know that they are accessing their important documents and data backed my Microsoft security.
 
-## ADAL for Android 1.13.2 Released!
+## ADAL for Android 1.14.0 Released!
 
 ## Build status
 
@@ -19,7 +19,7 @@ Note: A corpnet account is required to view the VSTS build.
 
 ## Versions
 
-Current version - 1.13.2
+Current version - 1.14.0
 Minimum recommended version - 1.1.16
 You can find the changes for each version in the [change log](https://github.com/AzureAD/azure-activedirectory-library-for-android/blob/master/changelog.txt).
 
@@ -67,8 +67,6 @@ More details [about contribution](https://github.com/AzureAD/azure-activedirecto
 Please check the releases for updates.
 
 ## Quick Start
-
-> Please note: this project's build scripts do not yet support Android Studio 3 / Java 8. For more information, please see our [Wiki](https://github.com/AzureAD/azure-activedirectory-library-for-android/wiki/ADAL-Compatibility-with-Android-Studio-3-&-Java-8).
 
 To build with Gradle,
 
@@ -121,7 +119,7 @@ repositories {
 }
 dependencies {
     // your dependencies here...
-    compile('com.microsoft.aad:adal:1.13.+') {
+    compile('com.microsoft.aad:adal:1.14.+') {
         // if your app includes android support
         // libraries or Gson in its dependencies
         // exclude that groupId from ADAL's compile
@@ -142,7 +140,7 @@ If you are using the m2e plugin in Eclipse, you can specify the dependency in yo
 <dependency>
     <groupId>com.microsoft.aad</groupId>
     <artifactId>adal</artifactId>
-    <version>1.13.2</version>
+    <version>1.14.0</version>
     <type>aar</type>
 </dependency>
 ```
@@ -214,6 +212,8 @@ You can get the jar file from maven the repo and drop into the *libs* folder in 
     ```
 
 9. To ask for a token, you define a callback
+
+    * NOTE: In releases `1.13.2`, `1.13.3`, and `1.14.0` the `onError(Exception)` and `onSuccess(AuthenticationResult)` callbacks may not be invoked on the UI thread. This issue is tracked [here](https://github.com/AzureAD/azure-activedirectory-library-for-android/issues/1076).
 
     ```Java
     private AuthenticationCallback<AuthenticationResult> callback = new AuthenticationCallback<AuthenticationResult>() {
