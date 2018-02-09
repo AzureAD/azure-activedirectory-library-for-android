@@ -31,6 +31,8 @@ import android.accounts.OperationCanceledException;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -44,6 +46,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.RequiresApi;
 import android.text.TextUtils;
 import android.util.Base64;
 
@@ -321,7 +324,16 @@ class BrokerProxy implements IBrokerProxy {
 
         verifyNotOnMainThread();
 
-        final Bundle requestBundle = getBrokerOptions(request);
+        final Intent intent = new Intent();
+        intent.setPackage(mContext.getPackageName());
+        intent.setClassName(mContext.getPackageName(), mContext.getPackageName() + ".ui.AccountChooserActivity");
+        intent.putExtra(AuthenticationConstants.Broker.BROKER_VERSION, AuthenticationConstants.Broker.BROKER_PROTOCOL_VERSION);
+        intent.putExtra("label", "test intent");
+        AuthJobIntentService.enqueueWork(mContext, intent);
+
+        return null;
+
+        /*final Bundle requestBundle = getBrokerOptions(request);
 
         // check if broker supports the new service, if it does not we need to switch back to the old way
         final Bundle bundleResult;
@@ -336,7 +348,7 @@ class BrokerProxy implements IBrokerProxy {
             return null;
         }
 
-        return getResultFromBrokerResponse(bundleResult, request);
+        return getResultFromBrokerResponse(bundleResult, request);*/
     }
 
     private Bundle getAuthTokenFromAccountManager(final AuthenticationRequest request, final Bundle requestBundle) throws AuthenticationException {

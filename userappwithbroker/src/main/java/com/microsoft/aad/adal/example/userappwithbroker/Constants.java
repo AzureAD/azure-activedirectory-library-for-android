@@ -63,6 +63,7 @@ public class Constants {
         ONEDRIVE("af124e86-4e96-495a-b70a-90f90ab96707"),
         OFFICE("d3590ed6-52b3-4102-aeff-aad2292ab01c"),
         APPCHECK2_BF("f5d01c1c-abe6-4207-ae2d-5bc9af251724"),
+        LAB4("4b0db8c2-9f26-4417-8bde-3f0e3656f8e0"),
         GUESTCLIENT("ea5c8087-2476-489c-ae03-ad44a2ac399d");
 
         private final String text;
@@ -75,7 +76,7 @@ public class Constants {
     }
 
     enum RedirectUri {
-        Regular("msauth://com.microsoft.aad.adal.userappwithbroker/IcB5PxIyvbLkbFVtBI%2FitkW%2Fejk%3D"),
+        Regular("msauth://com.microsoft.aad.adal.userappwithbroker/QK0hWtPIQviyU3IX8AhunaS0IY4%3D"),
         Broker("urn:ietf:wg:oauth:2.0:oob");
 
         private final String text;
