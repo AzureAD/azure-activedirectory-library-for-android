@@ -30,6 +30,10 @@ import android.os.Process;
 
 import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
+import com.microsoft.identity.common.adal.internal.net.DefaultConnectionService;
+import com.microsoft.identity.common.adal.error.ADALError;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.BufferedReader;
 import java.io.Closeable;
@@ -42,6 +46,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
 
 /**
  * Webrequest are called in background thread from API level. HttpWebRequest
@@ -206,6 +211,7 @@ class HttpWebRequest {
      * @return The converted string
      * @throws IOException Thrown when failing to access inputStream stream.
      */
+    @SuppressFBWarnings("DM_DEFAULT_ENCODING")
     private static String convertStreamToString(InputStream inputStream) throws IOException {
         BufferedReader reader = null;
         try {

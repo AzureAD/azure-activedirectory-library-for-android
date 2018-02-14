@@ -44,16 +44,11 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Base64;
 
-
-import org.json.JSONException;
-
-import com.microsoft.identity.common.SharedPreferencesFileManager;
 import com.microsoft.identity.common.adal.error.ADALError;
 import com.microsoft.identity.common.adal.error.AuthenticationException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
-
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -496,11 +491,11 @@ class BrokerProxy implements IBrokerProxy {
             final Serializable responseBody = bundleResult.getSerializable(AuthenticationConstants.OAuth2.HTTP_RESPONSE_BODY);
             final Serializable responseHeaders = bundleResult.getSerializable(AuthenticationConstants.OAuth2.HTTP_RESPONSE_HEADER);
             if (null != responseBody && responseBody instanceof HashMap) {
-                exception.setHttpResponseBody((HashMap)responseBody);
+                exception.setHttpResponseBody((HashMap<String, String>)responseBody);
             }
 
             if (null != responseHeaders && responseHeaders instanceof HashMap) {
-                exception.setHttpResponseHeaders((HashMap)responseHeaders);
+                exception.setHttpResponseHeaders((HashMap<String, List<String>>)responseHeaders);
             }
             
             exception.setServiceStatusCode(bundleResult.getInt(AuthenticationConstants.OAuth2.HTTP_STATUS_CODE));

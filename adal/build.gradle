@@ -100,6 +100,12 @@ dependencies {
     compile "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
     compile "com.android.support:support-annotations:$rootProject.ext.supportLibraryVersion"
     compile "com.android.support:support-v4:$rootProject.ext.supportLibraryVersion"
+    compile 'com.google.code.findbugs:annotations:3.0.1', {
+        // Need to exclude these, or build is broken by:
+        //   com.android.dex.DexException: Multiple dex files define Ljavax/annotation/CheckForNull
+        exclude module: 'jsr305'
+        exclude module: 'jcip-annotations'
+    }
     compile(project(":common")){
         exclude group: 'com.google.code.gson', module: 'gson'
     }

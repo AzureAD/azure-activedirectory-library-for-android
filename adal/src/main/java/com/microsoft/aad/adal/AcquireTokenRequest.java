@@ -378,7 +378,9 @@ class AcquireTokenRequest {
                 final AuthenticationException authenticationException = new AuthenticationException(
                         ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, authenticationRequest.getLogInfo()
                         + " " + errorInfo);
-                authenticationException.setHttpResponse(authenticationResult);
+
+                addHttpInfoToException(authenticationResult, authenticationException);
+
                 throw authenticationException;
             }
 
@@ -390,6 +392,18 @@ class AcquireTokenRequest {
         return authenticationResult;
     }
 
+    private void addHttpInfoToException(AuthenticationResult result, AuthenticationException exception){
+        if(result != null && exception != null) {
+            if (result.getHttpResponseHeaders() != null) {
+                exception.setHttpResponseHeaders(result.getHttpResponseHeaders());
+            }
+
+            if (result.getHttpResponseBody() != null) {
+                exception.setHttpResponseBody(result.getHttpResponseBody());
+            }
+            exception.setServiceStatusCode(result.getServiceStatusCode());
+        }
+    }
 
     private boolean shouldTrySilentFlow(final AuthenticationRequest authenticationRequest) {
         return !authenticationRequest.isClaimsChallengePresent()

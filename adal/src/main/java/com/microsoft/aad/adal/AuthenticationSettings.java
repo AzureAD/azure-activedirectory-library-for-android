@@ -32,6 +32,10 @@ public enum AuthenticationSettings {
      */
     INSTANCE;
 
+    private static final int DEFAULT_EXPIRATION_BUFFER = 300;
+
+    private static final int DEFAULT_READ_CONNECT_TIMEOUT = 30000;
+
     private Class<?> mClazzDeviceCertProxy;
 
     private String mActivityPackageName;

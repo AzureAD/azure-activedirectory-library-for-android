@@ -39,11 +39,14 @@ import com.microsoft.identity.common.internal.providers.microsoft.azureactivedir
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
 
 import static com.microsoft.aad.adal.TokenEntryType.FRT_TOKEN_ENTRY;
 import static com.microsoft.aad.adal.TokenEntryType.MRRT_TOKEN_ENTRY;
@@ -511,6 +514,8 @@ class TokenCacheAccessor {
         }
     }
 
+    /*
+    //No usages found... commenting out to make PMD happy.
     private String getTokenHash(String token) {
         try {
             return StringExtensions.createHash(token);
@@ -522,6 +527,7 @@ class TokenCacheAccessor {
 
         return "";
     }
+    */
 
 
     private CacheEvent startCacheTelemetryRequest(String tokenType) {

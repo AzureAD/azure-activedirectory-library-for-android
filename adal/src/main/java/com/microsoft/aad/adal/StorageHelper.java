@@ -61,6 +61,8 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.security.auth.x500.X500Principal;
 
+import com.microsoft.identity.common.adal.error.ADALError;
+
 /**
  * Shared preferences store clear text. This class helps to encrypt/decrypt text
  * to store. API SDK >= 18 has more security with AndroidKeyStore.

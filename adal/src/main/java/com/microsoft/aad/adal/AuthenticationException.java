@@ -24,6 +24,8 @@
 package com.microsoft.aad.adal;
 
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
+import com.microsoft.identity.common.adal.error.ADALError;
 
 import android.content.Context;
 
