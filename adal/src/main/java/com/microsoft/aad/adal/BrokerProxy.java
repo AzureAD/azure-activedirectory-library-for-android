@@ -670,6 +670,9 @@ class BrokerProxy implements IBrokerProxy {
             //
             // TODO add retry logic since authenticator is not responding to
             // the request
+            // TODO (2/13/2018) -- This is kind of strange. Rather than throw an AuthenticationException here this code just returns null and lets
+            // the result-check inside of AcquireTokenWithBrokerRequest#acquireTokenWithBrokerInteractively(IWindowComponent) throw it with a
+            // different error: ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED --  is this preferable? Why not just throw this Exception here?
             Logger.e(TAG + methodName, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, e);
         } catch (IOException e) {
             // Authenticator gets problem from webrequest or file read/write
