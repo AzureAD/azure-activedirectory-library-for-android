@@ -620,7 +620,9 @@ class BrokerProxy implements IBrokerProxy {
             intent = BrokerAccountServiceHandler.getInstance().getIntentForInteractiveRequest(mContext, brokerEvent);
             if (intent == null) {
                 Logger.e(TAG, "Received null intent from broker interactive request.", null, ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING);
-                throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, "Received null intent from broker interactive request.");
+                final AuthenticationException authenticationException = new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, "Received null intent from broker interactive request.");
+                brokerEvent.setBrokerAccountServiceConnectionErrorInfo(authenticationException);
+                throw authenticationException;
             } else {
                 intent.putExtras(requestBundle);
             }

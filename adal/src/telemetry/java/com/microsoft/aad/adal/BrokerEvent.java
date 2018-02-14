@@ -57,6 +57,14 @@ final class BrokerEvent extends DefaultEvent {
         setProperty(EventStrings.BROKER_ACCOUNT_SERVICE_CONNECTED, Boolean.toString(true));
     }
 
+    void setBrokerAccountServiceConnectionErrorInfo(final String errorInfo) {
+        setProperty(EventStrings.BROKER_ACCOUNT_SERVICE_CONNECTION_ERROR_INFO, errorInfo);
+    }
+
+    void setBrokerAccountServiceConnectionErrorInfo(final Throwable throwable) {
+        setProperty(EventStrings.BROKER_ACCOUNT_SERVICE_CONNECTION_ERROR_INFO, ExceptionExtensions.getExceptionMessage(throwable));
+    }
+
     void setServerErrorCode(final String errorCode) {
         if (!StringExtensions.isNullOrBlank(errorCode) && !errorCode.equals("0")) {
             setProperty(EventStrings.SERVER_ERROR_CODE, errorCode.trim());

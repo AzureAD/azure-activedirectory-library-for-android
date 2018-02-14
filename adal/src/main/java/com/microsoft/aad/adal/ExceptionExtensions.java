@@ -34,7 +34,7 @@ final class ExceptionExtensions {
     private ExceptionExtensions() {
         // Intentionally left blank
     }
-    static String getExceptionMessage(Exception ex) {
+    static String getExceptionMessage(Throwable ex) {
         String message = null;
 
         if (ex != null) {

@@ -153,6 +153,9 @@ final class BrokerAccountServiceHandler {
         final Throwable throwable = exception.getAndSet(null);
         //AuthenticationException with error code BROKER_AUTHENTICATOR_NOT_RESPONDING will be thrown if there is any exception thrown during binding the service.
         if (throwable != null) {
+            // Record this throwable to the BrokerEvent for reporting via telemetry
+            brokerEvent.setBrokerAccountServiceConnectionErrorInfo(throwable);
+
             if (throwable instanceof RemoteException) {
                 Logger.e(TAG + methodName, "Get error when trying to get token from broker. ", throwable.getMessage(), ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable);
                 throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable.getMessage(), throwable);
@@ -207,6 +210,9 @@ final class BrokerAccountServiceHandler {
         final Throwable throwable = exception.getAndSet(null);
         //AuthenticationException with error code BROKER_AUTHENTICATOR_NOT_RESPONDING will be thrown if there is any exception thrown during binding the service.
         if (throwable != null) {
+            // Record this throwable to the BrokerEvent for reporting via telemetry
+            brokerEvent.setBrokerAccountServiceConnectionErrorInfo(throwable);
+
             if (throwable instanceof RemoteException) {
                 Logger.e(TAG, "Get error when trying to get token from broker. ",
                         throwable.getMessage(), ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable);
