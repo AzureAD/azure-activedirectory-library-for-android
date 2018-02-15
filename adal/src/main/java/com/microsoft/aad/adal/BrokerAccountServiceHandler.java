@@ -223,6 +223,7 @@ final class BrokerAccountServiceHandler {
                 Logger.e(TAG, "Get error when trying to get token from broker. ",
                         throwable.getMessage(), ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable);
                 brokerEvent.setBrokerError(BrokerEvent.BrokerError.BROKER_REMOTE_ERROR);
+                Telemetry.getInstance().stopEvent(brokerEvent.getTelemetryRequestId(), brokerEvent, EventStrings.BROKER_REQUEST_INTERACTIVE);
                 throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING,
                         throwable.getMessage(),
                         throwable);
@@ -230,6 +231,7 @@ final class BrokerAccountServiceHandler {
                 Logger.e(TAG, "The broker account service binding call is interrupted. ",
                         throwable.getMessage(), ADALError.BROKER_AUTHENTICATOR_EXCEPTION, throwable);
                 brokerEvent.setBrokerError(BrokerEvent.BrokerError.BROKER_INTERRUPTED_ERROR);
+                Telemetry.getInstance().stopEvent(brokerEvent.getTelemetryRequestId(), brokerEvent, EventStrings.BROKER_REQUEST_INTERACTIVE);
                 throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING,
                         throwable.getMessage(),
                         throwable);
@@ -237,6 +239,7 @@ final class BrokerAccountServiceHandler {
                 Logger.e(TAG, "Didn't receive the activity to launch from broker. ",
                         throwable.getMessage(), ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable);
                 brokerEvent.setBrokerError(BrokerEvent.BrokerError.BROKER_ACTIVITY_RESOLUTION_ERROR);
+                Telemetry.getInstance().stopEvent(brokerEvent.getTelemetryRequestId(), brokerEvent, EventStrings.BROKER_REQUEST_INTERACTIVE);
                 throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING,
                         "Didn't receive the activity to launch from broker: " + throwable.getMessage(),
                         throwable);
