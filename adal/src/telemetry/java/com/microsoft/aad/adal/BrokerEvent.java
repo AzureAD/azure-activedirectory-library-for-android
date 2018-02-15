@@ -91,9 +91,21 @@ final class BrokerEvent extends DefaultEvent {
         }
     }
 
+    void setBrokerError(final BrokerError brokerError) {
+        setProperty(EventStrings.BROKER_ACCOUNT_SERVICE_ERROR, String.valueOf(brokerError.mErrCode));
+    }
+
     @Override
     public void processEvent(final Map<String, String> dispatchMap) {
         final List<Pair<String, String>> eventList = getEventList();
+
+        if (dispatchMap.containsKey(EventStrings.BROKER_ACCOUNT_SERVICE_ERROR)) {
+            dispatchMap.remove(EventStrings.BROKER_ACCOUNT_SERVICE_ERROR);
+        }
+
+        if (dispatchMap.containsKey(EventStrings.BROKER_ACCOUNT_SERVICE_CONNECTION_ERROR_INFO)) {
+            dispatchMap.remove(EventStrings.BROKER_ACCOUNT_SERVICE_CONNECTION_ERROR_INFO);
+        }
 
         dispatchMap.put(EventStrings.BROKER_APP_USED, Boolean.toString(true));
         for (Pair<String, String> eventPair : eventList) {
@@ -101,6 +113,22 @@ final class BrokerEvent extends DefaultEvent {
             if (!name.equals(EventStrings.EVENT_NAME)) {
                 dispatchMap.put(eventPair.first, eventPair.second);
             }
+        }
+    }
+
+    enum BrokerError {
+        BROKER_REMOTE_ERROR(0, "Remote invocation error"),
+        BROKER_INTERRUPTED_ERROR(1, "Broker thread was interrupted"),
+        BROKER_BIND_ERROR(2, "Broker binding failed"),
+        BROKER_ACTIVITY_RESOLUTION_ERROR(3, "Did not received Activity to launch from Broker"),
+        BROKER_INTENT_MALFORMED_OR_NULL(4, "Broker interactive request returned a null Intent");
+
+        private final int mErrCode;
+        private final String mErrMsg;
+
+        BrokerError(final int errorCode, final String errorMessage) {
+            mErrCode = errorCode;
+            mErrMsg = errorMessage;
         }
     }
 }

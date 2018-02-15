@@ -158,12 +158,15 @@ final class BrokerAccountServiceHandler {
 
             if (throwable instanceof RemoteException) {
                 Logger.e(TAG + methodName, "Get error when trying to get token from broker. ", throwable.getMessage(), ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable);
+                brokerEvent.setBrokerError(BrokerEvent.BrokerError.BROKER_REMOTE_ERROR);
                 throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable.getMessage(), throwable);
             } else if (throwable instanceof InterruptedException) {
                 Logger.e(TAG + methodName, "The broker account service binding call is interrupted. ", throwable.getMessage(), ADALError.BROKER_AUTHENTICATOR_EXCEPTION, throwable);
+                brokerEvent.setBrokerError(BrokerEvent.BrokerError.BROKER_INTERRUPTED_ERROR);
                 throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable.getMessage(), throwable);
             } else {
                 Logger.e(TAG + methodName, "Get error when trying to bind the broker account service.", throwable.getMessage(), ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable);
+                brokerEvent.setBrokerError(BrokerEvent.BrokerError.BROKER_BIND_ERROR);
                 throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable.getMessage(), throwable);
             }
         }
@@ -216,18 +219,21 @@ final class BrokerAccountServiceHandler {
             if (throwable instanceof RemoteException) {
                 Logger.e(TAG, "Get error when trying to get token from broker. ",
                         throwable.getMessage(), ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable);
+                brokerEvent.setBrokerError(BrokerEvent.BrokerError.BROKER_REMOTE_ERROR);
                 throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING,
                         throwable.getMessage(),
                         throwable);
             } else if (throwable instanceof InterruptedException) {
                 Logger.e(TAG, "The broker account service binding call is interrupted. ",
                         throwable.getMessage(), ADALError.BROKER_AUTHENTICATOR_EXCEPTION, throwable);
+                brokerEvent.setBrokerError(BrokerEvent.BrokerError.BROKER_INTERRUPTED_ERROR);
                 throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING,
                         throwable.getMessage(),
                         throwable);
             } else {
                 Logger.e(TAG, "Didn't receive the activity to launch from broker. ",
                         throwable.getMessage(), ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable);
+                brokerEvent.setBrokerError(BrokerEvent.BrokerError.BROKER_ACTIVITY_RESOLUTION_ERROR);
                 throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING,
                         "Didn't receive the activity to launch from broker: " + throwable.getMessage(),
                         throwable);
