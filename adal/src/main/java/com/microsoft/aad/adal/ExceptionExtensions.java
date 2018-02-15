@@ -23,8 +23,7 @@
 
 package com.microsoft.aad.adal;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import android.util.Log;
 
 /**
  * A helper for getting logging info out of an Exception.
@@ -42,18 +41,11 @@ final class ExceptionExtensions {
             message = ex.getMessage();
 
             if (message == null) {
-                message = getStackTrace(ex);
+                message = Log.getStackTraceString(ex);
             }
         }
         
         return message;
     }
 
-    static String getStackTrace(Throwable ex) {
-        String message;
-        final StringWriter sw = new StringWriter();
-        ex.printStackTrace(new PrintWriter(sw));
-        message = sw.toString();
-        return message;
-    }
 }

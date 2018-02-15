@@ -23,6 +23,7 @@
 
 package com.microsoft.aad.adal;
 
+import android.util.Log;
 import android.util.Pair;
 
 import java.util.List;
@@ -62,7 +63,7 @@ final class BrokerEvent extends DefaultEvent {
     }
 
     void setBrokerAccountServiceConnectionErrorInfo(final Throwable throwable) {
-        setProperty(EventStrings.BROKER_ACCOUNT_SERVICE_CONNECTION_ERROR_INFO, ExceptionExtensions.getStackTrace(throwable));
+        setProperty(EventStrings.BROKER_ACCOUNT_SERVICE_CONNECTION_ERROR_INFO, Log.getStackTraceString(throwable));
     }
 
     void setServerErrorCode(final String errorCode) {
