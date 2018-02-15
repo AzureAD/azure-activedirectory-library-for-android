@@ -34,6 +34,7 @@ final class ExceptionExtensions {
     private ExceptionExtensions() {
         // Intentionally left blank
     }
+
     static String getExceptionMessage(Throwable ex) {
         String message = null;
 
@@ -41,12 +42,18 @@ final class ExceptionExtensions {
             message = ex.getMessage();
 
             if (message == null) {
-                final StringWriter sw = new StringWriter();
-                ex.printStackTrace(new PrintWriter(sw));
-                message = sw.toString();
+                message = getStackTrace(ex);
             }
         }
         
+        return message;
+    }
+
+    static String getStackTrace(Throwable ex) {
+        String message;
+        final StringWriter sw = new StringWriter();
+        ex.printStackTrace(new PrintWriter(sw));
+        message = sw.toString();
         return message;
     }
 }

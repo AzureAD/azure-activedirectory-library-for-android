@@ -62,7 +62,7 @@ final class BrokerEvent extends DefaultEvent {
     }
 
     void setBrokerAccountServiceConnectionErrorInfo(final Throwable throwable) {
-        setProperty(EventStrings.BROKER_ACCOUNT_SERVICE_CONNECTION_ERROR_INFO, ExceptionExtensions.getExceptionMessage(throwable));
+        setProperty(EventStrings.BROKER_ACCOUNT_SERVICE_CONNECTION_ERROR_INFO, ExceptionExtensions.getStackTrace(throwable));
     }
 
     void setServerErrorCode(final String errorCode) {
