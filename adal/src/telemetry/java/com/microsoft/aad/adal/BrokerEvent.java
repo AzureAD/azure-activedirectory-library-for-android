@@ -23,6 +23,7 @@
 
 package com.microsoft.aad.adal;
 
+import android.util.Log;
 import android.util.Pair;
 
 import java.util.List;
@@ -33,6 +34,9 @@ import java.util.Map;
  */
 
 final class BrokerEvent extends DefaultEvent {
+
+    private static boolean sEnableStackTraces = true;
+
     BrokerEvent(final String eventName) {
         setProperty(EventStrings.EVENT_NAME, eventName);
     }
@@ -57,10 +61,24 @@ final class BrokerEvent extends DefaultEvent {
         setProperty(EventStrings.BROKER_ACCOUNT_SERVICE_CONNECTED, Boolean.toString(true));
     }
 
+    void setBrokerAccountServiceConnectionErrorInfo(final String errorInfo) {
+        setProperty(EventStrings.BROKER_ACCOUNT_SERVICE_CONNECTION_ERROR_INFO, errorInfo);
+    }
+
+    void setBrokerAccountServiceConnectionErrorInfo(final Throwable throwable) {
+        if (sEnableStackTraces && null != throwable) {
+            setProperty(EventStrings.BROKER_ACCOUNT_SERVICE_CONNECTION_ERROR_INFO, Log.getStackTraceString(throwable));
+        }
+    }
+
     void setServerErrorCode(final String errorCode) {
         if (!StringExtensions.isNullOrBlank(errorCode) && !errorCode.equals("0")) {
             setProperty(EventStrings.SERVER_ERROR_CODE, errorCode.trim());
         }
+    }
+
+    void setBrokerError(final BrokerError brokerError) {
+        setProperty(EventStrings.BROKER_ACCOUNT_SERVICE_ERROR, String.valueOf(brokerError.mErrCode));
     }
 
     void setServerSubErrorCode(final String subErrorCode) {
@@ -87,10 +105,54 @@ final class BrokerEvent extends DefaultEvent {
     public void processEvent(final Map<String, String> dispatchMap) {
         final List<Pair<String, String>> eventList = getEventList();
 
+        if (dispatchMap.containsKey(EventStrings.BROKER_ACCOUNT_SERVICE_ERROR)) {
+            dispatchMap.remove(EventStrings.BROKER_ACCOUNT_SERVICE_ERROR);
+        }
+
+        if (dispatchMap.containsKey(EventStrings.BROKER_ACCOUNT_SERVICE_CONNECTION_ERROR_INFO)) {
+            dispatchMap.remove(EventStrings.BROKER_ACCOUNT_SERVICE_CONNECTION_ERROR_INFO);
+        }
+
         dispatchMap.put(EventStrings.BROKER_APP_USED, Boolean.toString(true));
         for (Pair<String, String> eventPair : eventList) {
 
             dispatchMap.put(eventPair.first, eventPair.second);
         }
     }
+
+
+    /**
+     * Toggles the addition of stack trace data to BrokerEvent telemetry (defaults true).
+     *
+     * @param enableStackTraces True, if stack traces should be enabled. False otherwise.
+     */
+    static void setEnableStackTraces(final boolean enableStackTraces) {
+        sEnableStackTraces = enableStackTraces;
+    }
+
+    /**
+     * Returns the state of the enableStackTraces flag.
+     *
+     * @return True, if stack traces are enabled. False otherwise.
+     */
+    static boolean getEnableStackTraces() {
+        return sEnableStackTraces;
+    }
+
+    enum BrokerError {
+        BROKER_REMOTE_ERROR(0, "Remote invocation error"),
+        BROKER_INTERRUPTED_ERROR(1, "Broker thread was interrupted"),
+        BROKER_BIND_ERROR(2, "Broker binding failed"),
+        BROKER_ACTIVITY_RESOLUTION_ERROR(3, "Did not received Activity to launch from Broker"),
+        BROKER_INTENT_MALFORMED_OR_NULL(4, "Broker interactive request returned a null Intent");
+
+        private final int mErrCode;
+        private final String mErrMsg;
+
+        BrokerError(final int errorCode, final String errorMessage) {
+            mErrCode = errorCode;
+            mErrMsg = errorMessage;
+        }
+    }
+
 }

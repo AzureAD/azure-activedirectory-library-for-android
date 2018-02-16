@@ -165,6 +165,10 @@ final class EventStrings {
 
     static final String BROKER_ACCOUNT_SERVICE_CONNECTED = EVENT_PREFIX + "broker_account_service_connected";
 
+    static final String BROKER_ACCOUNT_SERVICE_CONNECTION_ERROR_INFO = EVENT_PREFIX + "broker_account_service_connection_error_info";
+
+    static final String BROKER_ACCOUNT_SERVICE_ERROR = EVENT_PREFIX + "broker_account_service_error";
+
     // API ID
     static final String API_ID = EVENT_PREFIX + "api_id";
 
