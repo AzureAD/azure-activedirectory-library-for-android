@@ -34,6 +34,9 @@ import java.util.Map;
  */
 
 final class BrokerEvent extends DefaultEvent {
+
+    private static boolean sEnableStackTraces = true;
+
     BrokerEvent(final String eventName) {
         setProperty(EventStrings.EVENT_NAME, eventName);
     }
@@ -63,7 +66,9 @@ final class BrokerEvent extends DefaultEvent {
     }
 
     void setBrokerAccountServiceConnectionErrorInfo(final Throwable throwable) {
-        setProperty(EventStrings.BROKER_ACCOUNT_SERVICE_CONNECTION_ERROR_INFO, Log.getStackTraceString(throwable));
+        if (sEnableStackTraces && null != throwable) {
+            setProperty(EventStrings.BROKER_ACCOUNT_SERVICE_CONNECTION_ERROR_INFO, Log.getStackTraceString(throwable));
+        }
     }
 
     void setServerErrorCode(final String errorCode) {
@@ -115,6 +120,24 @@ final class BrokerEvent extends DefaultEvent {
                 dispatchMap.put(eventPair.first, eventPair.second);
             }
         }
+    }
+
+    /**
+     * Toggles the addition of stack trace data to BrokerEvent telemetry (defaults true).
+     *
+     * @param enableStackTraces True, if stack traces should be enabled. False otherwise.
+     */
+    static void setEnableStackTraces(final boolean enableStackTraces) {
+        sEnableStackTraces = enableStackTraces;
+    }
+
+    /**
+     * Returns the state of the enableStackTraces flag.
+     *
+     * @return True, if stack traces are enabled. False otherwise.
+     */
+    static boolean getEnableStackTraces() {
+        return sEnableStackTraces;
     }
 
     enum BrokerError {
