@@ -337,6 +337,11 @@ class BrokerProxy implements IBrokerProxy {
     }
 
     private void setAndLogBrokerInstallationStatuses(final BrokerEvent brokerEvent) {
+        if (null == brokerEvent) {
+            Logger.d(TAG, "BrokerEvent was null. Proceeding.");
+            return;
+        }
+
         final boolean isCompanyPortalInstalled = PackageHelper.isCompanyPortalInstalled(mContext.getPackageManager());
         brokerEvent.setCompanyPortalInstalled(isCompanyPortalInstalled);
         Logger.d(TAG, "Is Company Portal installed? [" + isCompanyPortalInstalled + "]");
