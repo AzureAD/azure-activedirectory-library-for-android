@@ -59,6 +59,23 @@ class PackageHelper {
         mAcctManager = AccountManager.get(mContext);
     }
 
+    static boolean isCompanyPortalInstalled(final PackageManager pkgManager) {
+        return isPackageInstalled(pkgManager, "com.microsoft.windowsintune.companyportal");
+    }
+
+    static boolean isMicrosoftAuthenticatorInstalled(final PackageManager pkgManger) {
+        return isPackageInstalled(pkgManger, "com.azure.authenticator");
+    }
+
+    private static boolean isPackageInstalled(final PackageManager packageManager, final String packageName) {
+        try {
+            packageManager.getPackageInfo(packageName, 0);
+            return true;
+        } catch (NameNotFoundException e) {
+            return false;
+        }
+    }
+
     /**
      * Reads first signature in the list for given package name.
      * 
