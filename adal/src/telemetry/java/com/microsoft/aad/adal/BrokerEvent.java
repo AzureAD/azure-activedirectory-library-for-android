@@ -101,6 +101,14 @@ final class BrokerEvent extends DefaultEvent {
         }
     }
 
+    void setCompanyPortalInstalled(final boolean isInstalled) {
+        setProperty(EventStrings.IS_COMPANY_PORTAL_INSTALLED, isInstalled ? "yes" : "no");
+    }
+
+    void setMicrosoftAuthenticatorInstalled(final boolean isInstalled) {
+        setProperty(EventStrings.IS_MICROSOFT_AUTHENTICATOR_INSTALLED, isInstalled ? "yes" : "no");
+    }
+
     @Override
     public void processEvent(final Map<String, String> dispatchMap) {
         final List<Pair<String, String>> eventList = getEventList();
