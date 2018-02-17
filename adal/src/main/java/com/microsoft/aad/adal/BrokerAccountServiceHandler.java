@@ -165,9 +165,14 @@ final class BrokerAccountServiceHandler {
                 brokerEvent.setBrokerError(BrokerEvent.BrokerError.BROKER_INTERRUPTED_ERROR);
                 Telemetry.getInstance().stopEvent(brokerEvent.getTelemetryRequestId(), brokerEvent, EventStrings.BROKER_REQUEST_SILENT);
                 throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable.getMessage(), throwable);
-            } else {
+            } else if (throwable instanceof AuthenticationException) {
                 Logger.e(TAG, "Get error when trying to bind the broker account service." + throwable.getMessage(), "", ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable);
                 brokerEvent.setBrokerError(BrokerEvent.BrokerError.BROKER_BIND_ERROR);
+                Telemetry.getInstance().stopEvent(brokerEvent.getTelemetryRequestId(), brokerEvent, EventStrings.BROKER_REQUEST_SILENT);
+                throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable.getMessage(), throwable);
+            } else {
+                Logger.e(TAG, "Unknown error encountered while binding to broker." + throwable.getMessage(), "", ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable);
+                brokerEvent.setBrokerError(BrokerEvent.BrokerError.BROKER_ERROR_UNKNOWN);
                 Telemetry.getInstance().stopEvent(brokerEvent.getTelemetryRequestId(), brokerEvent, EventStrings.BROKER_REQUEST_SILENT);
                 throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable.getMessage(), throwable);
             }

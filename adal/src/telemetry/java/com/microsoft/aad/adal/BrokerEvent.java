@@ -152,7 +152,8 @@ final class BrokerEvent extends DefaultEvent {
         BROKER_INTERRUPTED_ERROR(1, "Broker thread was interrupted"),
         BROKER_BIND_ERROR(2, "Broker binding failed"),
         BROKER_ACTIVITY_RESOLUTION_ERROR(3, "Did not received Activity to launch from Broker"),
-        BROKER_INTENT_MALFORMED_OR_NULL(4, "Broker interactive request returned a null Intent");
+        BROKER_INTENT_MALFORMED_OR_NULL(4, "Broker interactive request returned a null Intent"),
+        BROKER_ERROR_UNKNOWN(5, "Unknown error encountered connecting to Broker");
 
         private final int mErrCode;
         private final String mErrMsg;
