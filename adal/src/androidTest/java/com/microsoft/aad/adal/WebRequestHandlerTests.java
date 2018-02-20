@@ -275,7 +275,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         private TestMessage() {
         }
 
-        public TestMessage(String token, String name) {
+        TestMessage(String token, String name) {
             mAccessToken = token;
             mUserName = name;
         }

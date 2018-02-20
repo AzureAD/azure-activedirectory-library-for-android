@@ -268,7 +268,7 @@ public class AuthenticationParameters {
      * @see <a href-"https://tools.ietf.org/html/rfc7617">RFC-7617</a>
      * @see <a href="https://tools.ietf.org/html/rfc6750">RFC-6750</a>
      */
-    private static class Challenge {
+    private static final class Challenge {
 
         /**
          * Regex sequence intended to be prefixed with another value. Whichever value precedes it

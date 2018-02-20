@@ -61,7 +61,7 @@ class IdToken {
 
     private String mPasswordChangeUrl;
 
-    public IdToken(String idtoken) throws AuthenticationException {
+    IdToken(String idtoken) throws AuthenticationException {
         // Message segments: Header.Body.Signature
         final Map<String, String> responseItems = this.parseJWT(idtoken);
 

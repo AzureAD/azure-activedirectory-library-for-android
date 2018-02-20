@@ -65,11 +65,11 @@ class HttpWebRequest {
     private final String mRequestContentType;
     private final Map<String, String> mRequestHeaders;
 
-    public HttpWebRequest(URL requestURL, String requestMethod, Map<String, String> headers) {
+    HttpWebRequest(URL requestURL, String requestMethod, Map<String, String> headers) {
         this(requestURL, requestMethod, headers, null, null);
     }
 
-    public HttpWebRequest(
+    HttpWebRequest(
             URL requestURL,
             String requestMethod,
             Map<String, String> headers,

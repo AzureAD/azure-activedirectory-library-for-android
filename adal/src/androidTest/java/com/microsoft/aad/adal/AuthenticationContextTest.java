@@ -2954,13 +2954,13 @@ public final class AuthenticationContextTest {
 
         private Activity mActivity;
 
-        public MockActivity(CountDownLatch signal) {
+        MockActivity(CountDownLatch signal) {
             mSignal = signal;
             doMockActivity();
         }
 
         @SuppressLint("Registered")
-        public MockActivity() {
+        MockActivity() {
             doMockActivity();
         }
 

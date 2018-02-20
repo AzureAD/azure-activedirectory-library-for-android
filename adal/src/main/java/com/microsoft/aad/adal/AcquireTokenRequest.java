@@ -561,14 +561,14 @@ class AcquireTokenRequest {
 
             // Always go to broker if the sdk can talk to broker for interactive flow
             Logger.v(TAG + methodName, "Launch activity for interactive authentication via broker with callback. "
-                    , "" + callbackHandle.getCallback().hashCode(), null);
+                    ,"" + callbackHandle.getCallback().hashCode(), null);
             final AcquireTokenWithBrokerRequest acquireTokenWithBrokerRequest
                     = new AcquireTokenWithBrokerRequest(authenticationRequest, mBrokerProxy);
 
             acquireTokenWithBrokerRequest.acquireTokenWithBrokerInteractively(activity);
         } else {
             Logger.v(TAG + methodName, "Starting Authentication Activity for embedded flow. "
-                    , " Callback is: " + callbackHandle.getCallback().hashCode(), null);
+                    ," Callback is: " + callbackHandle.getCallback().hashCode(), null);
             final AcquireTokenInteractiveRequest acquireTokenInteractiveRequest
                     = new AcquireTokenInteractiveRequest(mContext, authenticationRequest, mTokenCacheAccessor);
             acquireTokenInteractiveRequest.acquireToken(activity,
@@ -917,7 +917,7 @@ class AcquireTokenRequest {
 
         private AuthenticationCallback<AuthenticationResult> mCallback;
 
-        public CallbackHandler(Handler ref, AuthenticationCallback<AuthenticationResult> callbackExt) {
+        CallbackHandler(Handler ref, AuthenticationCallback<AuthenticationResult> callbackExt) {
             mRefHandler = ref;
             mCallback = callbackExt;
         }

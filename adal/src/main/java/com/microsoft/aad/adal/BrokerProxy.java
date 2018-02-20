@@ -107,11 +107,11 @@ class BrokerProxy implements IBrokerProxy {
 
     private static final String AUTHENTICATOR_CANCELS_REQUEST = "Authenticator cancels the request";
 
-    public BrokerProxy() {
+    BrokerProxy() {
         mBrokerTag = AuthenticationSettings.INSTANCE.getBrokerSignature();
     }
 
-    public BrokerProxy(final Context ctx) {
+    BrokerProxy(final Context ctx) {
         mContext = ctx;
         mAcctManager = AccountManager.get(mContext);
         mHandler = new Handler(mContext.getMainLooper());
@@ -489,11 +489,11 @@ class BrokerProxy implements IBrokerProxy {
             final Serializable responseBody = bundleResult.getSerializable(AuthenticationConstants.OAuth2.HTTP_RESPONSE_BODY);
             final Serializable responseHeaders = bundleResult.getSerializable(AuthenticationConstants.OAuth2.HTTP_RESPONSE_HEADER);
             if (null != responseBody && responseBody instanceof HashMap) {
-                exception.setHttpResponseBody((HashMap<String, String>) responseBody);
+                exception.setHttpResponseBody((HashMap) responseBody);
             }
 
             if (null != responseHeaders && responseHeaders instanceof HashMap) {
-                exception.setHttpResponseHeaders((HashMap<String, List<String>>) responseHeaders);
+                exception.setHttpResponseHeaders((HashMap) responseHeaders);
             }
 
             exception.setServiceStatusCode(bundleResult.getInt(AuthenticationConstants.OAuth2.HTTP_STATUS_CODE));

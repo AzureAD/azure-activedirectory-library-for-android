@@ -74,7 +74,7 @@ class FileMockContext extends MockContext {
 
     private PackageManager mMockedPackageManager = null;
 
-    public FileMockContext(Context context) {
+    FileMockContext(Context context) {
         mContext = context;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {

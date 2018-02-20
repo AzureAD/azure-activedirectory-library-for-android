@@ -263,7 +263,7 @@ public class Logger {
                 com.microsoft.identity.common.internal.logging.Logger.info(tag, Logger.getInstance().mCorrelationId, formatMessage(message));
                 break;
             default:
-                throw new IllegalArgumentException("Unknown logLevel");
+                throw new IllegalArgumentException("Unknown loglevel");
         }
     }
 

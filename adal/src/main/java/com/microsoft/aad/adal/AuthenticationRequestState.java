@@ -34,8 +34,8 @@ class AuthenticationRequestState {
 
     private final APIEvent mAPIEvent;
 
-    public AuthenticationRequestState(int requestCallbackId, AuthenticationRequest request,
-                                      AuthenticationCallback<AuthenticationResult> delegate, final APIEvent apiEvent) {
+    AuthenticationRequestState(int requestCallbackId, AuthenticationRequest request,
+            AuthenticationCallback<AuthenticationResult> delegate, final APIEvent apiEvent) {
         mRequestId = requestCallbackId;
         mDelegate = delegate;
         mRequest = request;

@@ -57,7 +57,7 @@ abstract class BasicWebViewClient extends WebViewClient {
     private final Context mCallingContext;
     private final UIEvent mUIEvent;
 
-    public BasicWebViewClient(final Context appContext, final String redirect,
+    BasicWebViewClient(final Context appContext, final String redirect,
                               final AuthenticationRequest request, final UIEvent uiEvent) {
         mCallingContext = appContext;
         mRedirect = redirect;
