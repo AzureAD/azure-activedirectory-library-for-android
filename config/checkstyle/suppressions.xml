@@ -17,4 +17,6 @@
     <suppress checks="MethodName" files="AuthenticationParamsTests.java"/>
     <suppress checks="MethodName" files="FileTokenCacheStoreTests.java"/>
     <suppress checks="MethodName" files="TestLogResponse.java"/>
+    <suppress checks="RedundantModifier" files="AuthenticationActivity.java"/>
+    <suppress checks="RedundantModifier" files="Discovery.java"/>
 </suppressions>

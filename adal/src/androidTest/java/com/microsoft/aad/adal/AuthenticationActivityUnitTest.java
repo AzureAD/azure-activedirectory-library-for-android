@@ -643,7 +643,7 @@ public class AuthenticationActivityUnitTest {
          * @param context
          * @param filePrefix
          */
-        public ActivityMockContext(Context context) {
+        ActivityMockContext(Context context) {
             super(context, MOCK_FILE_PREFIX);
             makeExistingFilesAndDbsAccessible();
         }

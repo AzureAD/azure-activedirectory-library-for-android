@@ -837,11 +837,11 @@ public class AuthenticationActivity extends Activity {
 
         private IWebRequestHandler mRequestHandler;
 
-        TokenTask() {
+        public TokenTask() {
             // Intentionally left blank
         }
 
-        TokenTask(IWebRequestHandler webHandler, final AuthenticationRequest request,
+        public TokenTask(IWebRequestHandler webHandler, final AuthenticationRequest request,
                          final String packageName, final int callingUID) {
             mRequestHandler = webHandler;
             mRequest = request;
