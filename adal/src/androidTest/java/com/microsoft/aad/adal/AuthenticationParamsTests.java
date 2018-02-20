@@ -285,7 +285,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
 
         private ADALError mCheckCode;
 
-        public LogCallback(ADALError errorCode) {
+        LogCallback(ADALError errorCode) {
             mCheckCode = errorCode;
             mCalled = false;
         }

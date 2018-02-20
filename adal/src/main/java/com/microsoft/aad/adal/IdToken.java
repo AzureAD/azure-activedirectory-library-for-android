@@ -26,11 +26,8 @@ package com.microsoft.aad.adal;
 import android.util.Base64;
 
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -61,7 +58,7 @@ class IdToken {
 
     private String mPasswordChangeUrl;
 
-    public IdToken(String idtoken) throws AuthenticationException {
+    IdToken(String idtoken) throws AuthenticationException {
         // Message segments: Header.Body.Signature
         final Map<String, String> responseItems = this.parseJWT(idtoken);
 

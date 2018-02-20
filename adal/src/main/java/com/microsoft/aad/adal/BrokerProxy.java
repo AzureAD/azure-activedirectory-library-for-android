@@ -47,8 +47,6 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Base64;
 
-import org.json.JSONException;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -108,11 +106,11 @@ class BrokerProxy implements IBrokerProxy {
 
     private static final String AUTHENTICATOR_CANCELS_REQUEST = "Authenticator cancels the request";
 
-    public BrokerProxy() {
+    BrokerProxy() {
         mBrokerTag = AuthenticationSettings.INSTANCE.getBrokerSignature();
     }
 
-    public BrokerProxy(final Context ctx) {
+    BrokerProxy(final Context ctx) {
         mContext = ctx;
         mAcctManager = AccountManager.get(mContext);
         mHandler = new Handler(mContext.getMainLooper());
@@ -280,7 +278,7 @@ class BrokerProxy implements IBrokerProxy {
         if (looper != null && looper == mContext.getMainLooper()) {
             final IllegalStateException exception = new IllegalStateException(
                     "calling this from your main thread can lead to deadlock");
-            Logger.e(TAG , "calling this from your main thread can lead to deadlock and/or ANRs", "",
+            Logger.e(TAG, "calling this from your main thread can lead to deadlock and/or ANRs", "",
                     ADALError.DEVELOPER_CALLING_ON_MAIN_THREAD, exception);
             if (mContext.getApplicationInfo().targetSdkVersion >= Build.VERSION_CODES.FROYO) {
                 throw exception;
@@ -490,11 +488,11 @@ class BrokerProxy implements IBrokerProxy {
             final Serializable responseBody = bundleResult.getSerializable(AuthenticationConstants.OAuth2.HTTP_RESPONSE_BODY);
             final Serializable responseHeaders = bundleResult.getSerializable(AuthenticationConstants.OAuth2.HTTP_RESPONSE_HEADER);
             if (null != responseBody && responseBody instanceof HashMap) {
-                exception.setHttpResponseBody((HashMap)responseBody);
+                exception.setHttpResponseBody((HashMap) responseBody);
             }
 
             if (null != responseHeaders && responseHeaders instanceof HashMap) {
-                exception.setHttpResponseHeaders((HashMap)responseHeaders);
+                exception.setHttpResponseHeaders((HashMap) responseHeaders);
             }
             
             exception.setServiceStatusCode(bundleResult.getInt(AuthenticationConstants.OAuth2.HTTP_STATUS_CODE));

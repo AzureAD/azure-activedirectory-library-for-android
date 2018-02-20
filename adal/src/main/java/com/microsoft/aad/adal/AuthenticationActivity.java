@@ -609,7 +609,7 @@ public class AuthenticationActivity extends Activity {
 
     class CustomWebViewClient extends BasicWebViewClient {
 
-        public CustomWebViewClient() {
+        CustomWebViewClient() {
             super(AuthenticationActivity.this, mRedirectUrl, mAuthRequest, mUIEvent);
         }
 
@@ -837,11 +837,11 @@ public class AuthenticationActivity extends Activity {
 
         private IWebRequestHandler mRequestHandler;
 
-        public TokenTask() {
+        TokenTask() {
             // Intentionally left blank
         }
 
-        public TokenTask(IWebRequestHandler webHandler, final AuthenticationRequest request,
+        TokenTask(IWebRequestHandler webHandler, final AuthenticationRequest request,
                          final String packageName, final int callingUID) {
             mRequestHandler = webHandler;
             mRequest = request;

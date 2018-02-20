@@ -49,7 +49,7 @@ class DefaultEvent implements IEvents {
 
     private static String sDeviceId = "NA";
 
-    private static int sEventListSize = 30;
+    private static final int sEventListSize = 30;
 
     private String mRequestId;
 

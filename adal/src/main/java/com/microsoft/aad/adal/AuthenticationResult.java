@@ -321,9 +321,13 @@ public class AuthenticationResult implements Serializable {
         return TokenCacheItem.isTokenExpired(getExpiresOn());
     }
 
-    // The token returned is cached with this authority as key.
-    // We expect the subsequent requests to AcquireToken will use this authority as the authority parameter else
-    // AcquireTokenSilent will fail
+    /**
+     * The token returned is cached with this authority as key.
+     * We expect the subsequent requests to AcquireToken will use this authority as the authority parameter else
+     * AcquireTokenSilent will fail
+     *
+     * @return Authority
+     */
     public final String getAuthority() {
         return mAuthority;
     }
@@ -414,6 +418,11 @@ public class AuthenticationResult implements Serializable {
         mHttpResponseBody = body;
     }
 
+    /**
+     * Get Http response message
+     *
+     * @return HttpResponseBody
+     */
     public HashMap<String, String> getHttpResponseBody() {
         return mHttpResponseBody;
     }
@@ -422,6 +431,11 @@ public class AuthenticationResult implements Serializable {
         mHttpResponseHeaders = headers;
     }
 
+    /**
+     * Get Http response headers
+     *
+     * @return HttpResponseHeaders
+     */
     public HashMap<String, List<String>> getHttpResponseHeaders() {
         return mHttpResponseHeaders;
     }
@@ -430,6 +444,11 @@ public class AuthenticationResult implements Serializable {
         mServiceStatusCode = statusCode;
     }
 
+    /**
+     *  Get service status code
+     *
+     * @return ServiceStatusCode
+     */
     public int getServiceStatusCode() {
         return mServiceStatusCode;
     }
