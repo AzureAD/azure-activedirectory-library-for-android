@@ -22,6 +22,7 @@
 // THE SOFTWARE.
 
 package com.microsoft.aad.adal;
+import com.microsoft.aad.adal.BuildConfig;
 
 import android.annotation.SuppressLint;
 import android.util.Log;
@@ -44,7 +45,7 @@ public class Logger {
     private LogLevel mLogLevel  = LogLevel.Verbose;
     private ILogger mExternalLogger = null;
     private static final String CUSTOM_LOG_ERROR = "Custom log failed to log message:%s";
-    private boolean mAndroidLogEnabled = false;
+    private boolean mAndroidLogEnabled = BuildConfig.DEBUG;
     private String mCorrelationId = null;
 
     // Disable to log PII by default.
