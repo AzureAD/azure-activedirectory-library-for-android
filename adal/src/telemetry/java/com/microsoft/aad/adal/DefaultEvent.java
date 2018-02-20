@@ -51,14 +51,14 @@ class DefaultEvent implements IEvents {
 
     private static String sDeviceId = "NA";
 
-    private static final int sEventListSize = 30;
+    private static final int EVENT_LIST_SIZE = 30;
 
     private String mRequestId;
 
     private int mDefaultEventCount;
 
     DefaultEvent() {
-        mEventList = new ArrayList<>(sEventListSize);
+        mEventList = new ArrayList<>(EVENT_LIST_SIZE);
 
         // Keying off Application name not being null to decide if the defaults have been set
         if (sApplicationName != null) {
