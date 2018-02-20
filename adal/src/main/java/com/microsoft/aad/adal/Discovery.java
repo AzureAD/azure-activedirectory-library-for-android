@@ -98,7 +98,7 @@ final class Discovery {
      */
     private final IWebRequestHandler mWebrequestHandler;
 
-    Discovery(final Context context) {
+    public Discovery(final Context context) {
         initValidList();
         mContext = context;
         mWebrequestHandler = new WebRequestHandler();

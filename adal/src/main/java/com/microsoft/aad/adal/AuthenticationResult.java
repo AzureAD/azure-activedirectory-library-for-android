@@ -419,7 +419,7 @@ public class AuthenticationResult implements Serializable {
     }
 
     /**
-     * Get Http response message
+     * Get Http response message.
      *
      * @return HttpResponseBody
      */
@@ -432,7 +432,7 @@ public class AuthenticationResult implements Serializable {
     }
 
     /**
-     * Get Http response headers
+     * Get Http response headers.
      *
      * @return HttpResponseHeaders
      */
@@ -445,7 +445,7 @@ public class AuthenticationResult implements Serializable {
     }
 
     /**
-     *  Get service status code
+     *  Get service status code.
      *
      * @return ServiceStatusCode
      */

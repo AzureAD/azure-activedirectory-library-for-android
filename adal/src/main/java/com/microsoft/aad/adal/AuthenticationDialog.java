@@ -193,7 +193,7 @@ class AuthenticationDialog {
 
     class DialogWebViewClient extends BasicWebViewClient {
 
-        public DialogWebViewClient(Context ctx, String stopRedirect,
+        DialogWebViewClient(Context ctx, String stopRedirect,
                 AuthenticationRequest request) {
             super(ctx, stopRedirect, request, null);
         }
