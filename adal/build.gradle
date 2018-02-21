@@ -45,10 +45,16 @@ android {
     }
     buildTypes {
         debug {
+<<<<<<< HEAD
             testCoverageEnabled false
+=======
+            testCoverageEnabled true
+            debuggable true
+>>>>>>> the log related part of ICS 337720 (#1125)
         }
         release {
             minifyEnabled false
+            debuggable false
             proguardFiles getDefaultProguardFile('proguard-android.txt')
         }
     }
