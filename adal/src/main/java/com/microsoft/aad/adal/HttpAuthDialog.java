@@ -59,7 +59,7 @@ class HttpAuthDialog {
     /**
      * Creates Credential dialog for http auth.
      */
-    public HttpAuthDialog(Context context, String host, String realm) {
+    HttpAuthDialog(Context context, String host, String realm) {
         mContext = context;
         mHost = host;
         mRealm = realm;

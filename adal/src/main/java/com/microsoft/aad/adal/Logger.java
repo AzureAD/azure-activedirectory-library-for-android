@@ -219,8 +219,7 @@ public class Logger {
 
         if (mExternalLogger != null) {
             try {
-                if (!StringExtensions.isNullOrBlank(additionalMessage) && mEnablePII)
-                {
+                if (!StringExtensions.isNullOrBlank(additionalMessage) && mEnablePII) {
                     mExternalLogger.Log(tag, addMoreInfo(message), additionalMessage + (throwable == null ? "" : Log.getStackTraceString(throwable)), logLevel, errorCode);
                 } else {
                     mExternalLogger.Log(tag, addMoreInfo(message), throwable == null ? null : Log.getStackTraceString(throwable), logLevel, errorCode);

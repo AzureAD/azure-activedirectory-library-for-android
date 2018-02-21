@@ -85,14 +85,14 @@ class Oauth2 {
         setTokenEndpoint(mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT);
     }
 
-    public Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler) {
+    Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler) {
         mRequest = request;
         mWebRequestHandler = webRequestHandler;
         mJWSBuilder = null;
         setTokenEndpoint(mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT);
     }
 
-    public Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler,
+    Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler,
             IJWSBuilder jwsMessageBuilder) {
         mRequest = request;
         mWebRequestHandler = webRequestHandler;
@@ -704,7 +704,7 @@ class Oauth2 {
             try {
                 result = parseJsonResponse(webResponse.getBody());
                 if (result != null) {
-                    if(null != result.getErrorCode()) {
+                    if (null != result.getErrorCode()) {
                         result.setHttpResponse(webResponse);
                     }
 

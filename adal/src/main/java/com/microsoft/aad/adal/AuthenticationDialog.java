@@ -56,7 +56,7 @@ class AuthenticationDialog {
 
     private WebView mWebView;
 
-    public AuthenticationDialog(Handler handler, Context context, final AcquireTokenRequest acquireTokenRequest,
+    AuthenticationDialog(Handler handler, Context context, final AcquireTokenRequest acquireTokenRequest,
             AuthenticationRequest request) {
         mHandlerInView = handler;
         mContext = context;
@@ -72,7 +72,7 @@ class AuthenticationDialog {
      * Create dialog using the context. Inflate the layout with inflater
      * service. This will run with the handler.
      */
-    public void show() {
+    void show() {
         final String methodName = ":show";
         mHandlerInView.post(new Runnable() {
 
@@ -193,7 +193,7 @@ class AuthenticationDialog {
 
     class DialogWebViewClient extends BasicWebViewClient {
 
-        public DialogWebViewClient(Context ctx, String stopRedirect,
+        DialogWebViewClient(Context ctx, String stopRedirect,
                 AuthenticationRequest request) {
             super(ctx, stopRedirect, request, null);
         }

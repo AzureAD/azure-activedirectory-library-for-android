@@ -165,7 +165,7 @@ final class PRNGFixes {
     private static class LinuxPRNGSecureRandomProvider extends Provider {
         private static final long serialVersionUID = 1L;
 
-        public LinuxPRNGSecureRandomProvider() {
+        LinuxPRNGSecureRandomProvider() {
             super("LinuxPRNG", 1.0, "A Linux-specific random number provider that uses"
                     + " /dev/urandom");
             // Although /dev/urandom is not a SHA-1 PRNG, some apps

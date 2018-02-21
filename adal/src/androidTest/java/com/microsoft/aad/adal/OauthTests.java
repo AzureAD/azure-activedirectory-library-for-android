@@ -72,6 +72,8 @@ public class OauthTests {
     private static final String TEST_RETURNED_EXCEPTION = "test-returned-exception";
 
     private static final String TEST_AUTHORITY = "https://login.windows.net/common";
+
+    private static final int RETRY_AFTER = 429;
     @Before
     public void setUp() throws Exception {
         System.setProperty("dexmaker.dexcache", InstrumentationRegistry.getContext().getCacheDir().getPath());
@@ -428,7 +430,7 @@ public class OauthTests {
         assertNull("AuthenticationResult is null", testResult.getAuthenticationResult());
         assertNotNull("Exception is not null", testResult.getException());
         assertTrue(testResult.getException() instanceof AuthenticationException);
-        assertEquals(((AuthenticationException)testResult.getException()).getServiceStatusCode(), HttpURLConnection.HTTP_UNAVAILABLE);
+        assertEquals(((AuthenticationException) testResult.getException()).getServiceStatusCode(), HttpURLConnection.HTTP_UNAVAILABLE);
     }
 
     @Test
@@ -506,11 +508,10 @@ public class OauthTests {
 
     @Test
     public void testRefreshTokenWebResponseHeader() {
-        final int retry_after = 429;
         Map<String, List<String>> headers = getHeader(
                 "Retry-After", "120");
         MockWebRequestHandler mockWebRequest = new MockWebRequestHandler();
-        mockWebRequest.setReturnResponse(new HttpWebResponse(retry_after, "{\"body\":\"not_null\"}", headers));
+        mockWebRequest.setReturnResponse(new HttpWebResponse(RETRY_AFTER, "{\"body\":\"not_null\"}", headers));
         // send request
         MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),
                 mockWebRequest, "testRefreshToken");
@@ -519,8 +520,8 @@ public class OauthTests {
         assertNotNull("Callback has error", testResult.getException());
         assertNotNull(testResult.getException());
         assertTrue(testResult.getException() instanceof AuthenticationException);
-        assertEquals(((AuthenticationException)testResult.getException()).getServiceStatusCode(), retry_after);
-        assertTrue(((AuthenticationException)testResult.getException()).getHttpResponseHeaders().containsKey("Retry-After"));
+        assertEquals(((AuthenticationException) testResult.getException()).getServiceStatusCode(), RETRY_AFTER);
+        assertTrue(((AuthenticationException) testResult.getException()).getHttpResponseHeaders().containsKey("Retry-After"));
     }
 
     @SuppressWarnings("unchecked")

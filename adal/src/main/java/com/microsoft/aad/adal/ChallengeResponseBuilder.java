@@ -140,7 +140,7 @@ class ChallengeResponseBuilder {
                         "%s AuthToken=\"%s\",Context=\"%s\",Version=\"%s\"",
                         AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE, jwt,
                         request.mContext, request.mVersion);
-                Logger.v(TAG , "Receive challenge response. ",
+                Logger.v(TAG, "Receive challenge response. ",
                         "Challenge response:" + response.mAuthorizationHeaderValue, null);
             }
         }
