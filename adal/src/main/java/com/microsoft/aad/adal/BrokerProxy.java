@@ -348,7 +348,7 @@ class BrokerProxy implements IBrokerProxy {
 
         final boolean isMicrosoftAuthenticatorInstalled = PackageHelper.isMicrosoftAuthenticatorInstalled(mContext.getPackageManager());
         brokerEvent.setMicrosoftAuthenticatorInstalled(isMicrosoftAuthenticatorInstalled);
-        Logger.d(TAG, "Is Microsoft Authenticator installed? [" +isCompanyPortalInstalled + "]");
+        Logger.d(TAG, "Is Microsoft Authenticator installed? [" +isMicrosoftAuthenticatorInstalled + "]");
     }
 
     private Bundle getAuthTokenFromAccountManager(final AuthenticationRequest request, final Bundle requestBundle) throws AuthenticationException {
