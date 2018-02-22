@@ -2,7 +2,7 @@
 ext {
     // SDK
     minSdkVersion = 14
-    automationAppMinSDKVersion = 18
+    automationAppMinSDKVersion = 21
     targetSdkVersion = 25
     compileSdkVersion = 25
     buildToolsVersion = "26.0.2"
