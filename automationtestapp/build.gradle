@@ -53,11 +53,14 @@ android {
             versionNameSuffix "-adalD"
             resValue("string", "application_name", "adal")
         }
+        /*
+        //Leaving out MSAL support until i look into dynamically linking
         msalR{
             applicationIdSuffix ".msalR"
             versionNameSuffix "-msalR"
             resValue("string", "application_name", "msalR")
         }
+        */
         adalR{
             applicationIdSuffix ".adalR"
             versionNameSuffix "-adalR"
@@ -72,7 +75,7 @@ dependencies {
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
 
     adalImplementation project(':adal')
-    msalRImplementation group: 'com.microsoft.identity.client', name: 'msal', version: "$rootProject.ext.msal"
+    //msalRImplementation group: 'com.microsoft.identity.client', name: 'msal', version: "$rootProject.ext.msal"
     adalRImplementation group: 'com.microsoft.aad', name: 'adal', version: "$rootProject.ext.adalLegacy"
 
     testImplementation "junit:junit:$rootProject.ext.junitVersion"
