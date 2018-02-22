@@ -31,10 +31,12 @@ android {
 
     defaultConfig {
         applicationId "com.microsoft.aad.automation.testapp"
-        minSdkVersion rootProject.ext.minSdkVersion
+        minSdkVersion rootProject.ext.automationAppMinSDKVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
@@ -42,11 +44,42 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    flavorDimensions "main"
+
+    productFlavors {
+        adal{
+            applicationIdSuffix ".adal"
+            versionNameSuffix "-adalD"
+            resValue("string", "application_name", "adal")
+        }
+        msalR{
+            applicationIdSuffix ".msalR"
+            versionNameSuffix "-msalR"
+            resValue("string", "application_name", "msalR")
+        }
+        adalR{
+            applicationIdSuffix ".adalR"
+            versionNameSuffix "-adalR"
+            resValue("string", "application_name", "adalR")
+        }
+    }
+
 }
 
 dependencies {
-    compile "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
-    compile project(':adal')
+    implementation "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
+    implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
 
-    testCompile "junit:junit:$rootProject.ext.junitVersion"
+    adalImplementation project(':adal')
+    msalRImplementation group: 'com.microsoft.identity.client', name: 'msal', version: "$rootProject.ext.msal"
+    adalRImplementation group: 'com.microsoft.aad', name: 'adal', version: "$rootProject.ext.adalLegacy"
+
+    testImplementation "junit:junit:$rootProject.ext.junitVersion"
+    androidTestImplementation "junit:junit:$rootProject.ext.junitVersion"
+
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+    androidTestImplementation 'com.android.support.test:runner:1.0.1'
+    androidTestImplementation 'com.android.support.test.uiautomator:uiautomator-v18:2.1.1'
+
 }

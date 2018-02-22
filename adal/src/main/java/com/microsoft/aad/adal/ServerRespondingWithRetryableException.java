@@ -23,7 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.error.AuthenticationException;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 
 /**

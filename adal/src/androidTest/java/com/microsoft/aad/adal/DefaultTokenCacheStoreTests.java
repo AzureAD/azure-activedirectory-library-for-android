@@ -29,7 +29,7 @@ import android.content.SharedPreferences;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
-import com.microsoft.identity.common.adal.error.AuthenticationException;
+
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 
 import org.junit.After;

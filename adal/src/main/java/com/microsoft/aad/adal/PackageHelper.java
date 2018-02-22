@@ -32,7 +32,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.Signature;
 import android.util.Base64;
-import com.microsoft.identity.common.adal.error.ADALError;
+
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import java.io.UnsupportedEncodingException;

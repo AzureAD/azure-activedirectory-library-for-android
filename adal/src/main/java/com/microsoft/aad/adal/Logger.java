@@ -26,7 +26,6 @@ package com.microsoft.aad.adal;
 import android.annotation.SuppressLint;
 import android.util.Log;
 
-import com.microsoft.identity.common.adal.error.ADALError;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.text.SimpleDateFormat;

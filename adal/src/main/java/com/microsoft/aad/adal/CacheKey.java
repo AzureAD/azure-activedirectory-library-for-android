@@ -23,8 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.error.ADALError;
-import com.microsoft.identity.common.adal.error.AuthenticationException;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.io.Serializable;

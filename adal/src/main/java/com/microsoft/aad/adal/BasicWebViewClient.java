@@ -35,8 +35,6 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
-import com.microsoft.identity.common.adal.error.ADALError;
-import com.microsoft.identity.common.adal.error.AuthenticationException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 

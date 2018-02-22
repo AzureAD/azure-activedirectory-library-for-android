@@ -28,10 +28,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ResolveInfo;
 
-import com.microsoft.identity.common.adal.error.ADALError;
-import com.microsoft.identity.common.adal.error.AuthenticationException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.adal.internal.net.HttpWebRequest;
 import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 

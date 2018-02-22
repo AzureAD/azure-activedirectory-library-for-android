@@ -27,7 +27,7 @@ import android.net.Uri;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Base64;
 
-import com.microsoft.identity.common.adal.error.AuthenticationException;
+
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 
 import junit.framework.TestCase;

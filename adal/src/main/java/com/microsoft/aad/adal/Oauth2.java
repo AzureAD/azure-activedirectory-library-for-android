@@ -29,8 +29,6 @@ import android.text.TextUtils;
 import android.util.Base64;
 
 import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
-import com.microsoft.identity.common.adal.error.ADALError;
-import com.microsoft.identity.common.adal.error.AuthenticationException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;

@@ -38,7 +38,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import com.microsoft.identity.common.adal.error.ADALError;
 
 final class StringExtensions {
     /** The Constant ENCODING_UTF8. */

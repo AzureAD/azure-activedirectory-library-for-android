@@ -52,8 +52,6 @@ import android.webkit.WebView;
 
 import com.google.gson.Gson;
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
-import com.microsoft.identity.common.adal.error.ADALError;
-import com.microsoft.identity.common.adal.error.AuthenticationException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;

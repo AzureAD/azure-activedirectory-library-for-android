@@ -25,7 +25,6 @@ package com.microsoft.aad.adal;
 
 import android.text.TextUtils;
 
-import com.microsoft.identity.common.adal.error.ADALError;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 
 import org.json.JSONArray;

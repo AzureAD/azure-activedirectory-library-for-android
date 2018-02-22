@@ -25,8 +25,6 @@ package com.microsoft.aad.adal;
 import android.content.Context;
 
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
-import com.microsoft.identity.common.adal.error.ADALError;
-import com.microsoft.identity.common.adal.error.AuthenticationException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.cache.ADALOAuth2TokenCache;

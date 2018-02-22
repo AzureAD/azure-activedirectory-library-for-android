@@ -31,7 +31,6 @@ import android.os.Process;
 import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 import com.microsoft.identity.common.adal.internal.net.DefaultConnectionService;
-import com.microsoft.identity.common.adal.error.ADALError;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 

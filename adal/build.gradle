@@ -17,9 +17,7 @@ configurations {
 allprojects {
     repositories {
         jcenter()
-        maven {
-            url "https://maven.google.com"
-        }
+        google()
     }
 }
 
@@ -84,40 +82,36 @@ android {
     }
 
     libraryVariants.all { variant ->
-        variant.outputs.each { output ->
-            def outputFile = output.outputFile
-            if (outputFile != null && outputFile.name.endsWith('.aar')) {
-                def fileName = "${archivesBaseName}-${version}.aar"
-                output.outputFile = new File(outputFile.parent, fileName)
-            }
+        variant.outputs.all {
+            outputFileName = "${archivesBaseName}-${version}.aar"
         }
     }
 }
 
 dependencies {
     // Compile Dependencies
-    compile "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
-    compile "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
-    compile "com.android.support:support-annotations:$rootProject.ext.supportLibraryVersion"
-    compile "com.android.support:support-v4:$rootProject.ext.supportLibraryVersion"
-    compile 'com.google.code.findbugs:annotations:3.0.1', {
+    implementation "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
+    implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
+    implementation "com.android.support:support-annotations:$rootProject.ext.supportLibraryVersion"
+    implementation "com.android.support:support-v4:$rootProject.ext.supportLibraryVersion"
+    compileOnly 'com.google.code.findbugs:annotations:3.0.1', {
         // Need to exclude these, or build is broken by:
         //   com.android.dex.DexException: Multiple dex files define Ljavax/annotation/CheckForNull
         exclude module: 'jsr305'
         exclude module: 'jcip-annotations'
     }
-    compile(project(":common")){
+    api(project(":common")){
         exclude group: 'com.google.code.gson', module: 'gson'
     }
 
     // Android Instrumented Test Dependencies
-    androidTestCompile "com.android.support.test:runner:$rootProject.ext.runnerVersion"
-    androidTestCompile "com.android.support.test:rules:$rootProject.ext.rulesVersion"
-    androidTestCompile "org.mockito:mockito-core:$rootProject.ext.mockitoCoreVersion"
-    androidTestCompile "com.google.dexmaker:dexmaker-mockito:$rootProject.ext.dexmakerMockitoVersion"
+    androidTestImplementation "com.android.support.test:runner:$rootProject.ext.runnerVersion"
+    androidTestImplementation "com.android.support.test:rules:$rootProject.ext.rulesVersion"
+    androidTestImplementation "org.mockito:mockito-core:$rootProject.ext.mockitoCoreVersion"
+    androidTestImplementation "com.google.dexmaker:dexmaker-mockito:$rootProject.ext.dexmakerMockitoVersion"
 
     // Test Dependencies
-    testCompile "junit:junit:$rootProject.ext.junitVersion"
+    testImplementation "junit:junit:$rootProject.ext.junitVersion"
 
     // Javadoc Dependencies
     javadocDeps "com.android.support:support-annotations:$rootProject.ext.supportLibraryVersion"

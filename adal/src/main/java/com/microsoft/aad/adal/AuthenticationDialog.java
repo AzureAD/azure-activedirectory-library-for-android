@@ -36,7 +36,6 @@ import android.view.View;
 import android.webkit.WebView;
 import android.widget.ProgressBar;
 
-import com.microsoft.identity.common.adal.error.ADALError;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 
 import java.io.UnsupportedEncodingException;

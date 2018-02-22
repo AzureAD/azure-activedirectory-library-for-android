@@ -3,10 +3,17 @@ buildscript {
 
     repositories {
         jcenter()
+        maven {
+            url "https://maven.google.com"
+        }
+        maven {
+            url 'https://maven.google.com/'
+            name 'Google'
+        }
     }
 
     dependencies {
-        classpath "com.android.tools.build:gradle:$rootProject.ext.gradleVersion"
+        classpath 'com.android.tools.build:gradle:3.0.1'
         classpath "com.github.dcendents:android-maven-gradle-plugin:$rootProject.ext.androidMavenGradlePluginVersion"
     }
 }
@@ -19,6 +26,7 @@ allprojects {
     }
     repositories {
         jcenter()
+        google()
     }
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {
