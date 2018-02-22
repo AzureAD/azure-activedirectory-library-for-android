@@ -28,6 +28,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -57,8 +58,6 @@ class AcquireTokenRequest {
     private final AuthenticationContext mAuthContext;
     private TokenCacheAccessor mTokenCacheAccessor;
     private final IBrokerProxy mBrokerProxy;
-
-    private static Handler sHandler = null;
 
     /**
      * Instance validation related calls are serviced inside Discovery as a
@@ -829,14 +828,30 @@ class AcquireTokenRequest {
         return authResult != null && !StringExtensions.isNullOrBlank(authResult.getAccessToken());
     }
 
-    private synchronized Handler getHandler() {
-        if (sHandler == null) {
+    private Handler getHandler() {
+        final Handler handler;
+
+        if (onUiThread()) {
+            // Callback should be invoked on the UI thread.
+            handler = new Handler(Looper.getMainLooper());
+            Logger.v(TAG, "Using UI thread Handler.");
+        } else {
+            // We're on a background thread, so the handler can be anything...
             HandlerThread acquireTokenHandlerThread = new HandlerThread("AcquireTokenRequestHandlerThread");
             acquireTokenHandlerThread.start();
-            sHandler = new Handler(acquireTokenHandlerThread.getLooper());
+            handler = new Handler(acquireTokenHandlerThread.getLooper());
+            Logger.v(TAG, "Using arbitrary thread Handler.");
         }
 
-        return sHandler;
+        return handler;
+    }
+
+    /**
+     * Boolean to determine if the current thread is the UI thread.
+     * @return True, if the current thread is the application UI thread. False otherwise.
+     */
+    private boolean onUiThread() {
+        return Looper.getMainLooper().getThread() == Thread.currentThread();
     }
 
     private void waitingRequestOnError(final AuthenticationRequestState waitingRequest,
