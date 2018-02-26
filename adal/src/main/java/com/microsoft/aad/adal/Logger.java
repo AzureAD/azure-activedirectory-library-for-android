@@ -22,7 +22,6 @@
 // THE SOFTWARE.
 
 package com.microsoft.aad.adal;
-import com.microsoft.aad.adal.BuildConfig;
 
 import android.annotation.SuppressLint;
 import android.util.Log;
