@@ -343,18 +343,16 @@ class BrokerProxy implements IBrokerProxy {
     }
 
     private void setAndLogBrokerInstallationStatuses(final BrokerEvent brokerEvent) {
-        if (null == brokerEvent) {
-            Logger.d(TAG, "BrokerEvent was null. Proceeding.");
-            return;
-        }
-
         final boolean isCompanyPortalInstalled = PackageHelper.isCompanyPortalInstalled(mContext.getPackageManager());
-        brokerEvent.setCompanyPortalInstalled(isCompanyPortalInstalled);
         Logger.d(TAG, "Is Company Portal installed? [" + isCompanyPortalInstalled + "]");
 
         final boolean isMicrosoftAuthenticatorInstalled = PackageHelper.isMicrosoftAuthenticatorInstalled(mContext.getPackageManager());
-        brokerEvent.setMicrosoftAuthenticatorInstalled(isMicrosoftAuthenticatorInstalled);
         Logger.d(TAG, "Is Microsoft Authenticator installed? [" +isMicrosoftAuthenticatorInstalled + "]");
+
+        if (null != brokerEvent) {
+            brokerEvent.setCompanyPortalInstalled(isCompanyPortalInstalled);
+            brokerEvent.setMicrosoftAuthenticatorInstalled(isMicrosoftAuthenticatorInstalled);
+        }
     }
 
     private Bundle getAuthTokenFromAccountManager(final AuthenticationRequest request, final Bundle requestBundle) throws AuthenticationException {
