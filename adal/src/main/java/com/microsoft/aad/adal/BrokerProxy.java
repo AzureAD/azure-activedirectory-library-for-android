@@ -344,10 +344,10 @@ class BrokerProxy implements IBrokerProxy {
 
     private void setAndLogBrokerInstallationStatuses(final BrokerEvent brokerEvent) {
         final boolean isCompanyPortalInstalled = PackageHelper.isCompanyPortalInstalled(mContext.getPackageManager());
-        Logger.d(TAG, "Is Company Portal installed? [" + isCompanyPortalInstalled + "]");
+        Logger.i(TAG, "Is Company Portal installed? [" + isCompanyPortalInstalled + "]", null);
 
         final boolean isMicrosoftAuthenticatorInstalled = PackageHelper.isMicrosoftAuthenticatorInstalled(mContext.getPackageManager());
-        Logger.d(TAG, "Is Microsoft Authenticator installed? [" +isMicrosoftAuthenticatorInstalled + "]");
+        Logger.i(TAG, "Is Microsoft Authenticator installed? [" +isMicrosoftAuthenticatorInstalled + "]", null);
 
         if (null != brokerEvent) {
             brokerEvent.setCompanyPortalInstalled(isCompanyPortalInstalled);
