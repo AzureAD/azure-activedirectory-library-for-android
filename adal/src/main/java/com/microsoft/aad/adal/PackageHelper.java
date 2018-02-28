@@ -43,6 +43,8 @@ import java.security.NoSuchAlgorithmException;
  */
 class PackageHelper {
     private static final String TAG = "CallerInfo";
+    private static final String PKG_COMPANYPORTAL = "com.microsoft.windowsintune.companyportal";
+    private static final String PKG_AZURE_AUTHENTICATOR = "com.azure.authenticator";
 
     private Context mContext;
 
@@ -56,6 +58,23 @@ class PackageHelper {
     public PackageHelper(Context ctx) {
         mContext = ctx;
         mAcctManager = AccountManager.get(mContext);
+    }
+
+    static boolean isCompanyPortalInstalled(final PackageManager pkgManager) {
+        return isPackageInstalled(pkgManager, PKG_COMPANYPORTAL);
+    }
+
+    static boolean isMicrosoftAuthenticatorInstalled(final PackageManager pkgManger) {
+        return isPackageInstalled(pkgManger, PKG_AZURE_AUTHENTICATOR);
+    }
+
+    private static boolean isPackageInstalled(final PackageManager packageManager, final String packageName) {
+        try {
+            packageManager.getPackageInfo(packageName, 0);
+            return true;
+        } catch (NameNotFoundException e) {
+            return false;
+        }
     }
 
     /**

@@ -77,6 +77,10 @@ final class BrokerEvent extends DefaultEvent {
         }
     }
 
+    void setBrokerError(final BrokerError brokerError) {
+        setProperty(EventStrings.BROKER_ACCOUNT_SERVICE_ERROR, String.valueOf(brokerError.mErrCode));
+    }
+
     void setServerSubErrorCode(final String subErrorCode) {
         if (!StringExtensions.isNullOrBlank(subErrorCode) && !subErrorCode.equals("0")) {
             setProperty(EventStrings.SERVER_SUBERROR_CODE, subErrorCode.trim());
@@ -97,8 +101,12 @@ final class BrokerEvent extends DefaultEvent {
         }
     }
 
-    void setBrokerError(final BrokerError brokerError) {
-        setProperty(EventStrings.BROKER_ACCOUNT_SERVICE_ERROR, String.valueOf(brokerError.mErrCode));
+    void setCompanyPortalInstalled(final boolean isInstalled) {
+        setProperty(EventStrings.IS_COMPANY_PORTAL_INSTALLED, isInstalled ? "yes" : "no");
+    }
+
+    void setMicrosoftAuthenticatorInstalled(final boolean isInstalled) {
+        setProperty(EventStrings.IS_MICROSOFT_AUTHENTICATOR_INSTALLED, isInstalled ? "yes" : "no");
     }
 
     @Override
@@ -145,7 +153,8 @@ final class BrokerEvent extends DefaultEvent {
         BROKER_INTERRUPTED_ERROR(1, "Broker thread was interrupted"),
         BROKER_BIND_ERROR(2, "Broker binding failed"),
         BROKER_ACTIVITY_RESOLUTION_ERROR(3, "Did not received Activity to launch from Broker"),
-        BROKER_INTENT_MALFORMED_OR_NULL(4, "Broker interactive request returned a null Intent");
+        BROKER_INTENT_MALFORMED_OR_NULL(4, "Broker interactive request returned a null Intent"),
+        BROKER_ERROR_UNKNOWN(5, "Unknown error encountered connecting to Broker");
 
         private final int mErrCode;
         private final String mErrMsg;
@@ -155,4 +164,5 @@ final class BrokerEvent extends DefaultEvent {
             mErrMsg = errorMessage;
         }
     }
+
 }

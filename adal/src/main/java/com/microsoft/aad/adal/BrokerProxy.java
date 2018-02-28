@@ -321,6 +321,9 @@ class BrokerProxy implements IBrokerProxy {
 
         verifyNotOnMainThread();
 
+        // populate BrokerEvent info re installed Brokers
+        setAndLogBrokerInstallationStatuses(brokerEvent);
+
         final Bundle requestBundle = getBrokerOptions(request);
 
         // check if broker supports the new service, if it does not we need to switch back to the old way
@@ -337,6 +340,21 @@ class BrokerProxy implements IBrokerProxy {
         }
 
         return getResultFromBrokerResponse(bundleResult, request);
+    }
+
+    private void setAndLogBrokerInstallationStatuses(final BrokerEvent brokerEvent) {
+        if (null == brokerEvent) {
+            Logger.d(TAG, "BrokerEvent was null. Proceeding.");
+            return;
+        }
+
+        final boolean isCompanyPortalInstalled = PackageHelper.isCompanyPortalInstalled(mContext.getPackageManager());
+        brokerEvent.setCompanyPortalInstalled(isCompanyPortalInstalled);
+        Logger.d(TAG, "Is Company Portal installed? [" + isCompanyPortalInstalled + "]");
+
+        final boolean isMicrosoftAuthenticatorInstalled = PackageHelper.isMicrosoftAuthenticatorInstalled(mContext.getPackageManager());
+        brokerEvent.setMicrosoftAuthenticatorInstalled(isMicrosoftAuthenticatorInstalled);
+        Logger.d(TAG, "Is Microsoft Authenticator installed? [" +isMicrosoftAuthenticatorInstalled + "]");
     }
 
     private Bundle getAuthTokenFromAccountManager(final AuthenticationRequest request, final Bundle requestBundle) throws AuthenticationException {
@@ -613,6 +631,9 @@ class BrokerProxy implements IBrokerProxy {
     @Override
     public Intent getIntentForBrokerActivity(final AuthenticationRequest request, final BrokerEvent brokerEvent)
             throws AuthenticationException {
+        // populate BrokerEvent info re installed Brokers
+        setAndLogBrokerInstallationStatuses(brokerEvent);
+
         final String methodName = ":getIntentForBrokerActivity";
         final Bundle requestBundle = getBrokerOptions(request);
         final Intent intent;
