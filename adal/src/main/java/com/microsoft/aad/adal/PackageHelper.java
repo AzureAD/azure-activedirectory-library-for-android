@@ -39,13 +39,14 @@ import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
+
 /**
  * Gets information about calling activity.
  */
 class PackageHelper {
     private static final String TAG = "CallerInfo";
-    private static final String PKG_COMPANYPORTAL = "com.microsoft.windowsintune.companyportal";
-    private static final String PKG_AZURE_AUTHENTICATOR = "com.azure.authenticator";
 
     private Context mContext;
 
@@ -53,7 +54,7 @@ class PackageHelper {
 
     /**
      * Creates helper to check caller info.
-     * 
+     *
      * @param ctx The android app/activity context
      */
     public PackageHelper(Context ctx) {
@@ -62,11 +63,11 @@ class PackageHelper {
     }
 
     static boolean isCompanyPortalInstalled(final PackageManager pkgManager) {
-        return isPackageInstalled(pkgManager, PKG_COMPANYPORTAL);
+        return isPackageInstalled(pkgManager, COMPANY_PORTAL_APP_PACKAGE_NAME);
     }
 
     static boolean isMicrosoftAuthenticatorInstalled(final PackageManager pkgManger) {
-        return isPackageInstalled(pkgManger, PKG_AZURE_AUTHENTICATOR);
+        return isPackageInstalled(pkgManger, AZURE_AUTHENTICATOR_APP_PACKAGE_NAME);
     }
 
     private static boolean isPackageInstalled(final PackageManager packageManager, final String packageName) {
@@ -80,7 +81,7 @@ class PackageHelper {
 
     /**
      * Reads first signature in the list for given package name.
-     * 
+     *
      * @param packagename name of the package for which signature should be returned
      * @return signature for package
      */
@@ -109,7 +110,7 @@ class PackageHelper {
 
     /**
      * Gets the kernel user-ID that has been assigned to this application.
-     * 
+     *
      * @param packageName for which the user id has to be returned
      * @return UID user id
      */
@@ -129,8 +130,9 @@ class PackageHelper {
 
     /**
      * Gets redirect uri for broker.
-     * @param packageName   application package name
-     * @param signatureDigest   application signature 
+     *
+     * @param packageName     application package name
+     * @param signatureDigest application signature
      * @return broker redirect url
      */
     public static String getBrokerRedirectUrl(final String packageName, final String signatureDigest) {
