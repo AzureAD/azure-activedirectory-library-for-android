@@ -315,6 +315,7 @@ In order to acquire token via broker, the following requirements have to be met 
   * `USE_CREDENTIALS`
   * `MANAGE_ACCOUNTS`
 * If target version is 23 or higher, `USE_CREDENTIALS` and `MANAGE_ACCOUNTS` are deprecated. But `GET_ACCOUNTS` is under protection level "dangerous", calling app is responsible for requesting the run-time permission; see [Runtime permission request for API 23](http://developer.android.com/training/permissions/requesting.html).
+* If you get an exception like "Broker related permissions are missing for GET_ACCOUNTS" with error code "DEVELOPER_BROKER_PERMISSIONS_MISSING" when acquiring token, it means you're using a very old version of ADAL, please upgrade to the latest version of ADAL.
 * There must be an account existed and registered via one of the two broker apps.
 
 AuthenticationContext provides API method to get the broker user.
