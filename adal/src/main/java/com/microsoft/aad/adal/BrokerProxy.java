@@ -128,6 +128,13 @@ class BrokerProxy implements IBrokerProxy {
      */
     @Override
     public SwitchToBroker canSwitchToBroker(final String authorityUrlStr) {
+        // Log broker installation statuses
+        final boolean isCompanyPortalInstalled = PackageHelper.isCompanyPortalInstalled(mContext.getPackageManager());
+        Logger.i(TAG, "Is Company Portal installed? [" + isCompanyPortalInstalled + "]", null);
+
+        final boolean isMicrosoftAuthenticatorInstalled = PackageHelper.isMicrosoftAuthenticatorInstalled(mContext.getPackageManager());
+        Logger.i(TAG, "Is Microsoft Authenticator installed? [" +isMicrosoftAuthenticatorInstalled + "]", null);
+
         final URL authorityUrl;
         try {
             authorityUrl = new URL(authorityUrlStr);
@@ -316,7 +323,7 @@ class BrokerProxy implements IBrokerProxy {
         verifyNotOnMainThread();
 
         // populate BrokerEvent info re installed Brokers
-        setAndLogBrokerInstallationStatuses(brokerEvent);
+        setBrokerInstallationStatuses(brokerEvent);
 
         final Bundle requestBundle = getBrokerOptions(request);
 
@@ -336,17 +343,15 @@ class BrokerProxy implements IBrokerProxy {
         return getResultFromBrokerResponse(bundleResult, request);
     }
 
-    private void setAndLogBrokerInstallationStatuses(final BrokerEvent brokerEvent) {
-        final boolean isCompanyPortalInstalled = PackageHelper.isCompanyPortalInstalled(mContext.getPackageManager());
-        Logger.i(TAG, "Is Company Portal installed? [" + isCompanyPortalInstalled + "]", null);
-
-        final boolean isMicrosoftAuthenticatorInstalled = PackageHelper.isMicrosoftAuthenticatorInstalled(mContext.getPackageManager());
-        Logger.i(TAG, "Is Microsoft Authenticator installed? [" +isMicrosoftAuthenticatorInstalled + "]", null);
-
-        if (null != brokerEvent) {
-            brokerEvent.setCompanyPortalInstalled(isCompanyPortalInstalled);
-            brokerEvent.setMicrosoftAuthenticatorInstalled(isMicrosoftAuthenticatorInstalled);
+    private void setBrokerInstallationStatuses(final BrokerEvent brokerEvent) {
+        if (null == brokerEvent) {
+            return;
         }
+
+        final boolean isCompanyPortalInstalled = PackageHelper.isCompanyPortalInstalled(mContext.getPackageManager());
+        final boolean isMicrosoftAuthenticatorInstalled = PackageHelper.isMicrosoftAuthenticatorInstalled(mContext.getPackageManager());
+        brokerEvent.setCompanyPortalInstalled(isCompanyPortalInstalled);
+        brokerEvent.setMicrosoftAuthenticatorInstalled(isMicrosoftAuthenticatorInstalled);
     }
 
     private Bundle getAuthTokenFromAccountManager(final AuthenticationRequest request, final Bundle requestBundle) throws AuthenticationException {
@@ -607,7 +612,7 @@ class BrokerProxy implements IBrokerProxy {
     public Intent getIntentForBrokerActivity(final AuthenticationRequest request, final BrokerEvent brokerEvent)
             throws AuthenticationException {
         // populate BrokerEvent info re installed Brokers
-        setAndLogBrokerInstallationStatuses(brokerEvent);
+        setBrokerInstallationStatuses(brokerEvent);
 
         final Bundle requestBundle = getBrokerOptions(request);
         final Intent intent;
