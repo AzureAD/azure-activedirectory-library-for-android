@@ -65,7 +65,7 @@ public class Constants {
         ADFSV4("1b345377-6ae2-4a23-9c3d-efc35ef04eb9"),
         ADFSV3("a43f9949-a199-40e9-b342-2ac5596c84f2"),
         PING("6b748729-d940-4482-8724-5eb87a817a10"),
-        SHIBOLETH("d518483c-c15b-4a00-9f59-cff3ffc1077b");
+        SHIBBOLETH("d518483c-c15b-4a00-9f59-cff3ffc1077b");
 
         private final String text;
         ClientId(String s) {
