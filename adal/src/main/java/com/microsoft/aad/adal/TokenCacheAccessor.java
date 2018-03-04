@@ -23,6 +23,7 @@
 package com.microsoft.aad.adal;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
@@ -30,6 +31,7 @@ import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.cache.ADALOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
 import com.microsoft.identity.common.internal.cache.MSALOAuth2TokenCache;
+import com.microsoft.identity.common.internal.providers.microsoft.activedirectoryfederationservices.ActiveDirectoryFederationServices2012R2;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryOAuth2Configuration;
@@ -282,6 +284,11 @@ class TokenCacheAccessor {
             return;
         }
 
+        if(mUseCommonCache == true){
+            updateTokenCacheUsingCommonCache(resource, clientId, result);
+            return;
+        }
+
         if (result.getUserInfo() != null) {
             // update cache entry with displayableId
             if (!StringExtensions.isNullOrBlank(result.getUserInfo().getDisplayableId())) {
@@ -303,6 +310,11 @@ class TokenCacheAccessor {
 
         //prepare request state for transfer to common cache
         //TODO: Need to detect whether this is an AAD, ADFS or other IDP... so that we create the correct objects
+        if(result.getUserInfo() == null){
+            //ADFS 2012R2 it seems
+            Logger.v(TAG + "updateTokenCacheUsingCommonCache", "UserInfo is null... i guess this is ADFS 2012 R2");
+        }
+
         AzureActiveDirectory ad = new AzureActiveDirectory();
         AzureActiveDirectoryTokenResponse tokenResponse = CoreAdapter.asAadTokenResponse(result);
         AzureActiveDirectoryOAuth2Configuration config = new AzureActiveDirectoryOAuth2Configuration();
