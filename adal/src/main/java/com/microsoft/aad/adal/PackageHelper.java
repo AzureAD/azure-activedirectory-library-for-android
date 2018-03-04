@@ -35,6 +35,7 @@ import android.util.Base64;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
@@ -52,7 +53,7 @@ class PackageHelper {
 
     /**
      * Creates helper to check caller info.
-     * 
+     *
      * @param ctx The android app/activity context
      */
     public PackageHelper(Context ctx) {
@@ -62,7 +63,7 @@ class PackageHelper {
 
     /**
      * Reads first signature in the list for given package name.
-     * 
+     *
      * @param packagename name of the package for which signature should be returned
      * @return signature for package
      */
@@ -91,7 +92,7 @@ class PackageHelper {
 
     /**
      * Gets the kernel user-ID that has been assigned to this application.
-     * 
+     *
      * @param packageName for which the user id has to be returned
      * @return UID user id
      */
@@ -111,8 +112,9 @@ class PackageHelper {
 
     /**
      * Gets redirect uri for broker.
-     * @param packageName   application package name
-     * @param signatureDigest   application signature 
+     *
+     * @param packageName     application package name
+     * @param signatureDigest application signature
      * @return broker redirect url
      */
     public static String getBrokerRedirectUrl(final String packageName, final String signatureDigest) {

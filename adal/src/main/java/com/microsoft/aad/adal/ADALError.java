@@ -56,7 +56,6 @@ public enum ADALError {
     /**
      * Async tasks can only be executed one time. They are not supposed to be
      * reused.
-     *
      */
     DEVELOPER_ASYNC_TASK_REUSED(
             com.microsoft.identity.common.adal.error.ADALError.DEVELOPER_ASYNC_TASK_REUSED),
@@ -530,7 +529,7 @@ public enum ADALError {
     RESOURCE_AUTHENTICATION_CHALLENGE_FAILURE(com.microsoft.identity.common.adal.error.ADALError.RESOURCE_AUTHENTICATION_CHALLENGE_FAILURE),
 
     /**
-     * The token cache item is invalid, cannot use it to create cachekey. 
+     * The token cache item is invalid, cannot use it to create cachekey.
      */
     INVALID_TOKEN_CACHE_ITEM(com.microsoft.identity.common.adal.error.ADALError.INVALID_TOKEN_CACHE_ITEM),
 
@@ -575,7 +574,7 @@ public enum ADALError {
     DRS_DISCOVERY_FAILED_UNKNOWN_HOST(com.microsoft.identity.common.adal.error.ADALError.DRS_DISCOVERY_FAILED_UNKNOWN_HOST),
 
     /**
-     *  Broker is not installed. The process is kicked off to to install broker but ADAL cannot wait for it to finish.
+     * Broker is not installed. The process is kicked off to to install broker but ADAL cannot wait for it to finish.
      */
     BROKER_APP_INSTALLATION_STARTED(com.microsoft.identity.common.adal.error.ADALError.BROKER_APP_INSTALLATION_STARTED),
 
@@ -600,9 +599,9 @@ public enum ADALError {
         mCommonADALError = error;
     }
 
-    public static ADALError fromCommon(com.microsoft.identity.common.adal.error.ADALError error){
-        for(ADALError err : ADALError.values()){
-            if(err.mCommonADALError.equals(error)){
+    public static ADALError fromCommon(com.microsoft.identity.common.adal.error.ADALError error) {
+        for (ADALError err : ADALError.values()) {
+            if (err.mCommonADALError.equals(error)) {
                 return err;
             }
         }

@@ -23,16 +23,15 @@
 
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
-
 import android.content.Context;
+
+import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import org.json.JSONException;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * ADAL exception.
@@ -57,7 +56,7 @@ public class AuthenticationException extends Exception {
 
     /**
      * Constructs a new AuthenticationException with error code.
-     * 
+     *
      * @param code {@link ADALError}
      */
     public AuthenticationException(ADALError code) {
@@ -65,10 +64,10 @@ public class AuthenticationException extends Exception {
     }
 
     /**
-     * @param code Resource file related error code. Message will be derived
-     *            from resource with using app context
+     * @param code    Resource file related error code. Message will be derived
+     *                from resource with using app context
      * @param details Details related to the error such as query string, request
-     *            info
+     *                info
      */
     public AuthenticationException(ADALError code, String details) {
         super(details);
@@ -76,10 +75,10 @@ public class AuthenticationException extends Exception {
     }
 
     /**
-     * @param code Resource file related error code. Message will be derived
-     *            from resource with using app context
-     * @param details Details related to the error such as query string, request
-     *            info
+     * @param code      Resource file related error code. Message will be derived
+     *                  from resource with using app context
+     * @param details   Details related to the error such as query string, request
+     *                  info
      * @param throwable {@link Throwable}
      */
     public AuthenticationException(ADALError code, String details, Throwable throwable) {
@@ -104,9 +103,9 @@ public class AuthenticationException extends Exception {
     }
 
     /**
-     * @param code Resource file related error code. Message will be derived
-     *            from resource using app context
-     * @param details Details related to the error such as query string, request info.
+     * @param code     Resource file related error code. Message will be derived
+     *                 from resource using app context
+     * @param details  Details related to the error such as query string, request info.
      * @param response HTTP web response
      */
     public AuthenticationException(ADALError code, String details, HttpWebResponse response) {
@@ -116,10 +115,10 @@ public class AuthenticationException extends Exception {
     }
 
     /**
-     * @param code Resource file related error code. Message will be derived
-     *            from resource using app context
-     * @param details Details related to the error such as query string, request info.
-     * @param response HTTP web response
+     * @param code      Resource file related error code. Message will be derived
+     *                  from resource using app context
+     * @param details   Details related to the error such as query string, request info.
+     * @param response  HTTP web response
      * @param throwable {@link Throwable}
      */
     public AuthenticationException(ADALError code, String details, HttpWebResponse response,
@@ -130,7 +129,7 @@ public class AuthenticationException extends Exception {
 
     /**
      * Gets {@link ADALError} code.
-     * 
+     *
      * @return {@link ADALError} code
      */
     public ADALError getCode() {
@@ -211,7 +210,7 @@ public class AuthenticationException extends Exception {
 
     /**
      * Gets localized {@link ADALError} code if provided by context.
-     * 
+     *
      * @param context {@link Context}
      * @return Error message
      */

@@ -34,6 +34,7 @@ package com.microsoft.aad.adal;
 
 import android.os.Build;
 import android.os.Process;
+
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -67,13 +68,15 @@ final class PRNGFixes {
 
     private static final String TAG = "PRNGFixes";
 
-    /** Hidden constructor to prevent instantiation. */
+    /**
+     * Hidden constructor to prevent instantiation.
+     */
     private PRNGFixes() {
     }
 
     /**
      * Applies OpenSSL fix and installs LinuxPRNGSecureRandom.
-     * 
+     *
      * @throws SecurityException if a fix is needed but could not be applied.
      */
     public static void apply() {
@@ -84,7 +87,7 @@ final class PRNGFixes {
     /**
      * Applies the fix for OpenSSL PRNG having low entropy. Does nothing if the
      * fix is not needed.
-     * 
+     *
      * @throws SecurityException if the fix is needed but could not be applied.
      */
     private static void applyOpenSSLFix() throws SecurityException {
@@ -118,7 +121,7 @@ final class PRNGFixes {
      * Installs a Linux PRNG-backed {@code SecureRandom} implementation as the
      * default. Does nothing if the implementation is already the default or if
      * there is not need to install the implementation.
-     * 
+     *
      * @throws SecurityException if the fix is needed but could not be applied.
      */
     private static void installLinuxPRNGSecureRandom() throws SecurityException {
@@ -137,14 +140,14 @@ final class PRNGFixes {
             Logger.v(TAG + methodName, "Insert provider as LinuxPRNGSecureRandomProvider.");
             Security.insertProviderAt(new LinuxPRNGSecureRandomProvider(), 1);
         }
-        
+
         // Log info about providers
         // Different libraries could apply same prng fixes with different namespace
         SecureRandom rng1 = new SecureRandom();
         Logger.i(TAG + methodName,
                 "LinuxPRNGSecureRandomProvider for SecureRandom. ",
                 "Provider: " + rng1.getProvider().getClass().getName());
-        
+
         SecureRandom rng2;
         try {
             rng2 = SecureRandom.getInstance("SHA1PRNG");
@@ -199,7 +202,7 @@ final class PRNGFixes {
         /**
          * Input stream for reading from Linux PRNG or {@code null} if not yet
          * opened.
-         * 
+         * <p>
          * GuardedBy("SLOCK")
          */
         private static DataInputStream sUrandomIn;
@@ -207,7 +210,7 @@ final class PRNGFixes {
         /**
          * Output stream for writing to Linux PRNG or {@code null} if not yet
          * opened.
-         * 
+         * <p>
          * GuardedBy("SLOCK")
          */
         private static OutputStream sUrandomOut;
@@ -324,7 +327,7 @@ final class PRNGFixes {
 
     /**
      * Gets the hardware serial number of this device.
-     * 
+     *
      * @return serial number or {@code null} if not available.
      */
     private static String getDeviceSerialNumber() {

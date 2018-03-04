@@ -39,7 +39,7 @@ public class AuthenticationCancelError extends AuthenticationException {
 
     /**
      * Constructs a new AuthenticationCancelError with message.
-     * 
+     *
      * @param msg Message for cancel request
      */
     public AuthenticationCancelError(String msg) {

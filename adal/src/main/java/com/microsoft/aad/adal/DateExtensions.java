@@ -28,8 +28,9 @@ final class DateExtensions {
     /**
      * Private constructor to prevent the class from being initiated.
      */
-    private DateExtensions() { }
-    
+    private DateExtensions() {
+    }
+
     /**
      * Create a copy of a date
      * to avoid exposing the internal references.

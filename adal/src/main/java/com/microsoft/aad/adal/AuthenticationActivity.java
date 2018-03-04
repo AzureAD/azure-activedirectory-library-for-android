@@ -212,7 +212,7 @@ public class AuthenticationActivity extends Activity {
             mWebView.setLayerType(WebView.LAYER_TYPE_SOFTWARE, null);
             Logger.d(TAG + methodName, "Hardware acceleration is disabled in WebView");
         }
-        
+
         mStartUrl = "about:blank";
         try {
             Oauth2 oauth = new Oauth2(mAuthRequest);
@@ -274,17 +274,17 @@ public class AuthenticationActivity extends Activity {
             }
 
             Logger.v(TAG + methodName, "", "Broker redirectUrl: " + mRedirectUrl + " The calling package is: " + mCallingPackage
-                    + " Signature hash for calling package is: " + signatureDigest + " Current context package: " 
+                    + " Signature hash for calling package is: " + signatureDigest + " Current context package: "
                     + getPackageName() + " Start url: " + mStartUrl, null);
         } else {
-            Logger.v(TAG + methodName, "Non-broker request for package " + getCallingPackage(), 
+            Logger.v(TAG + methodName, "Non-broker request for package " + getCallingPackage(),
                     " Start url: " + mStartUrl, null);
         }
 
         mRegisterReceiver = false;
         final String postUrl = mStartUrl;
         Logger.i(TAG + methodName, "Device info:" + android.os.Build.VERSION.RELEASE + " " + android.os.Build.MANUFACTURER
-                        + android.os.Build.MODEL, "");
+                + android.os.Build.MODEL, "");
 
         mStorageHelper = new StorageHelper(getApplicationContext());
         setupWebView();
@@ -481,7 +481,7 @@ public class AuthenticationActivity extends Activity {
      * Activity sets result to go back to the caller.
      *
      * @param resultCode result code to be returned to the called
-     * @param data intent to be returned to the caller
+     * @param data       intent to be returned to the caller
      */
     private void returnToCaller(int resultCode, Intent data) {
         final String methodName = ":returnToCaller";
@@ -586,7 +586,7 @@ public class AuthenticationActivity extends Activity {
 
         returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
     }
-    
+
     private void prepareForBrokerResume() {
         final String methodName = ":prepareForBrokerResume";
         Logger.v(TAG + methodName, "Return to caller with BROKER_REQUEST_RESUME, and waiting for result.");

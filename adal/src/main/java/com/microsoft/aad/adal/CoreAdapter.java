@@ -68,7 +68,7 @@ final class CoreAdapter {
 
     }
 
-    public static com.microsoft.aad.adal.AuthenticationException asAuthenticationException(com.microsoft.identity.common.adal.error.AuthenticationException ex){
+    public static com.microsoft.aad.adal.AuthenticationException asAuthenticationException(com.microsoft.identity.common.adal.error.AuthenticationException ex) {
         com.microsoft.aad.adal.AuthenticationException newException = new com.microsoft.aad.adal.AuthenticationException(ADALError.fromCommon(ex.getCode()), ex.getMessage(), ex);
         newException.setHttpResponseBody(ex.getHttpResponseBody());
         newException.setHttpResponseHeaders(ex.getHttpResponseHeaders());
@@ -77,7 +77,7 @@ final class CoreAdapter {
     }
 
 
-    public static AzureActiveDirectoryCloud asAadCloud(final InstanceDiscoveryMetadata cloud){
+    public static AzureActiveDirectoryCloud asAadCloud(final InstanceDiscoveryMetadata cloud) {
         final AzureActiveDirectoryCloud adCloud = new AzureActiveDirectoryCloud(cloud.getPreferredNetwork(), cloud.getPreferredCache(), cloud.getAliases());
         return adCloud;
     }

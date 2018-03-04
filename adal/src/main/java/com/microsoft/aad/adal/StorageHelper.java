@@ -66,18 +66,18 @@ import javax.security.auth.x500.X500Principal;
  * Shared preferences store clear text. This class helps to encrypt/decrypt text
  * to store. API SDK >= 18 has more security with AndroidKeyStore.
  * Note: {@link StorageHelper} is designed for the ADAL internal encryption/decryption.
- * Don't take dependency on it for external use. 
+ * Don't take dependency on it for external use.
  */
 public class StorageHelper {
     private static final String TAG = "StorageHelper";
-    
+
     /**
      * HMac key hashing algorithm.
      */
     private static final String HMAC_KEY_HASH_ALGORITHM = "SHA256";
 
     /**
-     * Cert alias persisting the keypair in AndroidKeyStore. 
+     * Cert alias persisting the keypair in AndroidKeyStore.
      */
     private static final String KEY_STORE_CERT_ALIAS = "AdalKey";
 
@@ -133,7 +133,7 @@ public class StorageHelper {
      * To keep track of encoding version and related flags.
      */
     private static final String ENCODE_VERSION = "E1";
-    
+
     private static final int KEY_FILE_SIZE = 1024;
 
     private static final String ANDROID_KEY_STORE = "AndroidKeyStore";
@@ -142,7 +142,7 @@ public class StorageHelper {
     private final SecureRandom mRandom;
 
     /**
-     * Public and private keys that are generated in AndroidKeyStore. 
+     * Public and private keys that are generated in AndroidKeyStore.
      */
     private KeyPair mKeyPair;
     private String mBlobVersion;
@@ -152,6 +152,7 @@ public class StorageHelper {
 
     /**
      * Constructor for {@link StorageHelper}.
+     *
      * @param context The {@link Context} to create {@link StorageHelper}.
      */
     public StorageHelper(Context context) {
@@ -162,10 +163,10 @@ public class StorageHelper {
     /**
      * Encrypt text with current key based on API level.
      *
-     * @param clearText Clear text to encrypt. 
+     * @param clearText Clear text to encrypt.
      * @return Encrypted blob.
      * @throws GeneralSecurityException for key related exceptions.
-     * @throws IOException For general IO related exceptions.
+     * @throws IOException              For general IO related exceptions.
      */
     public String encrypt(final String clearText)
             throws GeneralSecurityException, IOException {
@@ -179,7 +180,7 @@ public class StorageHelper {
         // load key for encryption if not loaded
         mKey = loadSecretKeyForEncryption();
         mHMACKey = getHMacKey(mKey);
-        
+
         Logger.i(TAG + methodName, "", "Encrypt version:" + mBlobVersion);
         final byte[] blobVersion = mBlobVersion.getBytes(AuthenticationConstants.ENCODING_UTF8);
         final byte[] bytes = clearText.getBytes(AuthenticationConstants.ENCODING_UTF8);
@@ -224,11 +225,12 @@ public class StorageHelper {
     }
 
     /**
-     * Decrypt encrypted blob with either user provided key or key persisted in AndroidKeyStore. 
+     * Decrypt encrypted blob with either user provided key or key persisted in AndroidKeyStore.
+     *
      * @param encryptedBlob The blob to decrypt
      * @return Decrypted clear text.
      * @throws GeneralSecurityException for key related exceptions.
-     * @throws IOException For general IO related exceptions.
+     * @throws IOException              For general IO related exceptions.
      */
     public String decrypt(final String encryptedBlob)
             throws GeneralSecurityException, IOException {
@@ -331,10 +333,12 @@ public class StorageHelper {
         mBlobVersion = defaultBlobVersion;
         return getKeyOrCreate(mBlobVersion);
     }
+
     /**
      * For API <18 or user provide the key, will return the user supplied key.
      * Supported API >= 18 PrivateKey is stored in AndroidKeyStore. Loads key
      * from the file if it exists. If not exist, it will generate one.
+     *
      * @param keyVersion The key type of the keys used to encrypt data, could be user provided key
      *                   or key persisted in the keystore.
      * @return The {@link SecretKey} used to encrypt data.
@@ -357,7 +361,7 @@ public class StorageHelper {
         if (mSecretKeyFromAndroidKeyStore == null) {
             // If encountering exception for reading keys, try to generate new keys
             mKeyPair = generateKeyPairFromAndroidKeyStore();
-            
+
             // Also generate new secretkey
             mSecretKeyFromAndroidKeyStore = generateSecretKey();
             final byte[] keyWrapped = wrap(mSecretKeyFromAndroidKeyStore);
@@ -368,7 +372,8 @@ public class StorageHelper {
     }
 
     /**
-     * Get the saved key. Will only do read operation. 
+     * Get the saved key. Will only do read operation.
+     *
      * @param keyVersion whether the key is user defined or in Android key store
      * @return SecretKey
      * @throws GeneralSecurityException
@@ -376,21 +381,21 @@ public class StorageHelper {
      */
     private synchronized SecretKey getKey(final String keyVersion) throws GeneralSecurityException, IOException {
         switch (keyVersion) {
-        case VERSION_USER_DEFINED : 
-            return getSecretKey(AuthenticationSettings.INSTANCE.getSecretKeyData());
-        case VERSION_ANDROID_KEY_STORE :
+            case VERSION_USER_DEFINED:
+                return getSecretKey(AuthenticationSettings.INSTANCE.getSecretKeyData());
+            case VERSION_ANDROID_KEY_STORE:
 
-            if (mSecretKeyFromAndroidKeyStore != null) {
+                if (mSecretKeyFromAndroidKeyStore != null) {
+                    return mSecretKeyFromAndroidKeyStore;
+                }
+                // androidKeyStore can store app specific self signed cert.
+                // Asymmetric cryptography is used to protect the session key
+                // used for Encryption and HMac
+                mKeyPair = readKeyPair();
+                mSecretKeyFromAndroidKeyStore = getUnwrappedSecretKey();
                 return mSecretKeyFromAndroidKeyStore;
-            }
-            // androidKeyStore can store app specific self signed cert.
-            // Asymmetric cryptography is used to protect the session key
-            // used for Encryption and HMac
-            mKeyPair = readKeyPair();
-            mSecretKeyFromAndroidKeyStore = getUnwrappedSecretKey();
-            return mSecretKeyFromAndroidKeyStore;
-        default :
-            throw new IOException("Unknown keyVersion.");
+            default:
+                throw new IOException("Unknown keyVersion.");
         }
     }
 
@@ -429,7 +434,7 @@ public class StorageHelper {
     }
 
     /**
-     * Read KeyPair from AndroidKeyStore. 
+     * Read KeyPair from AndroidKeyStore.
      */
     private synchronized KeyPair readKeyPair() throws GeneralSecurityException, IOException {
         final String methodName = ":readKeyPair";
@@ -454,17 +459,17 @@ public class StorageHelper {
             // handle it as regular KeyStoreException
             throw new KeyStoreException(e);
         }
-        
+
         return new KeyPair(entry.getCertificate().getPublicKey(), entry.getPrivateKey());
     }
-    
+
     /**
-     * Check if KeyPair exists on AndroidKeyStore. 
+     * Check if KeyPair exists on AndroidKeyStore.
      */
     private synchronized boolean doesKeyPairExist() throws GeneralSecurityException, IOException {
         final KeyStore keyStore = KeyStore.getInstance(ANDROID_KEY_STORE);
         keyStore.load(null);
-        
+
         final boolean isKeyStoreCertAliasExisted;
         try {
             isKeyStoreCertAliasExisted = keyStore.containsAlias(KEY_STORE_CERT_ALIAS);
@@ -480,7 +485,7 @@ public class StorageHelper {
             // To avoid app from crashing, re-throw as checked exception
             throw new KeyStoreException(exception);
         }
-        
+
         return isKeyStoreCertAliasExisted;
     }
 
@@ -507,7 +512,7 @@ public class StorageHelper {
 
     /**
      * Derive HMAC key from given key.
-     * 
+     *
      * @param key SecretKey from which HMAC key has to be derived
      * @return SecretKey
      * @throws NoSuchAlgorithmException
@@ -519,7 +524,7 @@ public class StorageHelper {
             final MessageDigest digester = MessageDigest.getInstance(HMAC_KEY_HASH_ALGORITHM);
             return new SecretKeySpec(digester.digest(encodedKey), KEYSPEC_ALGORITHM);
         }
- 
+
         return key;
     }
 
@@ -547,7 +552,7 @@ public class StorageHelper {
 
     /**
      * generate secretKey to store after wrapping with KeyStore.
-     * 
+     *
      * @return SecretKey
      * @throws NoSuchAlgorithmException
      */
@@ -579,7 +584,7 @@ public class StorageHelper {
             Logger.v(TAG + methodName, "Removed previous key pair info.");
             throw ex;
         }
-        
+
         return unwrappedSecretKey;
     }
 
@@ -652,7 +657,7 @@ public class StorageHelper {
         if (!keyFile.exists()) {
             throw new IOException("Key file to read does not exist");
         }
-        
+
         Logger.v(TAG, "Reading key data from a file");
         final InputStream in = new FileInputStream(keyFile);
         try {
@@ -668,5 +673,5 @@ public class StorageHelper {
             in.close();
         }
     }
-    
+
 }
