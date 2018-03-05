@@ -51,6 +51,9 @@ import java.security.SecureRandom;
 import java.security.SecureRandomSpi;
 import java.security.Security;
 
+import android.os.Build;
+import android.os.Process;
+
 /**
  * SecureRandm related fixed from Android developer site. The fixes need to be
  * applied before any use of Java Cryptography Architecture primitives. A good
@@ -96,6 +99,8 @@ final class PRNGFixes {
             Logger.v(TAG + methodName, "No need to apply the OpenSSL fix.");
             return;
         }
+
+        Logger.v(TAG, "Applying PRNG fix.");
         try {
             // Mix in the device- and invocation-specific seed.
             Class.forName("org.apache.harmony.xnet.provider.jsse.NativeCrypto")
@@ -129,6 +134,8 @@ final class PRNGFixes {
             Logger.v(TAG + methodName, "No need to apply the fix.");
             return;
         }
+
+        Logger.v(TAG, "Applying PRNG fix.");
         // Install a Linux PRNG-based SecureRandom implementation as the
         // default, if not yet installed.
         Provider[] secureRandomProviders = Security.getProviders("SecureRandom.SHA1PRNG");
@@ -165,7 +172,7 @@ final class PRNGFixes {
     private static class LinuxPRNGSecureRandomProvider extends Provider {
         private static final long serialVersionUID = 1L;
 
-        LinuxPRNGSecureRandomProvider() {
+        public LinuxPRNGSecureRandomProvider() {
             super("LinuxPRNG", 1.0, "A Linux-specific random number provider that uses"
                     + " /dev/urandom");
             // Although /dev/urandom is not a SHA-1 PRNG, some apps
@@ -224,7 +231,9 @@ final class PRNGFixes {
         protected void engineSetSeed(byte[] bytes) {
             OutputStream out = null;
             try {
-                out = getUrandomOutputStream();
+                synchronized (SLOCK) {
+                    out = getUrandomOutputStream();
+                }
                 out.write(bytes);
                 out.flush();
             } catch (IOException e) {
@@ -251,8 +260,8 @@ final class PRNGFixes {
             }
             DataInputStream in = null;
             try {
-                in = getUrandomInputStream();
                 synchronized (SLOCK) {
+				    in = getUrandomInputStream();
                     in.readFully(bytes);
                 }
             } catch (IOException e) {

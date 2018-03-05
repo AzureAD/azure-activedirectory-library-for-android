@@ -28,6 +28,7 @@ import android.util.Log;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -350,6 +351,16 @@ public class Logger {
     }
 
     /**
+     * Logs error message.
+     *
+     * @param tag Tag for the log
+     * @param message Message to add to the log
+     */
+    public static void e(String tag, String message) {
+        Logger.getInstance().log(tag, message, null, LogLevel.Error, null, null);
+    }
+
+    /**
      * Sets the correlation id for the logger.
      *
      * @param correlation Correlation ID to be used
@@ -371,7 +382,7 @@ public class Logger {
 
     @SuppressLint("SimpleDateFormat")
     private static String getUTCDateTimeAsString() {
-        final SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
+        final SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT, Locale.US);
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         final String utcTime = dateFormat.format(new Date());
 
