@@ -36,7 +36,6 @@ import android.view.View;
 import android.webkit.WebView;
 import android.widget.ProgressBar;
 
-import com.microsoft.identity.common.adal.error.ADALError;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 
 import java.io.UnsupportedEncodingException;
@@ -60,7 +59,7 @@ class AuthenticationDialog {
     private WebView mWebView;
 
     public AuthenticationDialog(Handler handler, Context context, final AcquireTokenRequest acquireTokenRequest,
-            AuthenticationRequest request) {
+                                AuthenticationRequest request) {
         mHandlerInView = handler;
         mContext = context;
         mAcquireTokenRequest = acquireTokenRequest;
@@ -197,7 +196,7 @@ class AuthenticationDialog {
     class DialogWebViewClient extends BasicWebViewClient {
 
         public DialogWebViewClient(Context ctx, String stopRedirect,
-                AuthenticationRequest request) {
+                                   AuthenticationRequest request) {
             super(ctx, stopRedirect, request, null);
         }
 

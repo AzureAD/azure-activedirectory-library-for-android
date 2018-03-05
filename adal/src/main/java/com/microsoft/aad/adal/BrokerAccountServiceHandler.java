@@ -32,8 +32,6 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.RemoteException;
 
-import com.microsoft.identity.common.adal.error.ADALError;
-import com.microsoft.identity.common.adal.error.AuthenticationException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 
 import java.io.IOException;
@@ -69,10 +67,12 @@ final class BrokerAccountServiceHandler {
     /**
      * Private constructor to prevent class from being instantiate.
      */
-    private BrokerAccountServiceHandler() { }
+    private BrokerAccountServiceHandler() {
+    }
 
     /**
      * Get Broker users is a blocking call, cannot be executed on the main thread.
+     *
      * @return An array of {@link UserInfo}s in the broker. If no user exists in the broker, empty array will be returned.
      */
     UserInfo[] getBrokerUsers(final Context context) throws IOException {
@@ -117,7 +117,8 @@ final class BrokerAccountServiceHandler {
 
     /**
      * Silently acquire the token from BrokerAccountService.
-     * @param context The application {@link Context}.
+     *
+     * @param context       The application {@link Context}.
      * @param requestBundle The request data for the silent request.
      * @return The {@link Bundle} result from the BrokerAccountService.
      * @throws {@link AuthenticationException} if failed to get token from the service.
@@ -174,6 +175,7 @@ final class BrokerAccountServiceHandler {
 
     /**
      * Get the intent for launching the interactive request with broker.
+     *
      * @param context The application {@link Context}.
      * @return The {@link Intent} to launch the interactive request.
      */
@@ -237,6 +239,7 @@ final class BrokerAccountServiceHandler {
 
     /**
      * Removing all the accounts from broker.
+     *
      * @param context The application {@link Context}.
      */
     public void removeAccounts(final Context context) {
@@ -295,7 +298,7 @@ final class BrokerAccountServiceHandler {
     private UserInfo[] convertUserInfoBundleToArray(final Bundle usersBundle) {
         if (usersBundle == null) {
             Logger.v(TAG, "No user info returned from broker account service.");
-            return new UserInfo[] {};
+            return new UserInfo[]{};
         }
 
         final ArrayList<UserInfo> brokerUsers = new ArrayList<>();

@@ -28,8 +28,8 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.SdkSuppress;
 import android.support.test.runner.AndroidJUnit4;
 
-import com.microsoft.identity.common.adal.error.ADALError;
-import com.microsoft.identity.common.adal.error.AuthenticationException;
+
+
 import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
 
 import org.json.JSONException;

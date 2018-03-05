@@ -26,7 +26,6 @@ package com.microsoft.aad.adal;
 import android.content.Context;
 import android.os.Handler;
 
-import com.microsoft.identity.common.adal.error.ADALError;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
 import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;

@@ -32,10 +32,7 @@ import android.os.HandlerThread;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.microsoft.identity.common.adal.error.ADALError;
-import com.microsoft.identity.common.adal.error.AuthenticationException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.adal.internal.net.HttpWebRequest;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.io.Serializable;
@@ -307,13 +304,13 @@ class AcquireTokenRequest {
 
     /**
      * 1. For Silent flow, we should always try to look local cache first.
-     *    i> If valid AT is returned from cache, use it.
-     *    ii> If no valid AT is returned, but RT is returned, use the RT.
-     *    iii> If RT request fails, and if we can talk to broker, go to broker and check if there is a valid token.
+     * i> If valid AT is returned from cache, use it.
+     * ii> If no valid AT is returned, but RT is returned, use the RT.
+     * iii> If RT request fails, and if we can talk to broker, go to broker and check if there is a valid token.
      * 2. For Non-Silent flow.
-     *    i> Do silent cache lookup first, same as 1.
-     *       a) If we can talk to broker, go to broker for auth.
-     *       b) If not, launch webview with embedded flow.
+     * i> Do silent cache lookup first, same as 1.
+     * a) If we can talk to broker, go to broker for auth.
+     * b) If not, launch webview with embedded flow.
      * If silent request succeeds, we'll return the token back via callback.
      * If silent request fails and no prompt is allowed, we'll return the exception back via callback.
      * If silent request fails and prompt is allowed, we'll prompt the user and launch webview.
@@ -392,8 +389,8 @@ class AcquireTokenRequest {
         return authenticationResult;
     }
 
-    private void addHttpInfoToException(AuthenticationResult result, AuthenticationException exception){
-        if(result != null && exception != null) {
+    private void addHttpInfoToException(AuthenticationResult result, AuthenticationException exception) {
+        if (result != null && exception != null) {
             if (result.getHttpResponseHeaders() != null) {
                 exception.setHttpResponseHeaders(result.getHttpResponseHeaders());
             }
@@ -433,8 +430,8 @@ class AcquireTokenRequest {
         } else if (switchToBrokerFlag == BrokerProxy.SwitchToBroker.NEED_PERMISSIONS_TO_SWITCH_TO_BROKER) {
             //For android M and above
             throw new UsageAuthenticationException(
-                        ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,
-                        "Broker related permissions are missing for GET_ACCOUNTS");
+                    ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,
+                    "Broker related permissions are missing for GET_ACCOUNTS");
         }
 
         // If we can try with broker for silent flow, it indicates ADAL can switch to broker for auth. Even broker does

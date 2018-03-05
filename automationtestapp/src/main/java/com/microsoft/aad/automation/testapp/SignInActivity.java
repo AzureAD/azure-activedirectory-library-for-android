@@ -41,8 +41,7 @@ import com.microsoft.aad.adal.ITokenCacheStore;
 import com.microsoft.aad.adal.PromptBehavior;
 import com.microsoft.aad.adal.TokenCacheItem;
 import com.microsoft.aad.adal.UserInfo;
-import com.microsoft.identity.common.adal.error.AuthenticationException;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.aad.adal.AuthenticationException;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -350,8 +349,8 @@ public class SignInActivity extends AppCompatActivity {
 
         int count  = 0;
         // invalidate FRT
-        count += invalidateRefreshToken(CacheKey.createCacheKeyForFRT(mAuthority, AuthenticationConstants.MS_FAMILY_ID, mUserId));
-        count += invalidateRefreshToken(CacheKey.createCacheKeyForFRT(mAuthority, AuthenticationConstants.MS_FAMILY_ID, mLoginHint));
+        count += invalidateRefreshToken(CacheKey.createCacheKeyForFRT(mAuthority, "1", mUserId));
+        count += invalidateRefreshToken(CacheKey.createCacheKeyForFRT(mAuthority, "1", mLoginHint));
 
         return count;
     }

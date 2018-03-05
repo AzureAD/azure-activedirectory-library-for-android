@@ -44,8 +44,6 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Base64;
 
-import com.microsoft.identity.common.adal.error.ADALError;
-import com.microsoft.identity.common.adal.error.AuthenticationException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
@@ -281,7 +279,7 @@ class BrokerProxy implements IBrokerProxy {
         if (looper != null && looper == mContext.getMainLooper()) {
             final IllegalStateException exception = new IllegalStateException(
                     "calling this from your main thread can lead to deadlock");
-            Logger.e(TAG , "calling this from your main thread can lead to deadlock and/or ANRs", "",
+            Logger.e(TAG, "calling this from your main thread can lead to deadlock and/or ANRs", "",
                     ADALError.DEVELOPER_CALLING_ON_MAIN_THREAD, exception);
             if (mContext.getApplicationInfo().targetSdkVersion >= Build.VERSION_CODES.FROYO) {
                 throw exception;
@@ -491,13 +489,13 @@ class BrokerProxy implements IBrokerProxy {
             final Serializable responseBody = bundleResult.getSerializable(AuthenticationConstants.OAuth2.HTTP_RESPONSE_BODY);
             final Serializable responseHeaders = bundleResult.getSerializable(AuthenticationConstants.OAuth2.HTTP_RESPONSE_HEADER);
             if (null != responseBody && responseBody instanceof HashMap) {
-                exception.setHttpResponseBody((HashMap<String, String>)responseBody);
+                exception.setHttpResponseBody((HashMap<String, String>) responseBody);
             }
 
             if (null != responseHeaders && responseHeaders instanceof HashMap) {
-                exception.setHttpResponseHeaders((HashMap<String, List<String>>)responseHeaders);
+                exception.setHttpResponseHeaders((HashMap<String, List<String>>) responseHeaders);
             }
-            
+
             exception.setServiceStatusCode(bundleResult.getInt(AuthenticationConstants.OAuth2.HTTP_STATUS_CODE));
             throw exception;
         } else {

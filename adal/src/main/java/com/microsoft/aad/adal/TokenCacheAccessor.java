@@ -25,8 +25,6 @@ package com.microsoft.aad.adal;
 import android.content.Context;
 
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
-import com.microsoft.identity.common.adal.error.ADALError;
-import com.microsoft.identity.common.adal.error.AuthenticationException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.cache.ADALOAuth2TokenCache;
@@ -39,14 +37,11 @@ import com.microsoft.identity.common.internal.providers.microsoft.azureactivedir
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
 
 import static com.microsoft.aad.adal.TokenEntryType.FRT_TOKEN_ENTRY;
 import static com.microsoft.aad.adal.TokenEntryType.MRRT_TOKEN_ENTRY;
@@ -232,7 +227,7 @@ class TokenCacheAccessor {
             Logger.i(TAG + methodName, "The stale access token is returned.", "");
             return accessTokenItem;
         }
-        
+
         Logger.i(TAG + methodName, "The stale access token is not found.", "");
 
         return null;
@@ -245,7 +240,7 @@ class TokenCacheAccessor {
      * @throws IllegalArgumentException If {@link AuthenticationResult} is null.
      */
     void updateCachedItemWithResult(final String resource, final String clientId, final AuthenticationResult result,
-            final TokenCacheItem cachedItem) throws AuthenticationException {
+                                    final TokenCacheItem cachedItem) throws AuthenticationException {
         final String methodName = ":updateCachedItemWithResult";
         if (result == null) {
             Logger.v(TAG + methodName, "AuthenticationResult is null, cannot update cache.");
@@ -284,6 +279,11 @@ class TokenCacheAccessor {
             return;
         }
 
+        if (mUseCommonCache == true) {
+            updateTokenCacheUsingCommonCache(resource, clientId, result);
+            return;
+        }
+
         if (result.getUserInfo() != null) {
             // update cache entry with displayableId
             if (!StringExtensions.isNullOrBlank(result.getUserInfo().getDisplayableId())) {
@@ -305,6 +305,11 @@ class TokenCacheAccessor {
 
         //prepare request state for transfer to common cache
         //TODO: Need to detect whether this is an AAD, ADFS or other IDP... so that we create the correct objects
+        if (result.getUserInfo() == null) {
+            //ADFS 2012R2 it seems
+            Logger.v(TAG + "updateTokenCacheUsingCommonCache", "UserInfo is null... i guess this is ADFS 2012 R2");
+        }
+
         AzureActiveDirectory ad = new AzureActiveDirectory();
         AzureActiveDirectoryTokenResponse tokenResponse = CoreAdapter.asAadTokenResponse(result);
         AzureActiveDirectoryOAuth2Configuration config = new AzureActiveDirectoryOAuth2Configuration();
@@ -339,33 +344,33 @@ class TokenCacheAccessor {
         final TokenEntryType tokenEntryType = tokenCacheItem.getTokenEntryType();
         switch (tokenEntryType) {
 
-        case REGULAR_TOKEN_ENTRY :
-            cacheEvent.setTokenTypeRT(true);
-            Logger.v(TAG + methodName, "Regular RT was used to get access token, remove entries "
-                    + "for regular RT entries.");
-            keys = getKeyListToRemoveForRT(tokenCacheItem);
-            break;
-        case MRRT_TOKEN_ENTRY :
-            // We delete both MRRT and RT in this case.
-            cacheEvent.setTokenTypeMRRT(true);
-            Logger.v(TAG + methodName, "MRRT was used to get access token, remove entries for both "
-                    + "MRRT entries and regular RT entries.");
-            keys = getKeyListToRemoveForMRRT(tokenCacheItem);
-            
-            final TokenCacheItem regularRTItem = new TokenCacheItem(tokenCacheItem);
-            regularRTItem.setResource(resource);
-            keys.addAll(getKeyListToRemoveForRT(regularRTItem));
-            break;
-        case FRT_TOKEN_ENTRY :
-            cacheEvent.setTokenTypeFRT(true);
-            Logger.v(TAG + methodName, "FRT was used to get access token, remove entries for "
-                    + "FRT entries.");
-            keys = getKeyListToRemoveForFRT(tokenCacheItem);
-            break;
-        default : 
-            throw new AuthenticationException(ADALError.INVALID_TOKEN_CACHE_ITEM);
+            case REGULAR_TOKEN_ENTRY:
+                cacheEvent.setTokenTypeRT(true);
+                Logger.v(TAG + methodName, "Regular RT was used to get access token, remove entries "
+                        + "for regular RT entries.");
+                keys = getKeyListToRemoveForRT(tokenCacheItem);
+                break;
+            case MRRT_TOKEN_ENTRY:
+                // We delete both MRRT and RT in this case.
+                cacheEvent.setTokenTypeMRRT(true);
+                Logger.v(TAG + methodName, "MRRT was used to get access token, remove entries for both "
+                        + "MRRT entries and regular RT entries.");
+                keys = getKeyListToRemoveForMRRT(tokenCacheItem);
+
+                final TokenCacheItem regularRTItem = new TokenCacheItem(tokenCacheItem);
+                regularRTItem.setResource(resource);
+                keys.addAll(getKeyListToRemoveForRT(regularRTItem));
+                break;
+            case FRT_TOKEN_ENTRY:
+                cacheEvent.setTokenTypeFRT(true);
+                Logger.v(TAG + methodName, "FRT was used to get access token, remove entries for "
+                        + "FRT entries.");
+                keys = getKeyListToRemoveForFRT(tokenCacheItem);
+                break;
+            default:
+                throw new AuthenticationException(ADALError.INVALID_TOKEN_CACHE_ITEM);
         }
-        
+
         for (final String key : keys) {
             mTokenCacheStore.removeItem(key);
         }

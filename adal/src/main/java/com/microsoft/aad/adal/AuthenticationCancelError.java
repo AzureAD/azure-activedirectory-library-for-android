@@ -23,8 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.error.ADALError;
-import com.microsoft.identity.common.adal.error.AuthenticationException;
 
 /**
  * Cancellation error.
@@ -41,7 +39,7 @@ public class AuthenticationCancelError extends AuthenticationException {
 
     /**
      * Constructs a new AuthenticationCancelError with message.
-     * 
+     *
      * @param msg Message for cancel request
      */
     public AuthenticationCancelError(String msg) {

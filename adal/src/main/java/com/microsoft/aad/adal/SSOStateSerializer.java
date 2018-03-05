@@ -27,8 +27,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.annotations.SerializedName;
-import com.microsoft.identity.common.adal.error.ADALError;
-import com.microsoft.identity.common.adal.error.AuthenticationException;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -115,7 +113,7 @@ final class SSOStateSerializer {
 
     /**
      * Deserialize the serializedBlob.
-     *
+     * <p>
      * this function covers the details of the deserialization process
      *
      * @param serializedBlob String blob to convert to TokenCacheItem

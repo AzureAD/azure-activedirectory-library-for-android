@@ -24,8 +24,6 @@
 package com.microsoft.aad.adal;
 
 import com.google.gson.JsonSyntaxException;
-import com.microsoft.identity.common.adal.error.ADALError;
-import com.microsoft.identity.common.adal.error.AuthenticationException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 

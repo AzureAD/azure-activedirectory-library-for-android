@@ -25,7 +25,6 @@ package com.microsoft.aad.adal;
 
 import android.text.TextUtils;
 
-import com.microsoft.identity.common.adal.error.ADALError;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 
 import org.json.JSONArray;
@@ -47,9 +46,10 @@ final class HashMapExtensions {
     private HashMapExtensions() {
         // Intentionally left blank
     }
+
     /**
      * decode url string into a key value pairs with default query delimiter.
-     * 
+     *
      * @param parameters URL query parameter
      * @return key value pairs
      */
@@ -60,9 +60,9 @@ final class HashMapExtensions {
     /**
      * decode url string into a key value pairs with given query delimiter given
      * string as a=1&b=2 will return key value of [[a,1],[b,2]].
-     * 
+     *
      * @param parameters URL parameter to be decoded
-     * @param delimiter query delimiter
+     * @param delimiter  query delimiter
      * @return Map key value pairs
      */
     static HashMap<String, String> urlFormDecodeData(String parameters, String delimiter) {
@@ -103,10 +103,11 @@ final class HashMapExtensions {
 
         return result;
     }
-    
-    
+
+
     /**
      * get key value pairs from response.
+     *
      * @param webResponse HttpWebResponse to convert to a map
      * @return Map
      * @throws JSONException
@@ -126,6 +127,7 @@ final class HashMapExtensions {
 
     /**
      * Parse json String into HashMap<String, String>.
+     *
      * @param jsonString
      * @return HashMap<String, String>
      * @throws JSONException
@@ -146,6 +148,7 @@ final class HashMapExtensions {
 
     /**
      * Parse json String into HashMap<String, List<String>>.
+     *
      * @param jsonString
      * @return HashMap<String, List<String>>
      * @throws JSONException
@@ -166,6 +169,6 @@ final class HashMapExtensions {
             }
         }
 
-        return  responseItems;
+        return responseItems;
     }
 }

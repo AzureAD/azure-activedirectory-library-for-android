@@ -3,6 +3,7 @@ buildscript {
 
     repositories {
         jcenter()
+        google()
     }
 
     dependencies {
@@ -19,6 +20,7 @@ allprojects {
     }
     repositories {
         jcenter()
+        google()
     }
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {

@@ -26,7 +26,6 @@ package com.microsoft.aad.adal;
 import android.annotation.SuppressLint;
 import android.util.Log;
 
-import com.microsoft.identity.common.adal.error.ADALError;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.text.SimpleDateFormat;
@@ -44,7 +43,7 @@ public class Logger {
     static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
     // Turn on the verbose level logging by default.
-    private LogLevel mLogLevel  = LogLevel.Verbose;
+    private LogLevel mLogLevel = LogLevel.Verbose;
     private ILogger mExternalLogger = null;
     private static final String CUSTOM_LOG_ERROR = "Custom log failed to log message:%s";
     private boolean mAndroidLogEnabled = false;
@@ -62,6 +61,7 @@ public class Logger {
 
     /**
      * Set the log level for diagnostic purpose. By default, the sdk enables the verbose level logging.
+     *
      * @param logLevel The {@link LogLevel} to be enabled for the diagnostic logging.
      */
     public void setLogLevel(final LogLevel logLevel) {
@@ -122,7 +122,7 @@ public class Logger {
         Verbose(3),
         /**
          * Debug level only.
-         * 
+         *
          * @deprecated
          */
         Debug(4);
@@ -142,14 +142,14 @@ public class Logger {
         /**
          * Interface method for apps to hand off each log message as it's generated.
          *
-         * @param tag                 The TAG for the log message.
-         * @param message             The detailed message. Will not contain any PII info.
-         * @param additionalMessage   The additional message.
-         * @param level               The {@link Logger.LogLevel} for the generated message.
-         * @param errorCode           The error code.
+         * @param tag               The TAG for the log message.
+         * @param message           The detailed message. Will not contain any PII info.
+         * @param additionalMessage The additional message.
+         * @param level             The {@link Logger.LogLevel} for the generated message.
+         * @param errorCode         The error code.
          */
         void Log(String tag, String message, String additionalMessage, LogLevel level,
-                ADALError errorCode);
+                 ADALError errorCode);
     }
 
     /**
@@ -193,7 +193,7 @@ public class Logger {
      * or the external logger set by the calling app.
      */
     private void log(String tag, String message, String additionalMessage, LogLevel logLevel,
-                           ADALError errorCode, Throwable throwable) {
+                     ADALError errorCode, Throwable throwable) {
         if (logLevel.compareTo(mLogLevel) > 0) {
             return;
         }
@@ -222,8 +222,7 @@ public class Logger {
 
         if (mExternalLogger != null) {
             try {
-                if (!StringExtensions.isNullOrBlank(additionalMessage) && mEnablePII)
-                {
+                if (!StringExtensions.isNullOrBlank(additionalMessage) && mEnablePII) {
                     mExternalLogger.Log(tag, addMoreInfo(message), additionalMessage + (throwable == null ? "" : Log.getStackTraceString(throwable)), logLevel, errorCode);
                 } else {
                     mExternalLogger.Log(tag, addMoreInfo(message), throwable == null ? null : Log.getStackTraceString(throwable), logLevel, errorCode);
@@ -238,7 +237,7 @@ public class Logger {
     /**
      * Logs debug message.
      *
-     * @param tag tag for the log message
+     * @param tag     tag for the log message
      * @param message body of the log message
      */
     public static void d(String tag, String message) {
@@ -252,8 +251,8 @@ public class Logger {
     /**
      * Logs informational message.
      *
-     * @param tag tag for the log message
-     * @param message body of the log message
+     * @param tag               tag for the log message
+     * @param message           body of the log message
      * @param additionalMessage additional parameters
      */
     public static void i(String tag, String message, String additionalMessage) {
@@ -263,10 +262,10 @@ public class Logger {
     /**
      * Logs informational messages with error codes.
      *
-     * @param tag tag for the log message
-     * @param message body of the log message
+     * @param tag               tag for the log message
+     * @param message           body of the log message
      * @param additionalMessage additional parameters
-     * @param errorCode ADAL error code being logged
+     * @param errorCode         ADAL error code being logged
      */
     public static void i(String tag, String message, String additionalMessage, ADALError errorCode) {
         Logger.getInstance().log(tag, message, additionalMessage, LogLevel.Info, errorCode, null);
@@ -275,7 +274,7 @@ public class Logger {
     /**
      * Logs verbose message.
      *
-     * @param tag tag for the log message
+     * @param tag     tag for the log message
      * @param message body of the log message
      */
     public static void v(String tag, String message) {
@@ -285,10 +284,10 @@ public class Logger {
     /**
      * Logs verbose message with error code.
      *
-     * @param tag tag for the log message
-     * @param message body of the log message
+     * @param tag               tag for the log message
+     * @param message           body of the log message
      * @param additionalMessage additional parameters
-     * @param errorCode ADAL error code being logged
+     * @param errorCode         ADAL error code being logged
      */
     public static void v(String tag, String message, String additionalMessage, ADALError errorCode) {
         Logger.getInstance().log(tag, message, additionalMessage, LogLevel.Verbose, errorCode, null);
@@ -297,10 +296,10 @@ public class Logger {
     /**
      * Logs warning message.
      *
-     * @param tag tag for the log message
-     * @param message body of the log message
+     * @param tag               tag for the log message
+     * @param message           body of the log message
      * @param additionalMessage additional parameters
-     * @param errorCode ADAL error code being logged
+     * @param errorCode         ADAL error code being logged
      */
     public static void w(String tag, String message, String additionalMessage, ADALError errorCode) {
         Logger.getInstance().log(tag, message, additionalMessage, LogLevel.Warn, errorCode, null);
@@ -309,7 +308,7 @@ public class Logger {
     /**
      * Logs warning message.
      *
-     * @param tag tag for the log message
+     * @param tag     tag for the log message
      * @param message body of the log message
      */
     public static void w(String tag, String message) {
@@ -319,23 +318,23 @@ public class Logger {
     /**
      * Logs error message.
      *
-     * @param tag tag for the log message
-     * @param message body of the log message
+     * @param tag               tag for the log message
+     * @param message           body of the log message
      * @param additionalMessage additional parameters
-     * @param errorCode ADAL error code being logged
+     * @param errorCode         ADAL error code being logged
      */
     public static void e(String tag, String message, String additionalMessage, ADALError errorCode) {
-        Logger.getInstance().log(tag, message, additionalMessage, LogLevel.Error, errorCode,  null);
+        Logger.getInstance().log(tag, message, additionalMessage, LogLevel.Error, errorCode, null);
     }
 
     /**
      * Logs error message.
      *
-     * @param tag Tag for the log
-     * @param message Message to add to the log
+     * @param tag               Tag for the log
+     * @param message           Message to add to the log
      * @param additionalMessage any additional parameters
-     * @param errorCode ADAL error code
-     * @param throwable Throwable
+     * @param errorCode         ADAL error code
+     * @param throwable         Throwable
      */
     public static void e(String tag, String message, String additionalMessage, ADALError errorCode,
                          Throwable throwable) {
@@ -345,8 +344,8 @@ public class Logger {
     /**
      * Logs error message.
      *
-     * @param tag Tag for the log
-     * @param message Message to add to the log
+     * @param tag       Tag for the log
+     * @param message   Message to add to the log
      * @param throwable Throwable
      */
     public static void e(String tag, String message, Throwable throwable) {
@@ -383,7 +382,6 @@ public class Logger {
     }
 
     /**
-     *
      * @return the correlation id for the logger.
      */
     public String getCorrelationId() {

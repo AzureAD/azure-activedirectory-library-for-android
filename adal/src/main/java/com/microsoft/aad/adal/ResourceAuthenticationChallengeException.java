@@ -23,9 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.error.ADALError;
-import com.microsoft.identity.common.adal.error.AuthenticationException;
-
 /**
  * ADAL exception for the case when server response doesn't have expected data
  * e.g. missing header, wrong status code, invalid format
@@ -36,8 +33,9 @@ public class ResourceAuthenticationChallengeException extends AuthenticationExce
 
     /**
      * Creates the {@link ResourceAuthenticationChallengeException} with given error message.
+     *
      * @param detailMessage The detailed message to create
-     * {@link ResourceAuthenticationChallengeException}.
+     *                      {@link ResourceAuthenticationChallengeException}.
      */
     public ResourceAuthenticationChallengeException(String detailMessage) {
         super(ADALError.RESOURCE_AUTHENTICATION_CHALLENGE_FAILURE, detailMessage);

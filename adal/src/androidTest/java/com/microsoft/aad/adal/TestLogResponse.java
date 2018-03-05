@@ -25,7 +25,7 @@ package com.microsoft.aad.adal;
 
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
-import com.microsoft.identity.common.adal.error.ADALError;
+
 
 import java.util.concurrent.CountDownLatch;
 
