@@ -9,6 +9,7 @@ import android.support.test.runner.AndroidJUnit4;
 import android.support.test.uiautomator.UiDevice;
 import android.support.test.uiautomator.UiObject;
 import android.support.test.uiautomator.UiSelector;
+import android.util.Log;
 
 
 import org.junit.After;
@@ -16,6 +17,11 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import com.microsoft.identity.internal.test.keyvault.*;
+import com.microsoft.identity.internal.test.keyvault.api.*;
+import com.microsoft.identity.internal.test.keyvault.auth.*;
+import com.microsoft.identity.internal.test.keyvault.model.*;
 
 /*
 import static android.support.test.espresso.Espresso.onView;
@@ -29,6 +35,23 @@ import static junit.framework.Assert.assertTrue;
 public class AutomationAppTest1 {
     UiDevice mDevice;
 
+
+    @Test
+    public void testKeyVault(){
+        Configuration.getDefaultApiClient().setBasePath("https://msidlabs.vault.azure.net");
+        Configuration.getDefaultApiClient().setAccessToken("<your access token here>");
+
+        SecretsApi secretsApi = new SecretsApi();
+
+        try {
+            SecretBundle secretBundle = secretsApi.getSecret("msidlab4", "", "2016-10-01");
+            Log.d("KEYVAULT", secretBundle.getValue());
+        }
+        catch (ApiException ex){
+            Log.e("KEYVAULT", "api exception", ex);
+        }
+
+ }
 
     @Test
     public void testContactsSync() throws Exception {

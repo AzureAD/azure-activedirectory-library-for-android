@@ -1,2 +1,3 @@
 include ':adal', ':userappwithbroker', ":automationtestapp", ':common'
 project(':common').projectDir = new File('common/common')
+
