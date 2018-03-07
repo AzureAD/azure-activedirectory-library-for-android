@@ -14,6 +14,7 @@ import android.util.Log;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,6 +37,7 @@ public class AutomationAppTest1 {
     UiDevice mDevice;
 
 
+    @Ignore
     @Test
     public void testKeyVault(){
         Configuration.getDefaultApiClient().setBasePath("https://msidlabs.vault.azure.net");
