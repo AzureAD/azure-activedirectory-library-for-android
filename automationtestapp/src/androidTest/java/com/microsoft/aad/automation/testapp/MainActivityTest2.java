@@ -1,7 +1,9 @@
 package com.microsoft.aad.automation.testapp;
 
 
+import android.support.test.espresso.ViewAction;
 import android.support.test.espresso.ViewInteraction;
+import android.support.test.espresso.action.ViewActions;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.suitebuilder.annotation.LargeTest;
@@ -18,35 +20,21 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static android.support.test.espresso.Espresso.onView;
-import static android.support.test.espresso.action.ViewActions.*;
-import static android.support.test.espresso.assertion.ViewAssertions.*;
-import static android.support.test.espresso.matcher.ViewMatchers.*;
-import static org.hamcrest.core.AllOf.allOf;
+import static android.support.test.espresso.action.ViewActions.click;
+import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static android.support.test.espresso.matcher.ViewMatchers.withId;
+import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static org.hamcrest.Matchers.allOf;
 
 @LargeTest
 @RunWith(AndroidJUnit4.class)
-public class MainActivityTest {
-
-    /*
-    public static final String AUTHORITY = "authority";
-    public static final String RESOURCE = "resource";
-    public static final String CLIENT_ID = "client_id";
-    public static final String REDIRECT_URI = "redirect_uri";
-    public static final String USE_BROKER = "use_broker";
-    public static final String PROMPT_BEHAVIOR = "prompt_behavior";
-    public static final String EXTRA_QUERY_PARAM = "extra_qp";
-    public static final String VALIDATE_AUTHORITY = "validate_authority";
-    public static final String USER_IDENTIFIER = "user_identifier";
-    public static final String USER_IDENTIFIER_TYPE = "user_identifier_type";
-    public static final String CORRELATION_ID = "correlation_id";
-
-    */
+public class MainActivityTest2 {
 
     String mBasicAuth = "{" +
-            "authority='https://login.microsoftonline.com/common" +
-            "client_id='4b0db8c2-9f26-4417-8bde-3f0e3656f8e0'" +
-            "resource='00000002-0000-0000-c000-000000000000'" +
-            "redirect_uri='urn:ietf:wg:oauth:2.0:oob'" +
+            "authority='https://login.microsoftonline.com/common', " +
+            "client_id='4b0db8c2-9f26-4417-8bde-3f0e3656f8e0', " +
+            "resource='00000002-0000-0000-c000-000000000000', " +
+            "redirect_uri='urn:ietf:wg:oauth:2.0:oob', " +
             "validate_authority=true" +
             "}";
 
@@ -55,7 +43,7 @@ public class MainActivityTest {
 
     @Ignore
     @Test
-    public void mainActivityTest() {
+    public void mainActivityTest2() {
         ViewInteraction appCompatButton = onView(
                 allOf(withId(R.id.acquireToken), withText("Acquire Token"),
                         childAtPosition(
@@ -74,7 +62,20 @@ public class MainActivityTest {
                                         0),
                                 0),
                         isDisplayed()));
+        appCompatEditText.perform(ViewActions.typeText(mBasicAuth));
 
+        ViewInteraction appCompatButton2 = onView(
+                allOf(withId(R.id.requestGo), withText("Go"),
+                        isDisplayed()));
+
+        appCompatButton2.perform(ViewActions.closeSoftKeyboard());
+        appCompatButton2.perform(click());
+
+        try {
+            Thread.sleep(2000);
+        }catch(Exception ex){
+
+        }
 
     }
 
