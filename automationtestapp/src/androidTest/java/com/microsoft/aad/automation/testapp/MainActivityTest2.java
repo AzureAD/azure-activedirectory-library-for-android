@@ -116,7 +116,7 @@ public class MainActivityTest2 {
         UiObject passwordBox = device.findObject(new UiSelector()
         .instance(1)
         .className(EditText.class));
-        passwordBox.setText("Theresa@70");
+        passwordBox.setText("");
 
         UiObject signInButton = device.findObject(new UiSelector()
                 .instance(0)
