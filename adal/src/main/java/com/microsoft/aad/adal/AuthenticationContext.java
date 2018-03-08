@@ -426,7 +426,9 @@ public class AuthenticationContext {
             redirectUri = getRedirectUri(redirectUri);
             final String requestId = Telemetry.registerNewRequest();
             final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_5);
-            apiEvent.setPromptBehavior(prompt.toString());
+            if(prompt != null) {
+                apiEvent.setPromptBehavior(prompt.toString());
+            }
             apiEvent.setLoginHint(loginHint);
 
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
