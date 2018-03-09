@@ -2,6 +2,7 @@ package com.microsoft.aad.automation.testapp;
 
 
 import android.app.Instrumentation;
+import android.media.session.MediaSession;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.Espresso;
 import android.support.test.espresso.IdlingRegistry;
@@ -29,6 +30,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import android.support.test.uiautomator.UiDevice;
 import android.support.test.uiautomator.UiObject;
@@ -38,6 +40,12 @@ import android.widget.Button;
 import android.widget.EditText;
 
 
+import com.google.gson.Gson;
+import com.microsoft.aad.automation.testapp.support.TokenRequest;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
@@ -46,29 +54,48 @@ import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.Matchers.allOf;
 
 @LargeTest
-@RunWith(AndroidJUnit4.class)
+//@RunWith(AndroidJUnit4.class)
+@RunWith(Parameterized.class)
 public class MainActivityTest2 {
 
-    String mBasicAuth = "{" +
-            "authority='https://login.microsoftonline.com/common', " +
-            "client_id='4b0db8c2-9f26-4417-8bde-3f0e3656f8e0', " +
-            "resource='00000002-0000-0000-c000-000000000000', " +
-            "redirect_uri='urn:ietf:wg:oauth:2.0:oob', " +
-            "validate_authority=true" +
-            "}";
+
+    @Parameterized.Parameter
+    public String mTokenRequest = "";
+
+    @Parameterized.Parameters
+    public static Iterable<String> TokenRequestData(){
+
+        TokenRequest tr = new TokenRequest();
+        tr.setAuthority("https://login.microsoftonline.com/common");
+        tr.setClientId("4b0db8c2-9f26-4417-8bde-3f0e3656f8e0");
+        tr.setResourceId("00000002-0000-0000-c000-000000000000");
+        tr.setRedirectUri("urn:ietf:wg:oauth:2.0:oob");
+        tr.setValidateAuthority(true);
+
+        Gson gson = new Gson();
+        String requestJson = gson.toJson(tr);
+
+        List<String> requests = new ArrayList<String>();
+        requests.add(requestJson);
+        requests.add(requestJson);
+        requests.add(requestJson);
+
+        return requests;
+    }
+
+
 
     @Rule
     public ActivityTestRule<MainActivity> mActivityTestRule = new ActivityTestRule<>(MainActivity.class);
 
 
     @Before
-    public void registerIdlingResource() {
-        // To prove that the test fails, omit this call:
+    public void before() {
         //IdlingRegistry.getInstance().register(SignInActivity.IDLING);
     }
 
     @After
-    public void unregisterIdlingResource() {
+    public void after() {
         //IdlingRegistry.getInstance().unregister(SignInActivity.IDLING);
     }
 
@@ -92,7 +119,7 @@ public class MainActivityTest2 {
                                         0),
                                 0),
                         isDisplayed()));
-        appCompatEditText.perform(ViewActions.typeText(mBasicAuth));
+        appCompatEditText.perform(ViewActions.typeText(mTokenRequest));
 
         ViewInteraction appCompatButton2 = onView(
                 allOf(withId(R.id.requestGo), withText("Go"),
@@ -116,7 +143,7 @@ public class MainActivityTest2 {
         UiObject passwordBox = device.findObject(new UiSelector()
         .instance(1)
         .className(EditText.class));
-        passwordBox.setText("");
+        passwordBox.setText("asdf");
 
         UiObject signInButton = device.findObject(new UiSelector()
                 .instance(0)
@@ -124,13 +151,14 @@ public class MainActivityTest2 {
         );
         signInButton.click();
 
-
+        /*
         Thread.sleep(20000);
 
 
         ViewInteraction resultsView = onView(
                 allOf(withId(R.id.resultInfo), isDisplayed())
         );
+        */
 
 
 
