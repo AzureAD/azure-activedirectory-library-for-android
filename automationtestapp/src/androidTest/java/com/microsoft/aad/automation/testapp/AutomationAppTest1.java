@@ -2,6 +2,7 @@ package com.microsoft.aad.automation.testapp;
 
 
 import android.support.test.InstrumentationRegistry;
+import android.support.test.espresso.base.Default;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
@@ -24,6 +25,11 @@ import com.microsoft.identity.internal.test.keyvault.api.*;
 import com.microsoft.identity.internal.test.keyvault.auth.*;
 import com.microsoft.identity.internal.test.keyvault.model.*;
 
+import com.microsoft.identity.internal.test.labapi.*;
+import com.microsoft.identity.internal.test.labapi.api.*;
+import com.microsoft.identity.internal.test.labapi.auth.*;
+import com.microsoft.identity.internal.test.labapi.model.*;
+
 /*
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
@@ -40,8 +46,8 @@ public class AutomationAppTest1 {
     @Ignore
     @Test
     public void testKeyVault(){
-        Configuration.getDefaultApiClient().setBasePath("https://msidlabs.vault.azure.net");
-        Configuration.getDefaultApiClient().setAccessToken("<your access token here>");
+        com.microsoft.identity.internal.test.keyvault.Configuration.getDefaultApiClient().setBasePath("https://msidlabs.vault.azure.net");
+        com.microsoft.identity.internal.test.keyvault.Configuration.getDefaultApiClient().setAccessToken("<your access token here>");
 
         SecretsApi secretsApi = new SecretsApi();
 
@@ -49,11 +55,27 @@ public class AutomationAppTest1 {
             SecretBundle secretBundle = secretsApi.getSecret("msidlab4", "", "2016-10-01");
             Log.d("KEYVAULT", secretBundle.getValue());
         }
-        catch (ApiException ex){
+        catch (com.microsoft.identity.internal.test.keyvault.ApiException ex){
             Log.e("KEYVAULT", "api exception", ex);
         }
 
  }
+
+    @Test
+    public void testLabAPI(){
+        com.microsoft.identity.internal.test.labapi.Configuration.getDefaultApiClient().setBasePath("http://api.msidlab.com/api");
+
+        DefaultApi api = new DefaultApi();
+
+        try {
+            TestConfiguration config = api.getTestConfiguration(null, null, null, null, null, null, null, true, null, null, null, null, null, null,null, null);
+            Log.d("LABAPI", config.getAppName());
+        }
+        catch (com.microsoft.identity.internal.test.labapi.ApiException ex){
+            Log.e("LABAPI", "api exception", ex);
+        }
+
+    }
 
     @Test
     public void testContactsSync() throws Exception {
