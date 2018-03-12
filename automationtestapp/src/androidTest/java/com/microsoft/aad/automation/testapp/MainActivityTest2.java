@@ -41,7 +41,11 @@ import android.widget.EditText;
 
 
 import com.google.gson.Gson;
+import com.microsoft.aad.automation.testapp.support.Scenario;
+import com.microsoft.aad.automation.testapp.support.Secrets;
+import com.microsoft.aad.automation.testapp.support.TestConfigurationQuery;
 import com.microsoft.aad.automation.testapp.support.TokenRequest;
+import com.microsoft.identity.internal.test.labapi.model.TestConfiguration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,25 +64,24 @@ public class MainActivityTest2 {
 
 
     @Parameterized.Parameter
-    public String mTokenRequest = "";
+    public Scenario mScenario = null;
 
     @Parameterized.Parameters
-    public static Iterable<String> TokenRequestData(){
+    public static Iterable<Scenario> TokenRequestData(){
 
-        TokenRequest tr = new TokenRequest();
-        tr.setAuthority("https://login.microsoftonline.com/common");
-        tr.setClientId("4b0db8c2-9f26-4417-8bde-3f0e3656f8e0");
-        tr.setResourceId("00000002-0000-0000-c000-000000000000");
-        tr.setRedirectUri("urn:ietf:wg:oauth:2.0:oob");
-        tr.setValidateAuthority(true);
+        TestConfigurationQuery query = new TestConfigurationQuery();
+        query.federationProvider = "ADFSv3";
+        Scenario scenarioADFSv3 = Scenario.GetScenario(query);
+        query.federationProvider = "ADFSv4";
+        Scenario scenarioADFSv4 = Scenario.GetScenario(query);
+        query.federationProvider = "ADFSv2";
+        Scenario scenarioADFSv2 = Scenario.GetScenario(query);
 
-        Gson gson = new Gson();
-        String requestJson = gson.toJson(tr);
 
-        List<String> requests = new ArrayList<String>();
-        requests.add(requestJson);
-        requests.add(requestJson);
-        requests.add(requestJson);
+        List<Scenario> requests = new ArrayList<>();
+        requests.add(scenarioADFSv2);
+        requests.add(scenarioADFSv3);
+        requests.add(scenarioADFSv4);
 
         return requests;
     }
@@ -119,7 +122,7 @@ public class MainActivityTest2 {
                                         0),
                                 0),
                         isDisplayed()));
-        appCompatEditText.perform(ViewActions.typeText(mTokenRequest));
+        appCompatEditText.perform(ViewActions.typeText(mScenario.getTokenRequestAsJson()));
 
         ViewInteraction appCompatButton2 = onView(
                 allOf(withId(R.id.requestGo), withText("Go"),
@@ -135,7 +138,7 @@ public class MainActivityTest2 {
                 .className(EditText.class)
         );
 
-        userNameBox.setText("shoatman@microsoft.com");
+        userNameBox.setText(mScenario.getCredential().userName);
         UiObject2 nextButton = device.findObject(By.text("Next"));
         nextButton.click();
 
@@ -143,7 +146,7 @@ public class MainActivityTest2 {
         UiObject passwordBox = device.findObject(new UiSelector()
         .instance(1)
         .className(EditText.class));
-        passwordBox.setText("asdf");
+        passwordBox.setText(mScenario.getCredential().password);
 
         UiObject signInButton = device.findObject(new UiSelector()
                 .instance(0)

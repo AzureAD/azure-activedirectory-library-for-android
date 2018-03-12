@@ -43,40 +43,6 @@ public class AutomationAppTest1 {
     UiDevice mDevice;
 
 
-    @Ignore
-    @Test
-    public void testKeyVault(){
-        com.microsoft.identity.internal.test.keyvault.Configuration.getDefaultApiClient().setBasePath("https://msidlabs.vault.azure.net");
-        com.microsoft.identity.internal.test.keyvault.Configuration.getDefaultApiClient().setAccessToken("<your access token here>");
-
-        SecretsApi secretsApi = new SecretsApi();
-
-        try {
-            SecretBundle secretBundle = secretsApi.getSecret("msidlab4", "", "2016-10-01");
-            Log.d("KEYVAULT", secretBundle.getValue());
-        }
-        catch (com.microsoft.identity.internal.test.keyvault.ApiException ex){
-            Log.e("KEYVAULT", "api exception", ex);
-        }
-
- }
-
-    @Test
-    public void testLabAPI(){
-        com.microsoft.identity.internal.test.labapi.Configuration.getDefaultApiClient().setBasePath("http://api.msidlab.com/api");
-
-        DefaultApi api = new DefaultApi();
-
-        try {
-            TestConfiguration config = api.getTestConfiguration(null, null, null, null, null, null, null, true, null, null, null, null, null, null,null, null);
-            Log.d("LABAPI", config.getAppName());
-        }
-        catch (com.microsoft.identity.internal.test.labapi.ApiException ex){
-            Log.e("LABAPI", "api exception", ex);
-        }
-
-    }
-
     @Test
     public void testContactsSync() throws Exception {
 
