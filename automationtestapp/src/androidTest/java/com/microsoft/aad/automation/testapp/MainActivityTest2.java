@@ -1,20 +1,12 @@
 package com.microsoft.aad.automation.testapp;
 
 
-import android.app.Instrumentation;
-import android.media.session.MediaSession;
 import android.support.test.InstrumentationRegistry;
-import android.support.test.espresso.Espresso;
-import android.support.test.espresso.IdlingRegistry;
-import android.support.test.espresso.ViewAction;
 import android.support.test.espresso.ViewInteraction;
 import android.support.test.espresso.action.ViewActions;
 import android.support.test.rule.ActivityTestRule;
-import android.support.test.rule.DisableOnAndroidDebug;
-import android.support.test.runner.AndroidJUnit4;
 import android.support.test.uiautomator.By;
 import android.support.test.uiautomator.UiObjectNotFoundException;
-import android.support.test.uiautomator.Until;
 import android.test.suitebuilder.annotation.LargeTest;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,10 +17,8 @@ import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -40,12 +30,8 @@ import android.widget.Button;
 import android.widget.EditText;
 
 
-import com.google.gson.Gson;
-import com.microsoft.aad.automation.testapp.support.Scenario;
-import com.microsoft.aad.automation.testapp.support.Secrets;
-import com.microsoft.aad.automation.testapp.support.TestConfigurationQuery;
-import com.microsoft.aad.automation.testapp.support.TokenRequest;
-import com.microsoft.identity.internal.test.labapi.model.TestConfiguration;
+import com.microsoft.aad.automation.testapp.utility.Scenario;
+import com.microsoft.aad.automation.testapp.utility.TestConfigurationQuery;
 
 import java.util.ArrayList;
 import java.util.List;

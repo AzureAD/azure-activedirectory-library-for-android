@@ -1,0 +1,33 @@
+package com.microsoft.aad.automation.testapp.utility;
+
+import android.util.Log;
+
+import com.microsoft.identity.internal.test.labapi.Configuration;
+import com.microsoft.identity.internal.test.labapi.api.*;
+import com.microsoft.identity.internal.test.labapi.model.*;
+
+/**
+ * Created by shoatman on 3/12/2018.
+ */
+
+public class TestConfigurationHelper {
+
+    public static TestConfiguration GetTestConfiguration(TestConfigurationQuery query) {
+
+        Configuration.getDefaultApiClient().setBasePath("http://api.msidlab.com/api");
+
+        DefaultApi api = new DefaultApi();
+        TestConfiguration config;
+
+        try {
+            config = api.getTestConfiguration(query.appName, query.appId, query.federationProvider, query.mfa, query.mam, query.mdm, query.ca, query.mamca, query.mdmca, query.license, query.federated, query.isFederated, query.userType, query.role,query.external, query.upn);
+        }catch (com.microsoft.identity.internal.test.labapi.ApiException ex){
+            Log.e("LABAPI", "api exception", ex);
+            throw new RuntimeException("Error retrieving test configuration", ex);
+        }
+
+        return config;
+
+    }
+
+}
