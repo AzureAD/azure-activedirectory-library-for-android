@@ -261,7 +261,7 @@ final class PRNGFixes {
             DataInputStream in = null;
             try {
                 synchronized (SLOCK) {
-				    in = getUrandomInputStream();
+                    in = getUrandomInputStream();
                     in.readFully(bytes);
                 }
             } catch (IOException e) {
