@@ -17,7 +17,7 @@ public class Secrets {
     private static String appSecret;
     private static String appID;
     private static final String Authority = "https://login.windows.net/common";
-    private static final String ResourceURI = "https://msidlabs.vault.azure.net/";
+    private static final String ResourceURI = "https://msidlabs.vault.azure.net";
 
     private static void setAT() {
         appSecret = System.getProperty("APP_SECRET_ENV");
@@ -29,7 +29,6 @@ public class Secrets {
         {
             accessToken = AT;
         }
-        Log.d("Token",AT);
     }
 
 
