@@ -14,12 +14,14 @@ public class Secrets {
     public static String accessToken;
     public static String API_VERSION = "2016-10-01";
 
-    private String appSecret = "";
-    private String appID = "dd3a0594-8c09-43b9-b687-1de2b191c4f8";
-    private static final String Authority = "https://login.windows.net/common/oauth2/authorize";
+    private static String appSecret;
+    private static String appID;
+    private static final String Authority = "https://login.windows.net/common";
     private static final String ResourceURI = "https://msidlabs.vault.azure.net/";
 
-    private void setAT() {
+    private static void setAT() {
+        appSecret = System.getProperty("APP_SECRET_ENV");
+        appID = System.getProperty("APP_ID_ENV");
         KeyvaultToken KeyvaultAT = new KeyvaultToken();
         KeyvaultAT.ClientSecretKeyVaultCredential(appID,appSecret);
         String AT = KeyvaultAT.doAuthenticate(Authority,ResourceURI,"");
@@ -32,7 +34,7 @@ public class Secrets {
 
 
     public static Credential GetCredential(String upn, String secretName){
-
+        setAT();
         Configuration.getDefaultApiClient().setBasePath("https://msidlabs.vault.azure.net");
 
         Configuration.getDefaultApiClient().setAccessToken(Secrets.accessToken);
