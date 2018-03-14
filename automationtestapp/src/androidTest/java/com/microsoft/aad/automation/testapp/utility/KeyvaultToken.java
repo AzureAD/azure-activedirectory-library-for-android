@@ -10,16 +10,18 @@ import java.util.concurrent.Future;
 //import org.apache.http.Header;
 //import org.apache.http.message.BasicHeader;
 
+import com.microsoft.aad.adal.ChallengeResponseBuilderTests;
 import com.microsoft.aad.adal4j.AuthenticationContext;
 import com.microsoft.aad.adal4j.AuthenticationResult;
 import com.microsoft.aad.adal4j.ClientCredential;
+import com.microsoft.aad.adal4j.*;
 /**
  * Created by v-dmkapi on 3/14/2018.
  */
 
 public class KeyvaultToken
 {
-    private String applicationId = "dd3a0594-8c09-43b9-b687-1de2b191c4f8";
+    private String applicationId;
     private String applicationSecret;
 
     public void ClientSecretKeyVaultCredential(String applicationId, String applicationSecret)
