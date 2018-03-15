@@ -56,4 +56,20 @@ final class Utility {
         final Uri.Builder builder = new Uri.Builder().scheme(originalAuthority.getProtocol()).authority(host).appendPath(path);
         return new URL(builder.build().toString());
     }
+
+    static Integer parseIntSafely(String arg) {
+        try {
+            return Integer.valueOf(arg);
+        } catch(NumberFormatException nfe) {
+            return null;
+        }
+    }
+
+    static Long parseLongSafely(String arg) {
+        try {
+            return Long.valueOf(arg);
+        } catch(NumberFormatException nfe) {
+            return null;
+        }
+    }
 }
