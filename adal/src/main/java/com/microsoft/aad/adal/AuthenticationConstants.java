@@ -47,6 +47,8 @@ public final class AuthenticationConstants {
     /** Default access token expiration time in seconds. */
     public static final int DEFAULT_EXPIRATION_TIME_SEC = 3600;
 
+    public static final String AUTHENTICATION_FILE_DIRECTORY = "com.microsoft.aad.adal.authentication";
+
     /**
      * Holding all the constant value involved in the webview.
      */
@@ -108,6 +110,7 @@ public final class AuthenticationConstants {
          * Waiting for broker package to be installed, and resume request in broker. 
          */
         public static final int BROKER_REQUEST_RESUME = 2006;
+		public static final int BROWSER_CODE_DEVICE_REGISTER = 2006;
     }
 
     /**
@@ -117,6 +120,10 @@ public final class AuthenticationConstants {
 
         /** Represents the request of browser flow. */
         public static final int BROWSER_FLOW = 1001;
+
+        public static final int TOKEN_FLOW = 1002;
+
+        public static final int BROKER_FLOW = 1003;
     }
 
     /**
@@ -135,6 +142,8 @@ public final class AuthenticationConstants {
 
         /** String of client id. */
         public static final String CLIENT_ID = "client_id";
+
+        public static final String CLIENT_SECRET = "client_secret";
 
         /** String of code. */
         public static final String CODE = "code";
@@ -228,6 +237,8 @@ public final class AuthenticationConstants {
         static final String CLAIMS = "claims";
 
         static final String CLOUD_INSTANCE_HOST_NAME = "cloud_instance_host_name";
+
+        static final String SESSION_KEY_JWE = "session_key_jwe";
     }
 
     /**
@@ -294,12 +305,16 @@ public final class AuthenticationConstants {
 
         /** String for request id returned from Evo. **/
         public static final String REQUEST_ID_HEADER = "x-ms-request-id";
+
+        public final static String ADAL_BROKER_VERSION = "x-client-brkrver";
     }
 
     /**
      * Represents the constants for broker.
      */
     public static final class Broker {
+
+        public static final String BROKER_FEATURE_MULTI_USER = "broker.feature.multi.user";
 
         /** Broker request id. */
         public static final int BROKER_REQUEST_ID = 1177;
@@ -309,6 +324,8 @@ public final class AuthenticationConstants {
 
         /** String for broker request resume. */
         public static final String BROKER_REQUEST_RESUME = "com.microsoft.aadbroker.adal.broker.request.resume";
+
+        public static final String BROKER_RETURN_JSON = "broker.json";
         
         /** Account type string. */
         public static final String BROKER_ACCOUNT_TYPE = "com.microsoft.workaccount";
@@ -334,6 +351,9 @@ public final class AuthenticationConstants {
         /** String of broker result returned. */
         public static final String BROKER_RESULT_RETURNED = "broker.result.returned";
 
+        /** String of broker redirect URI */
+        public static final String BROKER_REDIRECT_URI = "urn:ietf:wg:oauth:2.0:oob";
+
         /** Authtoken type string. */
         public static final String AUTHTOKEN_TYPE = "adal.authtoken.type";
 
@@ -345,6 +365,8 @@ public final class AuthenticationConstants {
 
         /** String of account client id key.*/
         public static final String ACCOUNT_CLIENTID_KEY = "account.clientid.key";
+
+        public static final String ACCOUNT_CLIENT_SECRET_KEY = "account.client.secret.key";
 
         /** String of account correlation id. */
         public static final String ACCOUNT_CORRELATIONID = "account.correlationid";
@@ -400,6 +422,8 @@ public final class AuthenticationConstants {
         /** String of key for user id. */
         public static final String ACCOUNT_USERINFO_USERID = "account.userinfo.userid";
 
+        public static final String ACCOUNT_USERINFO_USERID_LIST = "account.userinfo.userid.list";
+
         /** String of key for given name. */
         public static final String ACCOUNT_USERINFO_GIVEN_NAME = "account.userinfo.given.name";
 
@@ -421,11 +445,21 @@ public final class AuthenticationConstants {
         /** String of key for UIDs in the cache. */
         public static final String ACCOUNT_UID_CACHES = "account.uid.caches";
 
+        public static final String ACCOUNT_ADD_NEW = "account.add.new";
+
+        public static final String ACCOUNT_RESOLVE_INTERRUPT = "account.resolve.interrupt";
+
         /** String of key for user data prefix. */
         public static final String USERDATA_PREFIX = "userdata.prefix";
 
         /** String of key for UID key. */
         public static final String USERDATA_UID_KEY = "calling.uid.key";
+
+        public static final String USERDATA_BROKER_RT = "userdata.broker.rt";
+
+        public static final String USERDATA_BROKER_PRT_RT = "userdata.broker.prt.rt";
+
+        public static final String USERDATA_BROKER_PRT_SESSION_KEY = "userdata.broker.prt.session.key";
 
         /** String of key for caller cache keys. */
         public static final String USERDATA_CALLER_CACHEKEYS = "userdata.caller.cachekeys";
@@ -477,6 +511,7 @@ public final class AuthenticationConstants {
 
         /** The value for pkeyauth redirect. */
         public static final String PKEYAUTH_REDIRECT = "urn:http-auth:PKeyAuth";
+        public static final String CLIENT_TLS_REDIRECT = "urn:http-auth:PKeyAuth";
 
         /** Value of pkeyauth sent in the header. */
         public static final String CHALLENGE_TLS_INCAPABLE = "x-ms-PKeyAuth";
@@ -495,6 +530,14 @@ public final class AuthenticationConstants {
 
         /** Prefix in the redirect for installing broker apps. */
         public static final String BROWSER_EXT_INSTALL_PREFIX = "msauth://";
+
+        public static final String PRT_NONCE = "nonce";
+
+        public static final String ACCOUNT_REQUEST_TYPE = "broker.request.type";
+
+        public static final String PRT_RESPONSE_HEADER = "x-ms-RefreshTokenCredential";
+
+        public static final String CALLER_INFO_UID = "caller.info.uid";
 
         /** String for caller package. */
         public static final String CALLER_INFO_PACKAGE = "caller.info.package";
