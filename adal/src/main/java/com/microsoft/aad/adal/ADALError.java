@@ -342,6 +342,11 @@ public enum ADALError {
     BROKER_AUTHENTICATOR_NOT_RESPONDING("Authenticator is not responding"),
 
     /**
+     * Operation is cancelled at Authenticator.
+     */
+    BROKER_AUTHENTICATOR_OPERATION_CANCEL("Operation was cancelled by the broker"),
+    
+    /**
      * Authenticator error.
      */
     BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN("Authenticator error"),
@@ -405,6 +410,11 @@ public enum ADALError {
      * Signature is not saved.
      */
     BROKER_SIGNATURE_NOT_SAVED("Signature is not saved"),
+    
+    /**
+     * Device registry is failed.
+     */
+    BROKER_ACCOUNT_DEVICE_REGISTRY_FAILURE("Device registration failed"),
 
     /**
      * Device does not support the algorithm.
