@@ -346,7 +346,7 @@ public enum ADALError {
     /**
      * Operation is cancelled at Authenticator.
      */
-    BROKER_AUTHENTICATOR_OPERATION_CANCEL("Operation is cancelled at Authenticator"),
+    BROKER_AUTHENTICATOR_OPERATION_CANCEL("Operation was cancelled by the broker"),
     
     /**
      * Authenticator error.
@@ -416,7 +416,7 @@ public enum ADALError {
     /**
      * Device registry is failed.
      */
-    BROKER_ACCOUNT_DEVICE_REGISTRY_FAILURE("Device registry is failed"),
+    BROKER_ACCOUNT_DEVICE_REGISTRY_FAILURE("Device registration failed"),
 
     /**
      * Token request after resolving web interrupt failed.
