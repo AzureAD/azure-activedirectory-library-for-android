@@ -177,6 +177,10 @@ public class UserInfo implements Serializable {
         return mGivenName;
     }
 
+    void setGivenName(String name) {
+        mGivenName = name;
+    }
+
     /**
      * Gets family name.
      *
@@ -186,6 +190,10 @@ public class UserInfo implements Serializable {
         return mFamilyName;
     }
 
+    void setFamilyName(String familyName) {
+        mFamilyName = familyName;
+    }
+
     /**
      * Gets Identity provider.
      *
@@ -193,6 +201,10 @@ public class UserInfo implements Serializable {
      */
     public String getIdentityProvider() {
         return mIdentityProvider;
+    }
+
+    void setIdentityProvider(String provider) {
+        mIdentityProvider = provider;
     }
 
     /**
@@ -220,6 +232,10 @@ public class UserInfo implements Serializable {
         return mPasswordChangeUrl;
     }
 
+    void setPasswordChangeUrl(Uri passwordChangeUrl) {
+        this.mPasswordChangeUrl = passwordChangeUrl;
+    }
+
     /**
      * Gets password expires on.
      *
@@ -227,5 +243,13 @@ public class UserInfo implements Serializable {
      */
     public Date getPasswordExpiresOn() {
         return DateExtensions.createCopy(mPasswordExpiresOn);
+    }
+
+    void setPasswordExpiresOn(Date passwordExpiresOn) {
+        if (null == passwordExpiresOn) {
+            mPasswordExpiresOn= null;
+        } else {
+            mPasswordExpiresOn = new Date(passwordExpiresOn.getTime());
+        }
     }
 }
