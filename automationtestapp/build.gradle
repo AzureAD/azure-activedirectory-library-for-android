@@ -86,6 +86,5 @@ dependencies {
     implementation "com.google.code.gson:gson:2.8.1"
     implementation project(':keyvault')
     implementation project(':labapi')
-    implementation 'com.microsoft.azure:adal4j:1.4.0'
-    //adal4jImplementation group: 'com.microsoft.azure', name: 'adal4j', version: "1.4.0"
+    annotationProcessor group: 'com.microsoft.azure', name: 'azure', version: '1.7.0'
 }
