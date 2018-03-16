@@ -57,7 +57,7 @@ class PackageHelper {
      * 
      * @param ctx The android app/activity context
      */
-    public PackageHelper(Context ctx) {
+    PackageHelper(Context ctx) {
         mContext = ctx;
         mAcctManager = AccountManager.get(mContext);
     }
@@ -71,7 +71,7 @@ class PackageHelper {
      * @return MetaData
      */
     @SuppressLint("WrongConstant")
-    public Object getValueFromMetaData(final String packageName, final ComponentName component,
+    Object getValueFromMetaData(final String packageName, final ComponentName component,
             final String metaDataName) {
         try {
             Logger.i(TAG, "", "Calling package:" + packageName);

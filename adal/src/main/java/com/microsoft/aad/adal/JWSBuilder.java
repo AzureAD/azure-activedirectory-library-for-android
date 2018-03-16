@@ -115,15 +115,9 @@ class JWSBuilder implements IJWSBuilder {
             int expTimeInSeconds) throws JSONException, UnsupportedEncodingException {
         Logger.v(TAG, "Generating JWT.");
         JSONObject headerJson = generateJson(header, expTimeInSeconds);
-
         JSONObject bodyJson = generateJson(body, expTimeInSeconds);
-
-        String signingInput = StringExtensions.encodeBase64URLSafeString(headerJson.toString()
-                .getBytes(AuthenticationConstants.ENCODING_UTF8))
-                + "."
-                + StringExtensions.encodeBase64URLSafeString(bodyJson.toString().getBytes(
-                        AuthenticationConstants.ENCODING_UTF8));
-
+        String signingInput = StringExtensions.encodeBase64URLSafeString(headerJson.toString().getBytes(AuthenticationConstants.ENCODING_UTF8))
+                + "." + StringExtensions.encodeBase64URLSafeString(bodyJson.toString().getBytes(AuthenticationConstants.ENCODING_UTF8));
         return signingInput;
     }
 

@@ -406,7 +406,7 @@ public class TokenCacheItem implements Serializable {
         return this.mTokenUpdatedTime;
     }
 
-    public final void setTokenUpdateTime(final Date tokenUpateTime) {
+    final void setTokenUpdateTime(final Date tokenUpateTime) {
         if (null == tokenUpateTime) {
             this.mTokenUpdatedTime= null;
         } else {
