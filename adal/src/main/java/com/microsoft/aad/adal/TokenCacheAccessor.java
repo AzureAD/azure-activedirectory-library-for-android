@@ -320,7 +320,7 @@ class TokenCacheAccessor {
         request.setScope(resource);
         request.setAuthority(new URL(mAuthority));
 
-        mCommonCache.saveTokens(strategy, request, tokenResponse);
+        mCommonCache.saveTokenResponse(strategy, request, tokenResponse);
 
     }
 
