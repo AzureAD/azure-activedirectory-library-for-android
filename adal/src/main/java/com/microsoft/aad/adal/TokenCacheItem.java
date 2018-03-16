@@ -69,7 +69,6 @@ public class TokenCacheItem implements Serializable {
 
     private Date mExtendedExpiresOn;
 
-
     private String mSpeRing;
 
     /**

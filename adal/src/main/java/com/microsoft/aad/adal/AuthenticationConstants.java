@@ -47,6 +47,7 @@ public final class AuthenticationConstants {
     /** Default access token expiration time in seconds. */
     public static final int DEFAULT_EXPIRATION_TIME_SEC = 3600;
 
+    /** The authentication file directory */
     public static final String AUTHENTICATION_FILE_DIRECTORY = "com.microsoft.aad.adal.authentication";
 
     /**
