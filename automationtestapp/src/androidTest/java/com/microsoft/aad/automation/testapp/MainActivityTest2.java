@@ -1,6 +1,7 @@
 package com.microsoft.aad.automation.testapp;
 
 
+import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.ViewInteraction;
 import android.support.test.espresso.action.ViewActions;
@@ -72,6 +73,12 @@ public class MainActivityTest2 {
         return requests;
     }
 
+    public static Context getContext()
+    {
+        return InstrumentationRegistry.getContext();
+    }
+
+
 
 
     @Rule
@@ -80,7 +87,7 @@ public class MainActivityTest2 {
 
     @Before
     public void before() {
-        //IdlingRegistry.getInstance().register(SignInActivity.IDLING);
+
     }
 
     @After
