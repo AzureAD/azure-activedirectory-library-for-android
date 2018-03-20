@@ -3,9 +3,6 @@ package com.microsoft.aad.automation.testapp.utility;
 import android.util.Log;
 
 
-import com.microsoft.azure.AzureEnvironment;
-import com.microsoft.azure.credentials.ApplicationTokenCredentials;
-import com.microsoft.azure.management.Azure;
 import com.microsoft.identity.internal.test.keyvault.Configuration;
 import com.microsoft.identity.internal.test.keyvault.api.SecretsApi;
 import com.microsoft.identity.internal.test.keyvault.model.SecretBundle;
