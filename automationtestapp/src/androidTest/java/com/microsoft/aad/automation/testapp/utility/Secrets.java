@@ -16,21 +16,14 @@ public class Secrets {
     public static String accessToken;
     public static String API_VERSION = "2016-10-01";
 
-    private static void auth() {
-        ApplicationTokenCredentials credentials = new ApplicationTokenCredentials(
-                (System.getProperty("APP_ID_ENV")),
-                "https://graph.windows.net",
-                (System.getProperty("APP_SECRET_ENV")),
-                AzureEnvironment.AZURE);
-
-        Azure.Authenticated azureAuth = Azure.authenticate(credentials);
-    }
-
-
     public static Credential GetCredential(String upn, String secretName){
 
-        auth();
-
+        accessToken = AzureToken.getaccessTokenJAVA(
+                (System.getProperty("APP_SECRET_ENV")),
+                (System.getProperty("APP_ID_ENV")),
+                "microsoft.com",
+                "https://management.azure.com/.default"
+        );
 
         Configuration.getDefaultApiClient().setBasePath("https://msidlabs.vault.azure.net");
 
