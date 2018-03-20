@@ -2,10 +2,10 @@ package com.microsoft.aad.automation.testapp.utility;
 
 import android.util.Log;
 
+
 import com.microsoft.identity.internal.test.keyvault.Configuration;
 import com.microsoft.identity.internal.test.keyvault.api.SecretsApi;
 import com.microsoft.identity.internal.test.keyvault.model.SecretBundle;
-
 
 
 public class Secrets {
@@ -15,7 +15,15 @@ public class Secrets {
 
     public static Credential GetCredential(String upn, String secretName){
 
+        accessToken = AzureToken.getaccessTokenJAVA(
+                (System.getProperty("APP_SECRET_ENV")),
+                (System.getProperty("APP_ID_ENV")),
+                "microsoft.com",
+                "https://management.azure.com/.default"
+        );
+
         Configuration.getDefaultApiClient().setBasePath("https://msidlabs.vault.azure.net");
+
         Configuration.getDefaultApiClient().setAccessToken(Secrets.accessToken);
 
         SecretsApi secretsApi = new SecretsApi();
