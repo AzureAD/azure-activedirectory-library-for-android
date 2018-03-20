@@ -17,6 +17,7 @@ import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,6 +44,7 @@ import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.Matchers.allOf;
 
+@Ignore
 @LargeTest
 //@RunWith(AndroidJUnit4.class)
 @RunWith(Parameterized.class)
@@ -88,6 +90,7 @@ public class MainActivityTest2 {
         //IdlingRegistry.getInstance().unregister(SignInActivity.IDLING);
     }
 
+    @Ignore
     @Test
     public void mainActivityTest2() throws InterruptedException, UiObjectNotFoundException {
         ViewInteraction appCompatButton = onView(
