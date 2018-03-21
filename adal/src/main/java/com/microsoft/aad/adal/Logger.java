@@ -27,6 +27,7 @@ import android.annotation.SuppressLint;
 import android.util.Log;
 
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.internal.logging.*;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -51,6 +52,7 @@ public class Logger {
 
     // Disable to log PII by default.
     private boolean mEnablePII = false;
+    private static boolean mEnableCommonCoreLog = false;
 
     /**
      * @return The single instance of {@link Logger}.
@@ -60,11 +62,42 @@ public class Logger {
     }
 
     /**
+     * Enable/Disable the Common-Core logging. By default, the sdk disables it.
+      * @param commonCoreLogEnabled True if enabling the Common-Core logging, false otherwise.
+     */
+    public void setEnableCommonCoreLog(final boolean commonCoreLogEnabled) {
+        mEnableCommonCoreLog = commonCoreLogEnabled;
+    }
+
+    /**
      * Set the log level for diagnostic purpose. By default, the sdk enables the verbose level logging.
      *
      * @param logLevel The {@link LogLevel} to be enabled for the diagnostic logging.
      */
     public void setLogLevel(final LogLevel logLevel) {
+        if (mEnableCommonCoreLog) {
+            switch (logLevel) {
+                case Error:
+                    CommonCoreLogger.getInstance().setLogLevel(CommonCoreLogger.LogLevel.ERROR);
+                    break;
+                case Warn:
+                    CommonCoreLogger.getInstance().setLogLevel(CommonCoreLogger.LogLevel.WARN);
+                    break;
+                case Info:
+                    CommonCoreLogger.getInstance().setLogLevel(CommonCoreLogger.LogLevel.INFO);
+                    break;
+                case Verbose:
+                    CommonCoreLogger.getInstance().setLogLevel(CommonCoreLogger.LogLevel.VERBOSE);
+                    break;
+                case Debug:
+                    //The debug level is deprecated and removed in common core.
+                    CommonCoreLogger.getInstance().setLogLevel(CommonCoreLogger.LogLevel.VERBOSE);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown logLevel");
+            }
+        }
+
         this.mLogLevel = logLevel;
     }
 
@@ -80,11 +113,27 @@ public class Logger {
     }
 
     /**
+     * Adapter API in ADAL to set the custom logger in the use of Common-Core.
+     * @param externalLogger The reference to the {@link ILoggerCallback} that can
+     *                       output the logs to the designated places.
+     */
+    public synchronized void setCommonCoreExternalLogger(ILoggerCallback externalLogger) {
+        CommonCoreLogger.getInstance().setExternalLogger(externalLogger);
+
+        //If the dev calls setCommonCoreExternalLogger, it is an explicit enable-flag for common-core logging.
+        setEnableCommonCoreLog(true);
+    }
+
+    /**
      * Enable/Disable the Android logcat logging. By default, the sdk disables it.
      *
      * @param androidLogEnabled True if enabling the logcat logging, false otherwise.
      */
     public void setAndroidLogEnabled(final boolean androidLogEnabled) {
+        if (mEnableCommonCoreLog) {
+            CommonCoreLogger.getInstance().setLogcatLogEnabled(androidLogEnabled);
+        }
+
         mAndroidLogEnabled = androidLogEnabled;
     }
 
@@ -97,6 +146,10 @@ public class Logger {
      * @param enablePII True if enabling PII info to be logged, false otherwise.
      */
     public void setEnablePII(final boolean enablePII) {
+        if (mEnableCommonCoreLog) {
+            CommonCoreLogger.getInstance().setPIIEnabled(enablePII);
+        }
+
         mEnablePII = enablePII;
     }
 
@@ -245,7 +298,11 @@ public class Logger {
             return;
         }
 
-        Logger.getInstance().log(tag, message, null, LogLevel.Debug, null, null);
+        if (mEnableCommonCoreLog) {
+            CommonCoreLogger.verbose(tag, Logger.getInstance().mCorrelationId, message, null);
+        } else {
+            Logger.getInstance().log(tag, message, null, LogLevel.Debug, null, null);
+        }
     }
 
     /**
@@ -256,7 +313,17 @@ public class Logger {
      * @param additionalMessage additional parameters
      */
     public static void i(String tag, String message, String additionalMessage) {
-        Logger.getInstance().log(tag, message, additionalMessage, LogLevel.Info, null, null);
+        if (mEnableCommonCoreLog) {
+            if (!StringExtensions.isNullOrBlank(message)) {
+                CommonCoreLogger.info(tag, Logger.getInstance().getCorrelationId(), message, null);
+            }
+
+            if (!StringExtensions.isNullOrBlank(additionalMessage)) {
+                CommonCoreLogger.infoPII(tag, Logger.getInstance().getCorrelationId(), additionalMessage, null);
+            }
+        } else {
+            Logger.getInstance().log(tag, message, additionalMessage, LogLevel.Info, null, null);
+        }
     }
 
     /**
@@ -268,7 +335,21 @@ public class Logger {
      * @param errorCode         ADAL error code being logged
      */
     public static void i(String tag, String message, String additionalMessage, ADALError errorCode) {
-        Logger.getInstance().log(tag, message, additionalMessage, LogLevel.Info, errorCode, null);
+        if (mEnableCommonCoreLog) {
+            if (!StringExtensions.isNullOrBlank(message)) {
+                CommonCoreLogger.info(tag, Logger.getInstance().getCorrelationId(),
+                        (errorCode == null ? "" : errorCode.name() + ":") + message,
+                        null);
+            }
+
+            if (!StringExtensions.isNullOrBlank(additionalMessage)) {
+                CommonCoreLogger.infoPII(tag, Logger.getInstance().getCorrelationId(),
+                        (errorCode == null ? "" : errorCode.name() + ":") + additionalMessage,
+                        null);
+            }
+        } else {
+            Logger.getInstance().log(tag, message, additionalMessage, LogLevel.Info, errorCode, null);
+        }
     }
 
     /**
@@ -278,7 +359,11 @@ public class Logger {
      * @param message body of the log message
      */
     public static void v(String tag, String message) {
-        Logger.getInstance().log(tag, message, null, LogLevel.Verbose, null, null);
+        if (mEnableCommonCoreLog) {
+            CommonCoreLogger.verbose(tag, Logger.getInstance().mCorrelationId, message, null);
+        } else {
+            Logger.getInstance().log(tag, message, null, LogLevel.Verbose, null, null);
+        }
     }
 
     /**
@@ -290,7 +375,21 @@ public class Logger {
      * @param errorCode         ADAL error code being logged
      */
     public static void v(String tag, String message, String additionalMessage, ADALError errorCode) {
-        Logger.getInstance().log(tag, message, additionalMessage, LogLevel.Verbose, errorCode, null);
+        if (mEnableCommonCoreLog) {
+            if (!StringExtensions.isNullOrBlank(message)) {
+                CommonCoreLogger.verbose(tag, Logger.getInstance().getCorrelationId(),
+                        (errorCode == null ? "" : errorCode.name() + ":") + message,
+                        null);
+            }
+
+            if (!StringExtensions.isNullOrBlank(additionalMessage)) {
+                CommonCoreLogger.verbosePII(tag, Logger.getInstance().getCorrelationId(),
+                        (errorCode == null ? "" : errorCode.name() + ":") + additionalMessage,
+                        null);
+            }
+        } else {
+            Logger.getInstance().log(tag, message, additionalMessage, LogLevel.Verbose, errorCode, null);
+        }
     }
 
     /**
@@ -302,7 +401,21 @@ public class Logger {
      * @param errorCode         ADAL error code being logged
      */
     public static void w(String tag, String message, String additionalMessage, ADALError errorCode) {
-        Logger.getInstance().log(tag, message, additionalMessage, LogLevel.Warn, errorCode, null);
+        if (mEnableCommonCoreLog) {
+            if (!StringExtensions.isNullOrBlank(message)) {
+                CommonCoreLogger.warn(tag, Logger.getInstance().getCorrelationId(),
+                        (errorCode == null ? "" : errorCode.name() + ":") + message,
+                        null);
+            }
+
+            if (!StringExtensions.isNullOrBlank(additionalMessage)) {
+                CommonCoreLogger.warnPII(tag, Logger.getInstance().getCorrelationId(),
+                        (errorCode == null ? "" : errorCode.name() + ":") + additionalMessage,
+                        null);
+            }
+        } else {
+            Logger.getInstance().log(tag, message, additionalMessage, LogLevel.Warn, errorCode, null);
+        }
     }
 
     /**
@@ -312,7 +425,11 @@ public class Logger {
      * @param message body of the log message
      */
     public static void w(String tag, String message) {
-        Logger.getInstance().log(tag, message, null, LogLevel.Warn, null, null);
+        if (mEnableCommonCoreLog) {
+            CommonCoreLogger.warn(tag, Logger.getInstance().mCorrelationId, message, null);
+        } else {
+            Logger.getInstance().log(tag, message, null, LogLevel.Warn, null, null);
+        }
     }
 
     /**
@@ -324,7 +441,21 @@ public class Logger {
      * @param errorCode         ADAL error code being logged
      */
     public static void e(String tag, String message, String additionalMessage, ADALError errorCode) {
-        Logger.getInstance().log(tag, message, additionalMessage, LogLevel.Error, errorCode, null);
+        if (mEnableCommonCoreLog) {
+            if (!StringExtensions.isNullOrBlank(message)) {
+                CommonCoreLogger.error(tag, Logger.getInstance().getCorrelationId(),
+                        (errorCode == null ? "" : errorCode.name() + ":") + message,
+                        null, null);
+            }
+
+            if (!StringExtensions.isNullOrBlank(additionalMessage)) {
+                CommonCoreLogger.errorPII(tag, Logger.getInstance().getCorrelationId(),
+                        (errorCode == null ? "" : errorCode.name() + ":") + additionalMessage,
+                        null, null);
+            }
+        } else {
+            Logger.getInstance().log(tag, message, additionalMessage, LogLevel.Error, errorCode, null);
+        }
     }
 
     /**
@@ -338,7 +469,24 @@ public class Logger {
      */
     public static void e(String tag, String message, String additionalMessage, ADALError errorCode,
                          Throwable throwable) {
-        Logger.getInstance().log(tag, message, additionalMessage, LogLevel.Error, errorCode, throwable);
+        if (mEnableCommonCoreLog) {
+            // TODO should logger in errorLevel without PII enable print throwable stacktrace?
+            // In the current implementation of ADAL Logger, we do not print stacktrace when the PII is disabled.
+            // That is why we pass null in the Throwable parameter field.
+            if (!StringExtensions.isNullOrBlank(message)) {
+                CommonCoreLogger.error(tag, Logger.getInstance().getCorrelationId(),
+                        (errorCode == null ? "" : errorCode.name() + ":") + message,
+                        null, null);
+            }
+
+            if (!StringExtensions.isNullOrBlank(additionalMessage)) {
+                CommonCoreLogger.errorPII(tag, Logger.getInstance().getCorrelationId(),
+                        (errorCode == null ? "" : errorCode.name() + ":") + additionalMessage,
+                        null, throwable);
+            }
+        } else {
+            Logger.getInstance().log(tag, message, additionalMessage, LogLevel.Error, errorCode, throwable);
+        }
     }
 
     /**
@@ -349,7 +497,12 @@ public class Logger {
      * @param throwable Throwable
      */
     public static void e(String tag, String message, Throwable throwable) {
-        Logger.getInstance().log(tag, message, null, LogLevel.Error, null, throwable);
+        if (mEnableCommonCoreLog) {
+            CommonCoreLogger.error(tag, Logger.getInstance().mCorrelationId, message, null, null);
+            CommonCoreLogger.errorPII(tag, Logger.getInstance().mCorrelationId, "", null, throwable);
+        } else {
+            Logger.getInstance().log(tag, message, null, LogLevel.Error, null, throwable);
+        }
     }
 
     /**
