@@ -1053,6 +1053,7 @@ public class AuthenticationContext {
     }
 
     /**
+
      * Get the CorrelationId set by user.
      *
      * @return UUID
