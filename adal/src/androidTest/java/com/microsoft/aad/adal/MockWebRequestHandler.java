@@ -102,4 +102,9 @@ class MockWebRequestHandler implements IWebRequestHandler {
     public void setRequestCorrelationId(UUID correlationId) {
         mCorrelationId = correlationId;
     }
+
+    @Override
+    public void setAdalClientVersion(String adalClientVersion) {
+        // intentionally empty.
+    }
 }
