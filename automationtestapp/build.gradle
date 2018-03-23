@@ -93,6 +93,8 @@ task clean_test_app(dependsOn: ':automationtestapp:clean'){print("Cleaning...")}
 
 task build_test_app(dependsOn: ':automationtestapp:build'){print("Building...")}
 
-task cleanBuild(dependsOn: ['clean_test_app','build_test_app']){}
+task clean_Build(dependsOn: ['clean_test_app','build_test_app']){}
 
-task installtestApp(dependsOn: ['installAdalDebug','installAdalRDebug','cleanBuild']){}
+task install_testApp(dependsOn: ['installAdalDebug','installAdalRDebug']){}
+
+task uninstall_testApp(dependsOn: [':automationtestapp:uninstall']){}
