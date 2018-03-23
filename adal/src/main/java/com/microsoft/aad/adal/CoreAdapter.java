@@ -1,6 +1,7 @@
 package com.microsoft.aad.adal;
 
 import com.microsoft.identity.common.Account;
+import com.microsoft.identity.common.exception.CommonCoreBaseException;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryAccount;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryCloud;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryTokenResponse;
@@ -68,11 +69,11 @@ final class CoreAdapter {
 
     }
 
-    public static com.microsoft.aad.adal.AuthenticationException asAuthenticationException(com.microsoft.identity.common.adal.error.AuthenticationException ex) {
-        com.microsoft.aad.adal.AuthenticationException newException = new com.microsoft.aad.adal.AuthenticationException(ADALError.fromCommon(ex.getCode()), ex.getMessage(), ex);
+    public static AuthenticationException asAuthenticationException(CommonCoreBaseException ex) {
+        AuthenticationException newException = new AuthenticationException(ADALError.fromCommon(ex));
         newException.setHttpResponseBody(ex.getHttpResponseBody());
         newException.setHttpResponseHeaders(ex.getHttpResponseHeaders());
-        newException.setServiceStatusCode(ex.getServiceStatusCode());
+        newException.setServiceStatusCode(ex.getHttpStatusCode());
         return newException;
     }
 
