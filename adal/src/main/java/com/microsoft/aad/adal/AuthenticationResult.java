@@ -166,6 +166,10 @@ public class AuthenticationResult implements Serializable {
                         cacheItem.getExpiresOn(), cacheItem.getIsMultiResourceRefreshToken(),
                         cacheItem.getUserInfo(), cacheItem.getTenantId(), cacheItem.getRawIdToken(), cacheItem.getExtendedExpiresOn());
 
+        final CliTelemInfo cliTelemInfo = new CliTelemInfo();
+        cliTelemInfo.setSpeRing(cacheItem.getSpeRing());
+        result.setCliTelemInfo(cliTelemInfo);
+
         return result;
     }
 
