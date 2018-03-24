@@ -1,27 +1,60 @@
 package com.microsoft.aad.automation.testapp.UIAutomatorTests;
 
-import android.content.Context;
-import android.content.Intent;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.uiautomator.By;
 import android.support.test.uiautomator.UiDevice;
 import android.support.test.uiautomator.UiObject;
+import android.support.test.uiautomator.UiObjectNotFoundException;
 import android.support.test.uiautomator.UiSelector;
-import android.support.test.uiautomator.Until;
+
+
+import junit.framework.Assert;
 
 import static android.support.test.InstrumentationRegistry.getInstrumentation;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsNull.notNullValue;
 
-/**
- * Created by v-dmkapi on 3/23/2018.
- */
 
 public class SampleFunctions {
 
-    public static boolean Open_Applications_View()
+    private static UiDevice mDevice;
+
+    private static final int WINDOW_TIMEOUT = 3000;
+
+    private static String mAppName;
+
+    private static void click_by_Text(String text)
     {
-        UiDevice mDevice = UiDevice.getInstance(getInstrumentation());
+        UiObject appButton = mDevice.findObject(new UiSelector()
+                .text(text));
+        try{
+            appButton.click();
+        } catch (UiObjectNotFoundException e) {
+            Assert.fail("Didn't find text to click on: " + text);
+        }
+    }
+
+    private static void click_and_await(String text)
+    {
+        UiObject appButton = mDevice.findObject(new UiSelector()
+                .text(text));
+        try{
+            appButton.clickAndWaitForNewWindow(WINDOW_TIMEOUT);
+        } catch (UiObjectNotFoundException e) {
+            Assert.fail("Didn't find text to click on: " + text);
+        }
+    }
+
+    private static void set_text_by_Text(String UIElementText,String text_to_set)
+    {
+        UiObject appButton = mDevice.findObject(new UiSelector()
+                .text(UIElementText));
+        try{
+            appButton.setText(text_to_set);
+        } catch (UiObjectNotFoundException e) {
+            Assert.fail("Didn't find element");
+        }
+    }
+
+    private static void open_Applications_View()
+    {
+        // press the home button
         mDevice.pressHome();
         // Bring up the default launcher by searching for a UI component
         // that matches the content description for the launcher button.
@@ -30,34 +63,51 @@ public class SampleFunctions {
         try{
             allAppsButton.clickAndWaitForNewWindow();
         } catch (Exception e){
-            return false;
+            Assert.fail("Didnt find app");
         }
-        return true;
     }
 
-    public static boolean Launch_App(String BASIC_SAMPLE_PACKAGE)
+    public static void launch_App(String AppName)
     {
-        int LAUNCH_TIMEOUT = 5000;
-        UiDevice mDevice = UiDevice.getInstance(getInstrumentation());
+        // need to finish this.
 
-        // Wait for launcher
-        final String launcherPackage = mDevice.getLauncherPackageName();
-        assertThat(launcherPackage, notNullValue());
-        mDevice.wait(Until.hasObject(By.pkg(launcherPackage).depth(0)),
-                LAUNCH_TIMEOUT);
+    }
 
-        // Launch the app
-        Context context = InstrumentationRegistry.getContext();
-        final Intent intent = context.getPackageManager()
-                .getLaunchIntentForPackage(BASIC_SAMPLE_PACKAGE);
-        // Clear out any previous instances
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        context.startActivity(intent);
+    public static void unenroll_authenticator(String AppName)
+    {
+        mAppName = AppName;
+        mDevice = UiDevice.getInstance(getInstrumentation());
 
-        // Wait for the app to appear
-        mDevice.wait(Until.hasObject(By.pkg(BASIC_SAMPLE_PACKAGE).depth(0)),
-                LAUNCH_TIMEOUT);
+        UiObject appButton = mDevice.findObject(new UiSelector()
+                .text(AppName));
+        try{
+            appButton.longClick();
+        } catch (UiObjectNotFoundException e) {
+            Assert.fail("");
+        }
+    }
 
-        return true;
+
+    public static void uninstall_App(String AppName)
+    {
+        mAppName = AppName;
+        mDevice = UiDevice.getInstance(getInstrumentation());
+
+        UiObject settingsButton = mDevice.findObject(new UiSelector().description("Settings"));
+        // Perform a click on the button to load the launcher.
+        try{
+            settingsButton.clickAndWaitForNewWindow();
+        } catch (Exception e){
+            Assert.fail("Didnt find settings");
+        }
+
+        click_by_Text("Apps");
+
+        click_and_await(mAppName);
+
+        click_by_Text("Uninstall");
+
+        click_by_Text("OK");
+
     }
 }

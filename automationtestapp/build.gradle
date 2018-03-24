@@ -89,12 +89,13 @@ dependencies {
     compile group: 'com.android.volley', name: 'volley', version: '1.1.0'
 }
 
+// build and clean.
 task clean_test_app(dependsOn: ':automationtestapp:clean'){print("Cleaning...")}
-
 task build_test_app(dependsOn: ':automationtestapp:build'){print("Building...")}
-
-task clean_Build(dependsOn: ['clean_test_app','build_test_app']){}
-
-task install_testApp(dependsOn: ['installAdalDebug','installAdalRDebug']){}
-
-task uninstall_testApp(dependsOn: [':automationtestapp:uninstall']){}
+// build and clean wrapper.
+task clean_build(dependsOn: ['clean_test_app','build_test_app']){}
+// install apps.
+task install_dev(dependsOn: ['installAdalDebug']){}
+task install_release(dependsOn: ['installAdalRDebug']){}
+// un-istall both apps.
+task uninstall_testApps(dependsOn: [':automationtestapp:uninstallAll']){}
