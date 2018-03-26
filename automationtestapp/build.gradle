@@ -92,10 +92,22 @@ dependencies {
 // build and clean.
 task clean_test_app(dependsOn: ':automationtestapp:clean'){print("Cleaning...")}
 task build_test_app(dependsOn: ':automationtestapp:build'){print("Building...")}
-// build and clean wrapper.
+// both clean and build.
 task clean_build(dependsOn: ['clean_test_app','build_test_app']){}
+
 // install apps.
 task install_dev(dependsOn: ['installAdalDebug']){}
 task install_release(dependsOn: ['installAdalRDebug']){}
-// un-istall both apps.
-task uninstall_testApps(dependsOn: [':automationtestapp:uninstallAll']){}
+// install both
+task install_both(dependsOn: ['installAdalDebug','installAdalRDebug'])
+
+
+// Clean,Build,Install both apps.
+task clean_build_install(dependsOn: 'clean_build'){
+    doLast {
+        install_both
+    }
+}
+
+// un-install both apps.
+task uninstall_both(dependsOn: [':automationtestapp:uninstallAll']){}
