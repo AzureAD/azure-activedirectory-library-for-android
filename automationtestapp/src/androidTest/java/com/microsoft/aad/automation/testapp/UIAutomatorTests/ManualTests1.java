@@ -18,7 +18,17 @@ public class ManualTests1 {
         SampleFunctions.clear_app_data("Authenticator");
     }
 
+    @Test
+    public void test_scroll() {
+        //SampleFunctions.open_Applications_View();
+        SampleFunctions.scroll_findapp("Slides");
+    }
 
+    @Test
+    public void removeAccount()
+    {
+        SampleFunctions.remove_authenticator_account();
+    }
 
     @Test
     public void Open_Applications_View()
@@ -27,11 +37,6 @@ public class ManualTests1 {
        //SampleFunctions.launch_App("adalR");
 
         SampleFunctions.clear_app_data("Authenticator");
-        SampleFunctions.enroll_authenticator_personal(
-               "",
-               "",
-               false
-       );
        //SampleFunctions.uninstall_App("adalR");
     }
 }
