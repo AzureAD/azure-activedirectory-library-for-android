@@ -21,7 +21,7 @@ public class ManualTests1 {
     @Test
     public void test_scroll() {
         //SampleFunctions.open_Applications_View();
-        SampleFunctions.scroll_findapp("Slides");
+        SampleFunctions.launch_App("adalR");
     }
 
     @Test
