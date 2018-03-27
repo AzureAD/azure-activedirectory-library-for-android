@@ -13,10 +13,25 @@ import android.support.test.runner.AndroidJUnit4;
 public class ManualTests1 {
 
     @Test
+    public void clear_data()
+    {
+        SampleFunctions.clear_app_data("Authenticator");
+    }
+
+
+
+    @Test
     public void Open_Applications_View()
     {
        //SampleFunctions.launch_App("adal");
        //SampleFunctions.launch_App("adalR");
+
+        SampleFunctions.clear_app_data("Authenticator");
+        SampleFunctions.enroll_authenticator_personal(
+               "",
+               "",
+               false
+       );
        //SampleFunctions.uninstall_App("adalR");
     }
 }
