@@ -14,7 +14,7 @@ import static android.support.test.InstrumentationRegistry.getInstrumentation;
 
 public class SampleFunctions {
 
-    private static UiDevice mDevice;
+    private static UiDevice mDevice = UiDevice.getInstance(getInstrumentation());
 
     private static final String AUTHENTICATOR_APP_NAME = "Authenticator";
 
@@ -30,7 +30,6 @@ public class SampleFunctions {
 
     private static void click_by_Text(String text)
     {
-        set_device();
         UiObject appButton = mDevice.findObject(new UiSelector()
                 .text(text));
         try{
@@ -42,7 +41,6 @@ public class SampleFunctions {
 
     private static void click_by_resourceID(String resourceID)
     {
-        set_device();
         UiObject appButton = mDevice.findObject(new UiSelector()
                 .resourceId(resourceID));
         try{
@@ -54,7 +52,6 @@ public class SampleFunctions {
 
     private static void click_and_await(String text)
     {
-        set_device();
         UiObject appButton = mDevice.findObject(new UiSelector()
                 .text(text));
         try{
@@ -66,7 +63,6 @@ public class SampleFunctions {
 
     private static void click_and_await_resourceID(String resourceID)
     {
-        set_device();
         UiObject appButton = mDevice.findObject(new UiSelector()
                 .resourceId(resourceID));
         try{
@@ -78,7 +74,6 @@ public class SampleFunctions {
 
     private static void set_text_by_Text(String UIElementText,String text_to_set)
     {
-        set_device();
         UiObject appButton = mDevice.findObject(new UiSelector()
                 .text(UIElementText));
         try{
@@ -88,16 +83,8 @@ public class SampleFunctions {
         }
     }
 
-    private static void set_device()
-    {
-        if(mDevice == null){
-            mDevice = UiDevice.getInstance(getInstrumentation());
-        }
-    }
-
     public static void open_Applications_View()
     {
-        set_device();
         // press the home button
         mDevice.pressHome();
         // Bring up the default launcher by searching for a UI component
@@ -111,17 +98,8 @@ public class SampleFunctions {
         }
     }
 
-    public static void launch_App(String AppName)
-    {
-        set_device();
-        mAppName = AppName;
-        open_Applications_View();
-        click_by_Text(mAppName);
-    }
-
     public static void uninstall_App(String AppName)
     {
-        set_device();
         mAppName = AppName;
 
         UiObject settingsButton = mDevice.findObject(new UiSelector().description("Settings"));
@@ -144,7 +122,6 @@ public class SampleFunctions {
 
     public static void clear_app_data(String AppName)
     {
-        set_device();
         mDevice.pressHome();
         mAppName = AppName;
 
@@ -173,15 +150,14 @@ public class SampleFunctions {
         click_by_resourceID("com.android.packageinstaller:id/permission_allow_button");
     }
 
-    public static void scroll_findapp(String textToClick){
+    public static void launch_App(String appName){
+        mAppName = appName;
         open_Applications_View();
         scroll_up();
-        set_device();
-
         try {
             UiScrollable appView = new UiScrollable(new UiSelector().scrollable(true));
-            appView.scrollIntoView(new UiSelector().text(textToClick));
-            mDevice.findObject(new UiSelector().text(textToClick)).clickAndWaitForNewWindow();
+            appView.scrollIntoView(new UiSelector().text(appName));
+            mDevice.findObject(new UiSelector().text(appName)).clickAndWaitForNewWindow();
         } catch (UiObjectNotFoundException e) {
 
         }
@@ -189,7 +165,6 @@ public class SampleFunctions {
 
     public static void scroll_up()
     {
-        set_device();
         int H = mDevice.getDisplayHeight();
         int W = mDevice.getDisplayWidth();
         int x = W / 2;
