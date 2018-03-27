@@ -28,8 +28,7 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 
 import com.microsoft.identity.common.exception.CommonCoreBaseException;
-import com.microsoft.identity.common.exception.CommonCoreException;
-import com.microsoft.identity.common.exception.CommonCoreServiceException;
+import com.microsoft.identity.common.exception.CommonCoreExceptionMessage;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -639,29 +638,29 @@ public enum ADALError {
     private static final Map<String, ADALError> exceptionMap = new HashMap<String,ADALError>();
 
     static {
-        exceptionMap.put(CommonCoreException.ANDROIDKEYSTORE_FAILED, ADALError.ANDROIDKEYSTORE_FAILED);
-        exceptionMap.put(CommonCoreException.AUTHORITY_URL_NOT_VALID, ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE);
-        exceptionMap.put(CommonCoreException.AUTHORITY_VALIDATION_NOT_SUPPORTED, ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED);
-        exceptionMap.put(CommonCoreException.DECRYPTION_ERROR, ADALError.DECRYPTION_FAILED);
-        exceptionMap.put(CommonCoreException.DEVICE_NETWORK_NOT_AVAILABLE, ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
-        exceptionMap.put(CommonCoreException.ENCRYPTION_ERROR, ADALError.ENCRYPTION_ERROR);
-        exceptionMap.put(CommonCoreException.INVALID_JWT, ADALError.JSON_PARSE_ERROR);
-        exceptionMap.put(CommonCoreException.IO_ERROR, ADALError.IO_EXCEPTION);
-        exceptionMap.put(CommonCoreException.JSON_PARSE_FAILURE, ADALError.JSON_PARSE_ERROR);
+        exceptionMap.put(CommonCoreExceptionMessage.ANDROIDKEYSTORE_FAILED, ADALError.ANDROIDKEYSTORE_FAILED);
+        exceptionMap.put(CommonCoreExceptionMessage.AUTHORITY_URL_NOT_VALID, ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE);
+        exceptionMap.put(CommonCoreExceptionMessage.AUTHORITY_VALIDATION_NOT_SUPPORTED, ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED);
+        exceptionMap.put(CommonCoreExceptionMessage.DECRYPTION_ERROR, ADALError.DECRYPTION_FAILED);
+        exceptionMap.put(CommonCoreExceptionMessage.DEVICE_NETWORK_NOT_AVAILABLE, ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
+        exceptionMap.put(CommonCoreExceptionMessage.ENCRYPTION_ERROR, ADALError.ENCRYPTION_ERROR);
+        exceptionMap.put(CommonCoreExceptionMessage.INVALID_JWT, ADALError.JSON_PARSE_ERROR);
+        exceptionMap.put(CommonCoreExceptionMessage.IO_ERROR, ADALError.IO_EXCEPTION);
+        exceptionMap.put(CommonCoreExceptionMessage.JSON_PARSE_FAILURE, ADALError.JSON_PARSE_ERROR);
         // TODO: :O
-        exceptionMap.put(CommonCoreException.MALFORMED_URL, ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL);
-        exceptionMap.put(CommonCoreException.MULTIPLE_MATCHING_TOKENS_DETECTED, ADALError.AUTH_FAILED_USER_MISMATCH);
-        exceptionMap.put(CommonCoreException.USER_MISMATCH, ADALError.AUTH_FAILED_USER_MISMATCH);
-        exceptionMap.put(CommonCoreException.NO_SUCH_ALGORITHM, ADALError.DEVICE_NO_SUCH_ALGORITHM);
-        exceptionMap.put(CommonCoreException.UNSUPPORTED_ENCODING, ADALError.ENCODING_IS_NOT_SUPPORTED);
+        exceptionMap.put(CommonCoreExceptionMessage.MALFORMED_URL, ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL);
+        exceptionMap.put(CommonCoreExceptionMessage.MULTIPLE_MATCHING_TOKENS_DETECTED, ADALError.AUTH_FAILED_USER_MISMATCH);
+        exceptionMap.put(CommonCoreExceptionMessage.USER_MISMATCH, ADALError.AUTH_FAILED_USER_MISMATCH);
+        exceptionMap.put(CommonCoreExceptionMessage.NO_SUCH_ALGORITHM, ADALError.DEVICE_NO_SUCH_ALGORITHM);
+        exceptionMap.put(CommonCoreExceptionMessage.UNSUPPORTED_ENCODING, ADALError.ENCODING_IS_NOT_SUPPORTED);
 
         // The following mapping need a lot more brushing up
-        exceptionMap.put(CommonCoreServiceException.ACCESS_DENIED, ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
-        exceptionMap.put(CommonCoreServiceException.INVALID_INSTANCE, ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
-        exceptionMap.put(CommonCoreServiceException.INVALID_REQUEST, ADALError.SERVER_INVALID_REQUEST);
-        exceptionMap.put(CommonCoreServiceException.REQUEST_TIMEOUT, ADALError.SERVER_ERROR);
-        exceptionMap.put(CommonCoreServiceException.SERVICE_NOT_AVAILABLE, ADALError.SERVER_ERROR);
-        exceptionMap.put(CommonCoreServiceException.UNKNOWN_ERROR, ADALError.SERVER_ERROR);
+        exceptionMap.put(CommonCoreExceptionMessage.ACCESS_DENIED, ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
+        exceptionMap.put(CommonCoreExceptionMessage.INVALID_INSTANCE, ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
+        exceptionMap.put(CommonCoreExceptionMessage.INVALID_REQUEST, ADALError.SERVER_INVALID_REQUEST);
+        exceptionMap.put(CommonCoreExceptionMessage.REQUEST_TIMEOUT, ADALError.SERVER_ERROR);
+        exceptionMap.put(CommonCoreExceptionMessage.SERVICE_NOT_AVAILABLE, ADALError.SERVER_ERROR);
+        exceptionMap.put(CommonCoreExceptionMessage.UNKNOWN_ERROR, ADALError.SERVER_ERROR);
     }
 
     public static ADALError fromCommon(final CommonCoreBaseException exception) {

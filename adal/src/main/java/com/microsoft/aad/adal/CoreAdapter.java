@@ -70,7 +70,7 @@ final class CoreAdapter {
     }
 
     public static AuthenticationException asAuthenticationException(CommonCoreBaseException ex) {
-        AuthenticationException newException = new AuthenticationException(ADALError.fromCommon(ex));
+        AuthenticationException newException = new AuthenticationException(ADALError.fromCommon(ex), ex.getMessage(), ex);
         newException.setHttpResponseBody(ex.getHttpResponseBody());
         newException.setHttpResponseHeaders(ex.getHttpResponseHeaders());
         newException.setServiceStatusCode(ex.getHttpStatusCode());
