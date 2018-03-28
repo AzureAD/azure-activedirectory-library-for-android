@@ -34,4 +34,6 @@ public interface IConnectionService {
      * @return connection status
      */
     boolean isConnectionAvailable();
+
+    boolean isNetworkDisabledFromOptimizations();
 }

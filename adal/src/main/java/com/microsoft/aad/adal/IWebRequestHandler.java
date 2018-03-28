@@ -58,4 +58,6 @@ public interface IWebRequestHandler {
      * @param requestCorrelationId {@link UUID} of the correlation id to set in the web request.
      */
     void setRequestCorrelationId(UUID requestCorrelationId);
+
+    void setAdalClientVersion(String adalClientVersion);
 }
