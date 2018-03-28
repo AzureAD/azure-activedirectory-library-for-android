@@ -26,7 +26,6 @@ package com.microsoft.aad.adal;
 import android.util.Log;
 
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-import com.microsoft.identity.common.internal.logging.CommonCoreLogger;
 import com.microsoft.identity.common.internal.logging.ILoggerCallback;
 import com.microsoft.identity.common.internal.logging.LoggerSettings;
 
@@ -46,39 +45,42 @@ public class Logger {
 
     /**
      * @return The single instance of {@link Logger}.
+     *
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#getInstance()} instead.
      */
+    @Deprecated
     public static Logger getInstance() {
         return sINSTANCE;
     }
 
-
     /**
      * Set the log level for diagnostic purpose. By default, the sdk enables the verbose level logging.
-     *
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel)} instead.
      * @param logLevel The {@link LogLevel} to be enabled for the diagnostic logging.
      */
+    @Deprecated
     public void setLogLevel(final LogLevel logLevel) {
         switch (logLevel) {
             case Error:
-                CommonCoreLogger.getInstance()
-                        .setLogLevel(CommonCoreLogger.LogLevel.ERROR);
+                com.microsoft.identity.common.internal.logging.Logger.getInstance()
+                        .setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel.ERROR);
                 break;
             case Warn:
-                CommonCoreLogger.getInstance()
-                        .setLogLevel(CommonCoreLogger.LogLevel.WARN);
+                com.microsoft.identity.common.internal.logging.Logger.getInstance()
+                        .setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel.WARN);
                 break;
             case Info:
-                CommonCoreLogger.getInstance()
-                        .setLogLevel(CommonCoreLogger.LogLevel.INFO);
+                com.microsoft.identity.common.internal.logging.Logger.getInstance()
+                        .setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel.INFO);
                 break;
             case Verbose:
-                CommonCoreLogger.getInstance()
-                        .setLogLevel(CommonCoreLogger.LogLevel.VERBOSE);
+                com.microsoft.identity.common.internal.logging.Logger.getInstance()
+                        .setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel.VERBOSE);
                 break;
             case Debug:
                 //The debug level is deprecated and removed in common core.
-                CommonCoreLogger.getInstance()
-                        .setLogLevel(CommonCoreLogger.LogLevel.INFO);
+                com.microsoft.identity.common.internal.logging.Logger.getInstance()
+                        .setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel.INFO);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown logLevel");
@@ -89,37 +91,34 @@ public class Logger {
      * Set the custom logger. Configures external logging to configure a callback that
      * the sdk will use to pass each log message. Overriding the logger callback is not allowed.
      *
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#setExternalLogger(ILoggerCallback)} instead.
+     *
      * @param externalLogger The reference to the {@link ILogger} that can
      *                       output the logs to the designated places.
-     *
      */
+    @Deprecated
     public synchronized void setExternalLogger(ILogger externalLogger) {
-        CommonCoreLogger.getInstance().setExternalLogger(new ILoggerCallback() {
+        com.microsoft.identity.common.internal.logging.Logger.getInstance().setExternalLogger(new ILoggerCallback() {
             @Override
-            public void log(String tag, CommonCoreLogger.LogLevel logLevel, String message, boolean containsPII) {
+            public void log(String tag, com.microsoft.identity.common.internal.logging.Logger.LogLevel logLevel, String message, boolean containsPII) {
                 if (mExternalLogger != null) {
-                    if (!LoggerSettings.getInstance().getAllowPii() && containsPII) {
+                    if (!LoggerSettings.getAllowPii() && containsPII) {
                         return;
                     } else {
                         switch (logLevel) {
                             case ERROR:
-                                Log.d("Heidi", "The common core callback is called");
                                 mExternalLogger.Log(tag, message, null, LogLevel.Error, null);
                                 break;
                             case WARN:
-                                Log.d("Heidi", "The common core callback is called");
                                 mExternalLogger.Log(tag, message, null, LogLevel.Warn, null);
                                 break;
                             case VERBOSE:
-                                Log.d("Heidi", "The common core callback is called");
                                 mExternalLogger.Log(tag, message, null, LogLevel.Verbose, null);
                                 break;
                             case INFO:
-                                Log.d("Heidi", "The common core callback is called");
                                 mExternalLogger.Log(tag, message, null, LogLevel.Info, null);
                                 break;
                             default:
-                                Log.d("Heidi", "The common core callback is called");
                                 throw new IllegalArgumentException("Unknown logLevel");
                         }
                     }
@@ -132,28 +131,32 @@ public class Logger {
 
     /**
      * Enable/Disable the Android logcat logging. By default, the sdk disables it.
-     *
+     * @deprecated use {@link LoggerSettings#setAllowLogcat(boolean)} instead.
      * @param androidLogEnabled True if enabling the logcat logging, false otherwise.
      */
+    @Deprecated
     public void setAndroidLogEnabled(final boolean androidLogEnabled) {
-        LoggerSettings.getInstance().setAllowLogcat(androidLogEnabled);
+        LoggerSettings.setAllowLogcat(androidLogEnabled);
     }
 
     /**
      * ADAL provides logging callbacks that assist in diagnostics. The callback has two parameters,
      * message and additionalMessage. All user information is put into additionalMessage.
-     * ADAL will clear this data unless the {@link #mEnablePII} is called with true.
+     * ADAL will clear this data unless the {@link LoggerSettings#mAllowPii} is called with true.
      * By default the library will not return any messages with user information in them.
-     *
+     * @deprecated use {@link LoggerSettings#setAllowPii(boolean)} instead.
      * @param enablePII True if enabling PII info to be logged, false otherwise.
      */
+    @Deprecated
     public void setEnablePII(final boolean enablePII) {
-        LoggerSettings.getInstance().setAllowPii(enablePII);
+        LoggerSettings.setAllowPii(enablePII);
     }
 
     /**
      * Enum class for LogLevel that the sdk recognizes.
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger.LogLevel} instead.
      */
+    @Deprecated
     public enum LogLevel {
         /**
          * Error.
@@ -188,7 +191,9 @@ public class Logger {
 
     /**
      * Interface for apps to configure the external logging.
+     * @deprecated use {@link ILoggerCallback} instead.
      */
+    @Deprecated
     public interface ILogger {
         /**
          * Interface method for apps to hand off each log message as it's generated.
@@ -208,51 +213,51 @@ public class Logger {
         switch (logLevel) {
             case Error:
                 if (!StringExtensions.isNullOrBlank(message)) {
-                    CommonCoreLogger.error(tag, Logger.getInstance().getCorrelationId(),
+                    com.microsoft.identity.common.internal.logging.Logger.error(tag, Logger.getInstance().getCorrelationId(),
                             (errorCode == null ? "" : errorCode.name() + ":") + message, null);
                 }
 
                 if (!StringExtensions.isNullOrBlank(additionalMessage)) {
-                    CommonCoreLogger.errorPII(tag, Logger.getInstance().getCorrelationId(),
+                    com.microsoft.identity.common.internal.logging.Logger.errorPII(tag, Logger.getInstance().getCorrelationId(),
                             (errorCode == null ? "" : errorCode.name() + ":") + additionalMessage, throwable);
                 }
                 break;
             case Warn:
                 if (!StringExtensions.isNullOrBlank(message)) {
-                    CommonCoreLogger.warn(tag, Logger.getInstance().getCorrelationId(),
+                    com.microsoft.identity.common.internal.logging.Logger.warn(tag, Logger.getInstance().getCorrelationId(),
                             (errorCode == null ? "" : errorCode.name() + ":") + message);
                 }
 
                 if (!StringExtensions.isNullOrBlank(additionalMessage)) {
-                    CommonCoreLogger.warnPII(tag, Logger.getInstance().getCorrelationId(),
+                    com.microsoft.identity.common.internal.logging.Logger.warnPII(tag, Logger.getInstance().getCorrelationId(),
                             (errorCode == null ? "" : errorCode.name() + ":") + additionalMessage);
                 }
                 break;
             case Info:
                 if (!StringExtensions.isNullOrBlank(message)) {
-                    CommonCoreLogger.info(tag, Logger.getInstance().getCorrelationId(),
+                    com.microsoft.identity.common.internal.logging.Logger.info(tag, Logger.getInstance().getCorrelationId(),
                             (errorCode == null ? "" : errorCode.name() + ":") + message);
                 }
 
                 if (!StringExtensions.isNullOrBlank(additionalMessage)) {
-                    CommonCoreLogger.infoPII(tag, Logger.getInstance().getCorrelationId(),
+                    com.microsoft.identity.common.internal.logging.Logger.infoPII(tag, Logger.getInstance().getCorrelationId(),
                             (errorCode == null ? "" : errorCode.name() + ":") + additionalMessage);
                 }
                 break;
             case Verbose:
                 if (!StringExtensions.isNullOrBlank(message)) {
-                    CommonCoreLogger.verbose(tag, Logger.getInstance().getCorrelationId(),
+                    com.microsoft.identity.common.internal.logging.Logger.verbose(tag, Logger.getInstance().getCorrelationId(),
                             (errorCode == null ? "" : errorCode.name() + ":") + message);
                 }
 
                 if (!StringExtensions.isNullOrBlank(additionalMessage)) {
-                    CommonCoreLogger.verbosePII(tag, Logger.getInstance().getCorrelationId(),
+                    com.microsoft.identity.common.internal.logging.Logger.verbosePII(tag, Logger.getInstance().getCorrelationId(),
                             (errorCode == null ? "" : errorCode.name() + ":") + additionalMessage);
                 }
                 break;
             case Debug:
                 //The debug level is deprecated and removed in common core.
-                CommonCoreLogger.info(tag, Logger.getInstance().mCorrelationId, message);
+                com.microsoft.identity.common.internal.logging.Logger.info(tag, Logger.getInstance().mCorrelationId, message);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown logLevel");
@@ -261,10 +266,11 @@ public class Logger {
 
     /**
      * Logs debug message.
-     *
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#info(String, String, String)} instead.
      * @param tag     tag for the log message
      * @param message body of the log message
      */
+    @Deprecated
     public static void d(String tag, String message) {
         if (StringExtensions.isNullOrBlank(message)) {
             return;
@@ -276,10 +282,16 @@ public class Logger {
     /**
      * Logs informational message.
      *
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#info(String, String, String)}
+     *             if the log message does not contain any PII information.
+     *             use {@link com.microsoft.identity.common.internal.logging.Logger#infoPII(String, String, String)}
+     *             if the log message contains any PII information.
+     *
      * @param tag               tag for the log message
      * @param message           body of the log message
      * @param additionalMessage additional parameters
      */
+    @Deprecated
     public static void i(String tag, String message, String additionalMessage) {
         Logger.getInstance().commonCoreWrapper(tag, message, additionalMessage, LogLevel.Info, null, null);
     }
@@ -287,73 +299,107 @@ public class Logger {
     /**
      * Logs informational messages with error codes.
      *
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#info(String, String, String)}
+     *             if the log message does not contain any PII information.
+     *             use {@link com.microsoft.identity.common.internal.logging.Logger#infoPII(String, String, String)}
+     *             if the log message contains any PII information.
+     *
      * @param tag               tag for the log message
      * @param message           body of the log message
      * @param additionalMessage additional parameters
      * @param errorCode         ADAL error code being logged
      */
+    @Deprecated
     public static void i(String tag, String message, String additionalMessage, ADALError errorCode) {
         Logger.getInstance().commonCoreWrapper(tag, message, additionalMessage, LogLevel.Info, errorCode, null);
     }
 
     /**
      * Logs verbose message.
-     *
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#verbose(String, String, String)}
+     *             if the log message does not contain any PII information.
+     *             use {@link com.microsoft.identity.common.internal.logging.Logger#verbosePII(String, String, String)}
+     *             if the log message contains any PII information.
      * @param tag     tag for the log message
      * @param message body of the log message
      */
+    @Deprecated
     public static void v(String tag, String message) {
         Logger.getInstance().commonCoreWrapper(tag, message, null, LogLevel.Verbose, null, null);
     }
 
     /**
      * Logs verbose message with error code.
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#verbose(String, String, String)}
+     *             if the log message does not contain any PII information.
+     *             use {@link com.microsoft.identity.common.internal.logging.Logger#verbosePII(String, String, String)}
+     *             if the log message contains any PII information.
      *
      * @param tag               tag for the log message
      * @param message           body of the log message
      * @param additionalMessage additional parameters
      * @param errorCode         ADAL error code being logged
      */
+    @Deprecated
     public static void v(String tag, String message, String additionalMessage, ADALError errorCode) {
         Logger.getInstance().commonCoreWrapper(tag, message, additionalMessage, LogLevel.Verbose, errorCode, null);
     }
 
     /**
      * Logs warning message.
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#warn(String, String, String)}
+     *             if the log message does not contain any PII information.
+     *             use {@link com.microsoft.identity.common.internal.logging.Logger#warnPII(String, String, String)}
+     *             if the log message contains any PII information.
      *
      * @param tag               tag for the log message
      * @param message           body of the log message
      * @param additionalMessage additional parameters
      * @param errorCode         ADAL error code being logged
      */
+    @Deprecated
     public static void w(String tag, String message, String additionalMessage, ADALError errorCode) {
         Logger.getInstance().commonCoreWrapper(tag, message, additionalMessage, LogLevel.Warn, errorCode, null);
     }
 
     /**
      * Logs warning message.
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#warn(String, String, String)}
+     *             if the log message does not contain any PII information.
+     *             use {@link com.microsoft.identity.common.internal.logging.Logger#warnPII(String, String, String)}
+     *             if the log message contains any PII information.
      *
      * @param tag     tag for the log message
      * @param message body of the log message
      */
+    @Deprecated
     public static void w(String tag, String message) {
         Logger.getInstance().commonCoreWrapper(tag, message, null, LogLevel.Warn, null, null);
     }
 
     /**
      * Logs error message.
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#error(String, String, String, Throwable)}
+     *             if the log message does not contain any PII information.
+     *             use {@link com.microsoft.identity.common.internal.logging.Logger#errorPII(String, String, String, Throwable)}
+     *             if the log message contains any PII information.
      *
      * @param tag               tag for the log message
      * @param message           body of the log message
      * @param additionalMessage additional parameters
      * @param errorCode         ADAL error code being logged
      */
+    @Deprecated
     public static void e(String tag, String message, String additionalMessage, ADALError errorCode) {
         Logger.getInstance().commonCoreWrapper(tag, message, additionalMessage, LogLevel.Error, errorCode, null);
     }
 
     /**
      * Logs error message.
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#error(String, String, String, Throwable)}
+     *             if the log message does not contain any PII information.
+     *             use {@link com.microsoft.identity.common.internal.logging.Logger#errorPII(String, String, String, Throwable)}
+     *             if the log message contains any PII information.
      *
      * @param tag               Tag for the log
      * @param message           Message to add to the log
@@ -361,6 +407,7 @@ public class Logger {
      * @param errorCode         ADAL error code
      * @param throwable         Throwable
      */
+    @Deprecated
     public static void e(String tag, String message, String additionalMessage, ADALError errorCode,
                          Throwable throwable) {
         Logger.getInstance().commonCoreWrapper(tag, message, additionalMessage, LogLevel.Error, errorCode, throwable);
@@ -368,11 +415,16 @@ public class Logger {
 
     /**
      * Logs error message.
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#error(String, String, String, Throwable)}
+     *             if the log message does not contain any PII information.
+     *             use {@link com.microsoft.identity.common.internal.logging.Logger#errorPII(String, String, String, Throwable)}
+     *             if the log message contains any PII information.
      *
      * @param tag       Tag for the log
      * @param message   Message to add to the log
      * @param throwable Throwable
      */
+    @Deprecated
     public static void e(String tag, String message, Throwable throwable) {
         Logger.getInstance().commonCoreWrapper(tag, message, null, LogLevel.Error, null, throwable);
     }
