@@ -23,8 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import android.util.Log;
-
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.logging.ILoggerCallback;
 import com.microsoft.identity.common.internal.logging.LoggerSettings;
@@ -45,20 +43,16 @@ public class Logger {
 
     /**
      * @return The single instance of {@link Logger}.
-     *
-     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#getInstance()} instead.
      */
-    @Deprecated
     public static Logger getInstance() {
         return sINSTANCE;
     }
 
     /**
      * Set the log level for diagnostic purpose. By default, the sdk enables the verbose level logging.
-     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel)} instead.
+     *
      * @param logLevel The {@link LogLevel} to be enabled for the diagnostic logging.
      */
-    @Deprecated
     public void setLogLevel(final LogLevel logLevel) {
         switch (logLevel) {
             case Error:
@@ -91,12 +85,9 @@ public class Logger {
      * Set the custom logger. Configures external logging to configure a callback that
      * the sdk will use to pass each log message. Overriding the logger callback is not allowed.
      *
-     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#setExternalLogger(ILoggerCallback)} instead.
-     *
      * @param externalLogger The reference to the {@link ILogger} that can
      *                       output the logs to the designated places.
      */
-    @Deprecated
     public synchronized void setExternalLogger(ILogger externalLogger) {
         com.microsoft.identity.common.internal.logging.Logger.getInstance().setExternalLogger(new ILoggerCallback() {
             @Override
@@ -131,10 +122,9 @@ public class Logger {
 
     /**
      * Enable/Disable the Android logcat logging. By default, the sdk disables it.
-     * @deprecated use {@link LoggerSettings#setAllowLogcat(boolean)} instead.
+     *
      * @param androidLogEnabled True if enabling the logcat logging, false otherwise.
      */
-    @Deprecated
     public void setAndroidLogEnabled(final boolean androidLogEnabled) {
         LoggerSettings.setAllowLogcat(androidLogEnabled);
     }
@@ -144,19 +134,16 @@ public class Logger {
      * message and additionalMessage. All user information is put into additionalMessage.
      * ADAL will clear this data unless the {@link LoggerSettings#mAllowPii} is called with true.
      * By default the library will not return any messages with user information in them.
-     * @deprecated use {@link LoggerSettings#setAllowPii(boolean)} instead.
+     *
      * @param enablePII True if enabling PII info to be logged, false otherwise.
      */
-    @Deprecated
     public void setEnablePII(final boolean enablePII) {
         LoggerSettings.setAllowPii(enablePII);
     }
 
     /**
      * Enum class for LogLevel that the sdk recognizes.
-     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger.LogLevel} instead.
      */
-    @Deprecated
     public enum LogLevel {
         /**
          * Error.
@@ -191,9 +178,7 @@ public class Logger {
 
     /**
      * Interface for apps to configure the external logging.
-     * @deprecated use {@link ILoggerCallback} instead.
      */
-    @Deprecated
     public interface ILogger {
         /**
          * Interface method for apps to hand off each log message as it's generated.
@@ -214,50 +199,50 @@ public class Logger {
             case Error:
                 if (!StringExtensions.isNullOrBlank(message)) {
                     com.microsoft.identity.common.internal.logging.Logger.error(tag, Logger.getInstance().getCorrelationId(),
-                            (errorCode == null ? "" : errorCode.name() + ":") + message, null);
+                            (errorCode == null ? "" : errorCode.name() + ":") + formatMessage(message), null);
                 }
 
                 if (!StringExtensions.isNullOrBlank(additionalMessage)) {
                     com.microsoft.identity.common.internal.logging.Logger.errorPII(tag, Logger.getInstance().getCorrelationId(),
-                            (errorCode == null ? "" : errorCode.name() + ":") + additionalMessage, throwable);
+                            (errorCode == null ? "" : errorCode.name() + ":") + formatMessage(additionalMessage), throwable);
                 }
                 break;
             case Warn:
                 if (!StringExtensions.isNullOrBlank(message)) {
                     com.microsoft.identity.common.internal.logging.Logger.warn(tag, Logger.getInstance().getCorrelationId(),
-                            (errorCode == null ? "" : errorCode.name() + ":") + message);
+                            (errorCode == null ? "" : errorCode.name() + ":") + formatMessage(message));
                 }
 
                 if (!StringExtensions.isNullOrBlank(additionalMessage)) {
                     com.microsoft.identity.common.internal.logging.Logger.warnPII(tag, Logger.getInstance().getCorrelationId(),
-                            (errorCode == null ? "" : errorCode.name() + ":") + additionalMessage);
+                            (errorCode == null ? "" : errorCode.name() + ":") + formatMessage(additionalMessage));
                 }
                 break;
             case Info:
                 if (!StringExtensions.isNullOrBlank(message)) {
                     com.microsoft.identity.common.internal.logging.Logger.info(tag, Logger.getInstance().getCorrelationId(),
-                            (errorCode == null ? "" : errorCode.name() + ":") + message);
+                            (errorCode == null ? "" : errorCode.name() + ":") + formatMessage(message));
                 }
 
                 if (!StringExtensions.isNullOrBlank(additionalMessage)) {
                     com.microsoft.identity.common.internal.logging.Logger.infoPII(tag, Logger.getInstance().getCorrelationId(),
-                            (errorCode == null ? "" : errorCode.name() + ":") + additionalMessage);
+                            (errorCode == null ? "" : errorCode.name() + ":") + formatMessage(additionalMessage));
                 }
                 break;
             case Verbose:
                 if (!StringExtensions.isNullOrBlank(message)) {
                     com.microsoft.identity.common.internal.logging.Logger.verbose(tag, Logger.getInstance().getCorrelationId(),
-                            (errorCode == null ? "" : errorCode.name() + ":") + message);
+                            (errorCode == null ? "" : errorCode.name() + ":") + formatMessage(message));
                 }
 
                 if (!StringExtensions.isNullOrBlank(additionalMessage)) {
                     com.microsoft.identity.common.internal.logging.Logger.verbosePII(tag, Logger.getInstance().getCorrelationId(),
-                            (errorCode == null ? "" : errorCode.name() + ":") + additionalMessage);
+                            (errorCode == null ? "" : errorCode.name() + ":") + formatMessage(additionalMessage));
                 }
                 break;
             case Debug:
                 //The debug level is deprecated and removed in common core.
-                com.microsoft.identity.common.internal.logging.Logger.info(tag, Logger.getInstance().mCorrelationId, message);
+                com.microsoft.identity.common.internal.logging.Logger.info(tag, Logger.getInstance().mCorrelationId, formatMessage(message));
                 break;
             default:
                 throw new IllegalArgumentException("Unknown logLevel");
@@ -265,8 +250,9 @@ public class Logger {
     }
 
     /**
-     * Logs debug message.
      * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#info(String, String, String)} instead.
+     *
+     * Logs debug message.
      * @param tag     tag for the log message
      * @param message body of the log message
      */
@@ -280,13 +266,12 @@ public class Logger {
     }
 
     /**
-     * Logs informational message.
-     *
      * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#info(String, String, String)}
      *             if the log message does not contain any PII information.
      *             use {@link com.microsoft.identity.common.internal.logging.Logger#infoPII(String, String, String)}
      *             if the log message contains any PII information.
      *
+     * Logs informational message.
      * @param tag               tag for the log message
      * @param message           body of the log message
      * @param additionalMessage additional parameters
@@ -297,13 +282,12 @@ public class Logger {
     }
 
     /**
-     * Logs informational messages with error codes.
-     *
      * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#info(String, String, String)}
      *             if the log message does not contain any PII information.
      *             use {@link com.microsoft.identity.common.internal.logging.Logger#infoPII(String, String, String)}
      *             if the log message contains any PII information.
      *
+     * Logs informational messages with error codes.
      * @param tag               tag for the log message
      * @param message           body of the log message
      * @param additionalMessage additional parameters
@@ -315,11 +299,12 @@ public class Logger {
     }
 
     /**
-     * Logs verbose message.
      * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#verbose(String, String, String)}
      *             if the log message does not contain any PII information.
      *             use {@link com.microsoft.identity.common.internal.logging.Logger#verbosePII(String, String, String)}
      *             if the log message contains any PII information.
+     *
+     * Logs verbose message.
      * @param tag     tag for the log message
      * @param message body of the log message
      */
@@ -329,12 +314,12 @@ public class Logger {
     }
 
     /**
-     * Logs verbose message with error code.
      * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#verbose(String, String, String)}
      *             if the log message does not contain any PII information.
      *             use {@link com.microsoft.identity.common.internal.logging.Logger#verbosePII(String, String, String)}
      *             if the log message contains any PII information.
      *
+     * Logs verbose message with error code.
      * @param tag               tag for the log message
      * @param message           body of the log message
      * @param additionalMessage additional parameters
@@ -346,12 +331,12 @@ public class Logger {
     }
 
     /**
-     * Logs warning message.
      * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#warn(String, String, String)}
      *             if the log message does not contain any PII information.
      *             use {@link com.microsoft.identity.common.internal.logging.Logger#warnPII(String, String, String)}
      *             if the log message contains any PII information.
      *
+     * Logs warning message.
      * @param tag               tag for the log message
      * @param message           body of the log message
      * @param additionalMessage additional parameters
@@ -363,12 +348,12 @@ public class Logger {
     }
 
     /**
-     * Logs warning message.
      * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#warn(String, String, String)}
      *             if the log message does not contain any PII information.
      *             use {@link com.microsoft.identity.common.internal.logging.Logger#warnPII(String, String, String)}
      *             if the log message contains any PII information.
      *
+     * Logs warning message.
      * @param tag     tag for the log message
      * @param message body of the log message
      */
@@ -378,12 +363,12 @@ public class Logger {
     }
 
     /**
-     * Logs error message.
      * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#error(String, String, String, Throwable)}
      *             if the log message does not contain any PII information.
      *             use {@link com.microsoft.identity.common.internal.logging.Logger#errorPII(String, String, String, Throwable)}
      *             if the log message contains any PII information.
      *
+     * Logs error message.
      * @param tag               tag for the log message
      * @param message           body of the log message
      * @param additionalMessage additional parameters
@@ -395,12 +380,12 @@ public class Logger {
     }
 
     /**
-     * Logs error message.
      * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#error(String, String, String, Throwable)}
      *             if the log message does not contain any PII information.
      *             use {@link com.microsoft.identity.common.internal.logging.Logger#errorPII(String, String, String, Throwable)}
      *             if the log message contains any PII information.
      *
+     * Logs error message.
      * @param tag               Tag for the log
      * @param message           Message to add to the log
      * @param additionalMessage any additional parameters
@@ -414,12 +399,12 @@ public class Logger {
     }
 
     /**
-     * Logs error message.
      * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#error(String, String, String, Throwable)}
      *             if the log message does not contain any PII information.
      *             use {@link com.microsoft.identity.common.internal.logging.Logger#errorPII(String, String, String, Throwable)}
      *             if the log message contains any PII information.
      *
+     * Logs error message.
      * @param tag       Tag for the log
      * @param message   Message to add to the log
      * @param throwable Throwable
@@ -446,5 +431,13 @@ public class Logger {
      */
     public String getCorrelationId() {
         return mCorrelationId;
+    }
+
+    /**
+     * Append the version name into the log message.
+     * @param message Log message
+     */
+    private String formatMessage(final String message) {
+        return message + " ver:" + AuthenticationContext.getVersionName();
     }
 }
