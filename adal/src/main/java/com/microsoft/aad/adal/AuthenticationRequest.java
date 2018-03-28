@@ -31,7 +31,7 @@ import java.util.UUID;
 /**
  * Represent request and keeps authorization code and similar info.
  */
-public class AuthenticationRequest implements Serializable {
+class AuthenticationRequest implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -85,13 +85,13 @@ public class AuthenticationRequest implements Serializable {
         UniqueId, LoginHint, NoUser
     }
 
-    public AuthenticationRequest() {
+    AuthenticationRequest() {
         mIdentifierType = UserIdentifierType.NoUser;
     }
 
-    public AuthenticationRequest(String authority, String resource, String client, String redirect,
-                                 String loginhint, PromptBehavior prompt, String extraQueryParams, UUID correlationId,
-                                 boolean isExtendedLifetimeEnabled, final String claimsChallenge) {
+    AuthenticationRequest(String authority, String resource, String client, String redirect,
+                          String loginhint, PromptBehavior prompt, String extraQueryParams, UUID correlationId,
+                          boolean isExtendedLifetimeEnabled, final String claimsChallenge) {
         mAuthority = authority;
         mResource = resource;
         mClientId = client;
@@ -106,22 +106,8 @@ public class AuthenticationRequest implements Serializable {
         mClaimsChallenge = claimsChallenge;
     }
 
-    public AuthenticationRequest(String authority, String resource, String client, String redirect,
-            String loginhint, PromptBehavior prompt, String extraQueryParams, UUID correlationId) {
-        mAuthority = authority;
-        mResource = resource;
-        mClientId = client;
-        mRedirectUri = redirect;
-        mLoginHint = loginhint;
-        mBrokerAccountName = loginhint;
-        mPrompt = prompt;
-        mExtraQueryParamsAuthentication = extraQueryParams;
-        mCorrelationId = correlationId;
-        mIdentifierType = UserIdentifierType.NoUser;
-    }
-
-    public AuthenticationRequest(String authority, String resource, String client, String redirect,
-                                 String loginhint, UUID requestCorrelationId, boolean isExtendedLifetimeEnabled) {
+    AuthenticationRequest(String authority, String resource, String client, String redirect,
+                          String loginhint, UUID requestCorrelationId, boolean isExtendedLifetimeEnabled) {
         mAuthority = authority;
         mResource = resource;
         mClientId = client;
@@ -132,19 +118,8 @@ public class AuthenticationRequest implements Serializable {
         mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
     }
 
-    public AuthenticationRequest(String authority, String resource, String client, String redirect,
-            String loginhint, UUID requestCorrelationId) {
-        mAuthority = authority;
-        mResource = resource;
-        mClientId = client;
-        mRedirectUri = redirect;
-        mLoginHint = loginhint;
-        mBrokerAccountName = loginhint;
-        mCorrelationId = requestCorrelationId;
-    }
-
-    public AuthenticationRequest(String authority, String resource, String client, String redirect,
-                                 String loginhint, boolean isExtendedLifetimeEnabled) {
+    AuthenticationRequest(String authority, String resource, String client, String redirect,
+                          String loginhint, boolean isExtendedLifetimeEnabled) {
         mAuthority = authority;
         mResource = resource;
         mClientId = client;
@@ -154,27 +129,11 @@ public class AuthenticationRequest implements Serializable {
         mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
     }
 
-    public AuthenticationRequest(String authority, String resource, String client, String redirect,
-            String loginhint) {
-        mAuthority = authority;
-        mResource = resource;
-        mClientId = client;
-        mRedirectUri = redirect;
-        mLoginHint = loginhint;
-        mBrokerAccountName = loginhint;
-    }
-
-    public AuthenticationRequest(String authority, String resource, String clientid, boolean isExtendedLifetimeEnabled) {
+    AuthenticationRequest(String authority, String resource, String clientid, boolean isExtendedLifetimeEnabled) {
         mAuthority = authority;
         mResource = resource;
         mClientId = clientid;
         mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
-    }
-
-    public AuthenticationRequest(String authority, String resource, String clientid) {
-        mAuthority = authority;
-        mResource = resource;
-        mClientId = clientid;
     }
 
     /**
@@ -186,8 +145,8 @@ public class AuthenticationRequest implements Serializable {
      * @param userid        user id
      * @param correlationId for logging
      */
-    public AuthenticationRequest(String authority, String resource, String clientid, String userid,
-                                 UUID correlationId, boolean isExtendedLifetimeEnabled) {
+    AuthenticationRequest(String authority, String resource, String clientid, String userid,
+                          UUID correlationId, boolean isExtendedLifetimeEnabled) {
         mAuthority = authority;
         mResource = resource;
         mClientId = clientid;
@@ -196,39 +155,13 @@ public class AuthenticationRequest implements Serializable {
         mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
     }
 
-    /**
-     * Cache usage and refresh token requests.
-     *
-     * @param authority
-     * @param resource
-     * @param clientid
-     * @param userid
-     * @param correlationId
-     */
-    public AuthenticationRequest(String authority, String resource, String clientid, String userid,
-            UUID correlationId) {
-        mAuthority = authority;
-        mResource = resource;
-        mClientId = clientid;
-        mUserId = userid;
-        mCorrelationId = correlationId;
-    }
-
-    public AuthenticationRequest(String authority, String resource, String clientId,
-                                 UUID correlationId, boolean isExtendedLifetimeEnabled) {
+    AuthenticationRequest(String authority, String resource, String clientId,
+                          UUID correlationId, boolean isExtendedLifetimeEnabled) {
         mAuthority = authority;
         mClientId = clientId;
         mResource = resource;
         mCorrelationId = correlationId;
         mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
-    }
-
-    public AuthenticationRequest(String authority, String resource, String clientId,
-            UUID correlationId) {
-        mAuthority = authority;
-        mClientId = clientId;
-        mResource = resource;
-        mCorrelationId = correlationId;
     }
 
     public String getAuthority() {
@@ -242,7 +175,7 @@ public class AuthenticationRequest implements Serializable {
     public String getRedirectUri() {
         return mRedirectUri;
     }
-
+    
     void setRedirectUri(final String redirectUri) {
         mRedirectUri = redirectUri;
     }
@@ -254,7 +187,7 @@ public class AuthenticationRequest implements Serializable {
     public String getClientId() {
         return mClientId;
     }
-
+    
     public void setClientId(String id) {
         mClientId = id;
     }
@@ -266,7 +199,7 @@ public class AuthenticationRequest implements Serializable {
     public UUID getCorrelationId() {
         return this.mCorrelationId;
     }
-
+    
     public void setCorrelationId(UUID correlationId) {
         mCorrelationId = correlationId;
     }
@@ -278,10 +211,9 @@ public class AuthenticationRequest implements Serializable {
     public void setExtraQueryParamsAuthentication(String queryParam) {
         mExtraQueryParamsAuthentication = queryParam;
     }
-
+    
     public String getLogInfo() {
-        return String.format("Request authority:%s resource:%s clientid:%s", mAuthority, mResource,
-                mClientId);
+        return String.format("Request authority:%s clientid:%s", mAuthority, mClientId);
     }
 
     public PromptBehavior getPrompt() {
@@ -322,7 +254,7 @@ public class AuthenticationRequest implements Serializable {
         mLoginHint = name;
         mBrokerAccountName = name;
     }
-
+    
     public String getUserId() {
         return mUserId;
     }
@@ -355,12 +287,12 @@ public class AuthenticationRequest implements Serializable {
         mIdentifierType = user;
     }
 
-    public boolean getIsExtendedLifetimeEnabled() {
-        return mIsExtendedLifetimeEnabled;
-    }
-
     public void setResource(String resource) {
         this.mResource = resource;
+    }
+
+    public boolean getIsExtendedLifetimeEnabled() {
+        return mIsExtendedLifetimeEnabled;
     }
 
     public void setClaimsChallenge(final String claimsChallenge) {
@@ -378,7 +310,7 @@ public class AuthenticationRequest implements Serializable {
     public boolean getSkipCache() {
         return mSkipCache;
     }
-
+    
     /**
      * Get either loginhint or user id based what's passed in the request.
      */
