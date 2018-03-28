@@ -33,7 +33,7 @@ import java.util.List;
 /**
  * ADAL exception.
  */
-public class AuthenticationException extends Exception {
+public class AuthenticationException extends RuntimeException {
     static final long serialVersionUID = 1;
 
     private ADALError mCode;

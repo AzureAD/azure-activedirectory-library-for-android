@@ -362,6 +362,9 @@ public final class AuthenticationConstants {
         /** String of broker redirect URI */
         public static final String BROKER_REDIRECT_URI = "urn:ietf:wg:oauth:2.0:oob";
 
+        /** String of broker client ID */
+        public static final String BROKER_CLIENT_ID = "29d9ed98-a469-4536-ade2-f981bc1d605e";
+
         /** Authtoken type string. */
         public static final String AUTHTOKEN_TYPE = "adal.authtoken.type";
 

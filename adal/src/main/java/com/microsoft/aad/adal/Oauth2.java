@@ -30,15 +30,18 @@ import android.util.Base64;
 
 import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -48,7 +51,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import static com.microsoft.aad.adal.TelemetryUtils.CliTelemInfo;
-
 import static com.microsoft.aad.adal.AuthenticationConstants.HeaderField.X_MS_CLITELEM;
 
 /**
@@ -82,14 +84,14 @@ class Oauth2 {
         mRequest = request;
         mWebRequestHandler = null;
         mJWSBuilder = null;
-        setTokenEndpoint(mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT);
+        setTokenEndpoint(mRequest.getAuthority());
     }
 
     Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler) {
         mRequest = request;
         mWebRequestHandler = webRequestHandler;
         mJWSBuilder = null;
-        setTokenEndpoint(mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT);
+        setTokenEndpoint(mRequest.getAuthority());
     }
 
     Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler,
@@ -97,11 +99,11 @@ class Oauth2 {
         mRequest = request;
         mWebRequestHandler = webRequestHandler;
         mJWSBuilder = jwsMessageBuilder;
-        setTokenEndpoint(mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT);
+        setTokenEndpoint(mRequest.getAuthority());
     }
 
     public String getAuthorizationEndpoint() {
-        return mRequest.getAuthority() + DEFAULT_AUTHORIZE_ENDPOINT;
+        return getUpdatePreferredNetworkLocation(mRequest.getAuthority()) + DEFAULT_AUTHORIZE_ENDPOINT;
     }
 
     public String getTokenEndpoint() {
@@ -226,6 +228,13 @@ class Oauth2 {
                     StringExtensions.urlFormEncode(mRequest.getResource()));
         }
 
+        // sending redirect uri for the refresh token request if it's provided
+        if (!StringExtensions.isNullOrBlank(mRequest.getRedirectUri())
+                && !mRequest.getClientId().equalsIgnoreCase(AuthenticationConstants.Broker.BROKER_CLIENT_ID)) {
+            message = String.format("%s&%s=%s", message, AuthenticationConstants.OAuth2.REDIRECT_URI,
+                    StringExtensions.urlFormEncode(mRequest.getRedirectUri()));
+        }
+
         return message;
     }
 
@@ -257,6 +266,29 @@ class Oauth2 {
                     response.get(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION),
                     response.get(AuthenticationConstants.OAuth2.ERROR_CODES));
 
+            if (null != response.get(AuthenticationConstants.OAuth2.HTTP_RESPONSE_BODY)) {
+                HashMap<String, String> responseBody = null;
+                try {
+                    extractJsonObjects(responseBody, response.get(AuthenticationConstants.OAuth2.HTTP_RESPONSE_BODY));
+                    result.setHttpResponseBody(responseBody);
+                } catch (final JSONException exception) {
+                    Logger.e(TAG, "Json exception", ExceptionExtensions.getExceptionMessage(exception), ADALError.SERVER_INVALID_JSON_RESPONSE);
+                }
+            }
+
+            if (null != response.get(AuthenticationConstants.OAuth2.HTTP_RESPONSE_HEADER)) {
+                HashMap<String, List<String>> responseHeaders = null;
+                try {
+                    extractJsonArray(responseHeaders, response.get(AuthenticationConstants.OAuth2.HTTP_RESPONSE_HEADER));
+                    result.setHttpResponseHeaders(responseHeaders);
+                } catch (final JSONException exception) {
+                    Logger.e(TAG, "Json exception", ExceptionExtensions.getExceptionMessage(exception), ADALError.SERVER_INVALID_JSON_RESPONSE);
+                }
+            }
+
+            if (null != response.get(AuthenticationConstants.OAuth2.HTTP_STATUS_CODE)){
+                result.setServiceStatusCode(Integer.parseInt(response.get(AuthenticationConstants.OAuth2.HTTP_STATUS_CODE)));
+            }
         } else if (response.containsKey(AuthenticationConstants.OAuth2.CODE)) {
             // The header cloud_instance_host_name points to the right sovereign cloud to use for the given user
             // Using this host name we construct the authority that will get the token request and we use this authority
@@ -272,7 +304,7 @@ class Oauth2 {
                         .path(authorityUrl.getPath())
                         .build().toString();
 
-                setTokenEndpoint(newAuthorityUrlString + DEFAULT_TOKEN_ENDPOINT);
+                setTokenEndpoint(newAuthorityUrlString);
                 result.setAuthority(newAuthorityUrlString);
             }
         } else if (response.containsKey(AuthenticationConstants.OAuth2.ACCESS_TOKEN)) {
@@ -302,9 +334,11 @@ class Oauth2 {
                 rawIdToken = response.get(AuthenticationConstants.OAuth2.ID_TOKEN);
                 if (!StringExtensions.isNullOrBlank(rawIdToken)) {
                     Logger.v(TAG, "Id token was returned, parsing id token.");
-                    IdToken tokenParsed = new IdToken(rawIdToken);
-                    tenantId = tokenParsed.getTenantId();
-                    userinfo = new UserInfo(tokenParsed);
+                    final IdToken tokenParsed = new IdToken(rawIdToken);
+                    if (tokenParsed != null) {
+                        tenantId = tokenParsed.getTenantId();
+                        userinfo = new UserInfo(tokenParsed);
+                    }
                 } else {
                     Logger.v(TAG, "IdToken was not returned from token request.");
                 }
@@ -351,6 +385,23 @@ class Oauth2 {
         }
     }
 
+    static void extractJsonArray(Map<String, List<String>> responseList, String jsonStr)
+        throws JSONException {
+        final JSONObject jsonObject = new JSONObject(jsonStr);
+
+        @SuppressWarnings("unchecked")
+        final Iterator<String> i = jsonObject.keys();
+
+        while (i.hasNext()) {
+            final String key = i.next();
+            List<String> list = new ArrayList<>();
+            final JSONArray json = new JSONArray(jsonObject.getString(key));
+            for (int index = 0; index < json.length(); index++) {
+                list.add(json.get(index).toString());
+            }
+            responseList.put(key, list);
+        }
+    }
     public AuthenticationResult refreshToken(String refreshToken) throws IOException,
             AuthenticationException {
         final String requestMessage;
@@ -743,6 +794,18 @@ class Oauth2 {
             }
         }
 
+        if (null != webResponse.getResponseHeaders()) {
+            final List<String> xMsCliTelemValues = webResponse.getResponseHeaders().get(X_MS_CLITELEM);
+            if (null != xMsCliTelemValues && !xMsCliTelemValues.isEmpty()) {
+                // Only one value is expected to be present, so we'll grab the first element...
+                final String speValue = xMsCliTelemValues.get(0);
+                final CliTelemInfo cliTelemInfo =  TelemetryUtils.parseXMsCliTelemHeader(speValue);
+                if (result != null) {
+                    result.setCliTelemInfo(cliTelemInfo);
+                }
+            }
+        }
+
         return result;
     }
 
@@ -767,7 +830,34 @@ class Oauth2 {
                 EventStrings.HTTP_EVENT);
     }
 
-    private void setTokenEndpoint(final String tokenEndpoint) {
-        mTokenEndpoint = tokenEndpoint;
+    private void setTokenEndpoint(final String authority) {
+        mTokenEndpoint = getUpdatePreferredNetworkLocation(authority) + DEFAULT_TOKEN_ENDPOINT;
+    }
+
+    private String getUpdatePreferredNetworkLocation(final String authority) throws AuthenticationException {
+        final URL authorityUrl;
+        try {
+            authorityUrl = new URL(authority);
+        } catch (final MalformedURLException e) {
+            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e.getMessage(), e);
+        }
+
+        final InstanceDiscoveryMetadata metadata = AuthorityValidationMetadataCache.getCachedInstanceDiscoveryMetadata(authorityUrl);
+        if (metadata == null || !metadata.isValidated()) {
+            return authorityUrl.toString();
+        }
+
+        // replace the authority if host is not the same as the original one.
+        if (!authorityUrl.getHost().equalsIgnoreCase(metadata.getPreferredNetwork())) {
+            try {
+                final URL replacedAuthority = Utility.constructAuthorityUrl(authorityUrl, metadata.getPreferredNetwork());
+                return replacedAuthority.toString();
+            } catch (final MalformedURLException ex) {
+                throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, ex.getMessage(), ex);
+            }
+        }
+
+        Logger.v(TAG, "getUpdatePreferredNetworkLocation:" + authorityUrl.toString());
+        return authorityUrl.toString();
     }
 }
