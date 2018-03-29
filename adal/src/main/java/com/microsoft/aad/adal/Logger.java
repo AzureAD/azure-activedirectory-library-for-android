@@ -25,7 +25,6 @@ package com.microsoft.aad.adal;
 
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.logging.ILoggerCallback;
-import com.microsoft.identity.common.internal.logging.LoggerSettings;
 
 import java.util.UUID;
 
@@ -93,7 +92,7 @@ public class Logger {
             @Override
             public void log(String tag, com.microsoft.identity.common.internal.logging.Logger.LogLevel logLevel, String message, boolean containsPII) {
                 if (mExternalLogger != null) {
-                    if (!LoggerSettings.getAllowPii() && containsPII) {
+                    if (!com.microsoft.identity.common.internal.logging.Logger.getAllowPii() && containsPII) {
                         return;
                     } else {
                         switch (logLevel) {
@@ -126,19 +125,19 @@ public class Logger {
      * @param androidLogEnabled True if enabling the logcat logging, false otherwise.
      */
     public void setAndroidLogEnabled(final boolean androidLogEnabled) {
-        LoggerSettings.setAllowLogcat(androidLogEnabled);
+        com.microsoft.identity.common.internal.logging.Logger.setAllowLogcat(androidLogEnabled);
     }
 
     /**
      * ADAL provides logging callbacks that assist in diagnostics. The callback has two parameters,
      * message and additionalMessage. All user information is put into additionalMessage.
-     * ADAL will clear this data unless the {@link LoggerSettings#mAllowPii} is called with true.
+     * ADAL will clear this data unless the {@link com.microsoft.identity.common.internal.logging.Logger#mAllowPii} is called with true.
      * By default the library will not return any messages with user information in them.
      *
      * @param enablePII True if enabling PII info to be logged, false otherwise.
      */
     public void setEnablePII(final boolean enablePII) {
-        LoggerSettings.setAllowPii(enablePII);
+        com.microsoft.identity.common.internal.logging.Logger.setAllowPii(enablePII);
     }
 
     /**
