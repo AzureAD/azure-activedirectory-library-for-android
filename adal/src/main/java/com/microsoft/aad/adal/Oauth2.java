@@ -103,7 +103,11 @@ class Oauth2 {
     }
 
     public String getAuthorizationEndpoint() {
-        return getUpdatePreferredNetworkLocation(mRequest.getAuthority()) + DEFAULT_AUTHORIZE_ENDPOINT;
+        try {
+            return getUpdatePreferredNetworkLocation(mRequest.getAuthority()) + DEFAULT_AUTHORIZE_ENDPOINT;
+        } catch(AuthenticationException ex) {
+            return mRequest.getAuthority() + DEFAULT_AUTHORIZE_ENDPOINT;
+        }
     }
 
     public String getTokenEndpoint() {
@@ -831,7 +835,11 @@ class Oauth2 {
     }
 
     private void setTokenEndpoint(final String authority) {
-        mTokenEndpoint = getUpdatePreferredNetworkLocation(authority) + DEFAULT_TOKEN_ENDPOINT;
+        try {
+            mTokenEndpoint = getUpdatePreferredNetworkLocation(authority) + DEFAULT_TOKEN_ENDPOINT;
+        } catch(AuthenticationException ex) {
+            mTokenEndpoint = authority + DEFAULT_TOKEN_ENDPOINT;
+        }
     }
 
     private String getUpdatePreferredNetworkLocation(final String authority) throws AuthenticationException {
