@@ -315,7 +315,7 @@ public class SampleFunctions {
             click_and_await("INSTALL");
         }
 
-        sleep(60000);
+        sleep(DOWNLOAD_TIMEOUT);
 
         back_spam(5);
     }
