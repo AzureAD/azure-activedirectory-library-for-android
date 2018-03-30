@@ -37,7 +37,6 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -51,6 +50,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static com.microsoft.aad.adal.TelemetryUtils.CliTelemInfo;
+
 import static com.microsoft.aad.adal.AuthenticationConstants.HeaderField.X_MS_CLITELEM;
 
 /**
@@ -84,30 +84,26 @@ class Oauth2 {
         mRequest = request;
         mWebRequestHandler = null;
         mJWSBuilder = null;
-        setTokenEndpoint(mRequest.getAuthority());
+        setTokenEndpoint(mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT);
     }
 
     Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler) {
         mRequest = request;
         mWebRequestHandler = webRequestHandler;
         mJWSBuilder = null;
-        setTokenEndpoint(mRequest.getAuthority());
+        setTokenEndpoint(mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT);
     }
 
     Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler,
-            IJWSBuilder jwsMessageBuilder) {
+           IJWSBuilder jwsMessageBuilder) {
         mRequest = request;
         mWebRequestHandler = webRequestHandler;
         mJWSBuilder = jwsMessageBuilder;
-        setTokenEndpoint(mRequest.getAuthority());
+        setTokenEndpoint(mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT);
     }
 
     public String getAuthorizationEndpoint() {
-        try {
-            return getUpdatePreferredNetworkLocation(mRequest.getAuthority()) + DEFAULT_AUTHORIZE_ENDPOINT;
-        } catch(AuthenticationException ex) {
-            return mRequest.getAuthority() + DEFAULT_AUTHORIZE_ENDPOINT;
-        }
+        return mRequest.getAuthority() + DEFAULT_AUTHORIZE_ENDPOINT;
     }
 
     public String getTokenEndpoint() {
@@ -117,7 +113,7 @@ class Oauth2 {
     public String getAuthorizationEndpointQueryParameters() throws UnsupportedEncodingException {
         final Uri.Builder queryParameter = new Uri.Builder();
         queryParameter.appendQueryParameter(AuthenticationConstants.OAuth2.RESPONSE_TYPE,
-                        AuthenticationConstants.OAuth2.CODE)
+                AuthenticationConstants.OAuth2.CODE)
                 .appendQueryParameter(AuthenticationConstants.OAuth2.CLIENT_ID,
                         URLEncoder.encode(mRequest.getClientId(),
                                 AuthenticationConstants.ENCODING_UTF8))
@@ -137,7 +133,7 @@ class Oauth2 {
 
         // append device and platform info in the query parameters
         queryParameter.appendQueryParameter(AuthenticationConstants.AAD.ADAL_ID_PLATFORM,
-                        AuthenticationConstants.AAD.ADAL_ID_PLATFORM_VALUE)
+                AuthenticationConstants.AAD.ADAL_ID_PLATFORM_VALUE)
                 .appendQueryParameter(AuthenticationConstants.AAD.ADAL_ID_VERSION,
                         URLEncoder.encode(AuthenticationContext.getVersionName(),
                                 AuthenticationConstants.ENCODING_UTF8))
@@ -200,7 +196,7 @@ class Oauth2 {
 
     public String buildTokenRequestMessage(String code) throws UnsupportedEncodingException {
         Logger.v(TAG, "Building request message for redeeming token with auth code.");
-        
+
         return String.format("%s=%s&%s=%s&%s=%s&%s=%s",
                 AuthenticationConstants.OAuth2.GRANT_TYPE,
                 StringExtensions.urlFormEncode(AuthenticationConstants.OAuth2.AUTHORIZATION_CODE),
@@ -308,7 +304,7 @@ class Oauth2 {
                         .path(authorityUrl.getPath())
                         .build().toString();
 
-                setTokenEndpoint(newAuthorityUrlString);
+                setTokenEndpoint(newAuthorityUrlString + DEFAULT_TOKEN_ENDPOINT);
                 result.setAuthority(newAuthorityUrlString);
             }
         } else if (response.containsKey(AuthenticationConstants.OAuth2.ACCESS_TOKEN)) {
@@ -439,7 +435,7 @@ class Oauth2 {
     /**
      * parse final url for code(normal flow) or token(implicit flow) and then it
      * proceeds to next step.
-     * 
+     *
      * @param authorizationUrl browser reached to this final url and it has code
      *            or token for next step
      * @return Token in the AuthenticationResult. Null result if response does
@@ -497,7 +493,7 @@ class Oauth2 {
 
     /**
      * get code and exchange for token.
-     * 
+     *
      * @param code the authorization code for which Authentication result is needed
      * @return AuthenticationResult
      * @throws IOException
@@ -557,7 +553,7 @@ class Oauth2 {
             if (response.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
                 if (response.getResponseHeaders() != null
                         && response.getResponseHeaders().containsKey(
-                                AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER)) {
+                        AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER)) {
 
                     // Device certificate challenge will send challenge request
                     // in 401 header.
@@ -666,7 +662,7 @@ class Oauth2 {
 
     private AuthenticationResult retry(String requestMessage, Map<String, String> headers) throws IOException, AuthenticationException {
         final String methodName = ":retry";
-        //retry once if there is an observation of a network timeout by the client 
+        //retry once if there is an observation of a network timeout by the client
         if (mRetryOnce) {
             mRetryOnce = false;
             try {
@@ -706,7 +702,7 @@ class Oauth2 {
 
     /**
      * Extract AuthenticationResult object from response body if available.
-     * 
+     *
      * @param webResponse the web response from which authentication result will be constructed
      * @return AuthenticationResult
      */
@@ -834,38 +830,7 @@ class Oauth2 {
                 EventStrings.HTTP_EVENT);
     }
 
-    private void setTokenEndpoint(final String authority) {
-        try {
-            mTokenEndpoint = getUpdatePreferredNetworkLocation(authority) + DEFAULT_TOKEN_ENDPOINT;
-        } catch(AuthenticationException ex) {
-            mTokenEndpoint = authority + DEFAULT_TOKEN_ENDPOINT;
-        }
-    }
-
-    private String getUpdatePreferredNetworkLocation(final String authority) throws AuthenticationException {
-        final URL authorityUrl;
-        try {
-            authorityUrl = new URL(authority);
-        } catch (final MalformedURLException e) {
-            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e.getMessage(), e);
-        }
-
-        final InstanceDiscoveryMetadata metadata = AuthorityValidationMetadataCache.getCachedInstanceDiscoveryMetadata(authorityUrl);
-        if (metadata == null || !metadata.isValidated()) {
-            return authorityUrl.toString();
-        }
-
-        // replace the authority if host is not the same as the original one.
-        if (!authorityUrl.getHost().equalsIgnoreCase(metadata.getPreferredNetwork())) {
-            try {
-                final URL replacedAuthority = Utility.constructAuthorityUrl(authorityUrl, metadata.getPreferredNetwork());
-                return replacedAuthority.toString();
-            } catch (final MalformedURLException ex) {
-                throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, ex.getMessage(), ex);
-            }
-        }
-
-        Logger.v(TAG, "getUpdatePreferredNetworkLocation:" + authorityUrl.toString());
-        return authorityUrl.toString();
+    private void setTokenEndpoint(final String tokenEndpoint) {
+        mTokenEndpoint = tokenEndpoint;
     }
 }
