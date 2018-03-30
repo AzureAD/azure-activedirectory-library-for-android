@@ -279,7 +279,7 @@ class Oauth2 {
             if (null != response.get(AuthenticationConstants.OAuth2.HTTP_RESPONSE_HEADER)) {
                 HashMap<String, List<String>> responseHeaders = null;
                 try {
-                    extractJsonArray(responseHeaders, response.get(AuthenticationConstants.OAuth2.HTTP_RESPONSE_HEADER));
+                    responseHeaders = HashMapExtensions.jsonStringAsMapList(response.get(AuthenticationConstants.OAuth2.HTTP_RESPONSE_HEADER));
                     result.setHttpResponseHeaders(responseHeaders);
                 } catch (final JSONException exception) {
                     Logger.e(TAG, "Json exception", ExceptionExtensions.getExceptionMessage(exception), ADALError.SERVER_INVALID_JSON_RESPONSE);
@@ -385,23 +385,6 @@ class Oauth2 {
         }
     }
 
-    static void extractJsonArray(Map<String, List<String>> responseList, String jsonStr)
-        throws JSONException {
-        final JSONObject jsonObject = new JSONObject(jsonStr);
-
-        @SuppressWarnings("unchecked")
-        final Iterator<String> i = jsonObject.keys();
-
-        while (i.hasNext()) {
-            final String key = i.next();
-            List<String> list = new ArrayList<>();
-            final JSONArray json = new JSONArray(jsonObject.getString(key));
-            for (int index = 0; index < json.length(); index++) {
-                list.add(json.get(index).toString());
-            }
-            responseList.put(key, list);
-        }
-    }
     public AuthenticationResult refreshToken(String refreshToken) throws IOException,
             AuthenticationException {
         final String requestMessage;
