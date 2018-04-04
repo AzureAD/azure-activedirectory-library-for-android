@@ -1,5 +1,7 @@
 package com.microsoft.aad.automation.testapp.UIAutomatorTests;
 
+import android.os.Build;
+import android.support.annotation.Nullable;
 import android.support.test.uiautomator.UiDevice;
 import android.support.test.uiautomator.UiObject;
 import android.support.test.uiautomator.UiObjectNotFoundException;
@@ -31,7 +33,17 @@ public class SampleFunctions {
     private static String mAppName;
 
     private static String mUPN;
+
     private static String mSecret;
+
+    private static final char ANDROID_VERSION = get_android_version();
+    private static final String PHONE_MODEL = android.os.Build.MODEL;
+
+    public static char get_android_version()
+    {
+        return android.os.Build.VERSION.RELEASE.charAt(0);
+    }
+
 
     public static void scroll_up()
     {
@@ -44,15 +56,54 @@ public class SampleFunctions {
         mDevice.swipe(x,(int)y1,x,(int)y2,5);
     }
 
-    public static void click_by_Text(String text)
+    public static void scroll_down()
     {
-        UiObject appButton = mDevice.findObject(new UiSelector()
-                .text(text));
-        try{
-            appButton.click();
-        } catch (UiObjectNotFoundException e) {
-            Assert.fail("Didn't find text to click on: " + text);
+        int H = mDevice.getDisplayHeight();
+        int W = mDevice.getDisplayWidth();
+        int x = W / 2;
+        double y1 = H * .25;
+        //double y1 = 100;
+        double y2 =  H * .95;
+
+        mDevice.swipe(x,(int)y2,x,(int)y1,5);
+    }
+
+    public static void click(@Nullable String text, @Nullable String resourceId, boolean await)
+    {
+        UiObject appButton = null;
+        if (text != null) {
+            appButton = mDevice.findObject(new UiSelector()
+                    .text(text));
         }
+
+        if (resourceId != null) {
+            appButton = mDevice.findObject(new UiSelector()
+                    .resourceId(resourceId));
+        }
+
+        if(text == null && resourceId == null) {
+            Assert.fail("Have to either provide text or resource id to click on");
+            return;
+        }
+
+        if (await)
+        {
+            try{
+                appButton.clickAndWaitForNewWindow(WINDOW_TIMEOUT);
+            } catch (UiObjectNotFoundException e) {
+                Assert.fail("Didn't find text to click on: " + text);
+            }
+
+        }
+        else{
+            try{
+                appButton.click();
+            } catch (UiObjectNotFoundException e) {
+                Assert.fail("Didn't find text to click on: " + text);
+            }
+        }
+
+        return;
     }
 
     public static void find_click(String text){
@@ -63,39 +114,6 @@ public class SampleFunctions {
             mDevice.findObject(new UiSelector().text(text)).clickAndWaitForNewWindow();
         } catch (UiObjectNotFoundException e) {
             Assert.fail("Couldn't find app.");
-        }
-    }
-
-    public static void click_by_resourceID(String resourceID)
-    {
-        UiObject appButton = mDevice.findObject(new UiSelector()
-                .resourceId(resourceID));
-        try{
-            appButton.click();
-        } catch (UiObjectNotFoundException e) {
-            Assert.fail("Didn't find resourceID to click on: " + resourceID);
-        }
-    }
-
-    public static void click_and_await(String text)
-    {
-        UiObject appButton = mDevice.findObject(new UiSelector()
-                .text(text));
-        try{
-            appButton.clickAndWaitForNewWindow(WINDOW_TIMEOUT);
-        } catch (UiObjectNotFoundException e) {
-            Assert.fail("Didn't find text to click on: " + text);
-        }
-    }
-
-    public static void click_and_await_resourceID(String resourceID)
-    {
-        UiObject appButton = mDevice.findObject(new UiSelector()
-                .resourceId(resourceID));
-        try{
-            appButton.clickAndWaitForNewWindow(WINDOW_TIMEOUT);
-        } catch (UiObjectNotFoundException e) {
-            Assert.fail("Didn't find the resourceID to click on: " + resourceID);
         }
     }
 
@@ -149,13 +167,13 @@ public class SampleFunctions {
             Assert.fail("Didnt find settings");
         }
 
-        click_by_Text("Apps");
+        click("Apps", null, false);
 
-        click_and_await(mAppName);
+        click(mAppName, null, true);
 
-        click_by_Text("Uninstall");
+        click("Uninstall", null, false);
 
-        click_by_Text("OK");
+        click("OK", null, false);
 
     }
 
@@ -184,28 +202,40 @@ public class SampleFunctions {
 
         find_click("Apps");
 
-        click_and_await(mAppName);
+        click(mAppName, null, true);
 
-        click_and_await("Storage");
+        click("Storage", null, true);
 
-        click_and_await("Clear data");
+        click("Clear data", null, true);
 
-        click_and_await("OK");
+        click("OK", null, true);
 
         sleep(1000);
     }
 
     public static void allow_permission()
     {
-        click_by_resourceID("com.android.packageinstaller:id/permission_allow_button");
+        click(null,"com.android.packageinstaller:id/permission_allow_button",false);
     }
 
     public static void launch_App(String appName){
         mAppName = appName;
 
+
+        switch (ANDROID_VERSION)
+        {
+            case '6' :
+                open_Applications_View();
+                scroll_up();
+                break;
+
+            case '7' :
+                mDevice.pressHome();
+                scroll_down();
+                break;
+        }
+
         try {
-            open_Applications_View();
-            scroll_up();
             UiScrollable appView = new UiScrollable(new UiSelector().scrollable(true));
             appView.scrollIntoView(new UiSelector().text(appName));
             mDevice.findObject(new UiSelector().text(appName)).clickAndWaitForNewWindow();
@@ -222,38 +252,52 @@ public class SampleFunctions {
 
         clear_app_data("Authenticator");
         launch_App(AUTHENTICATOR_APP_NAME);
-        click_by_Text("SKIP");
-        click_by_resourceID("com.azure.authenticator:id/menu_overflow");
-        click_by_Text("Settings");
-        click_by_Text("Register your device with your organization");
+        click("SKIP",null,false);
+        click(null, "com.azure.authenticator:id/menu_overflow", false);
+        click("Settings",null,false);
+        click("Register your device with your organization", null, false);
         allow_permission();
         set_text_by_Text("Organization email",mUPN);
-        click_and_await_resourceID("com.azure.authenticator:id/manage_device_registration_register_button");
+        click(null,
+                "com.azure.authenticator:id/manage_device_registration_register_button" ,
+                true);
         authenticate_webview();
     }
 
-    public static void enroll_company_portal(String UPN,String Secret,Boolean Federated)
+    public static void enroll_company_portal(String UPN,String Secret)
     {
         mUPN = UPN;
         mSecret = Secret;
 
-        launch_App(AUTHENTICATOR_APP_NAME);
-        click_by_Text("SKIP");
-        click_by_resourceID("com.azure.authenticator:id/menu_overflow");
-        click_by_Text("Settings");
-        click_by_Text("Register your device with your organization");
-        allow_permission();
-        set_text_by_Text("Organization email",mUPN);
-        click_and_await_resourceID("com.azure.authenticator:id/manage_device_registration_register_button");
+        launch_App(PORTAL_APP_NAME);
+        click("Sign in",null,true);
+        set_text_by_Resource("i0116", mUPN);
+        click("Next", null,true);
         authenticate_webview();
+        sleep(2000);
+        click("OK",null,true);
+        click("CONTINUE",null,true);
+        click("CONTINUE",null,true);
+        click("NEXT",null,true);
+        click("ALLOW",null,true);
+        click("ALLOW",null,true);
+        click("Activate",null,true);
+        sleep(30000);
+        click("DONE",null,true);
     }
 
     private static void authenticate_webview()
     {
-        //set_text_by_Text("Enter your email, phone, or Skype.",mUPN);
-        //click_and_await("Next");
-        set_text_by_Text("Enter password",mSecret);
-        click_and_await("Sign in");
+        set_text_by_Text("Enter password", mSecret);
+        click("Sign in",null,true);
+    }
+
+    public static void authenticate_webview2(String upn, String secret)
+    {
+        set_text_by_Text("Enter your email, phone, or Skype.",upn);
+        click("Next",null,true);
+        set_text_by_Text("Enter password",secret);
+        click("Sign in",null,true);
     }
 
     public static void back_spam(int times_to_press_back_button){
@@ -264,22 +308,16 @@ public class SampleFunctions {
         }
     }
 
-    public static void authenticate_webview2(String upn, String secret)
-    {
-        set_text_by_Text("Enter your email, phone, or Skype.",upn);
-        click_and_await("Next");
-        set_text_by_Text("Enter password",secret);
-        click_and_await("Sign in");
-    }
+
 
     public static void remove_authenticator_account()
     {
         clear_app_data("Authenticator");
         launch_App(AUTHENTICATOR_APP_NAME);
-        click_by_resourceID("com.azure.authenticator:id/menu_overflow");
-        click_by_Text("Edit accounts");
-        click_by_resourceID("com.azure.authenticator:id/account_list_row_delete");
-        click_by_Text("Remove account");
+        click(null,"com.azure.authenticator:id/menu_overflow",false);
+        click("Edit accounts",null,true);
+        click(null,"com.azure.authenticator:id/account_list_row_delete",true);
+        click("Remove account",null,true);
     }
 
     public static String json_body(
@@ -299,20 +337,20 @@ public class SampleFunctions {
 
     public static void adal_clear_cache()
     {
-        click_and_await("Clear Cache");
-        click_and_await("Done");
+        click("Clear Cache", null, true);
+        click("Done", null, true);
     }
 
     public static void download_install_app(String appName)
     {
         launch_App("Play Store");
-        click_by_resourceID("com.android.vending:id/search_box_idle_text");
+        click(null,"com.android.vending:id/search_box_idle_text",false);
         set_text_by_Resource("com.android.vending:id/search_box_text_input",appName);
         mDevice.pressEnter();
         UiObject appButton = mDevice.findObject(new UiSelector()
                 .text(appName));
         if(appButton != null){
-            click_and_await("INSTALL");
+            click("INSTALL",null,true);
         }
 
         sleep(DOWNLOAD_TIMEOUT);

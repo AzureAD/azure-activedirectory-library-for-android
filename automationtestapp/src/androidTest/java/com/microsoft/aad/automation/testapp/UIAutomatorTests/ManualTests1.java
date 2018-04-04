@@ -13,19 +13,24 @@ import android.support.test.runner.AndroidJUnit4;
 public class ManualTests1 {
 
     @Test
-    public void testing()
+    public void Open_Applications_View()
     {
-        SampleFunctions.find_click("Apps");
+        SampleFunctions.launch_App("adal");
+        SampleFunctions.launch_App("adalR");
     }
+
+    @Test
+    public void download_install_from_store() {
+        SampleFunctions.download_install_app("Microsoft Authenticator");
+        SampleFunctions.download_install_app("Intune Company Portal");
+    }
+
 
     @Test
     public void enroll()
     {
-        //SampleFunctions.launch_App("Authenticator");
-        SampleFunctions.enroll_authenticator(
-                "",
-                ""
-        );
+        //SampleFunctions.enroll_authenticator("", "");
+        //SampleFunctions.enroll_company_portal("", "");
     }
 
     @Test
@@ -39,15 +44,7 @@ public class ManualTests1 {
         SampleFunctions.remove_authenticator_account();
     }
 
-    @Test
-    public void Open_Applications_View()
-    {
-       //SampleFunctions.launch_App("adal");
-       //SampleFunctions.launch_App("adalR");
 
-        SampleFunctions.clear_app_data("Authenticator");
-       //SampleFunctions.uninstall_App("adalR");
-    }
 
 
     @Test
@@ -59,7 +56,7 @@ public class ManualTests1 {
 
 
     @Test
-    public void test_case()
+    public void test_case1()
     {
 
         String upn = "";
@@ -73,7 +70,7 @@ public class ManualTests1 {
         //SampleFunctions.adal_clear_cache();
 
         // this code block acquires a token via automationtest app.
-        SampleFunctions.click_and_await("Acquire Token");
+        SampleFunctions.click("Acquire Token", null, true);
         String json = SampleFunctions.json_body(
                 "https://login.microsoftonline.com/common",
                 "00000002-0000-0000-c000-000000000000",
@@ -82,15 +79,11 @@ public class ManualTests1 {
         );
 
         SampleFunctions.set_text_by_Text("Please enter the sign in info here...",json);
-        SampleFunctions.click_and_await("Go");
+        SampleFunctions.click("Go", null, true);
         SampleFunctions.authenticate_webview2(upn,secret);
-        SampleFunctions.click_and_await("Done");
+        SampleFunctions.click("Done", null, true);
 
     }
 
-    @Test
-    public void test_download() {
-        SampleFunctions.download_install_app("Microsoft Authenticator");
-        SampleFunctions.download_install_app("Intune Company Portal");
-    }
+
 }
