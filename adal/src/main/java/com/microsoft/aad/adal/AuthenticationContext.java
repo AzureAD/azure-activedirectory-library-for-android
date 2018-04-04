@@ -438,9 +438,7 @@ public class AuthenticationContext {
 
     /**
      * acquireToken will start an interactive auth flow to acquire new tokens 
-     * with the requested claims. If promptbehavior is AUTO, it will remove this refresh
-     * token from cache and fall back on the UI if activitycontext is not null. 
-     * Default is AUTO.
+     * with the requested claims. Bypasses token cache. 
      *
      * @param activity             Calling activity
      * @param resource             required resource identifier.
@@ -519,10 +517,8 @@ public class AuthenticationContext {
     }
 
     /**
-     * acquireToken will start an interactive auth flow to acquire new tokens with the requested claims.  
-     * If promptbehavior is AUTO, it will remove this refresh
-     * token from cache and fall back on the UI if activitycontext is not null. 
-     * Default is AUTO.
+     * acquireToken will start an interactive auth flow to acquire new tokens 
+     * with the requested claims. Bypasses token cache. 
      *
      * @param fragment             It accepts both type of fragments.
      * @param resource             required resource identifier.
@@ -603,11 +599,9 @@ public class AuthenticationContext {
     }
 
     /**
-     * This uses new dialog based prompt. It will create a handler to run the
-     * dialog related code. It will always be an interactive flow. 
-     * If promptbehavior is AUTO, it will
-     * remove this refresh token from cache and fall back on the UI. Default is
-     * AUTO.
+     * acquireToken will start an interactive auth flow to acquire new tokens 
+     * with the requested claims. Bypasses token cache. This overload uses new dialog based prompt. 
+     * It will create a handler to run the dialog related code. 
      *
      * @param resource             required resource identifier.
      * @param clientId             required client identifier.
