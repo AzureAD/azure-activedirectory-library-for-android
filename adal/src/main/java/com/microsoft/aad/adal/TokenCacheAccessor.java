@@ -381,10 +381,10 @@ class TokenCacheAccessor {
      */
     private List<String> getKeyListToRemoveForRT(final TokenCacheItem cachedItem) {
         final List<String> keysToRemove = new ArrayList<>();
-        keysToRemove.add(CacheKey.createCacheKeyForRTEntry(mAuthority, cachedItem.getResource(), cachedItem.getClientId(), null));
+        keysToRemove.add(CacheKey.createCacheKeyForRTEntry(cachedItem.getAuthority(), cachedItem.getResource(), cachedItem.getClientId(), null));
         if (cachedItem.getUserInfo() != null) {
-            keysToRemove.add(CacheKey.createCacheKeyForRTEntry(mAuthority, cachedItem.getResource(), cachedItem.getClientId(), cachedItem.getUserInfo().getDisplayableId()));
-            keysToRemove.add(CacheKey.createCacheKeyForRTEntry(mAuthority, cachedItem.getResource(), cachedItem.getClientId(), cachedItem.getUserInfo().getUserId()));
+            keysToRemove.add(CacheKey.createCacheKeyForRTEntry(cachedItem.getAuthority(), cachedItem.getResource(), cachedItem.getClientId(), cachedItem.getUserInfo().getDisplayableId()));
+            keysToRemove.add(CacheKey.createCacheKeyForRTEntry(cachedItem.getAuthority(), cachedItem.getResource(), cachedItem.getClientId(), cachedItem.getUserInfo().getUserId()));
         }
         
         return keysToRemove;
