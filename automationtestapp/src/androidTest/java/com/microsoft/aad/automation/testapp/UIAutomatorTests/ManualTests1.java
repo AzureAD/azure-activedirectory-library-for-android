@@ -12,25 +12,64 @@ import android.support.test.runner.AndroidJUnit4;
 @SdkSuppress(minSdkVersion = 18)
 public class ManualTests1 {
 
+
     @Test
-    public void Open_Applications_View()
-    {
-        SampleFunctions.launch_App("adal");
-        SampleFunctions.launch_App("adalR");
+    public void uninstall() {
+        // to uninstall apps
+        SampleFunctions.uninstall_App("Authenticator");
+        SampleFunctions.uninstall_App("Company Portal");
     }
 
     @Test
     public void download_install_from_store() {
-        SampleFunctions.download_install_app("Microsoft Authenticator");
-        SampleFunctions.download_install_app("Intune Company Portal");
+
+        // to just download install
+        //SampleFunctions.download_install_app("Microsoft Authenticator");
+        //SampleFunctions.download_install_app("Intune Company Portal");
+
+        // to reinstall (uninstall and install)
+        SampleFunctions.re_install_app("Microsoft Authenticator","Authenticator");
+        SampleFunctions.re_install_app("Intune Company Portal","Company Portal");
     }
 
+    @Test
+    public void functions_testing()
+    {
+        // we cannot clear data for for adal and adalR.
+        String[] company_apps = {"Authenticator","Company Portal"};
+        for(String app : company_apps){
+            // launch the app
+            SampleFunctions.launch_App(app);
+            // clear app data
+            SampleFunctions.clear_app_cache(app);
+        }
+
+        String[] local_apps = {"adal","adalR"};
+        for(String app : local_apps){
+            // launch the app
+            SampleFunctions.launch_App(app);
+            // clear app data
+            SampleFunctions.clear_app_cache(app);
+        }
+    }
 
     @Test
-    public void enroll()
+    public void tttt()
     {
+
+    }
+
+    @Test
+    public void enroll() {
         //SampleFunctions.enroll_authenticator("", "");
-        //SampleFunctions.enroll_company_portal("", "");
+        //SampleFunctions.remove_authenticator_account();
+        SampleFunctions.enroll_company_portal("", "");
+    }
+
+    @Test
+    public void unenroll() {
+        //SampleFunctions.remove_authenticator_account();
+        SampleFunctions.remove_company_portal_account();
     }
 
     @Test
@@ -43,9 +82,6 @@ public class ManualTests1 {
     {
         SampleFunctions.remove_authenticator_account();
     }
-
-
-
 
     @Test
     public void clear_data()
@@ -64,9 +100,9 @@ public class ManualTests1 {
 
         //SampleFunctions.enroll_authenticator(upn, secret);
 
-        //SampleFunctions.launch_App("adal");
-        //SampleFunctions.adal_clear_cache();
         SampleFunctions.launch_App("adal");
+        //SampleFunctions.adal_clear_cache();
+        SampleFunctions.launch_App("adalR");
         //SampleFunctions.adal_clear_cache();
 
         // this code block acquires a token via automationtest app.

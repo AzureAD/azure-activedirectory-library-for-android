@@ -1,5 +1,6 @@
 package com.microsoft.aad.automation.testapp.UIAutomatorTests;
 
+import android.graphics.Rect;
 import android.os.Build;
 import android.support.annotation.Nullable;
 import android.support.test.uiautomator.UiDevice;
@@ -155,26 +156,15 @@ public class SampleFunctions {
         scroll_up();
     }
 
+
+
     public static void uninstall_App(String AppName)
     {
-        mAppName = AppName;
-
-        UiObject settingsButton = mDevice.findObject(new UiSelector().description("Settings"));
-        // Perform a click on the button to load the launcher.
-        try{
-            settingsButton.clickAndWaitForNewWindow();
-        } catch (Exception e){
-            Assert.fail("Didnt find settings");
-        }
-
-        click("Apps", null, false);
-
-        click(mAppName, null, true);
-
+        settings();
+        find_click("Apps");
+        find_click(AppName);
         click("Uninstall", null, false);
-
         click("OK", null, false);
-
     }
 
     private static void sleep(int milliseconds)
@@ -187,40 +177,66 @@ public class SampleFunctions {
         }
     }
 
+    public static boolean text_exists(String text) {
+        UiObject appButton = mDevice.findObject(new UiSelector().text(text));
+        Boolean exists = appButton.exists();
+        return exists;
+    }
+
+    public static void bypass_prompt() {
+        if(text_exists("OK")){
+            UiObject OKbutton = mDevice.findObject(new UiSelector().text("OK"));
+            try {
+                mDevice.click(OKbutton.getBounds().centerX(),OKbutton.getBounds().centerY());
+            } catch (Exception e) {
+
+            }
+        }
+    }
+
+    public static void settings()
+    {
+        launch_App("Settings");
+    }
+
     public static void clear_app_data(String AppName)
     {
         mDevice.pressHome();
         mAppName = AppName;
-
-        UiObject settingsButton = mDevice.findObject(new UiSelector().description("Settings"));
-        // Perform a click on the button to load the launcher.
-        try{
-            settingsButton.clickAndWaitForNewWindow();
-        } catch (Exception e){
-            Assert.fail("Didnt find settings");
-        }
-
+        settings();
         find_click("Apps");
 
-        click(mAppName, null, true);
+        try {
+            UiScrollable appView = new UiScrollable(new UiSelector().scrollable(true));
+            appView.scrollIntoView(new UiSelector().text(AppName));
+            mDevice.findObject(new UiSelector().text(AppName)).clickAndWaitForNewWindow();
+        } catch (UiObjectNotFoundException e) {
+            Assert.fail("Couldn't find app.");
+        }
 
         click("Storage", null, true);
 
         click("Clear data", null, true);
-
-        click("OK", null, true);
-
-        sleep(1000);
+        bypass_prompt();
     }
 
-    public static void allow_permission()
-    {
-        click(null,"com.android.packageinstaller:id/permission_allow_button",false);
+    public static void launch_appView(){
+        switch (ANDROID_VERSION)
+        {
+            case '6' :
+                open_Applications_View();
+                scroll_up();
+                break;
+
+            case '7' :
+                mDevice.pressHome();
+                scroll_down();
+                break;
+        }
     }
 
     public static void launch_App(String appName){
         mAppName = appName;
-
 
         switch (ANDROID_VERSION)
         {
@@ -253,10 +269,11 @@ public class SampleFunctions {
         clear_app_data("Authenticator");
         launch_App(AUTHENTICATOR_APP_NAME);
         click("SKIP",null,false);
+        click("OK",null,true);
         click(null, "com.azure.authenticator:id/menu_overflow", false);
         click("Settings",null,false);
         click("Register your device with your organization", null, false);
-        allow_permission();
+        click("Allow", null, false);
         set_text_by_Text("Organization email",mUPN);
         click(null,
                 "com.azure.authenticator:id/manage_device_registration_register_button" ,
@@ -269,21 +286,26 @@ public class SampleFunctions {
         mUPN = UPN;
         mSecret = Secret;
 
+        clear_app_data(PORTAL_APP_NAME);
         launch_App(PORTAL_APP_NAME);
         click("Sign in",null,true);
         set_text_by_Resource("i0116", mUPN);
         click("Next", null,true);
         authenticate_webview();
         sleep(2000);
-        click("OK",null,true);
-        click("CONTINUE",null,true);
-        click("CONTINUE",null,true);
+        scroll_down();
+        mDevice.pressBack();
+        authenticate_webview();
+        await_text("Continue",10000);
+        //click("OK",null,true);
+        click("Continue",null,true);
+        click("Continue",null,true);
         click("NEXT",null,true);
-        click("ALLOW",null,true);
-        click("ALLOW",null,true);
+        click("Allow",null,true);
+        click("Allow",null,true);
         click("Activate",null,true);
-        sleep(30000);
-        click("DONE",null,true);
+        await_text("Done",30000);
+        click("Done",null,true);
     }
 
     private static void authenticate_webview()
@@ -308,16 +330,25 @@ public class SampleFunctions {
         }
     }
 
-
-
     public static void remove_authenticator_account()
     {
-        clear_app_data("Authenticator");
+        clear_app_data(AUTHENTICATOR_APP_NAME);
         launch_App(AUTHENTICATOR_APP_NAME);
+        click("OK",null,true);
         click(null,"com.azure.authenticator:id/menu_overflow",false);
         click("Edit accounts",null,true);
         click(null,"com.azure.authenticator:id/account_list_row_delete",true);
         click("Remove account",null,true);
+    }
+
+    public static void remove_company_portal_account()
+    {
+        clear_app_cache("Company Portal");
+        launch_App("Company Portal");
+        mDevice.click(1360,175);
+        click("Remove Company Portal",null,false);
+        sleep(500);
+        click("OK",null,false);
     }
 
     public static String json_body(
@@ -331,18 +362,56 @@ public class SampleFunctions {
         o.addProperty("resource",Resource);
         o.addProperty("redirect_uri",redirURI);
         o.addProperty("client_id",clientID);
-        //o.addProperty("prompt_behavior", PromptBehavior.Auto.toString());
+        o.addProperty("prompt_behavior", PromptBehavior.Auto.toString());
         return o.toString();
     }
 
-    public static void adal_clear_cache()
+    public static void await_text(String text,int timeout){
+        while(!text_exists(text) && timeout > 0){
+            sleep(1000);
+            timeout = timeout -1000;
+        }
+    }
+
+    public static boolean app_exists(String appName){
+        launch_appView();
+        try {
+            scroll_up();
+            UiScrollable appView = new UiScrollable(new UiSelector().scrollable(true));
+            appView.scrollIntoView(new UiSelector().text(appName));
+            mDevice.findObject(new UiSelector().text(appName));
+        } catch (UiObjectNotFoundException e) {
+        }
+
+        return text_exists(appName);
+    }
+
+    public static void clear_app_cache(String AppName)
     {
-        click("Clear Cache", null, true);
-        click("Done", null, true);
+        mDevice.pressHome();
+        mAppName = AppName;
+        settings();
+        find_click("Apps");
+
+        try {
+            UiScrollable appView = new UiScrollable(new UiSelector().scrollable(true));
+            appView.scrollIntoView(new UiSelector().text(AppName));
+            mDevice.findObject(new UiSelector().text(AppName)).clickAndWaitForNewWindow();
+        } catch (UiObjectNotFoundException e) {
+            Assert.fail("Couldn't find app.");
+        }
+
+        click("Storage", null, true);
+
+        click("Clear cache", null, true);
+
+        bypass_prompt();
     }
 
     public static void download_install_app(String appName)
     {
+        launch_App("Play Store");
+        back_spam(5);
         launch_App("Play Store");
         click(null,"com.android.vending:id/search_box_idle_text",false);
         set_text_by_Resource("com.android.vending:id/search_box_text_input",appName);
@@ -353,9 +422,18 @@ public class SampleFunctions {
             click("INSTALL",null,true);
         }
 
-        sleep(DOWNLOAD_TIMEOUT);
+        await_text("OPEN",60000);
+        //sleep(DOWNLOAD_TIMEOUT);
 
         back_spam(5);
+    }
+
+    public static void re_install_app(String app_store_name, String appName){
+        boolean exists = SampleFunctions.app_exists(appName);
+        if(exists){
+            SampleFunctions.uninstall_App(appName);
+        }
+        download_install_app(app_store_name);
     }
 }
 
