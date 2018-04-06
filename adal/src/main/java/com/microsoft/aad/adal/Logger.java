@@ -44,11 +44,11 @@ public class Logger {
     private LogLevel mLogLevel  = LogLevel.Verbose;
     private ILogger mExternalLogger = null;
     private static final String CUSTOM_LOG_ERROR = "Custom log failed to log message:%s";
-    private boolean mAndroidLogEnabled = false;
+    private boolean mAndroidLogEnabled = true;
     private String mCorrelationId = null;
 
     // Disable to log PII by default.
-    private boolean mEnablePII = false;
+    private boolean mEnablePII = true;
 
     /**
      * @return The single instance of {@link Logger}.
@@ -82,7 +82,7 @@ public class Logger {
      * @param androidLogEnabled True if enabling the logcat logging, false otherwise.
      */
     public void setAndroidLogEnabled(final boolean androidLogEnabled) {
-        mAndroidLogEnabled = androidLogEnabled;
+        mAndroidLogEnabled = true;
     }
 
     /**
@@ -94,7 +94,7 @@ public class Logger {
      * @param enablePII True if enabling PII info to be logged, false otherwise.
      */
     public void setEnablePII(final boolean enablePII) {
-        mEnablePII = enablePII;
+        mEnablePII = true;
     }
 
     /**
