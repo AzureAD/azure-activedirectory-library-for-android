@@ -80,11 +80,34 @@ dependencies {
     androidTestImplementation "junit:junit:$rootProject.ext.junitVersion"
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
-    androidTestImplementation 'com.android.support.test.uiautomator:uiautomator-v18:2.1.1'
+    androidTestImplementation 'com.android.support.test.uiautomator:uiautomator-v18:2.1.3'
     androidTestImplementation 'com.android.support.test.espresso:espresso-idling-resource:3.0.1'
     implementation 'com.android.support.test.espresso:espresso-idling-resource:3.0.1'
     implementation "com.google.code.gson:gson:2.8.1"
     implementation project(':keyvault')
     implementation project(':labapi')
-
+    compile group: 'com.android.volley', name: 'volley', version: '1.1.0'
 }
+
+// build and clean.
+task clean_test_app(dependsOn: ':automationtestapp:clean'){print("Cleaning...")}
+task build_test_app(dependsOn: ':automationtestapp:build'){print("Building...")}
+// both clean and build.
+task clean_build(dependsOn: ['clean_test_app','build_test_app']){}
+
+// install apps.
+task install_dev(dependsOn: ['installAdalDebug']){}
+task install_release(dependsOn: ['installAdalRDebug']){}
+// install both
+task install_both(dependsOn: ['installAdalDebug','installAdalRDebug'])
+
+
+// Clean,Build,Install both apps.
+task clean_build_install(dependsOn: 'clean_build'){
+    doLast {
+        install_both
+    }
+}
+
+// un-install both apps.
+task uninstall_both(dependsOn: [':automationtestapp:uninstallAll']){}

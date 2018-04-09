@@ -1,56 +1,43 @@
-# ./travis.yml for adal android
-
 language: android
-
-jdk: 
-  - oraclejdk8
-
-# Don't use the Travis Container-Based Infrastructure
+jdk:
+- oraclejdk8
 sudo: true
-
 android:
   components:
-    # Travis has a bug that we need to workaround to use sdk 25
-    # https://github.com/travis-ci/travis-ci/issues/6059
-    - tools
-    - platform-tools
-    - tools
-    - build-tools-26.0.2
-    - android-25
-    - android-21
-    - extra
-    - extra-android-m2repository
-    - extra-google-m2repository
-    - addon-google_apis-google-21
-    #system images
-    - sys-img-armeabi-v7a-android-21
-
+  - tools
+  - platform-tools
+  - tools
+  - build-tools-26.0.2
+  - android-25
+  - android-21
+  - extra
+  - extra-android-m2repository
+  - extra-google-m2repository
+  - addon-google_apis-google-21
+  - sys-img-armeabi-v7a-android-21
 env:
-    global:
-      # This is to guaratee a clean gradle log
-      - TERM=dumb
-    matrix:
-      - ANDROID_SDKS=android-25 ANDROID_TARGET=android-25
-      
+  global:
+  - TERM=dumb
+  matrix:
+  - ANDROID_SDKS=android-25 ANDROID_TARGET=android-25
+  - secure: koUaP9pjgYiTAqQZZhsKK/SYi/FIPn9DMh6OmO/2pkSIzbYY2Fy8ccDywsKG9tAVE/Uq1w7MThyc5UDaBMTQ1C4n10/rdXAVChT7oTsvoYfL9Y14rqKO0NmfHMB6FJ1IcwKo+SxhTx6cPc8lpB6Makxx/97J3fO6XEER/ME3Zzg=
+  - secure: oXttCxj2m3W73o7E6y1p6mQh5B5P2KztCjOwJ56ZVTT5Bcpr7lUpxIpF5F1G/UEJ4l6G++8BvJKwX4PaPmUwZsyQ1Hip+NdfxjlllJxPXCUE2fCesOZfyS9qqbXy0SZn7IQgVrz6tmLQgvTFrO4lDcP0fZa1DKDZorEC/6lzT+Y=
 before_install:
-  - chmod +x gradlew
-
+- chmod +x gradlew
 before_cache:
-  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
-  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+- rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+- rm -fr $HOME/.gradle/caches/*/plugin-resolution/
 cache:
   directories:
-    - $HOME/.gradle/caches/
-    - $HOME/.gradle/wrapper/
-    - $HOME/.android/build-cache
-
+  - "$HOME/.gradle/caches/"
+  - "$HOME/.gradle/wrapper/"
+  - "$HOME/.android/build-cache"
 before_script:
-  - android list targets
-  - echo no | android create avd --force -n test -t android-21 --abi armeabi-v7a
-  - emulator -avd test -no-audio -no-window &
-  - android-wait-for-emulator
-  - adb shell input keyevent 82 &
-
+- android list targets
+- echo no | android create avd --force -n test -t android-21 --abi armeabi-v7a
+- emulator -avd test -no-audio -no-window &
+- android-wait-for-emulator
+- adb shell input keyevent 82 &
 script:
-  - cd $PWD
-  - ./gradlew clean build connectedAndroidTest -PdisablePreDex
+- cd $PWD
+- "./gradlew clean build connectedAndroidTest -PdisablePreDex"
