@@ -26,7 +26,10 @@ package com.microsoft.aad.automation.testapp;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.security.KeyChain;
+import android.security.KeyChainAliasCallback;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
@@ -118,6 +121,14 @@ public class MainActivity extends AppCompatActivity {
                 processEmptyCacheRequest();
             }
         });
+
+        final Button consentToCertificate = (Button) findViewById(R.id.consentToCertificate);
+        consentToCertificate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                consentToCertificate();
+            }
+        });
     }
 
     private void launchAuthenticationInfoActivity(int flowCode) {
@@ -125,6 +136,26 @@ public class MainActivity extends AppCompatActivity {
         intent.setClass(mContext, SignInActivity.class);
         intent.putExtra(FLOW_CODE, flowCode);
         this.startActivity(intent);
+    }
+
+    private void consentToCertificate(){
+        KeyChain.choosePrivateKeyAlias(this,
+                new KeyChainAliasCallback() {
+
+                    public void alias(String alias) {
+                        // Credential alias selected.  Remember the alias selection for future use.
+                        if (alias != null){
+                            //Do something with it.
+                            Log.e("Automation", alias);
+                        }
+
+                    }
+                },
+                new String[] {"RSA", "DSA"}, // List of acceptable key types. null for any
+                null,                        // issuer, null for any
+                null,      // host name of server requesting the cert, null if unavailable
+                -1,                         // port of server requesting the cert, -1 if unavailable
+                "AutomationRunner");
     }
 
     private void processEmptyCacheRequest() {

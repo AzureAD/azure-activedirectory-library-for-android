@@ -2,18 +2,9 @@ package com.microsoft.aad.automation.testapp;
 
 
 import android.support.test.InstrumentationRegistry;
-import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
-
-
 import android.support.test.uiautomator.UiDevice;
-import android.support.test.uiautomator.UiObject;
-import android.support.test.uiautomator.UiSelector;
 
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -59,4 +50,4 @@ public class AutomationAppTest1 {
         //onView(withId(R.id.logout)).perform(click());
     }
 
- }
+}

@@ -26,6 +26,7 @@ package com.microsoft.aad.automation.testapp;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.test.espresso.idling.CountingIdlingResource;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
@@ -72,6 +73,7 @@ public class SignInActivity extends AppCompatActivity {
     public static final String USER_IDENTIFIER = "user_identifier";
     public static final String USER_IDENTIFIER_TYPE = "user_identifier_type";
     public static final String CORRELATION_ID = "correlation_id";
+    public static final CountingIdlingResource IDLING = new CountingIdlingResource("SignInActivity");
 
     static final String INVALID_REFRESH_TOKEN = "some invalid refresh token";
 
@@ -112,6 +114,7 @@ public class SignInActivity extends AppCompatActivity {
     }
 
     private void performAuthentication() {
+        SignInActivity.IDLING.increment();
         final Intent receivedIntent = getIntent();
         
         int flowCode = receivedIntent.getIntExtra(MainActivity.FLOW_CODE, 0);
@@ -372,12 +375,14 @@ public class SignInActivity extends AppCompatActivity {
         return new AuthenticationCallback<AuthenticationResult>() {
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
+                SignInActivity.IDLING.decrement();
                 final Intent intent = createIntentFromAuthenticationResult(authenticationResult);
                 launchResultActivity(intent);
             }
 
             @Override
             public void onError(Exception e) {
+                SignInActivity.IDLING.decrement();
                 final Intent intent = createIntentFromReturnedException(e);
                 launchResultActivity(intent);
             }
