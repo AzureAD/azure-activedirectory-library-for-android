@@ -36,4 +36,5 @@
     <string name="go">Go</string>
     <string name="enter_signin_info">Please enter the sign in info here...</string>
     <string name="done">Done</string>
+    <string name="consentToCertificate">Consent to Cert</string>
 </resources>

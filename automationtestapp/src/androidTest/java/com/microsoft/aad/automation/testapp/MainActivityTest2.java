@@ -1,38 +1,36 @@
 package com.microsoft.aad.automation.testapp;
 
 
+import android.security.KeyChainException;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.ViewInteraction;
 import android.support.test.espresso.action.ViewActions;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.uiautomator.By;
+import android.support.test.uiautomator.UiDevice;
+import android.support.test.uiautomator.UiObject;
+import android.support.test.uiautomator.UiObject2;
 import android.support.test.uiautomator.UiObjectNotFoundException;
+import android.support.test.uiautomator.UiSelector;
 import android.test.suitebuilder.annotation.LargeTest;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.widget.Button;
+import android.widget.EditText;
+
+import com.microsoft.aad.automation.testapp.utility.Scenario;
+import com.microsoft.aad.automation.testapp.utility.TestConfigurationQuery;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-
-import android.support.test.uiautomator.UiDevice;
-import android.support.test.uiautomator.UiObject;
-import android.support.test.uiautomator.UiObject2;
-import android.support.test.uiautomator.UiSelector;
-import android.widget.Button;
-import android.widget.EditText;
-
-
-import com.microsoft.aad.automation.testapp.utility.Scenario;
-import com.microsoft.aad.automation.testapp.utility.TestConfigurationQuery;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +42,7 @@ import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.Matchers.allOf;
 
-@Ignore
+//@Ignore
 @LargeTest
 //@RunWith(AndroidJUnit4.class)
 @RunWith(Parameterized.class)
@@ -55,7 +53,8 @@ public class MainActivityTest2 {
     public Scenario mScenario = null;
 
     @Parameterized.Parameters
-    public static Iterable<Scenario> TokenRequestData(){
+    public static Iterable<Scenario> TokenRequestData() throws KeyChainException, InterruptedException {
+
 
         TestConfigurationQuery query = new TestConfigurationQuery();
         query.federationProvider = "ADFSv3";
@@ -72,8 +71,8 @@ public class MainActivityTest2 {
         requests.add(scenarioADFSv4);
 
         return requests;
-    }
 
+    }
 
 
     @Rule
@@ -90,7 +89,6 @@ public class MainActivityTest2 {
         //IdlingRegistry.getInstance().unregister(SignInActivity.IDLING);
     }
 
-    @Ignore
     @Test
     public void mainActivityTest2() throws InterruptedException, UiObjectNotFoundException {
         ViewInteraction appCompatButton = onView(
@@ -133,8 +131,8 @@ public class MainActivityTest2 {
 
         Thread.sleep(8000);
         UiObject passwordBox = device.findObject(new UiSelector()
-        .instance(1)
-        .className(EditText.class));
+                .instance(1)
+                .className(EditText.class));
         passwordBox.setText(mScenario.getCredential().password);
 
         UiObject signInButton = device.findObject(new UiSelector()
@@ -142,17 +140,6 @@ public class MainActivityTest2 {
                 .className(Button.class)
         );
         signInButton.click();
-
-        /*
-        Thread.sleep(20000);
-
-
-        ViewInteraction resultsView = onView(
-                allOf(withId(R.id.resultInfo), isDisplayed())
-        );
-        */
-
-
 
 
     }

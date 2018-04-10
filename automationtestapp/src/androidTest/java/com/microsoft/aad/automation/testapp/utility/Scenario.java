@@ -30,27 +30,32 @@ public class Scenario {
         return mTokenRequest;
     }
 
-    public String getTokenRequestAsJson(){
+    public String getTokenRequestAsJson() {
         Gson gson = new Gson();
         String requestJson = gson.toJson(this.mTokenRequest);
         return requestJson;
     }
 
-    private void createTokenRequest(){
+    private void createTokenRequest() {
         TokenRequest tr = new TokenRequest();
-        tr.setAuthority(this.getTestConfiguration().getAuthority().get(0));
+        tr.setAuthority(this.getTestConfiguration().getAuthority().get(0) + "common");
         tr.setRedirectUri(this.getTestConfiguration().getRedirectUri().get(0));
         tr.setResourceId(this.getTestConfiguration().getResourceIds().get(0));
         tr.setClientId(this.getTestConfiguration().getAppId());
         this.mTokenRequest = tr;
     }
 
-    public static Scenario GetScenario(TestConfigurationQuery query){
+    public static Scenario GetScenario(TestConfigurationQuery query) {
         TestConfiguration tc = TestConfigurationHelper.GetTestConfiguration(query);
         String keyVaultLocation = tc.getUsers().getCredentialVaultKeyName();
-        String secretName = keyVaultLocation.substring(keyVaultLocation.lastIndexOf('/'));
+        String secretName = keyVaultLocation.substring(keyVaultLocation.lastIndexOf('/') + 1);
 
-        Credential credential = Secrets.GetCredential(tc.getUsers().getUpn(), secretName);
+        Credential credential = null;
+        try {
+            credential = Secrets.GetCredential(tc.getUsers().getUpn(), secretName);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         Scenario scenario = new Scenario();
         scenario.setTestConfiguration(tc);

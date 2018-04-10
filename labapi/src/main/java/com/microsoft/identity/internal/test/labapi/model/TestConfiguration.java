@@ -38,13 +38,13 @@ public class TestConfiguration {
   @SerializedName("AppName")
   private String appName = null;
 
-  @SerializedName("AppId")
+  @SerializedName("AppID")
   private String appId = null;
 
   @SerializedName("AppVersion")
   private String appVersion = null;
 
-  @SerializedName("RedirectUri")
+  @SerializedName("RedirectURI")
   private List<String> redirectUri = null;
 
   @SerializedName("Resource_ids")
