@@ -38,6 +38,8 @@ public class SampleFunctions {
     private static String mSecret;
 
     private static final char ANDROID_VERSION = get_android_version();
+
+    //private static Phone PHONE_MODEL = Phone.valueOf(android.os.Build.MODEL);
     private static final String PHONE_MODEL = android.os.Build.MODEL;
 
     public static char get_android_version()
@@ -55,6 +57,26 @@ public class SampleFunctions {
         double y2 =  H * .75;
 
         mDevice.swipe(x,(int)y1,x,(int)y2,5);
+    }
+
+    public static void swipe_right()
+    {
+        int H = mDevice.getDisplayHeight();
+        int W = mDevice.getDisplayWidth();
+        double x1 = W * .10;
+        double x2 = W * .90;
+        int y = H / 2;
+        mDevice.swipe((int)x2,y,(int)x1,y,5);
+    }
+
+    public static void swipe_left()
+    {
+        int H = mDevice.getDisplayHeight();
+        int W = mDevice.getDisplayWidth();
+        double x1 = W * .10;
+        double x2 = W * .90;
+        int y = H / 2;
+        mDevice.swipe((int)x1,y,(int)x2,y,5);
     }
 
     public static void scroll_down()
@@ -140,23 +162,6 @@ public class SampleFunctions {
         }
     }
 
-    public static void open_Applications_View()
-    {
-        // press the home button
-        mDevice.pressHome();
-        // Bring up the default launcher by searching for a UI component
-        // that matches the content description for the launcher button.
-        UiObject allAppsButton = mDevice.findObject(new UiSelector().description("Apps"));
-        // Perform a click on the button to load the launcher.
-        try{
-            allAppsButton.clickAndWaitForNewWindow();
-        } catch (Exception e){
-            Assert.fail("Didnt find apps");
-        }
-        scroll_up();
-    }
-
-
 
     public static void uninstall_App(String AppName)
     {
@@ -220,43 +225,45 @@ public class SampleFunctions {
         bypass_prompt();
     }
 
+    public static void click_by_description(String description){
+        UiObject allAppsButton = mDevice.findObject(new UiSelector().description(description));
+        try{
+            allAppsButton.clickAndWaitForNewWindow();
+        } catch (Exception e){
+            Assert.fail("Didnt find description: " + description);
+        }
+    }
+
     public static void launch_appView(){
-        switch (ANDROID_VERSION)
+        mDevice.pressHome();
+        switch (PHONE_MODEL)
         {
-            case '6' :
-                open_Applications_View();
+            case "Nexus 6P":
+                mDevice.pressHome();
+                click_by_description("Apps");
                 scroll_up();
                 break;
-
-            case '7' :
+            case "LG-H860":
                 mDevice.pressHome();
-                scroll_down();
-                break;
         }
     }
 
     public static void launch_App(String appName){
         mAppName = appName;
 
-        switch (ANDROID_VERSION)
+        switch (PHONE_MODEL)
         {
-            case '6' :
-                open_Applications_View();
-                scroll_up();
+            case "Nexus 6P": //NEXUS_6P
+                launch_appView();
+                find_click(appName);
                 break;
 
-            case '7' :
-                mDevice.pressHome();
-                scroll_down();
-                break;
-        }
-
-        try {
-            UiScrollable appView = new UiScrollable(new UiSelector().scrollable(true));
-            appView.scrollIntoView(new UiSelector().text(appName));
-            mDevice.findObject(new UiSelector().text(appName)).clickAndWaitForNewWindow();
-        } catch (UiObjectNotFoundException e) {
-            Assert.fail("Couldn't find app.");
+            case "LG-H860": // LG G5
+                launch_appView();
+                if(!text_exists(appName)){
+                    swipe_right();
+                }
+                click(appName,null,true);
         }
     }
 
@@ -386,12 +393,23 @@ public class SampleFunctions {
         return text_exists(appName);
     }
 
+
+
     public static void clear_app_cache(String AppName)
     {
-        mDevice.pressHome();
-        mAppName = AppName;
-        settings();
-        find_click("Apps");
+        launch_App("Settings");
+
+        switch (PHONE_MODEL)
+        {
+            case "Nexus 6P":
+                find_click("Apps");
+                break;
+
+            case "LG-H860":
+                click("General",null,true);
+                find_click("Apps");
+                break;
+        }
 
         try {
             UiScrollable appView = new UiScrollable(new UiSelector().scrollable(true));

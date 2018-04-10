@@ -12,6 +12,15 @@ import android.support.test.runner.AndroidJUnit4;
 @SdkSuppress(minSdkVersion = 18)
 public class ManualTests1 {
 
+    @Test
+    public void phone_test() {
+        //main flow after app is installed to test phone compatibility.
+        SampleFunctions.launch_appView();
+        SampleFunctions.launch_App("adal");
+        SampleFunctions.clear_app_cache("adal");
+        SampleFunctions.re_install_app("Microsoft Authenticator","Authenticator");
+        SampleFunctions.re_install_app("Intune Company Portal","Company Portal");
+    }
 
     @Test
     public void uninstall() {
@@ -54,12 +63,6 @@ public class ManualTests1 {
     }
 
     @Test
-    public void tttt()
-    {
-
-    }
-
-    @Test
     public void enroll() {
         //SampleFunctions.enroll_authenticator("", "");
         //SampleFunctions.remove_authenticator_account();
@@ -72,10 +75,7 @@ public class ManualTests1 {
         SampleFunctions.remove_company_portal_account();
     }
 
-    @Test
-    public void un_enroll() {
-        SampleFunctions.remove_authenticator_account();
-    }
+
 
     @Test
     public void removeAccount()
