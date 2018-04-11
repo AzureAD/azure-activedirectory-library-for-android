@@ -25,6 +25,7 @@ package com.microsoft.aad.adal;
 
 import android.os.Build;
 
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 
 import java.io.IOException;
@@ -32,8 +33,6 @@ import java.net.URL;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.microsoft.aad.adal.AuthenticationConstants.HeaderField;
-import static com.microsoft.aad.adal.AuthenticationConstants.MediaType;
 
 /**
  * It uses one time async task. WebRequest are wrapped here to prevent multiple
@@ -47,12 +46,12 @@ public class WebRequestHandler implements IWebRequestHandler {
     /**
      * Header for accept.
      */
-    public static final String HEADER_ACCEPT = HeaderField.ACCEPT;
+    public static final String HEADER_ACCEPT = AuthenticationConstants.HeaderField.ACCEPT;
 
     /**
      * Header for json type.
      */
-    public static final String HEADER_ACCEPT_JSON = MediaType.APPLICATION_JSON;
+    public static final String HEADER_ACCEPT_JSON = AuthenticationConstants.MediaType.APPLICATION_JSON;
 
     private UUID mRequestCorrelationId = null;
 

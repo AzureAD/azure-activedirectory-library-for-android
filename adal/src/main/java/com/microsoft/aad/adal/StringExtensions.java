@@ -26,6 +26,8 @@ package com.microsoft.aad.adal;
 import android.net.Uri;
 import android.util.Base64;
 
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
