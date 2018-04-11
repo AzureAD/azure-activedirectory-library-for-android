@@ -24,6 +24,9 @@
 package com.microsoft.aad.adal;
 
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Settings to be used in AuthenticationContext.
@@ -40,6 +43,12 @@ public enum AuthenticationSettings {
 
     private static final int DEFAULT_READ_CONNECT_TIMEOUT = 30000;
 
+    // This is used to accept two broker key. Today we have company portal and azure authenticator apps, 
+    // and each app is also going to send the other app's keys. They need to set package name and corresponding
+    // keys in the map. used by broker.
+    private final Map<String, byte[]> mSecretKeys = new HashMap<String, byte[]>(2);
+
+    // used by ADAL client
     private AtomicReference<byte[]> mSecretKeyData = new AtomicReference<>();
 
     private String mBrokerPackageName = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
@@ -83,6 +92,15 @@ public enum AuthenticationSettings {
     }
 
     /**
+     * Get an {@link ArrayList} of bytes to derive secret key to use in encryption/decryption. used by broker only.
+     * {@link Map} contains two broker app secret key to do encryption/decryption, and it's keyed by broker package name.
+     * @return {@link Map} of byte[] secret key which is keyed by broker package name. 
+     */
+    public Map<String, byte[]> getSecretKeys() {
+        return Collections.unmodifiableMap(mSecretKeys);
+    }
+
+    /**
      * set raw bytes to derive secretKey to use in encrypt/decrypt. KeySpec
      * algorithm is AES.
      * 
@@ -95,6 +113,31 @@ public enum AuthenticationSettings {
 
         mSecretKeyData.set(rawKey);
     }
+
+    /**
+     * set two raw bytes to derive secretKey to use in encrypt/decrypt. KeySpec
+     * algorithm is AES. used by broker only.
+     *
+     * @param secretKeys App related keys to use in encrypt/decrypt. Should contain two secret keys. 
+     */
+    public void setSecretKeys(final Map<String, byte[]> secretKeys) {
+        if (secretKeys == null) {
+            throw new IllegalArgumentException("The passed in secret key map is null.");
+        }
+        
+        if (secretKeys.size() != 2) {
+            throw new IllegalArgumentException("Expect two keys are passed in.");
+        }
+
+        for (Map.Entry<String, byte[]> entry : secretKeys.entrySet()) {
+            if (entry.getValue() == null || entry.getValue().length != SECRET_RAW_KEY_LENGTH) {
+                throw new IllegalArgumentException("Passed in raw key is null or length is not as expected. ");
+            }
+
+            mSecretKeys.put(entry.getKey(), entry.getValue());
+        }
+    }
+
 
     /**
      * Gets packagename for broker app that installed authenticator.

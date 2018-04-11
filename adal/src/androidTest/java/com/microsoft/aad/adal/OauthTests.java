@@ -268,7 +268,7 @@ public class OauthTests {
     @Test
     public void testGetCodeRequestUrlWithClaims() throws UnsupportedEncodingException {
         final UUID correlationId = UUID.randomUUID();
-        final AuthenticationRequest request = new AuthenticationRequest("authority51", "resource52", "client53", "redirect54",
+        final AuthenticationRequest request = new AuthenticationRequest(TEST_AUTHORITY, "resource52", "client53", "redirect54",
                 "loginhint55", PromptBehavior.Always, "p=extraQueryParam56", correlationId, false, "testClaims");
 
         final Oauth2 oauth2 = createOAuthInstance(request);
@@ -280,7 +280,7 @@ public class OauthTests {
     @Test
     public void testGetCodeRequestUrlWithClaimsInExtraQP() throws UnsupportedEncodingException {
         final UUID correlationId = UUID.randomUUID();
-        final AuthenticationRequest request = new AuthenticationRequest("authority51", "resource52", "client53", "redirect54",
+        final AuthenticationRequest request = new AuthenticationRequest(TEST_AUTHORITY, "resource52", "client53", "redirect54",
                 "loginhint55", PromptBehavior.Always, "claims=testclaims&a=b", correlationId, false, null);
 
         final Oauth2 oauth2 = createOAuthInstance(request);
@@ -291,7 +291,7 @@ public class OauthTests {
     @Test
     public void testGetCodeRequestUrlWithInstanceAwareInExtraQP() throws UnsupportedEncodingException {
         final UUID correlationId = UUID.randomUUID();
-        final AuthenticationRequest request = new AuthenticationRequest("authority51", "resource52", "client53", "redirect54",
+        final AuthenticationRequest request = new AuthenticationRequest(TEST_AUTHORITY, "resource52", "client53", "redirect54",
                 "loginhint55", PromptBehavior.Always, "instance_aware=true", correlationId, false, null);
 
         final Oauth2 oauth2 = createOAuthInstance(request);
@@ -350,10 +350,8 @@ public class OauthTests {
                 "client 1234567890-+=;'", "redirect 1234567890-+=;'", "loginhint@ggg.com", null,
                 null, null, false);
         final Oauth2 oauth2 = createOAuthInstance(request);
-        assertEquals(
-                "Token request",
-                "grant_type=refresh_token&refresh_token=refreshToken23434%3D&client_id=client+1234567890-%2B%3D%3B%27&resource=resource%2520+",
-                oauth2.buildRefreshTokenRequestMessage("refreshToken23434="));
+        assertTrue("Token request",
+                oauth2.buildRefreshTokenRequestMessage("refreshToken23434=").startsWith("grant_type=refresh_token&refresh_token=refreshToken23434%3D&client_id=client+1234567890-%2B%3D%3B%27&resource=resource%2520+"));
 
         // without resource
         final AuthenticationRequest requestWithoutResource = createAuthenticationRequest(
@@ -361,10 +359,8 @@ public class OauthTests {
                 "redirect 1234567890-+=;'", "loginhint@ggg.com", null, null, null, false);
 
         final Oauth2 oauthWithoutResource = createOAuthInstance(requestWithoutResource);
-        assertEquals(
-                "Token request",
-                "grant_type=refresh_token&refresh_token=refreshToken234343455%3D&client_id=client+1234567890-%2B%3D%3B%27",
-                oauthWithoutResource.buildRefreshTokenRequestMessage("refreshToken234343455="));
+        assertTrue("Token request",
+                oauthWithoutResource.buildRefreshTokenRequestMessage("refreshToken234343455=").startsWith("grant_type=refresh_token&refresh_token=refreshToken234343455%3D&client_id=client+1234567890-%2B%3D%3B%27"));
     }
 
     /**
