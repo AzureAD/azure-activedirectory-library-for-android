@@ -36,6 +36,7 @@ import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.ClientInfo;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -45,6 +46,7 @@ import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -98,7 +100,7 @@ class Oauth2 {
     }
 
     Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler,
-            IJWSBuilder jwsMessageBuilder) {
+           IJWSBuilder jwsMessageBuilder) {
         mRequest = request;
         mWebRequestHandler = webRequestHandler;
         mJWSBuilder = jwsMessageBuilder;
@@ -241,6 +243,13 @@ class Oauth2 {
                     StringExtensions.urlFormEncode(mRequest.getResource()));
         }
 
+        // sending redirect uri for the refresh token request if it's provided
+        if (!StringExtensions.isNullOrBlank(mRequest.getRedirectUri())
+                && !mRequest.getClientId().equalsIgnoreCase(AuthenticationConstants.Broker.BROKER_CLIENT_ID)) {
+            message = String.format("%s&%s=%s", message, AuthenticationConstants.OAuth2.REDIRECT_URI,
+                    StringExtensions.urlFormEncode(mRequest.getRedirectUri()));
+        }
+
         return message;
     }
 
@@ -272,6 +281,29 @@ class Oauth2 {
                     response.get(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION),
                     response.get(AuthenticationConstants.OAuth2.ERROR_CODES));
 
+            if (null != response.get(AuthenticationConstants.OAuth2.HTTP_RESPONSE_BODY)) {
+                HashMap<String, String> responseBody = null;
+                try {
+                    extractJsonObjects(responseBody, response.get(AuthenticationConstants.OAuth2.HTTP_RESPONSE_BODY));
+                    result.setHttpResponseBody(responseBody);
+                } catch (final JSONException exception) {
+                    Logger.e(TAG, "Json exception", ExceptionExtensions.getExceptionMessage(exception), ADALError.SERVER_INVALID_JSON_RESPONSE);
+                }
+            }
+
+            if (null != response.get(AuthenticationConstants.OAuth2.HTTP_RESPONSE_HEADER)) {
+                HashMap<String, List<String>> responseHeaders = null;
+                try {
+                    responseHeaders = HashMapExtensions.jsonStringAsMapList(response.get(AuthenticationConstants.OAuth2.HTTP_RESPONSE_HEADER));
+                    result.setHttpResponseHeaders(responseHeaders);
+                } catch (final JSONException exception) {
+                    Logger.e(TAG, "Json exception", ExceptionExtensions.getExceptionMessage(exception), ADALError.SERVER_INVALID_JSON_RESPONSE);
+                }
+            }
+
+            if (null != response.get(AuthenticationConstants.OAuth2.HTTP_STATUS_CODE)){
+                result.setServiceStatusCode(Integer.parseInt(response.get(AuthenticationConstants.OAuth2.HTTP_STATUS_CODE)));
+            }
         } else if (response.containsKey(AuthenticationConstants.OAuth2.CODE)) {
             // The header cloud_instance_host_name points to the right sovereign cloud to use for the given user
             // Using this host name we construct the authority that will get the token request and we use this authority
@@ -323,9 +355,11 @@ class Oauth2 {
                 rawIdToken = response.get(AuthenticationConstants.OAuth2.ID_TOKEN);
                 if (!StringExtensions.isNullOrBlank(rawIdToken)) {
                     Logger.v(TAG, "Id token was returned, parsing id token.");
-                    IdToken tokenParsed = new IdToken(rawIdToken);
-                    tenantId = tokenParsed.getTenantId();
-                    userinfo = new UserInfo(tokenParsed);
+                    final IdToken tokenParsed = new IdToken(rawIdToken);
+                    if (tokenParsed != null) {
+                        tenantId = tokenParsed.getTenantId();
+                        userinfo = new UserInfo(tokenParsed);
+                    }
                 } else {
                     Logger.v(TAG, "IdToken was not returned from token request.");
                 }
@@ -655,7 +689,7 @@ class Oauth2 {
 
     private AuthenticationResult retry(String requestMessage, Map<String, String> headers) throws IOException, AuthenticationException {
         final String methodName = ":retry";
-        //retry once if there is an observation of a network timeout by the client 
+        //retry once if there is an observation of a network timeout by the client
         if (mRetryOnce) {
             mRetryOnce = false;
             try {
@@ -784,6 +818,18 @@ class Oauth2 {
             } catch (IllegalArgumentException ex) {
                 Logger.e(TAG + methodName, "Wrong format of the correlation ID:" + correlationIdInHeader, "",
                         ADALError.CORRELATION_ID_FORMAT, ex);
+            }
+        }
+
+        if (null != webResponse.getResponseHeaders()) {
+            final List<String> xMsCliTelemValues = webResponse.getResponseHeaders().get(X_MS_CLITELEM);
+            if (null != xMsCliTelemValues && !xMsCliTelemValues.isEmpty()) {
+                // Only one value is expected to be present, so we'll grab the first element...
+                final String speValue = xMsCliTelemValues.get(0);
+                final CliTelemInfo cliTelemInfo =  TelemetryUtils.parseXMsCliTelemHeader(speValue);
+                if (result != null) {
+                    result.setCliTelemInfo(cliTelemInfo);
+                }
             }
         }
 
