@@ -82,6 +82,9 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.uiautomator:uiautomator-v18:2.1.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-idling-resource:3.0.1'
+    androidTestImplementation 'net.serenity-bdd:serenity-core:1.9.6'
+    androidTestImplementation 'net.serenity-bdd:serenity-screenplay:1.9.6'
+    androidTestImplementation 'net.serenity-bdd:serenity-junit:1.9.6'
     implementation 'com.android.support.test.espresso:espresso-idling-resource:3.0.1'
     implementation "com.google.code.gson:gson:2.8.1"
     implementation project(':keyvault')
