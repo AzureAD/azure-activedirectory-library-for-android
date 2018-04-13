@@ -108,8 +108,8 @@ final class HashMapExtensions {
      * @return Map
      * @throws JSONException
      */
-    static Map<String, String> getJsonResponse(HttpWebResponse webResponse) throws JSONException {
-        final Map<String, String> response = new HashMap<>();
+    static HashMap<String, String> getJsonResponse(HttpWebResponse webResponse) throws JSONException {
+        final HashMap<String, String> response = new HashMap<>();
         if (webResponse != null && !TextUtils.isEmpty(webResponse.getBody())) {
             JSONObject jsonObject = new JSONObject(webResponse.getBody());
             Iterator<?> i = jsonObject.keys();
