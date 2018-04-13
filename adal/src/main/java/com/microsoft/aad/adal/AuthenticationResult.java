@@ -61,49 +61,49 @@ public class AuthenticationResult implements Serializable {
         Succeeded,
     }
 
-    private String mCode;
+    protected String mCode;
 
-    private String mAccessToken;
+    protected String mAccessToken;
 
-    private String mRefreshToken;
+    protected String mRefreshToken;
 
     private String mTokenType;
 
-    private Date mExpiresOn;
+    protected Date mExpiresOn;
 
-    private String mErrorCode;
+    protected String mErrorCode;
 
-    private String mErrorDescription;
+    protected String mErrorDescription;
 
-    private String mErrorCodes;
+    protected String mErrorCodes;
 
-    private boolean mIsMultiResourceRefreshToken;
+    protected boolean mIsMultiResourceRefreshToken;
 
-    private UserInfo mUserInfo;
+    protected UserInfo mUserInfo;
 
-    private String mTenantId;
+    protected String mTenantId;
 
-    private String mIdToken;
+    protected String mIdToken;
 
-    private AuthenticationStatus mStatus = AuthenticationStatus.Failed;
+    protected AuthenticationStatus mStatus = AuthenticationStatus.Failed;
 
-    private boolean mInitialRequest;
+    protected boolean mInitialRequest;
     
-    private String mFamilyClientId;
+    protected String mFamilyClientId;
 
-    private boolean mIsExtendedLifeTimeToken = false;
+    protected boolean mIsExtendedLifeTimeToken = false;
 
-    private Date mExtendedExpiresOn;
+    protected Date mExtendedExpiresOn;
 
-    private String mAuthority;
+    protected String mAuthority;
 
-    private CliTelemInfo mCliTelemInfo;
+    protected CliTelemInfo mCliTelemInfo;
 
-    private HashMap<String, String> mHttpResponseBody = null;
+    protected HashMap<String, String> mHttpResponseBody = null;
 
-    private int mServiceStatusCode = -1;
+    protected int mServiceStatusCode = -1;
 
-    private HashMap<String, List<String>> mHttpResponseHeaders = null;
+    protected HashMap<String, List<String>> mHttpResponseHeaders = null;
 
     AuthenticationResult() {
         mCode = null;
@@ -404,13 +404,13 @@ public class AuthenticationResult implements Serializable {
         mFamilyClientId = familyClientId;
     }
 
-    final void setAuthority(final String authority) {
+    public final void setAuthority(final String authority) {
         if (!StringExtensions.isNullOrBlank(authority)) {
             mAuthority = authority;
         }
     }
 
-    final CliTelemInfo getCliTelemInfo() {
+    public final CliTelemInfo getCliTelemInfo() {
         return mCliTelemInfo;
     }
 
