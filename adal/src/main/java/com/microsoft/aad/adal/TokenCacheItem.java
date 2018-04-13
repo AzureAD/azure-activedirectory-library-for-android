@@ -457,7 +457,7 @@ public class TokenCacheItem implements Serializable {
         return !StringExtensions.isNullOrBlank(mFamilyClientId);
     }
 
-    String getSpeRing() {
+    public String getSpeRing() {
         return mSpeRing;
     }
 

@@ -30,7 +30,7 @@ import java.util.List;
  * Hold the instance discovery metadata returned from discovery endpoint, which includes the preferred network location,
  * preferred cache location and all the associated aliased host related to the passed in authority.
  */
-final class InstanceDiscoveryMetadata {
+public final class InstanceDiscoveryMetadata {
     private final String mPreferredNetwork;
     private final String mPreferredCache;
     private final List<String> mAliases = new ArrayList();
@@ -41,7 +41,7 @@ final class InstanceDiscoveryMetadata {
      * discovery fails.
      * @param isValidated
      */
-    InstanceDiscoveryMetadata(boolean isValidated) {
+    public InstanceDiscoveryMetadata(boolean isValidated) {
         mIsValidated = isValidated;
 
         mPreferredNetwork = null;
@@ -54,7 +54,7 @@ final class InstanceDiscoveryMetadata {
      * @param preferredCache
      * @param aliases
      */
-    InstanceDiscoveryMetadata(final String preferredNetwork, final String preferredCache, final List<String> aliases) {
+    public InstanceDiscoveryMetadata(final String preferredNetwork, final String preferredCache, final List<String> aliases) {
         mPreferredNetwork = preferredNetwork;
         mPreferredCache = preferredCache;
         mAliases.addAll(aliases);
@@ -67,25 +67,25 @@ final class InstanceDiscoveryMetadata {
      * @param preferredNetwork
      * @param preferredCache
      */
-    InstanceDiscoveryMetadata(final String preferredNetwork, final String preferredCache) {
+    public InstanceDiscoveryMetadata(final String preferredNetwork, final String preferredCache) {
         mPreferredNetwork = preferredNetwork;
         mPreferredCache = preferredCache;
         mIsValidated = true;
     }
 
-    String getPreferredNetwork() {
+    public String getPreferredNetwork() {
         return mPreferredNetwork;
     }
 
-    String getPreferredCache() {
+    public String getPreferredCache() {
         return mPreferredCache;
     }
 
-    List<String> getAliases() {
+    public List<String> getAliases() {
         return mAliases;
     }
 
-    boolean isValidated() {
+    public boolean isValidated() {
         return mIsValidated;
     }
 }
