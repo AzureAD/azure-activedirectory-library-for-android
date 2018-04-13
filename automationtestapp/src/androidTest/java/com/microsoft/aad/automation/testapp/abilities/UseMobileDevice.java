@@ -1,6 +1,8 @@
 package com.microsoft.aad.automation.testapp.abilities;
 
 
+import com.microsoft.aad.automation.testapp.devices.MobileDevice;
+
 import net.serenitybdd.screenplay.Ability;
 import net.serenitybdd.screenplay.Actor;
 import net.serenitybdd.screenplay.RefersToActor;
@@ -14,7 +16,7 @@ public class UseMobileDevice implements Ability, RefersToActor{
         this.mobileDevice = mobileDevice;
     }
 
-    public static UseMobileDevice with(MobileDevice device) { return }
+    public static UseMobileDevice with(MobileDevice device) { return new UseMobileDevice(device); }
 
     @Override
     public <T extends Ability> T asActor(Actor actor) {
