@@ -23,4 +23,16 @@ public class UseMobileDevice implements Ability, RefersToActor{
         this.actor = actor;
         return (T) this;
     }
+
+    public static UseMobileDevice as(Actor actor) {
+        if (actor.abilityTo(UseMobileDevice.class) == null) {
+            throw new IllegalArgumentException("The supplied actor cannot use a mobile device");
+        }
+        return actor.abilityTo(UseMobileDevice.class).asActor(actor);
+    }
+
+    public MobileDevice getMobileDevice(){
+        return mobileDevice;
+    }
+
 }
