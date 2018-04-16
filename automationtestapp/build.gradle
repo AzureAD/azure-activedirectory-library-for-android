@@ -29,6 +29,11 @@ android {
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
 
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
+
     defaultConfig {
         applicationId "com.microsoft.aad.automation.testapp"
         minSdkVersion rootProject.ext.automationAppMinSDKVersion
@@ -82,12 +87,23 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.uiautomator:uiautomator-v18:2.1.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-idling-resource:3.0.1'
-    androidTestImplementation 'net.serenity-bdd:serenity-core:1.9.6'
+
+    /*
+    androidTestImplementation("net.serenity-bdd:serenity-core:1.9.6") {
+        exclude group: 'com.squareup.okio', module: 'okio'
+    }
+    */
+
+    //androidTestImplementation 'net.serenity-bdd:serenity-core:1.9.6'
     androidTestImplementation 'net.serenity-bdd:serenity-screenplay:1.9.6'
-    androidTestImplementation 'net.serenity-bdd:serenity-junit:1.9.6'
+    //androidTestImplementation 'net.serenity-bdd:serenity-junit:1.9.6'
+
+
     implementation 'com.android.support.test.espresso:espresso-idling-resource:3.0.1'
     implementation "com.google.code.gson:gson:2.8.1"
-    implementation project(':keyvault')
-    implementation project(':labapi')
+    androidTestImplementation project(':keyvault')
+    androidTestImplementation project(':labapi')
+    androidTestImplementation 'com.squareup.okio:okio:1.13.0'
+
 
 }

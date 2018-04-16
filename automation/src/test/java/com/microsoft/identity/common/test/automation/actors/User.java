@@ -1,4 +1,4 @@
-package com.microsoft.aad.automation.testapp.actors;
+package com.microsoft.identity.common.test.automation.actors;
 
 import net.serenitybdd.screenplay.Actor;
 
