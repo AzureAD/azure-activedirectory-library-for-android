@@ -437,12 +437,8 @@ public class AuthenticationContext {
     }
 
     /**
-     * acquireToken will start interactive flow if needed. It checks the cache
-     * to return existing result if not expired. It tries to use refresh token
-     * if available. If it fails to get token with refresh token, behavior will
-     * depend on options. If promptbehavior is AUTO, it will remove this refresh
-     * token from cache and fall back on the UI if activitycontext is not null.
-     * Default is AUTO.
+     * acquireToken will start an interactive auth flow to acquire new tokens 
+     * with the requested claims. Bypasses token cache if promptbehavior is not AUTO or claims are passed. 
      *
      * @param activity             Calling activity
      * @param resource             required resource identifier.
@@ -521,11 +517,8 @@ public class AuthenticationContext {
     }
 
     /**
-     * It will start interactive flow if needed. It checks the cache to return
-     * existing result if not expired. It tries to use refresh token if
-     * available. If it fails to get token with refresh token, behavior will
-     * depend on options. If promptbehavior is AUTO, it will remove this refresh
-     * token from cache and fall back on the UI. Default is AUTO.
+     * acquireToken will start an interactive auth flow to acquire new tokens 
+     * with the requested claims. Bypasses token cache if promptbehavior is not AUTO or claims are passed. 
      *
      * @param fragment             It accepts both type of fragments.
      * @param resource             required resource identifier.
@@ -606,13 +599,9 @@ public class AuthenticationContext {
     }
 
     /**
-     * This uses new dialog based prompt. It will create a handler to run the
-     * dialog related code. It will start interactive flow if needed. It checks
-     * the cache to return existing result if not expired. It tries to use
-     * refresh token if available. If it fails to get token with refresh token,
-     * behavior will depend on options. If promptbehavior is AUTO, it will
-     * remove this refresh token from cache and fall back on the UI. Default is
-     * AUTO.
+     * acquireToken will start an interactive auth flow to acquire new tokens 
+     * with the requested claims. Bypasses token cache if promptbehavior is not AUTO or claims are passed. This overload uses new dialog based prompt. 
+     * It will create a handler to run the dialog related code. 
      *
      * @param resource             required resource identifier.
      * @param clientId             required client identifier.
