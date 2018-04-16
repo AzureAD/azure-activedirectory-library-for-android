@@ -1,4 +1,4 @@
-package com.microsoft.aad.automation.testapp.utility;
+package com.microsoft.identity.common.test.automation.utility;
 
 import com.google.gson.Gson;
 import com.microsoft.identity.internal.test.labapi.model.TestConfiguration;

@@ -19,8 +19,8 @@ import android.view.ViewParent;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.microsoft.aad.automation.testapp.utility.Scenario;
-import com.microsoft.aad.automation.testapp.utility.TestConfigurationQuery;
+import com.microsoft.identity.common.test.automation.utility.Scenario;
+import com.microsoft.identity.common.test.automation.utility.TestConfigurationQuery;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;

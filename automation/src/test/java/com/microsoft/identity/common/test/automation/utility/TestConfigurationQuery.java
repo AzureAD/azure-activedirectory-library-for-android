@@ -1,4 +1,4 @@
-package com.microsoft.aad.automation.testapp.utility;
+package com.microsoft.identity.common.test.automation.utility;
 
 
 public class TestConfigurationQuery {
