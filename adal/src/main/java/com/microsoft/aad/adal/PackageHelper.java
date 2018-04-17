@@ -53,7 +53,7 @@ class PackageHelper {
      * 
      * @param ctx The android app/activity context
      */
-    public PackageHelper(Context ctx) {
+    PackageHelper(Context ctx) {
         mContext = ctx;
         mAcctManager = AccountManager.get(mContext);
     }

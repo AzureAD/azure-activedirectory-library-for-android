@@ -151,7 +151,7 @@ class AcquireTokenSilentHandler {
 
             throw new AuthenticationException(
                     ADALError.AUTH_FAILED_NO_TOKEN, ExceptionExtensions.getExceptionMessage(exc),
-                    new AuthenticationException(ADALError.SERVER_ERROR, exc.getMessage()));
+                    new AuthenticationException(ADALError.SERVER_ERROR, exc.getMessage(), exc));
         } catch (final IOException | AuthenticationException exc) {
             // Server side error or similar
             Logger.e(TAG + methodName,
@@ -164,7 +164,7 @@ class AcquireTokenSilentHandler {
 
             throw new AuthenticationException(
                     ADALError.AUTH_FAILED_NO_TOKEN, ExceptionExtensions.getExceptionMessage(exc),
-                    new AuthenticationException(ADALError.SERVER_ERROR, exc.getMessage()));
+                    new AuthenticationException(ADALError.SERVER_ERROR, exc.getMessage(), exc));
         }
 
         return result;

@@ -44,11 +44,11 @@ public class Logger {
     private LogLevel mLogLevel  = LogLevel.Verbose;
     private ILogger mExternalLogger = null;
     private static final String CUSTOM_LOG_ERROR = "Custom log failed to log message:%s";
-    private boolean mAndroidLogEnabled = true;
+    private boolean mAndroidLogEnabled = BuildConfig.DEBUG;
     private String mCorrelationId = null;
 
     // Disable to log PII by default.
-    private boolean mEnablePII = true;
+    private boolean mEnablePII = false;
 
     /**
      * @return The single instance of {@link Logger}.
@@ -86,8 +86,10 @@ public class Logger {
     }
 
     /**
-     * Enable/Disable log message with PII (personal identifiable information) info.
-     * By default, ADAL doesn't log any PII.
+     * ADAL provides logging callbacks that assist in diagnostics. The callback has two parameters,
+     * message and additionalMessage. All user information is put into additionalMessage.
+     * ADAL will clear this data unless the {@link #mEnablePII} is called with true.
+     * By default the library will not return any messages with user information in them.
      *
      * @param enablePII True if enabling PII info to be logged, false otherwise.
      */
@@ -217,8 +219,7 @@ public class Logger {
 
         if (mExternalLogger != null) {
             try {
-                if (!StringExtensions.isNullOrBlank(additionalMessage) && mEnablePII)
-                {
+                if (!StringExtensions.isNullOrBlank(additionalMessage) && mEnablePII) {
                     mExternalLogger.Log(tag, addMoreInfo(message), additionalMessage + (throwable == null ? "" : Log.getStackTraceString(throwable)), logLevel, errorCode);
                 } else {
                     mExternalLogger.Log(tag, addMoreInfo(message), throwable == null ? null : Log.getStackTraceString(throwable), logLevel, errorCode);

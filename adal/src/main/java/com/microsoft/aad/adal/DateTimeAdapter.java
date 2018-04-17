@@ -121,7 +121,7 @@ public final class DateTimeAdapter implements JsonDeserializer<Date>, JsonSerial
         try {
             return mEnUs24HourFormat.parse(jsonString);
         } catch (final ParseException e) {
-            Logger.e(TAG + methodName, "Could not parse date: " + e.getMessage(), "",
+            Logger.e(TAG + methodName, "Could not parse date. ", e.getMessage(),
                     ADALError.DATE_PARSING_FAILURE, e);
         }
 

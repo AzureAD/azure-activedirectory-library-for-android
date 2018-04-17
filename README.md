@@ -1,12 +1,10 @@
 ﻿# Microsoft Azure Active Directory Authentication Library (ADAL) for Android
 
-===========
+ADAL for Android gives you the ability to add support for Work Accounts to your application. This SDK gives your application the full functionality of Microsoft Azure AD, including industry standard protocol support for OAuth2, Web API integration with user level consent, and two-factor authentication support. Best of all, it’s FOSS (Free and Open Source Software) so that you can participate in the development process as we build these libraries.
 
-The ADAL SDK for Android gives you the ability to add support for Work Accounts to your application with just a few lines of additional code. This SDK gives your application the full functionality of Microsoft Azure AD, including industry standard protocol support for OAuth2, Web API integration with user level consent, and two-factor authentication support. Best of all, it’s FOSS (Free and Open Source Software) so that you can participate in the development process as we build these libraries.
+A Work Account is an identity you use to get work done from your organization or school. Anywhere you need to get access to your work life you'll use a Work Account. The Work Account can be tied to an Active Directory server running in your datacenter or live completely in the cloud like when you use Office 365. A Work Account will be how your users know that they are accessing their important documents and data backed my Microsoft security.
 
-A Work Account is an identity you use to get work done at your business or on a college campus. Anywhere you need to get access to your work life you'll use a Work Account. The Work Account can be tied to an Active Directory server running in your datacenter or live completely in the cloud like when you use Office365. A Work Account will be how your users know that they are accessing their important documents and data backed my Microsoft security.
-
-## ADAL for Android 1.13.2 Released!
+## ADAL for Android 1.14.0 Released!
 
 ## Build status
 
@@ -19,33 +17,32 @@ Note: A corpnet account is required to view the VSTS build.
 
 ## Versions
 
-Current version - 1.13.2
+Current version - 1.14.0
+
 Minimum recommended version - 1.1.16
-You can find the changes for each version in the [change log](https://github.com/AzureAD/azure-activedirectory-library-for-android/blob/master/changelog.txt).
+
+You can find version-to-version differences in the [change log](https://github.com/AzureAD/azure-activedirectory-library-for-android/blob/master/changelog.txt).
 
 ## Features
 
 * Industry standard Oauth2 protocol support.
-* IdToken exposure for full access to the token contents.
-* Multi resource refresh token allows for apps registered together to access different APIs without prompting the user.
+* Id Token exposure for full access to the token contents.
+* Multi-resource refresh token allows for apps registered together to access different APIs without prompting the user.
 * Cache with Encryption for easily accessing existing tokens and session state with assurance it wasn't tampered with.
 * Support for the Microsoft Azure AD Authenticator plug-in for Android, which will be released soon!
 * Dialog and Fragment support
 
 ## Samples and Documentation
 
-[We provide a full suite of sample applications and documentation on GitHub](https://github.com/AzureADSamples) to help you get started with learning the Azure Identity system. This includes tutorials for native clients such as Windows, Windows Phone, iOS, OSX, Android, and Linux. We also provide full walkthroughs for authentication flows such as OAuth2, OpenID Connect, Graph API, and other awesome features.
+[We provide a full suite of sample applications and documentation on GitHub](https://github.com/azure-samples?utf8=%E2%9C%93&q=active+directory&type=&language=) to help you get started with learning the Azure Identity system. This includes tutorials for native clients such as Windows, Windows Phone, iOS, OSX, Android, and Linux. We also provide full walkthroughs for auth flows, the Microsoft Graph API, other Microsoft APIs, and other Azure AD features.
 
-Visit your Azure Identity samples for Android here: [https://github.com/AzureADSamples/NativeClient-Android](https://github.com/AzureADSamples/NativeClient-Android)
+Checkout the [ADAL for Android sample app for help getting started](https://github.com/Azure-Samples/active-directory-android).
 
-Xamarin related info is here:
-[https://github.com/AzureADSamples/NativeClient-Xamarin-Android](https://github.com/AzureADSamples/NativeClient-Xamarin-Android)
+Looking for [Xamarin])(https://github.com/AzureADSamples/NativeClient-Xamarin-Android)?
 
 ## Community Help and Support
 
-We leverage [Stack Overflow](http://stackoverflow.com/) to work with the community on supporting Azure Active Directory and its SDKs, including this one! We highly recommend you ask your questions on Stack Overflow (we're all on there!) Also browse existing issues to see if someone has had your question before.
-
-We recommend you use the "adal" tag so we can see it! Here is the latest Q&A on Stack Overflow for ADAL: [http://stackoverflow.com/questions/tagged/adal](http://stackoverflow.com/questions/tagged/adal)
+We leverage [Stack Overflow](https://stackoverflow.com/questions/tagged/adal) to work with the community on supporting Azure Active Directory and its SDKs, including this one! We highly recommend you ask your questions on Stack Overflow (we're all on there!) Also browse existing issues to see if someone has had your question before.
 
 ## SSO and Conditional Access Support
 
@@ -59,12 +56,9 @@ If you find a security issue with our libraries or services please report it to 
 
 ## Contributing
 
-All code is licensed under the MIT license and we triage actively on GitHub. We enthusiastically welcome contributions and feedback. You can clone the repo and start contributing now. if you want to setup a maven environment please [check this](https://github.com/MSOpenTech/azure-activedirectory-library-for-android/wiki/Setting-up-maven-environment-for-Android)
-More details [about contribution](https://github.com/AzureAD/azure-activedirectory-library-for-android/blob/master/contributing.md)
+All code is licensed under the MIT license and we triage actively on GitHub. We enthusiastically welcome contributions and feedback. 
 
-## Versions
-
-Please check the releases for updates.
+For more details [about contribution](https://github.com/AzureAD/azure-activedirectory-library-for-android/blob/master/contributing.md)
 
 ## Quick Start
 
@@ -119,7 +113,7 @@ repositories {
 }
 dependencies {
     // your dependencies here...
-    compile('com.microsoft.aad:adal:1.13.+') {
+    compile('com.microsoft.aad:adal:1.14.+') {
         // if your app includes android support
         // libraries or Gson in its dependencies
         // exclude that groupId from ADAL's compile
@@ -140,7 +134,7 @@ If you are using the m2e plugin in Eclipse, you can specify the dependency in yo
 <dependency>
     <groupId>com.microsoft.aad</groupId>
     <artifactId>adal</artifactId>
-    <version>1.13.2</version>
+    <version>1.14.0</version>
     <type>aar</type>
 </dependency>
 ```
@@ -212,6 +206,8 @@ You can get the jar file from maven the repo and drop into the *libs* folder in 
     ```
 
 9. To ask for a token, you define a callback
+
+    * NOTE: In releases `1.13.2`, `1.13.3`, and `1.14.0` the `onError(Exception)` and `onSuccess(AuthenticationResult)` callbacks may not be invoked on the UI thread. This issue is tracked [here](https://github.com/AzureAD/azure-activedirectory-library-for-android/issues/1076).
 
     ```Java
     private AuthenticationCallback<AuthenticationResult> callback = new AuthenticationCallback<AuthenticationResult>() {
@@ -319,6 +315,7 @@ In order to acquire token via broker, the following requirements have to be met 
   * `USE_CREDENTIALS`
   * `MANAGE_ACCOUNTS`
 * If target version is 23 or higher, `USE_CREDENTIALS` and `MANAGE_ACCOUNTS` are deprecated. But `GET_ACCOUNTS` is under protection level "dangerous", calling app is responsible for requesting the run-time permission; see [Runtime permission request for API 23](http://developer.android.com/training/permissions/requesting.html).
+* If you get an exception like "Broker related permissions are missing for GET_ACCOUNTS" with error code "DEVELOPER_BROKER_PERMISSIONS_MISSING" when acquiring token, it means you're using a very old version of ADAL(prior to V1.12.0) or broker app(Microsoft Authenticator or Intune Company Portal), please upgrade to the latest version of ADAL and broker app.
 * There must be an account existed and registered via one of the two broker apps.
 
 AuthenticationContext provides API method to get the broker user.
@@ -380,6 +377,19 @@ Future<AuthenticationResult> result = mContext.acquireTokenSilent(resource, clie
 ```
 
 You can also make sync call with this method. You can set null to callback or use acquireTokenSilentSync.
+
+### ProGuard
+
+If you are using ProGuard, we suggest disabling shrinking and obfuscation of ADAL classes so that our development team may assist you should issues arise. Additionally, portions of our unit and automation test code rely heavily on reflection and may not execute predictably across different versions of ProGuard.
+
+To disable obfuscation of ADAL classes:
+
+```
+-keep class com.microsoft.aad.adal.** {
+  *;
+}
+
+```
 
 ### Diagnostics
 
@@ -510,7 +520,7 @@ Your application should overwrite them if localized strings are desired.
 
 ### NTLM dialog
 
-Adal version 1.1.0 supports NTLM dialog that is processed through onReceivedHttpAuthRequest event from WebViewClient. Dialog layout and strings can be customized.
+ADAL version 1.1.0 supports NTLM dialog that is processed through onReceivedHttpAuthRequest event from WebViewClient. Dialog layout and strings can be customized.
 
 ## License
 

@@ -50,6 +50,7 @@ import android.util.Base64;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.GeneralSecurityException;
@@ -68,6 +69,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.List;
 
 import static com.microsoft.aad.adal.AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT;
@@ -104,11 +106,11 @@ class BrokerProxy implements IBrokerProxy {
 
     private static final String AUTHENTICATOR_CANCELS_REQUEST = "Authenticator cancels the request";
 
-    public BrokerProxy() {
+    BrokerProxy() {
         mBrokerTag = AuthenticationSettings.INSTANCE.getBrokerSignature();
     }
 
-    public BrokerProxy(final Context ctx) {
+    BrokerProxy(final Context ctx) {
         mContext = ctx;
         mAcctManager = AccountManager.get(mContext);
         mHandler = new Handler(mContext.getMainLooper());
@@ -276,7 +278,7 @@ class BrokerProxy implements IBrokerProxy {
         if (looper != null && looper == mContext.getMainLooper()) {
             final IllegalStateException exception = new IllegalStateException(
                     "calling this from your main thread can lead to deadlock");
-            Logger.e(TAG , "calling this from your main thread can lead to deadlock and/or ANRs", "",
+            Logger.e(TAG, "calling this from your main thread can lead to deadlock and/or ANRs", "",
                     ADALError.DEVELOPER_CALLING_ON_MAIN_THREAD, exception);
             if (mContext.getApplicationInfo().targetSdkVersion >= Build.VERSION_CODES.FROYO) {
                 throw exception;
@@ -481,8 +483,20 @@ class BrokerProxy implements IBrokerProxy {
 
             throw new AuthenticationException(adalErrorCode, msg);
         } else if (!StringExtensions.isNullOrBlank(oauth2ErrorCode) && request.isSilent()) {
-            throw new AuthenticationException(ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED,
+            final AuthenticationException exception = new AuthenticationException(ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED,
                     "Received error from broker, errorCode: " + oauth2ErrorCode + "; ErrorDescription: " + oauth2ErrorDescription);
+            final Serializable responseBody = bundleResult.getSerializable(AuthenticationConstants.OAuth2.HTTP_RESPONSE_BODY);
+            final Serializable responseHeaders = bundleResult.getSerializable(AuthenticationConstants.OAuth2.HTTP_RESPONSE_HEADER);
+            if (null != responseBody && responseBody instanceof HashMap) {
+                exception.setHttpResponseBody((HashMap) responseBody);
+            }
+
+            if (null != responseHeaders && responseHeaders instanceof HashMap) {
+                exception.setHttpResponseHeaders((HashMap) responseHeaders);
+            }
+            
+            exception.setServiceStatusCode(bundleResult.getInt(AuthenticationConstants.OAuth2.HTTP_STATUS_CODE));
+            throw exception;
         } else {
             boolean initialRequest = bundleResult.getBoolean(AuthenticationConstants.Broker.ACCOUNT_INITIAL_REQUEST);
             if (initialRequest) {
@@ -595,13 +609,19 @@ class BrokerProxy implements IBrokerProxy {
      * from calling app's activity to control the lifetime of the activity.
      */
     @Override
-    public Intent getIntentForBrokerActivity(final AuthenticationRequest request, final BrokerEvent brokerEvent) {
+    public Intent getIntentForBrokerActivity(final AuthenticationRequest request, final BrokerEvent brokerEvent)
+            throws AuthenticationException {
         final String methodName = ":getIntentForBrokerActivity";
         final Bundle requestBundle = getBrokerOptions(request);
         final Intent intent;
         if (isBrokerAccountServiceSupported()) {
             intent = BrokerAccountServiceHandler.getInstance().getIntentForInteractiveRequest(mContext, brokerEvent);
-            intent.putExtras(requestBundle);
+            if (intent == null) {
+                Logger.e(TAG, "Received null intent from broker interactive request.", null, ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING);
+                throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, "Received null intent from broker interactive request.");
+            } else {
+                intent.putExtras(requestBundle);
+            }
         } else {
             intent = getIntentForBrokerActivityFromAccountManager(requestBundle);
         }
@@ -860,7 +880,7 @@ class BrokerProxy implements IBrokerProxy {
         } catch (NoSuchAlgorithmException e) {
             Logger.e(TAG + methodName, "Digest SHA algorithm does not exists", "", ADALError.DEVICE_NO_SUCH_ALGORITHM);
         } catch (final AuthenticationException | IOException | GeneralSecurityException e) {
-            Logger.e(TAG + methodName, e.getMessage(), "", ADALError.BROKER_VERIFICATION_FAILED, e);
+            Logger.e(TAG + methodName, ADALError.BROKER_VERIFICATION_FAILED.getDescription(), e.getMessage(), ADALError.BROKER_VERIFICATION_FAILED, e);
         }
 
         return false;

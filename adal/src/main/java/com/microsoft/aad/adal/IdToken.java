@@ -26,11 +26,8 @@ package com.microsoft.aad.adal;
 import android.util.Base64;
 
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -61,7 +58,7 @@ class IdToken {
 
     private String mPasswordChangeUrl;
 
-    public IdToken(String idtoken) throws AuthenticationException {
+    IdToken(String idtoken) throws AuthenticationException {
         // Message segments: Header.Body.Signature
         final Map<String, String> responseItems = this.parseJWT(idtoken);
 
@@ -135,7 +132,7 @@ class IdToken {
 
         try {
             final String decodedBody = new String(data, "UTF-8");
-            return extractJsonObjects(decodedBody);
+            return HashMapExtensions.jsonStringAsMap(decodedBody);
         } catch (UnsupportedEncodingException exception) {
             Logger.e(TAG + methodName, "The encoding is not supported.", "", ADALError.ENCODING_IS_NOT_SUPPORTED, exception);
             throw new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED, exception.getMessage(), exception);
@@ -156,16 +153,5 @@ class IdToken {
         } else {
             throw new AuthenticationException(ADALError.IDTOKEN_PARSING_FAILURE, "Failed to extract the ClientID");
         }
-    }
-
-    private static Map<String, String> extractJsonObjects(final String jsonStr) throws JSONException {
-        final JSONObject jsonObject = new JSONObject(jsonStr);
-        final Map<String, String> responseItems = new HashMap<>();
-        final Iterator<?> i = jsonObject.keys();
-        while (i.hasNext()) {
-            final String key = (String) i.next();
-            responseItems.put(key, jsonObject.getString(key));
-        }
-        return responseItems;
     }
 }

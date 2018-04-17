@@ -213,7 +213,7 @@ public class JwsBuilderTests extends AndroidTestHelper {
 
             } else if (caKs.isCertificateEntry(alias)) {
                 Certificate cert = caKs.getCertificate(alias);
-                Logger.i(TAG , "Trusted Certificate Entry.", cert.toString());
+                Logger.i(TAG, "Trusted Certificate Entry.", cert.toString());
             }
         }
 

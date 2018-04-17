@@ -85,14 +85,14 @@ class Oauth2 {
         setTokenEndpoint(mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT);
     }
 
-    public Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler) {
+    Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler) {
         mRequest = request;
         mWebRequestHandler = webRequestHandler;
         mJWSBuilder = null;
         setTokenEndpoint(mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT);
     }
 
-    public Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler,
+    Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler,
             IJWSBuilder jwsMessageBuilder) {
         mRequest = request;
         mWebRequestHandler = webRequestHandler;
@@ -537,7 +537,7 @@ class Oauth2 {
                     } else {
                         throw new AuthenticationException(
                                 ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
-                                "Challenge header is empty");
+                                "Challenge header is empty", response);
                     }
                 } else {
                     // AAD server returns 401 response for wrong request
@@ -564,7 +564,7 @@ class Oauth2 {
                         throw e;
                     } else {
                         Logger.v(TAG + methodName, "WebResponse is not a success due to: " + response.getStatusCode());
-                        throw new AuthenticationException(ADALError.SERVER_ERROR, "WebResponse is not a success due to: " + response.getStatusCode());
+                        throw new AuthenticationException(ADALError.SERVER_ERROR, "WebResponse is not a success due to: " + response.getStatusCode(), response);
                     }
                 }
                 ClientMetrics.INSTANCE.setLastError(null);
@@ -573,7 +573,7 @@ class Oauth2 {
                 // non-protocol related error
                 String errMessage = isBodyEmpty ? "Status code:" + response.getStatusCode() : response.getBody();
                 Logger.e(TAG + methodName, ADALError.SERVER_ERROR.getDescription(), errMessage, ADALError.SERVER_ERROR);
-                throw new AuthenticationException(ADALError.SERVER_ERROR, errMessage);
+                throw new AuthenticationException(ADALError.SERVER_ERROR, errMessage, response);
             } else {
                 ClientMetrics.INSTANCE.setLastErrorCodes(result.getErrorCodes());
             }
@@ -704,18 +704,27 @@ class Oauth2 {
             try {
                 result = parseJsonResponse(webResponse.getBody());
                 if (result != null) {
+                    if (null != result.getErrorCode()) {
+                        result.setHttpResponse(webResponse);
+                    }
+
                     final CliTelemInfo cliTelemInfo = new CliTelemInfo();
                     cliTelemInfo.setSpeRing(speRing);
                     result.setCliTelemInfo(cliTelemInfo);
                     httpEvent.setOauthErrorCode(result.getErrorCode());
                 }
             } catch (final JSONException jsonException) {
-                throw new AuthenticationException(ADALError.SERVER_INVALID_JSON_RESPONSE, "Can't parse server response " + webResponse.getBody(), jsonException);
+                throw new AuthenticationException(ADALError.SERVER_INVALID_JSON_RESPONSE,
+                        "Can't parse server response. " + webResponse.getBody(),
+                        webResponse, jsonException);
             }
         } else if (statusCode >= HttpURLConnection.HTTP_INTERNAL_ERROR && statusCode <= MAX_RESILIENCY_ERROR_CODE) {
-            throw new ServerRespondingWithRetryableException("Server Error " + statusCode + " " + webResponse.getBody());
+            throw new ServerRespondingWithRetryableException("Server Error " + statusCode + " "
+                    + webResponse.getBody(), webResponse);
         } else {
-            throw new AuthenticationException(ADALError.SERVER_ERROR, "Unexpected server response " + statusCode + " " + webResponse.getBody());
+            throw new AuthenticationException(ADALError.SERVER_ERROR,
+                    "Unexpected server response " + statusCode + " " + webResponse.getBody(),
+                    webResponse);
         }
 
         // Set correlationId in the result

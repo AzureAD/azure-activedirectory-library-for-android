@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -178,7 +179,9 @@ public final class AcquireTokenSilentHandlerTest {
         final IWebRequestHandler mockedWebRequestHandler = Mockito.mock(WebRequestHandler.class);
         Mockito.when(mockedWebRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(),
                 Mockito.anyString().getBytes(), Mockito.anyString())).thenReturn(
-                new HttpWebResponse(HttpURLConnection.HTTP_INTERNAL_ERROR, null, null));
+                new HttpWebResponse(HttpURLConnection.HTTP_INTERNAL_ERROR,
+                        "{\"error\":\"interaction_required\" ,\"error_description\":\"Windows device is not in required device state\"}",
+                        new HashMap<String, List<String>>()));
         acquireTokenSilentHandler.setWebRequestHandler(mockedWebRequestHandler);
 
         try {
@@ -189,6 +192,8 @@ public final class AcquireTokenSilentHandlerTest {
             assertTrue(authenticationException.getCause() instanceof AuthenticationException);
             final AuthenticationException throwable = (AuthenticationException) authenticationException.getCause();
             assertTrue(throwable.getCode() == ADALError.SERVER_ERROR);
+            assertNotNull(authenticationException.getHttpResponseBody());
+            assertEquals(authenticationException.getServiceStatusCode(), HttpURLConnection.HTTP_INTERNAL_ERROR);
         }
 
         clearCache(mockCache);
