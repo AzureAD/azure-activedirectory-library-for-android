@@ -310,7 +310,7 @@ public class OauthTests {
         final Oauth2 oauth2 = createOAuthInstance(request);
 
         final String actualCodeRequestUrl = oauth2.getCodeRequestUrl();
-        assertTrue("Matching message", actualCodeRequestUrl.contains(AAD.ADAL_ID_PLATFORM + "=Android"));
+        assertTrue("Matching message", actualCodeRequestUrl.contains(AAD.ADAL_ID_PLATFORM + "=ADAL.Android"));
         assertTrue("Matching message",
                 actualCodeRequestUrl.contains(AAD.ADAL_ID_VERSION + "=" + AuthenticationContext.getVersionName()));
     }
