@@ -131,6 +131,14 @@ class BrokerProxy implements IBrokerProxy {
     @Override
     public SwitchToBroker canSwitchToBroker(final String authorityUrlStr) {
         final String methodName = ":canSwitchToBroker";
+
+        // Log broker installation statuses
+        final boolean isCompanyPortalInstalled = PackageHelper.isCompanyPortalInstalled(mContext.getPackageManager());
+        Logger.i(TAG, "Is Company Portal installed? [" + isCompanyPortalInstalled + "]", null);
+
+        final boolean isMicrosoftAuthenticatorInstalled = PackageHelper.isMicrosoftAuthenticatorInstalled(mContext.getPackageManager());
+        Logger.i(TAG, "Is Microsoft Authenticator installed? [" +isMicrosoftAuthenticatorInstalled + "]", null);
+
         final URL authorityUrl;
         try {
             authorityUrl = new URL(authorityUrlStr);
@@ -319,6 +327,9 @@ class BrokerProxy implements IBrokerProxy {
 
         verifyNotOnMainThread();
 
+        // populate BrokerEvent info re installed Brokers
+        setBrokerInstallationStatuses(brokerEvent);
+
         final Bundle requestBundle = getBrokerOptions(request);
 
         // check if broker supports the new service, if it does not we need to switch back to the old way
@@ -335,6 +346,17 @@ class BrokerProxy implements IBrokerProxy {
         }
 
         return getResultFromBrokerResponse(bundleResult, request);
+    }
+
+    private void setBrokerInstallationStatuses(final BrokerEvent brokerEvent) {
+        if (null == brokerEvent) {
+            return;
+        }
+
+        final boolean isCompanyPortalInstalled = PackageHelper.isCompanyPortalInstalled(mContext.getPackageManager());
+        final boolean isMicrosoftAuthenticatorInstalled = PackageHelper.isMicrosoftAuthenticatorInstalled(mContext.getPackageManager());
+        brokerEvent.setCompanyPortalInstalled(isCompanyPortalInstalled);
+        brokerEvent.setMicrosoftAuthenticatorInstalled(isMicrosoftAuthenticatorInstalled);
     }
 
     private Bundle getAuthTokenFromAccountManager(final AuthenticationRequest request, final Bundle requestBundle) throws AuthenticationException {
@@ -611,6 +633,9 @@ class BrokerProxy implements IBrokerProxy {
     @Override
     public Intent getIntentForBrokerActivity(final AuthenticationRequest request, final BrokerEvent brokerEvent)
             throws AuthenticationException {
+        // populate BrokerEvent info re installed Brokers
+        setBrokerInstallationStatuses(brokerEvent);
+
         final String methodName = ":getIntentForBrokerActivity";
         final Bundle requestBundle = getBrokerOptions(request);
         final Intent intent;
@@ -618,7 +643,10 @@ class BrokerProxy implements IBrokerProxy {
             intent = BrokerAccountServiceHandler.getInstance().getIntentForInteractiveRequest(mContext, brokerEvent);
             if (intent == null) {
                 Logger.e(TAG, "Received null intent from broker interactive request.", null, ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING);
-                throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, "Received null intent from broker interactive request.");
+                final AuthenticationException authenticationException = new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, "Received null intent from broker interactive request.");
+                brokerEvent.setBrokerAccountServiceConnectionErrorInfo(authenticationException);
+                brokerEvent.setBrokerError(BrokerEvent.BrokerError.BROKER_INTENT_MALFORMED_OR_NULL);
+                throw authenticationException;
             } else {
                 intent.putExtras(requestBundle);
             }
@@ -666,6 +694,9 @@ class BrokerProxy implements IBrokerProxy {
             //
             // TODO add retry logic since authenticator is not responding to
             // the request
+            // TODO (2/13/2018) -- This is kind of strange. Rather than throw an AuthenticationException here this code just returns null and lets
+            // the result-check inside of AcquireTokenWithBrokerRequest#acquireTokenWithBrokerInteractively(IWindowComponent) throw it with a
+            // different error: ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED --  is this preferable? Why not just throw this Exception here?
             Logger.e(TAG + methodName, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, e);
         } catch (IOException e) {
             // Authenticator gets problem from webrequest or file read/write
