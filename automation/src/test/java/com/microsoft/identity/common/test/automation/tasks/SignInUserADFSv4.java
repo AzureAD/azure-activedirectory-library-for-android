@@ -2,14 +2,14 @@ package com.microsoft.identity.common.test.automation.tasks;
 
 import com.microsoft.identity.common.test.automation.actors.User;
 import com.microsoft.identity.common.test.automation.ui.identityproviders.AADV1.SignInPageUserName;
-import com.microsoft.identity.common.test.automation.ui.identityproviders.ADFSv3.SignInPage;
+import com.microsoft.identity.common.test.automation.ui.identityproviders.ADFSv4.SignInPage;
 
 import net.serenitybdd.screenplay.Actor;
 import net.serenitybdd.screenplay.actions.Click;
 import net.serenitybdd.screenplay.actions.Enter;
 import net.serenitybdd.screenplay.actions.EnterValueIntoTarget;
 
-public class SignInUserADFSv3 extends SignInUser {
+public class SignInUserADFSv4 extends SignInUser {
 
     @Override
     public <T extends Actor> void performAs(T actor) {

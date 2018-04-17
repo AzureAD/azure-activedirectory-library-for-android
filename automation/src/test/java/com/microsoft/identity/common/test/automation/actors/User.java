@@ -11,6 +11,7 @@ import jdk.nashorn.internal.parser.Token;
 public class User extends Actor {
 
     private TokenRequest tokenRequest;
+    private TokenRequest silentTokenRequest;
     private String federationProvider;
     private Credential credential;
 
@@ -22,9 +23,24 @@ public class User extends Actor {
         return this.tokenRequest;
     }
 
+    public void setSilentTokenRequest(TokenRequest silentTokenRequest){
+        this.silentTokenRequest = silentTokenRequest;
+    }
+
+    public TokenRequest getSilentTokenRequest(){
+        return this.silentTokenRequest;
+    }
+
+
     public String getTokenRequestAsJson() {
         Gson gson = new Gson();
         String requestJson = gson.toJson(this.tokenRequest);
+        return requestJson;
+    }
+
+    public String getSilentTokenRequestAsJson() {
+        Gson gson = new Gson();
+        String requestJson = gson.toJson(this.silentTokenRequest);
         return requestJson;
     }
 

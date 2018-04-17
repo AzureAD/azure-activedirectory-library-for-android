@@ -2,12 +2,14 @@ package com.microsoft.identity.common.test.automation;
 
 import com.microsoft.identity.common.test.automation.actors.User;
 import com.microsoft.identity.common.test.automation.tasks.AcquireToken;
+import com.microsoft.identity.common.test.automation.tasks.AcquireTokenSilent;
 import com.microsoft.identity.common.test.automation.utility.Scenario;
 import com.microsoft.identity.common.test.automation.utility.TestConfigurationQuery;
 
 import net.serenitybdd.junit.runners.SerenityParameterizedRunner;
 import net.serenitybdd.screenplay.abilities.BrowseTheWeb;
 import net.thucydides.core.annotations.Managed;
+import net.thucydides.core.annotations.Steps;
 import net.thucydides.junit.annotations.TestData;
 
 import org.junit.AfterClass;
@@ -24,22 +26,25 @@ import java.util.Collection;
 import io.appium.java_client.service.local.AppiumDriverLocalService;
 
 @RunWith(SerenityParameterizedRunner.class)
-public class SerenityTest {
+public class AcquireTokenSilentBasicTest {
 
     @TestData
-    public static Collection<Object[]> users(){
-        TestConfigurationQuery query = new TestConfigurationQuery();
-        query.federationProvider = "ADFSv3";
-        User user1 = getUser(query);
-        query.federationProvider = "ADFSv2";
-        User user2 = getUser(query);
+    public static Collection<Object[]> FederationProviders(){
+
 
         return Arrays.asList(new Object[][]{
-                {user1},
-                {user2}
+                {"ADFSv2"},
+                {"ADFSv3"},
+                {"ADFSv4"}//,
+                //{"PingFederate"},
+                //{"Shibboleth"}
+
         });
 
     }
+
+    @Steps
+    AcquireTokenSilent acquireTokenSilent;
 
     static AppiumDriverLocalService appiumService = null;
 
@@ -57,15 +62,20 @@ public class SerenityTest {
         appiumService.stop();
     }
 
-    private final User james;
+    private User james;
+    private String federationProvider;
 
-    public SerenityTest(User user){
-        this.james = user;
+    public AcquireTokenSilentBasicTest(String federationProvider){
+        this.federationProvider = federationProvider;
     }
 
     @Before
     public void jamesCanUseAMobileDevice(){
-
+        TestConfigurationQuery query = new TestConfigurationQuery();
+        query.federationProvider = this.federationProvider;
+        query.isFederated = true;
+        query.userType = "Member";
+        james = getUser(query);
         james.can(BrowseTheWeb.with(hisMobileDevice));
     }
 
@@ -83,10 +93,9 @@ public class SerenityTest {
 
 
     @Test
-    public void should_be_able_to_acquire_token() {
+    public void should_be_able_to_acquire_token_silent() {
 
-        james.attemptsTo(AcquireToken.with(james.getTokenRequestAsJson()));
-        //Thread.sleep(10000);
+        james.attemptsTo(acquireTokenSilent);
 
     }
 
