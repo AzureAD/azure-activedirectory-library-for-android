@@ -24,9 +24,7 @@ public class AcquireTokenSilent implements Task{
                 Click.on(Main.ACQUIRE_TOKEN_SILENT),
                 Enter.theValue(user.getSilentTokenRequestAsJson()).into(Request.REQUEST_INFO_FIELD),
                 closeKeyboard,
-                Click.on(Request.SUBMIT_REQUEST_BUTTON),
-                Click.on(Results.DONE_BUTTON)
-
+                Click.on(Request.SUBMIT_REQUEST_BUTTON)
         );
     }
 

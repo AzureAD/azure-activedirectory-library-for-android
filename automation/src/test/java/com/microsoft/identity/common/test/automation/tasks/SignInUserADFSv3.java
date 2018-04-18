@@ -15,8 +15,6 @@ public class SignInUserADFSv3 extends SignInUser {
     public <T extends Actor> void performAs(T actor) {
         User user = (User)actor;
         user.attemptsTo(
-            Enter.theValue(user.getCredential().userName).into(SignInPageUserName.USERNAME),
-            Click.on(SignInPageUserName.NEXT_BUTTON),
             //Not using static method here to avoid logging the password via instrumentation... this won't show up as a step
             new EnterValueIntoTarget(user.getCredential().password, SignInPage.PASSWORD_FIELD),
             Click.on(SignInPage.SIGN_IN_BUTTON)

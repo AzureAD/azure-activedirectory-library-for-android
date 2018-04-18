@@ -4,7 +4,7 @@ import com.microsoft.identity.common.test.automation.actors.User;
 import com.microsoft.identity.common.test.automation.interactions.ClickDone;
 import com.microsoft.identity.common.test.automation.questions.TokenCacheItemCount;
 import com.microsoft.identity.common.test.automation.tasks.AcquireToken;
-import com.microsoft.identity.common.test.automation.tasks.AcquireTokenSilent;
+import com.microsoft.identity.common.test.automation.tasks.MDMEnroll;
 import com.microsoft.identity.common.test.automation.tasks.ReadCache;
 import com.microsoft.identity.common.test.automation.utility.Scenario;
 import com.microsoft.identity.common.test.automation.utility.TestConfigurationQuery;
@@ -33,34 +33,22 @@ import static net.serenitybdd.screenplay.GivenWhenThen.then;
 import static org.hamcrest.Matchers.is;
 
 @RunWith(SerenityParameterizedRunner.class)
-public class AcquireTokenInteractiveThenSilentBasicTest {
+public class AcquireTokenRequiresCompanyPortal {
 
     @TestData
     public static Collection<Object[]> FederationProviders(){
 
 
         return Arrays.asList(new Object[][]{
-                {"ADFSv2"},
-                {"ADFSv3"},
-                {"ADFSv4"}//,
-                //{"PingFederate"},
+                {"ADFSv2"}//,
+                //{"ADFSv3"},
+                //{"ADFSv4"}//,
+                //{"PingFederate"}//,
                 //{"Shibboleth"}
 
         });
 
     }
-
-    @Steps
-    AcquireTokenSilent acquireTokenSilent;
-
-    @Steps
-    AcquireToken acquireToken;
-
-    @Steps
-    ReadCache readCache;
-
-    @Steps
-    ClickDone clickDone;
 
     static AppiumDriverLocalService appiumService = null;
 
@@ -81,7 +69,19 @@ public class AcquireTokenInteractiveThenSilentBasicTest {
     private User james;
     private String federationProvider;
 
-    public AcquireTokenInteractiveThenSilentBasicTest(String federationProvider){
+    @Steps
+    AcquireToken acquireToken;
+
+    @Steps
+    ReadCache readCache;
+
+    @Steps
+    ClickDone clickDone;
+
+    @Steps
+    MDMEnroll mdmEnroll;
+
+    public AcquireTokenRequiresCompanyPortal(String federationProvider){
         this.federationProvider = federationProvider;
     }
 
@@ -91,6 +91,8 @@ public class AcquireTokenInteractiveThenSilentBasicTest {
         query.federationProvider = this.federationProvider;
         query.isFederated = true;
         query.userType = "Member";
+        query.mdm = true;
+        query.mdmca = true;
         james = getUser(query);
         james.can(BrowseTheWeb.with(hisMobileDevice));
     }
@@ -102,7 +104,7 @@ public class AcquireTokenInteractiveThenSilentBasicTest {
         User newUser = User.named("james");
         newUser.setFederationProvider(scenario.getTestConfiguration().getUsers().getFederationProvider());
         newUser.setTokenRequest(scenario.getTokenRequest());
-        newUser.setSilentTokenRequest(scenario.getSilentTokenRequest());
+        newUser.getTokenRequest().setResourceId("00000003-0000-0ff1-ce00-000000000000"); //SharePoint App Id - Protected with CA
         newUser.setCredential(scenario.getCredential());
 
         return newUser;
@@ -110,16 +112,16 @@ public class AcquireTokenInteractiveThenSilentBasicTest {
 
 
     @Test
-    public void should_be_able_to_acquire_token_and_then_acquire_silent() {
+    public void should_be_able_to_acquire_token() {
 
         james.attemptsTo(
                 acquireToken,
+                mdmEnroll,
                 clickDone,
-                acquireTokenSilent,
-                clickDone,
-                readCache
-        );
+                readCache);
+
         then(james).should(seeThat(TokenCacheItemCount.displayed(), is(6) ));
+
 
 
     }

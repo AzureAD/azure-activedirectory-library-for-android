@@ -1,6 +1,7 @@
 package com.microsoft.identity.common.test.automation;
 
         import com.microsoft.identity.common.test.automation.actors.User;
+        import com.microsoft.identity.common.test.automation.interactions.ClickDone;
         import com.microsoft.identity.common.test.automation.questions.TokenCacheItemCount;
         import com.microsoft.identity.common.test.automation.tasks.AcquireToken;
         import com.microsoft.identity.common.test.automation.tasks.ReadCache;
@@ -38,10 +39,10 @@ public class AcquireTokenBasicTest {
 
 
         return Arrays.asList(new Object[][]{
-                //{"ADFSv2"}//,
-                //{"ADFSv3"},
-                //{"ADFSv4"}//,
-                {"PingFederate"}//,
+                {"ADFSv2"},
+                {"ADFSv3"},
+                {"ADFSv4"}//,
+                //{"PingFederate"}//,
                 //{"Shibboleth"}
 
         });
@@ -73,6 +74,9 @@ public class AcquireTokenBasicTest {
     @Steps
     ReadCache readCache;
 
+    @Steps
+    ClickDone clickDone;
+
     public AcquireTokenBasicTest(String federationProvider){
         this.federationProvider = federationProvider;
     }
@@ -103,8 +107,11 @@ public class AcquireTokenBasicTest {
     @Test
     public void should_be_able_to_acquire_token() {
 
-        james.attemptsTo(acquireToken);
-        james.attemptsTo(readCache);
+        james.attemptsTo(
+                acquireToken,
+                clickDone,
+                readCache);
+
         then(james).should(seeThat(TokenCacheItemCount.displayed(), is(6) ));
 
     }

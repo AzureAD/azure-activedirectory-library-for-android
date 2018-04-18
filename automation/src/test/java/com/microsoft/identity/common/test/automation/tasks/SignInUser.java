@@ -20,6 +20,9 @@ public abstract class SignInUser implements Task {
             case "PingFederate V8.3":
                 signInUserTask = new SignInUserPing();
                 break;
+            case "Shibboleth":
+                signInUserTask = new SignInUserShibboleth();
+                break;
             default:
                 signInUserTask = new SignInUserADFSv2();
         }

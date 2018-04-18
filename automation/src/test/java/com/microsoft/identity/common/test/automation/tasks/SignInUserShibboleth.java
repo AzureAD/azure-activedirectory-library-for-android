@@ -3,7 +3,7 @@ package com.microsoft.identity.common.test.automation.tasks;
 import com.microsoft.identity.common.test.automation.actors.User;
 import com.microsoft.identity.common.test.automation.interactions.CloseKeyboard;
 import com.microsoft.identity.common.test.automation.ui.identityproviders.AADV1.SignInPageUserName;
-import com.microsoft.identity.common.test.automation.ui.identityproviders.PingFederate.SignInPage;
+import com.microsoft.identity.common.test.automation.ui.identityproviders.Shibboleth.SignInPage;
 
 import net.serenitybdd.screenplay.Actor;
 import net.serenitybdd.screenplay.actions.Click;
@@ -12,7 +12,7 @@ import net.serenitybdd.screenplay.actions.EnterValueIntoTarget;
 
 
 
-public class SignInUserPing extends SignInUser {
+public class SignInUserShibboleth extends SignInUser {
 
 
     @Override

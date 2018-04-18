@@ -4,7 +4,6 @@ import com.microsoft.identity.common.test.automation.actors.User;
 import com.microsoft.identity.common.test.automation.interactions.CloseKeyboard;
 import com.microsoft.identity.common.test.automation.ui.Main;
 import com.microsoft.identity.common.test.automation.ui.Request;
-import com.microsoft.identity.common.test.automation.ui.Results;
 
 import net.serenitybdd.screenplay.Actor;
 import net.serenitybdd.screenplay.Task;
@@ -27,8 +26,8 @@ public class AcquireToken implements Task{
                 Enter.theValue(user.getTokenRequestAsJson()).into(Request.REQUEST_INFO_FIELD),
                 closeKeyboard,
                 Click.on(Request.SUBMIT_REQUEST_BUTTON),
-                signInUser,
-                Click.on(Results.DONE_BUTTON)
+                new EnterUserNameForSignInDisambiguation(),
+                signInUser
         );
     }
 

@@ -42,7 +42,7 @@ public class TokenCacheItemReadResult {
  public String idToken;
 
  @SerializedName(Constants.CACHE_DATA.IS_MRRT)
- public Boolean isMRRT;
+ public String isMRRT;
 
  @SerializedName(Constants.CACHE_DATA.TENANT_ID)
  public String tenantId;
