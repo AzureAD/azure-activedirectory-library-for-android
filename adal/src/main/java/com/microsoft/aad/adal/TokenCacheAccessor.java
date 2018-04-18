@@ -28,8 +28,8 @@ import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.cache.ADALOAuth2TokenCache;
+import com.microsoft.identity.common.internal.cache.DeleteMeOldClass;
 import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
-import com.microsoft.identity.common.internal.cache.MSALOAuth2TokenCache;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryOAuth2Configuration;
@@ -81,7 +81,7 @@ class TokenCacheAccessor {
 
         //Setup common cache implementation
         List<IShareSingleSignOnState> sharedSSOCaches = new ArrayList<IShareSingleSignOnState>();
-        sharedSSOCaches.add(new MSALOAuth2TokenCache(appContext));
+        sharedSSOCaches.add(new DeleteMeOldClass(appContext));
         mCommonCache = new ADALOAuth2TokenCache(appContext, sharedSSOCaches);
 
         if (mTokenCacheStore instanceof DefaultTokenCacheStore) {
@@ -320,7 +320,7 @@ class TokenCacheAccessor {
         request.setScope(resource);
         request.setAuthority(new URL(mAuthority));
 
-        mCommonCache.saveTokenResponse(strategy, request, tokenResponse);
+        mCommonCache.saveTokens(strategy, request, tokenResponse);
 
     }
 
