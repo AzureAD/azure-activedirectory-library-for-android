@@ -40,7 +40,7 @@ import java.util.concurrent.ConcurrentMap;
  * Hold the authority validation metadata.
  */
 
-public final class AuthorityValidationMetadataCache {
+class AuthorityValidationMetadataCache {
     private static final String TAG = AuthorityValidationMetadataCache.class.getSimpleName();
 
     static final String TENANT_DISCOVERY_ENDPOINT = "tenant_discovery_endpoint";
@@ -55,7 +55,7 @@ public final class AuthorityValidationMetadataCache {
 
     private static ConcurrentMap<String, InstanceDiscoveryMetadata> sAadAuthorityHostMetadata = new ConcurrentHashMap<>();
 
-    private AuthorityValidationMetadataCache() {
+    protected AuthorityValidationMetadataCache() {
         // Utility class, no public constructor
     }
 

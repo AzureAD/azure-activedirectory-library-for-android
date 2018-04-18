@@ -51,7 +51,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * sends common as a tenant name. Discovery checks only authorization endpoint.
  * It does not do tenant verification. Initialize and call from UI thread.
  */
-public final class Discovery {
+class Discovery {
 
     private static final String TAG = "Discovery";
 
@@ -68,7 +68,7 @@ public final class Discovery {
     /**
      * {@link ReentrantLock} for making sure there is only one instance discovery request sent out at a time.
      */
-    private static volatile ReentrantLock sInstanceDiscoveryNetworkRequestLock = getLock();
+    private static volatile ReentrantLock sInstanceDiscoveryNetworkRequestLock;
 
     /**
      * Sync set of valid hosts to skip query to server if host was verified
@@ -128,6 +128,7 @@ public final class Discovery {
         }
 
         try {
+            sInstanceDiscoveryNetworkRequestLock = getLock();
             sInstanceDiscoveryNetworkRequestLock.lock();
             performInstanceDiscovery(authorizationEndpoint, trustedHost);
         } finally {

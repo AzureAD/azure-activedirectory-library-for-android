@@ -26,48 +26,27 @@ package com.microsoft.aad.adal;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Hold the instance discovery metadata returned from discovery endpoint, which includes the preferred network location,
- * preferred cache location and all the associated aliased host related to the passed in authority.
- */
-public final class InstanceDiscoveryMetadata {
+class InstanceDiscoveryMetadata {
     private final String mPreferredNetwork;
     private final String mPreferredCache;
     private final List<String> mAliases = new ArrayList();
     private final boolean mIsValidated;
 
-    /**
-     * Constructor for {@link InstanceDiscoveryMetadata}, indicates that metadata not returned back from server or instance
-     * discovery fails.
-     * @param isValidated
-     */
-    public InstanceDiscoveryMetadata(boolean isValidated) {
+    InstanceDiscoveryMetadata(boolean isValidated) {
         mIsValidated = isValidated;
 
         mPreferredNetwork = null;
         mPreferredCache = null;
     }
 
-    /**
-     * Constructor for {@link InstanceDiscoveryMetadata}, indicates that instance discovery succeeds and metadata is returned back.
-     * @param preferredNetwork
-     * @param preferredCache
-     * @param aliases
-     */
-    public InstanceDiscoveryMetadata(final String preferredNetwork, final String preferredCache, final List<String> aliases) {
+    InstanceDiscoveryMetadata(final String preferredNetwork, final String preferredCache, final List<String> aliases) {
         mPreferredNetwork = preferredNetwork;
         mPreferredCache = preferredCache;
         mAliases.addAll(aliases);
         mIsValidated = true;
     }
 
-    /**
-     * Constructor for {@link InstanceDiscoveryMetadata}, indicates instance discovery succeeds. Preferred network and preferred cache
-     * are returned back but aliased location is not.
-     * @param preferredNetwork
-     * @param preferredCache
-     */
-    public InstanceDiscoveryMetadata(final String preferredNetwork, final String preferredCache) {
+    InstanceDiscoveryMetadata(final String preferredNetwork, final String preferredCache) {
         mPreferredNetwork = preferredNetwork;
         mPreferredCache = preferredCache;
         mIsValidated = true;
