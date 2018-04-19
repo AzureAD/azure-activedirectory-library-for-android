@@ -303,8 +303,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 //Save the preferred authority into the shared preference
                 prefEditor.putString((authResult.getUserInfo().getDisplayableId().trim() + ":" + authority.trim() +  ":authority").toLowerCase(), authResult.getAuthority().trim().toLowerCase());
             } else {
-                Logger.w(TAG, "The authority of " +
-                        "authentication result should not be null.");
                 final Toast toast = Toast.makeText(mApplicationContext,
                         "Warning: the result authority is null," +
                                 "Silent auth for Sovereign account will fail. ", Toast.LENGTH_SHORT);
@@ -314,8 +312,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if (null != authResult.getUserInfo() && null != authResult.getUserInfo().getUserId()) {
                 prefEditor.putString((authResult.getUserInfo().getDisplayableId().trim() + ":" + authority.trim() + ":userId").toLowerCase(), authResult.getUserInfo().getUserId().trim().toLowerCase());
             } else {
-                Logger.w(TAG, "The userInfo of " +
-                        "authentication result should not be null.");
                 final Toast toast = Toast.makeText(mApplicationContext,
                         "Warning: the result userInfo is null. " +
                                 "Silent auth without userID will fail. ", Toast.LENGTH_SHORT);
