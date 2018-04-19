@@ -6,21 +6,21 @@ import net.serenitybdd.screenplay.Interaction;
 import net.serenitybdd.screenplay.abilities.BrowseTheWeb;
 import net.thucydides.core.webdriver.WebDriverFacade;
 
-import java.lang.instrument.Instrumentation;
+import java.time.Duration;
 
-import io.appium.java_client.MobileBy;
 import io.appium.java_client.TouchAction;
 import io.appium.java_client.android.AndroidDriver;
-import io.appium.java_client.android.AndroidKeyCode;
 import io.appium.java_client.touch.WaitOptions;
 import io.appium.java_client.touch.offset.PointOption;
 
-public class ScrollTo implements Interaction {
+public class Swipe implements Interaction {
 
-    private String targetText;
+    private PointOption start;
+    private PointOption end;
 
-    public ScrollTo(String targetText){
-        this.targetText = targetText;
+    public Swipe(PointOption start, PointOption end){
+        this.start = start;
+        this.end = end;
     }
 
     @Override
@@ -30,15 +30,16 @@ public class ScrollTo implements Interaction {
 
         TouchAction actions = new TouchAction(androidDriver);
 
-        actions.press(PointOption.point(100, 200))
-                .moveTo(PointOption.point(100, 400))
+        actions.press(start)
+                .waitAction(WaitOptions.waitOptions(Duration.ofMillis(1000)))
+                .moveTo(end)
                 .release()
                 .perform();
 
     }
 
-    public static ScrollTo text(String targetText){
-        return Instrumented.instanceOf(ScrollTo.class).withProperties(targetText);
+    public static Swipe points(PointOption start, PointOption end){
+        return Instrumented.instanceOf(Swipe.class).withProperties(start, end);
     }
 
 }
