@@ -598,7 +598,12 @@ public enum ADALError {
     /**
      * Failed to bind the service in broker app.
      */
-    BROKER_BIND_SERVICE_FAILED("Failed to bind the service in broker app");
+    BROKER_BIND_SERVICE_FAILED("Failed to bind the service in broker app"),
+
+    /**
+     * Common core to ADAL mapping failed
+     */
+    MAPPING_FAILURE("Common core returned an exception code that ADAL cannot parse");
 
     private String mDescription;
 
@@ -646,6 +651,7 @@ public enum ADALError {
         exceptionMap.put(ErrorStrings.AUTHORITY_VALIDATION_NOT_SUPPORTED, ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED);
         exceptionMap.put(ErrorStrings.DECRYPTION_ERROR, ADALError.DECRYPTION_FAILED);
         exceptionMap.put(ErrorStrings.DEVICE_NETWORK_NOT_AVAILABLE, ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
+        exceptionMap.put(ErrorStrings.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION, ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION);
         exceptionMap.put(ErrorStrings.ENCRYPTION_ERROR, ADALError.ENCRYPTION_ERROR);
         exceptionMap.put(ErrorStrings.INVALID_JWT, ADALError.JSON_PARSE_ERROR);
         exceptionMap.put(ErrorStrings.IO_ERROR, ADALError.IO_EXCEPTION);
@@ -666,8 +672,12 @@ public enum ADALError {
         exceptionMap.put(ErrorStrings.UNKNOWN_ERROR, ADALError.SERVER_ERROR);
     }
 
-    public static ADALError fromCommon(final BaseException exception) {
+    public static AuthenticationException fromCommon(final BaseException exception) {
         // What do we do if errorCode is null?
-        return exceptionMap.get(exception.getErrorCode());
+        final ADALError adalError =  exceptionMap.get(exception.getErrorCode());
+        if (adalError == null) {
+            return new AuthenticationException(ADALError.MAPPING_FAILURE, exception.getMessage(), exception);
+        }
+        return new AuthenticationException(adalError, exception.getMessage(), exception);
     }
 }

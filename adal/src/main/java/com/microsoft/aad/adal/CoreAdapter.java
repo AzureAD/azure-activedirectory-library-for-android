@@ -72,7 +72,7 @@ final class CoreAdapter {
 
 
     public static AuthenticationException asAuthenticationException(BaseException ex) {
-        AuthenticationException newException = new AuthenticationException(ADALError.fromCommon(ex));
+        AuthenticationException newException = ADALError.fromCommon(ex);
         if (ex instanceof ServiceException) {
             ServiceException serviceException = (ServiceException) ex;
             newException.setHttpResponseBody(serviceException.getHttpResponseBody());
