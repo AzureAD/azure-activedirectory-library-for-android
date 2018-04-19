@@ -40,7 +40,7 @@ final class CoreAdapter {
         return new UserInfo(
                 account.getUserId(),
                 account.getName(),
-                account.getFamilyName(),
+                account.getLastName(),
                 account.getIdentityProvider(),
                 account.getDisplayableId()
         );
