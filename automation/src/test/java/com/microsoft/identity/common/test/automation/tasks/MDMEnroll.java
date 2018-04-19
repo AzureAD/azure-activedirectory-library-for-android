@@ -3,6 +3,7 @@ package com.microsoft.identity.common.test.automation.tasks;
 import com.microsoft.identity.common.test.automation.actors.User;
 import com.microsoft.identity.common.test.automation.ui.googleplaystore.AppDetailView;
 import com.microsoft.identity.common.test.automation.ui.identityproviders.AADV1.MDMEnrollChallenge;
+import com.microsoft.identity.common.test.automation.ui.microsoftapps.companyportal.AccessSetupView;
 import com.microsoft.identity.common.test.automation.ui.microsoftapps.companyportal.ActivateDeviceAdministratorView;
 import com.microsoft.identity.common.test.automation.ui.microsoftapps.companyportal.ConsentDialog;
 import com.microsoft.identity.common.test.automation.ui.microsoftapps.companyportal.ExplainView;
@@ -16,6 +17,7 @@ import net.serenitybdd.screenplay.Task;
 import net.serenitybdd.screenplay.actions.Click;
 import net.serenitybdd.screenplay.actions.Enter;
 import net.serenitybdd.screenplay.actions.Scroll;
+import net.serenitybdd.screenplay.actions.ScrollTo;
 import net.serenitybdd.screenplay.waits.WaitUntil;
 
 import static net.serenitybdd.screenplay.matchers.WebElementStateMatchers.isVisible;
@@ -31,6 +33,7 @@ public class MDMEnroll implements Task{
         actor.attemptsTo(
                 Click.on(MDMEnrollChallenge.ENROLL_BUTTON),
                 Click.on(EnrollmentAppLinkPage.ENROLL_BUTTON),
+                WaitUntil.the(AppDetailView.INSTALL_BUTTON, isVisible()).forNoMoreThan(10).seconds(),
                 Click.on(AppDetailView.INSTALL_BUTTON),
                 WaitUntil.the(AppDetailView.OPEN_BUTTON, isVisible()).forNoMoreThan(15).seconds(),
                 Click.on(AppDetailView.OPEN_BUTTON),
@@ -38,14 +41,14 @@ public class MDMEnroll implements Task{
                 Enter.theValue(user.getCredential().userName).into(SignInPageUsername.USERNAME),
                 Click.on(SignInPageUsername.NEXT_BUTTON),
                 signInUser,
+                Click.on(AccessSetupView.CONTINUE_BUTTON),
                 Click.on(ExplainView.CONTINUE_BUTTON),
                 Click.on(WhatsNextView.CONTINUE_BUTTON),
                 Click.on(ConsentDialog.ALLOW_BUTTON),
-                Scroll.to(ActivateDeviceAdministratorView.ACTIVATE_BUTTON),
+                com.microsoft.identity.common.test.automation.interactions.ScrollTo.text("asdf"),
                 Click.on(ActivateDeviceAdministratorView.ACTIVATE_BUTTON)
-
-
         );
+
     }
 
 }
