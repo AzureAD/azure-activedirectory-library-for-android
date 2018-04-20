@@ -503,7 +503,7 @@ class BrokerProxy implements IBrokerProxy {
             if (initialRequest) {
                 // Initial request from app to Authenticator needs to launch
                 // prompt
-                return AuthenticationResult.createResultForInitialRequest();
+                return AuthenticationResult.createResultForInitialRequest(request.getClientId());
             }
 
             // IDtoken is not present in the current broker user model
@@ -521,8 +521,17 @@ class BrokerProxy implements IBrokerProxy {
                 expires = new Date(bundleResult.getLong(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE));
             }
 
-            final AuthenticationResult result = new AuthenticationResult(bundleResult.getString(AccountManager.KEY_AUTHTOKEN),
-                    "", expires, false, userinfo, tenantId, "", null);
+            final AuthenticationResult result = new AuthenticationResult(
+                    bundleResult.getString(AccountManager.KEY_AUTHTOKEN),
+                    "",
+                    expires,
+                    false,
+                    userinfo,
+                    tenantId,
+                    "",
+                    null,
+                    request.getClientId()
+            );
 
             // set the x-ms-clitelem data
             final TelemetryUtils.CliTelemInfo cliTelemInfo = new TelemetryUtils.CliTelemInfo();

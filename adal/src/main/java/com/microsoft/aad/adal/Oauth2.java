@@ -265,7 +265,7 @@ class Oauth2 {
             // Using this host name we construct the authority that will get the token request and we use this authority
             // to save the token in the cache. The app should reinitialize AuthenticationContext with this authority for
             // all subsequent requests.
-            result = new AuthenticationResult(response.get(AuthenticationConstants.OAuth2.CODE));
+            result = new AuthenticationResult(mRequest.getClientId(), response.get(AuthenticationConstants.OAuth2.CODE));
             final String cloudInstanceHostName = response.get(AuthenticationConstants.OAuth2.CLOUD_INSTANCE_HOST_NAME);
             if (!StringExtensions.isNullOrBlank(cloudInstanceHostName)) {
 
@@ -322,8 +322,16 @@ class Oauth2 {
             }
 
             result = new AuthenticationResult(
-                    response.get(AuthenticationConstants.OAuth2.ACCESS_TOKEN), refreshToken, expires.getTime(),
-                    isMultiResourceToken, userinfo, tenantId, rawIdToken, null);
+                    response.get(AuthenticationConstants.OAuth2.ACCESS_TOKEN),
+                    refreshToken,
+                    expires.getTime(),
+                    isMultiResourceToken,
+                    userinfo,
+                    tenantId,
+                    rawIdToken,
+                    null,
+                    mRequest.getClientId()
+            );
 
             result.setExpiresIn(expiresInLong);
             result.setResponseReceived(System.currentTimeMillis());

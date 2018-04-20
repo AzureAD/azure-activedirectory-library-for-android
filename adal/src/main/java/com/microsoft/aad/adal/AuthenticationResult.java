@@ -115,19 +115,29 @@ public class AuthenticationResult implements Serializable {
 
     private HashMap<String, List<String>> mHttpResponseHeaders = null;
 
+    private String mClientId;
+
     AuthenticationResult() {
         mCode = null;
     }
 
-    AuthenticationResult(String code) {
+    AuthenticationResult(final String clientId, final String code) {
+        mClientId = clientId;
         mCode = code;
         mStatus = AuthenticationStatus.Succeeded;
         mAccessToken = null;
         mRefreshToken = null;
     }
 
-    AuthenticationResult(String accessToken, String refreshToken, Date expires, boolean isBroad,
-                         UserInfo userInfo, String tenantId, String idToken, Date extendedExpires) {
+    AuthenticationResult(final String accessToken,
+                         final String refreshToken,
+                         final Date expires,
+                         final boolean isBroad,
+                         final UserInfo userInfo,
+                         final String tenantId,
+                         final String idToken,
+                         final Date extendedExpires,
+                         final String clientId) {
         mCode = null;
         mAccessToken = accessToken;
         mRefreshToken = refreshToken;
@@ -138,16 +148,7 @@ public class AuthenticationResult implements Serializable {
         mTenantId = tenantId;
         mIdToken = idToken;
         mExtendedExpiresOn = extendedExpires;
-    }
-
-    AuthenticationResult(String accessToken, String refreshToken, Date expires, boolean isBroad, Date extendedExpires) {
-        mCode = null;
-        mAccessToken = accessToken;
-        mRefreshToken = refreshToken;
-        mExpiresOn = expires;
-        mIsMultiResourceRefreshToken = isBroad;
-        mStatus = AuthenticationStatus.Succeeded;
-        mExtendedExpiresOn = extendedExpires;
+        mClientId = clientId;
     }
 
     AuthenticationResult(String errorCode, String errDescription, String errorCodes) {
@@ -172,16 +173,25 @@ public class AuthenticationResult implements Serializable {
         }
 
         final AuthenticationResult result =
-                new AuthenticationResult(cacheItem.getAccessToken(), cacheItem.getRefreshToken(),
-                        cacheItem.getExpiresOn(), cacheItem.getIsMultiResourceRefreshToken(),
-                        cacheItem.getUserInfo(), cacheItem.getTenantId(), cacheItem.getRawIdToken(), cacheItem.getExtendedExpiresOn());
+                new AuthenticationResult(
+                        cacheItem.getAccessToken(),
+                        cacheItem.getRefreshToken(),
+                        cacheItem.getExpiresOn(),
+                        cacheItem.getIsMultiResourceRefreshToken(),
+                        cacheItem.getUserInfo(),
+                        cacheItem.getTenantId(),
+                        cacheItem.getRawIdToken(),
+                        cacheItem.getExtendedExpiresOn(),
+                        cacheItem.getClientId()
+                );
 
         return result;
     }
 
-    static AuthenticationResult createResultForInitialRequest() {
+    static AuthenticationResult createResultForInitialRequest(final String clientId) {
         AuthenticationResult result = new AuthenticationResult();
         result.mInitialRequest = true;
+        result.mClientId = clientId;
         return result;
     }
 
@@ -478,6 +488,14 @@ public class AuthenticationResult implements Serializable {
                 }
             }
         }
+    }
+
+    public String getClientId() {
+        return mClientId;
+    }
+
+    public void setClientId(final String clientId) {
+        mClientId = clientId;
     }
 
 }

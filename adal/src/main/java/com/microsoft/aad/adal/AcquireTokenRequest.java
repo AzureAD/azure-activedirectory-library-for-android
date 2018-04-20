@@ -701,9 +701,27 @@ class AcquireTokenRequest {
                     final String refreshTokenAge = data.getStringExtra(AuthenticationConstants.Broker.CliTelemInfo.RT_AGE);
                     final String speRingInfo = data.getStringExtra(AuthenticationConstants.Broker.CliTelemInfo.SPE_RING);
 
+                    // Use the waitingRequest to get the original request to get the clientId
+                    final AuthenticationRequest originalRequest = waitingRequest.getRequest();
+                    String clientId = null;
+
+                    if (null != originalRequest) {
+                        clientId = originalRequest.getClientId();
+                    }
+
                     // create the broker AuthenticationResult
-                    final AuthenticationResult brokerResult = new AuthenticationResult(accessToken, null,
-                            expire, false, userinfo, tenantId, idtoken, null);
+                    final AuthenticationResult brokerResult =
+                            new AuthenticationResult(
+                                    accessToken,
+                                    null,
+                                    expire,
+                                    false,
+                                    userinfo,
+                                    tenantId,
+                                    idtoken,
+                                    null,
+                                    clientId
+                            );
                     final String authority = data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY);
                     brokerResult.setAuthority(authority);
 

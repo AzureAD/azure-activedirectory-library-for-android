@@ -63,7 +63,9 @@ final class CoreAdapter {
         adTokenResponse.setExpiresIn(result.getExpiresIn());
         adTokenResponse.setResponseReceivedTime(result.getResponseReceived());
         adTokenResponse.setFamilyId(result.getFamilyClientId());
+        adTokenResponse.setClientId(result.getClientId());
         // TODO populate other missing fields...
+        // TODO set the clientId on the TokenResponse
         return adTokenResponse;
 
     }
