@@ -28,8 +28,12 @@ import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.cache.ADALOAuth2TokenCache;
-import com.microsoft.identity.common.internal.cache.DeleteMeOldClass;
+import com.microsoft.identity.common.internal.cache.AccountCredentialCache;
+import com.microsoft.identity.common.internal.cache.AccountCredentialCacheKeyValueDelegate;
+import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
+import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentialAdapter;
+import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryOAuth2Configuration;
@@ -81,7 +85,20 @@ class TokenCacheAccessor {
 
         //Setup common cache implementation
         List<IShareSingleSignOnState> sharedSSOCaches = new ArrayList<IShareSingleSignOnState>();
-        sharedSSOCaches.add(new DeleteMeOldClass(appContext));
+
+        // Set up the MsalAuth2TokenCache
+        final IAccountCredentialCache accountCredentialCache = new AccountCredentialCache(
+                appContext,
+                new AccountCredentialCacheKeyValueDelegate()
+        );
+        final MsalOAuth2TokenCache msalOAuth2TokenCache =
+                new MsalOAuth2TokenCache(
+                        appContext,
+                        accountCredentialCache,
+                        new MicrosoftStsAccountCredentialAdapter()
+                );
+
+        sharedSSOCaches.add(msalOAuth2TokenCache);
         mCommonCache = new ADALOAuth2TokenCache(appContext, sharedSSOCaches);
 
         if (mTokenCacheStore instanceof DefaultTokenCacheStore) {
