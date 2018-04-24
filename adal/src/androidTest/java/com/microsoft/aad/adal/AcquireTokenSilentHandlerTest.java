@@ -184,11 +184,20 @@ public final class AcquireTokenSilentHandlerTest {
 
         // inject mocked web request handler
         final IWebRequestHandler mockedWebRequestHandler = Mockito.mock(WebRequestHandler.class);
-        Mockito.when(mockedWebRequestHandler.sendPost(Mockito.any(URL.class), Mockito.<String, String>anyMap(),
-                Mockito.anyString().getBytes(), Mockito.anyString())).thenReturn(
-                new HttpWebResponse(HttpURLConnection.HTTP_INTERNAL_ERROR,
+        Mockito.when(
+                mockedWebRequestHandler.sendPost(
+                        Mockito.any(URL.class),
+                        Mockito.<String, String>anyMap(),
+                        Mockito.any(byte[].class),
+                        Mockito.anyString()
+                )
+        ).thenReturn(
+                new HttpWebResponse(
+                        HttpURLConnection.HTTP_INTERNAL_ERROR,
                         "{\"error\":\"interaction_required\" ,\"error_description\":\"Windows device is not in required device state\"}",
-                        new HashMap<String, List<String>>()));
+                        new HashMap<String, List<String>>()
+                )
+        );
         acquireTokenSilentHandler.setWebRequestHandler(mockedWebRequestHandler);
 
         try {
@@ -412,7 +421,7 @@ public final class AcquireTokenSilentHandlerTest {
         // inject mocked web request handler
         final IWebRequestHandler mockedWebRequestHandler = Mockito.mock(WebRequestHandler.class);
         Mockito.when(mockedWebRequestHandler.sendPost(Mockito.any(URL.class), Mockito.<String, String>anyMap(),
-                Mockito.anyString().getBytes(), Mockito.anyString())).thenReturn(
+                Mockito.any(byte[].class), Mockito.anyString())).thenReturn(
                 new HttpWebResponse(HttpURLConnection.HTTP_OK,
                         Util.getSuccessTokenResponse(true, true), null));
         acquireTokenSilentHandler.setWebRequestHandler(mockedWebRequestHandler);
@@ -476,7 +485,7 @@ public final class AcquireTokenSilentHandlerTest {
         // inject mocked web request handler
         final IWebRequestHandler mockedWebRequestHandler = Mockito.mock(WebRequestHandler.class);
         Mockito.when(mockedWebRequestHandler.sendPost(Mockito.any(URL.class), Mockito.<String, String>anyMap(),
-                Mockito.anyString().getBytes(), Mockito.anyString()))
+                Mockito.any(byte[].class), Mockito.anyString()))
                 .thenReturn(new HttpWebResponse(HttpURLConnection.HTTP_BAD_REQUEST,
                         Util.getErrorResponseBody("invalid_grant"), null));
         acquireTokenSilentHandler.setWebRequestHandler(mockedWebRequestHandler);
@@ -748,7 +757,7 @@ public final class AcquireTokenSilentHandlerTest {
         // inject mocked web request handler
         final IWebRequestHandler mockedWebRequestHandler = Mockito.mock(WebRequestHandler.class);
         Mockito.when(mockedWebRequestHandler.sendPost(Mockito.any(URL.class), Mockito.<String, String>anyMap(),
-                Mockito.anyString().getBytes(), Mockito.anyString())).thenReturn(
+                Mockito.any(byte[].class), Mockito.anyString())).thenReturn(
                 new HttpWebResponse(HttpURLConnection.HTTP_BAD_REQUEST,
                         Util.getErrorResponseBody(null), null));
         acquireTokenSilentHandler.setWebRequestHandler(mockedWebRequestHandler);
@@ -790,7 +799,7 @@ public final class AcquireTokenSilentHandlerTest {
         // inject mocked web request handler
         final IWebRequestHandler mockedWebRequestHandler = Mockito.mock(WebRequestHandler.class);
         Mockito.when(mockedWebRequestHandler.sendPost(Mockito.any(URL.class), Mockito.<String, String>anyMap(),
-                Mockito.anyString().getBytes(), Mockito.anyString())).thenReturn(
+                Mockito.any(byte[].class), Mockito.anyString())).thenReturn(
                 new HttpWebResponse(HttpURLConnection.HTTP_BAD_REQUEST,
                         Util.getErrorResponseBody("interaction_required"), null));
         acquireTokenSilentHandler.setWebRequestHandler(mockedWebRequestHandler);

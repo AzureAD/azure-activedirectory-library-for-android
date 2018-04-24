@@ -116,7 +116,7 @@ dependencies {
     androidTestImplementation "com.android.support.test:runner:$rootProject.ext.runnerVersion"
     androidTestImplementation "com.android.support.test:rules:$rootProject.ext.rulesVersion"
     androidTestImplementation "org.mockito:mockito-core:$rootProject.ext.mockitoCoreVersion"
-    androidTestImplementation "com.google.dexmaker:dexmaker-mockito:$rootProject.ext.dexmakerMockitoVersion"
+    androidTestImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
 
     // Test Dependencies
     testImplementation "junit:junit:$rootProject.ext.junitVersion"

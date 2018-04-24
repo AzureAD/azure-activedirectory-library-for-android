@@ -95,24 +95,40 @@ public class Logger {
                     if (!com.microsoft.identity.common.internal.logging.Logger.getAllowPii() && containsPII) {
                         return;
                     } else {
+
+                        ADALError adalError = mapMessageToAdalError(message);
+
                         switch (logLevel) {
                             case ERROR:
-                                mExternalLogger.Log(tag, message, null, LogLevel.Error, null);
+                                mExternalLogger.Log(tag, message, null, LogLevel.Error, adalError);
                                 break;
                             case WARN:
-                                mExternalLogger.Log(tag, message, null, LogLevel.Warn, null);
+                                mExternalLogger.Log(tag, message, null, LogLevel.Warn, adalError);
                                 break;
                             case VERBOSE:
-                                mExternalLogger.Log(tag, message, null, LogLevel.Verbose, null);
+                                mExternalLogger.Log(tag, message, null, LogLevel.Verbose, adalError);
                                 break;
                             case INFO:
-                                mExternalLogger.Log(tag, message, null, LogLevel.Info, null);
+                                mExternalLogger.Log(tag, message, null, LogLevel.Info, adalError);
                                 break;
                             default:
                                 throw new IllegalArgumentException("Unknown logLevel");
                         }
                     }
                 }
+            }
+
+            private ADALError mapMessageToAdalError(final String message) {
+                ADALError mappedError = null;
+
+                for (final ADALError adalError : ADALError.values()) {
+                    if (null != message && message.contains(adalError.name() + ":")) {
+                        mappedError = adalError;
+                        break;
+                    }
+                }
+
+                return mappedError;
             }
         });
 
@@ -193,7 +209,7 @@ public class Logger {
     }
 
     private void commonCoreWrapper(String tag, String message, String additionalMessage, LogLevel logLevel,
-                                   ADALError errorCode, Throwable throwable){
+                                   ADALError errorCode, Throwable throwable) {
         switch (logLevel) {
             case Error:
                 if (!StringExtensions.isNullOrBlank(message)) {
@@ -249,11 +265,11 @@ public class Logger {
     }
 
     /**
-     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#info(String, String, String)} instead.
-     *
-     * Logs debug message.
      * @param tag     tag for the log message
      * @param message body of the log message
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#info(String, String, String)} instead.
+     * <p>
+     * Logs debug message.
      */
     @Deprecated
     static void d(String tag, String message) {
@@ -265,15 +281,15 @@ public class Logger {
     }
 
     /**
-     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#info(String, String, String)}
-     *             if the log message does not contain any PII information.
-     *             use {@link com.microsoft.identity.common.internal.logging.Logger#infoPII(String, String, String)}
-     *             if the log message contains any PII information.
-     *
-     * Logs informational message.
      * @param tag               tag for the log message
      * @param message           body of the log message
      * @param additionalMessage additional parameters
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#info(String, String, String)}
+     * if the log message does not contain any PII information.
+     * use {@link com.microsoft.identity.common.internal.logging.Logger#infoPII(String, String, String)}
+     * if the log message contains any PII information.
+     * <p>
+     * Logs informational message.
      */
     @Deprecated
     static void i(String tag, String message, String additionalMessage) {
@@ -281,16 +297,16 @@ public class Logger {
     }
 
     /**
-     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#info(String, String, String)}
-     *             if the log message does not contain any PII information.
-     *             use {@link com.microsoft.identity.common.internal.logging.Logger#infoPII(String, String, String)}
-     *             if the log message contains any PII information.
-     *
-     * Logs informational messages with error codes.
      * @param tag               tag for the log message
      * @param message           body of the log message
      * @param additionalMessage additional parameters
      * @param errorCode         ADAL error code being logged
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#info(String, String, String)}
+     * if the log message does not contain any PII information.
+     * use {@link com.microsoft.identity.common.internal.logging.Logger#infoPII(String, String, String)}
+     * if the log message contains any PII information.
+     * <p>
+     * Logs informational messages with error codes.
      */
     @Deprecated
     static void i(String tag, String message, String additionalMessage, ADALError errorCode) {
@@ -298,14 +314,14 @@ public class Logger {
     }
 
     /**
-     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#verbose(String, String, String)}
-     *             if the log message does not contain any PII information.
-     *             use {@link com.microsoft.identity.common.internal.logging.Logger#verbosePII(String, String, String)}
-     *             if the log message contains any PII information.
-     *
-     * Logs verbose message.
      * @param tag     tag for the log message
      * @param message body of the log message
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#verbose(String, String, String)}
+     * if the log message does not contain any PII information.
+     * use {@link com.microsoft.identity.common.internal.logging.Logger#verbosePII(String, String, String)}
+     * if the log message contains any PII information.
+     * <p>
+     * Logs verbose message.
      */
     @Deprecated
     static void v(String tag, String message) {
@@ -313,16 +329,16 @@ public class Logger {
     }
 
     /**
-     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#verbose(String, String, String)}
-     *             if the log message does not contain any PII information.
-     *             use {@link com.microsoft.identity.common.internal.logging.Logger#verbosePII(String, String, String)}
-     *             if the log message contains any PII information.
-     *
-     * Logs verbose message with error code.
      * @param tag               tag for the log message
      * @param message           body of the log message
      * @param additionalMessage additional parameters
      * @param errorCode         ADAL error code being logged
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#verbose(String, String, String)}
+     * if the log message does not contain any PII information.
+     * use {@link com.microsoft.identity.common.internal.logging.Logger#verbosePII(String, String, String)}
+     * if the log message contains any PII information.
+     * <p>
+     * Logs verbose message with error code.
      */
     @Deprecated
     static void v(String tag, String message, String additionalMessage, ADALError errorCode) {
@@ -330,16 +346,16 @@ public class Logger {
     }
 
     /**
-     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#warn(String, String, String)}
-     *             if the log message does not contain any PII information.
-     *             use {@link com.microsoft.identity.common.internal.logging.Logger#warnPII(String, String, String)}
-     *             if the log message contains any PII information.
-     *
-     * Logs warning message.
      * @param tag               tag for the log message
      * @param message           body of the log message
      * @param additionalMessage additional parameters
      * @param errorCode         ADAL error code being logged
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#warn(String, String, String)}
+     * if the log message does not contain any PII information.
+     * use {@link com.microsoft.identity.common.internal.logging.Logger#warnPII(String, String, String)}
+     * if the log message contains any PII information.
+     * <p>
+     * Logs warning message.
      */
     @Deprecated
     static void w(String tag, String message, String additionalMessage, ADALError errorCode) {
@@ -347,14 +363,14 @@ public class Logger {
     }
 
     /**
-     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#warn(String, String, String)}
-     *             if the log message does not contain any PII information.
-     *             use {@link com.microsoft.identity.common.internal.logging.Logger#warnPII(String, String, String)}
-     *             if the log message contains any PII information.
-     *
-     * Logs warning message.
      * @param tag     tag for the log message
      * @param message body of the log message
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#warn(String, String, String)}
+     * if the log message does not contain any PII information.
+     * use {@link com.microsoft.identity.common.internal.logging.Logger#warnPII(String, String, String)}
+     * if the log message contains any PII information.
+     * <p>
+     * Logs warning message.
      */
     @Deprecated
     static void w(String tag, String message) {
@@ -362,16 +378,16 @@ public class Logger {
     }
 
     /**
-     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#error(String, String, String, Throwable)}
-     *             if the log message does not contain any PII information.
-     *             use {@link com.microsoft.identity.common.internal.logging.Logger#errorPII(String, String, String, Throwable)}
-     *             if the log message contains any PII information.
-     *
-     * Logs error message.
      * @param tag               tag for the log message
      * @param message           body of the log message
      * @param additionalMessage additional parameters
      * @param errorCode         ADAL error code being logged
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#error(String, String, String, Throwable)}
+     * if the log message does not contain any PII information.
+     * use {@link com.microsoft.identity.common.internal.logging.Logger#errorPII(String, String, String, Throwable)}
+     * if the log message contains any PII information.
+     * <p>
+     * Logs error message.
      */
     @Deprecated
     static void e(String tag, String message, String additionalMessage, ADALError errorCode) {
@@ -379,34 +395,34 @@ public class Logger {
     }
 
     /**
-     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#error(String, String, String, Throwable)}
-     *             if the log message does not contain any PII information.
-     *             use {@link com.microsoft.identity.common.internal.logging.Logger#errorPII(String, String, String, Throwable)}
-     *             if the log message contains any PII information.
-     *
-     * Logs error message.
      * @param tag               Tag for the log
      * @param message           Message to add to the log
      * @param additionalMessage any additional parameters
      * @param errorCode         ADAL error code
      * @param throwable         Throwable
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#error(String, String, String, Throwable)}
+     * if the log message does not contain any PII information.
+     * use {@link com.microsoft.identity.common.internal.logging.Logger#errorPII(String, String, String, Throwable)}
+     * if the log message contains any PII information.
+     * <p>
+     * Logs error message.
      */
     @Deprecated
     static void e(String tag, String message, String additionalMessage, ADALError errorCode,
-                         Throwable throwable) {
+                  Throwable throwable) {
         Logger.getInstance().commonCoreWrapper(tag, message, additionalMessage, LogLevel.Error, errorCode, throwable);
     }
 
     /**
-     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#error(String, String, String, Throwable)}
-     *             if the log message does not contain any PII information.
-     *             use {@link com.microsoft.identity.common.internal.logging.Logger#errorPII(String, String, String, Throwable)}
-     *             if the log message contains any PII information.
-     *
-     * Logs error message.
      * @param tag       Tag for the log
      * @param message   Message to add to the log
      * @param throwable Throwable
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#error(String, String, String, Throwable)}
+     * if the log message does not contain any PII information.
+     * use {@link com.microsoft.identity.common.internal.logging.Logger#errorPII(String, String, String, Throwable)}
+     * if the log message contains any PII information.
+     * <p>
+     * Logs error message.
      */
     @Deprecated
     static void e(String tag, String message, Throwable throwable) {
@@ -434,6 +450,7 @@ public class Logger {
 
     /**
      * Append the version name into the log message.
+     *
      * @param message Log message
      */
     private String formatMessage(final String message) {

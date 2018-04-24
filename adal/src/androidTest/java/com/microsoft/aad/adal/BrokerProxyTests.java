@@ -48,8 +48,6 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Base64;
 
-
-
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 
 import junit.framework.Assert;
@@ -58,6 +56,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 
@@ -971,12 +970,12 @@ public class BrokerProxyTests {
         final AuthenticationRequest authenticationRequest = getAuthRequest(PromptBehavior.FORCE_PROMPT);
         intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT, authenticationRequest.getPrompt().name());
 
-        final AccountManager mockedAccoutManager = getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
+        final AccountManager mockedAccountManager = getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
-        mockAddAccountResponse(mockedAccoutManager, getMockedAccountManagerFuture(intent));
+        mockAddAccountResponse(mockedAccountManager, getMockedAccountManagerFuture(intent));
 
         final FileMockContext mockedContext = new FileMockContext(InstrumentationRegistry.getContext());
-        mockedContext.setMockedAccountManager(mockedAccoutManager);
+        mockedContext.setMockedAccountManager(mockedAccountManager);
         mockedContext.setMockedPackageManager(getMockedPackageManagerWithBrokerAccountServiceDisabled(mock(Signature.class),
                 AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, true));
         final BrokerProxy brokerProxy = new BrokerProxy(mockedContext);
@@ -1072,10 +1071,17 @@ public class BrokerProxyTests {
 
     private void mockAddAccountResponse(final AccountManager mockedAccountManager,
                                         final AccountManagerFuture<Bundle> mockedAccountManagerFuture) {
-        Mockito.when(mockedAccountManager.addAccount(Matchers.anyString(), Mockito.anyString(), Matchers.any(String[].class),
-                Matchers.any(Bundle.class), Matchers.any(Activity.class), Matchers.any(AccountManagerCallback.class),
-                Mockito.any(Handler.class))).thenReturn(mockedAccountManagerFuture);
-
+        Mockito.when(
+                mockedAccountManager.addAccount(
+                        Mockito.anyString(),
+                        Mockito.anyString(),
+                        ArgumentMatchers.nullable(String[].class),
+                        Mockito.any(Bundle.class),
+                        ArgumentMatchers.nullable(Activity.class),
+                        Mockito.<AccountManagerCallback<Bundle>>any(),
+                        Mockito.any(Handler.class)
+                )
+        ).thenReturn(mockedAccountManagerFuture);
     }
 
     @SuppressLint("CommitPrefEdits")

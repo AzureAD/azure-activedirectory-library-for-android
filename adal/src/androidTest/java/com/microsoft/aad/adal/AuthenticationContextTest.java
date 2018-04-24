@@ -34,14 +34,11 @@ import android.content.pm.Signature;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.test.InstrumentationRegistry;
-import android.support.test.filters.FlakyTest;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.UiThreadTest;
 import android.util.Base64;
 
 import com.google.gson.Gson;
-
-
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
@@ -1241,7 +1238,7 @@ public final class AuthenticationContextTest {
         // mock another silent request will only do token refresh
         Mockito.when(mockedConnection.getInputStream()).thenThrow(new IOException())
                 .thenReturn(Util.createInputStream(Util.getSuccessTokenResponse(true, true)),
-                Util.createInputStream(Util.getSuccessTokenResponse(true, false)));
+                        Util.createInputStream(Util.getSuccessTokenResponse(true, false)));
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_BAD_REQUEST, HttpURLConnection.HTTP_OK);
 
@@ -1376,8 +1373,8 @@ public final class AuthenticationContextTest {
     }
 
     /**
-     *  If multiple simultaneous acquireToken calls with the same authority are made without any authority cache,
-     *  only one authority validation network request is ever made.
+     * If multiple simultaneous acquireToken calls with the same authority are made without any authority cache,
+     * only one authority validation network request is ever made.
      */
     @Test
     public void testMultipleATCallsInDifferentThreadsOnlyOneAuthorityValidation() throws IOException, InterruptedException, ExecutionException {
@@ -1505,7 +1502,7 @@ public final class AuthenticationContextTest {
                 AuthenticationConstants.Browser.REQUEST_MESSAGE);
         assertTrue(requestMessage.getAuthority().contains("login.microsoftonline.com"));
 
-        final SharedPreferences sharedPreferences =  mockContext.getSharedPreferences("com.microsoft.aad.adal.cache", Activity.MODE_PRIVATE);
+        final SharedPreferences sharedPreferences = mockContext.getSharedPreferences("com.microsoft.aad.adal.cache", Activity.MODE_PRIVATE);
         final Map<String, String> allTokens = (Map<String, String>) sharedPreferences.getAll();
         final int expectedMapSize = 8;
         Assert.assertTrue(allTokens.size() == expectedMapSize);
@@ -2974,8 +2971,8 @@ public final class AuthenticationContextTest {
             Mockito.doAnswer(new Answer() {
                 @Override
                 public Object answer(InvocationOnMock invocationOnMock) {
-                    mStartActivityIntent = invocationOnMock.getArgumentAt(0, Intent.class);
-                    mStartActivityRequestCode = invocationOnMock.getArgumentAt(1, Integer.class);
+                    mStartActivityIntent = invocationOnMock.getArgument(0);
+                    mStartActivityRequestCode = invocationOnMock.getArgument(1);
                     countDownLatch();
                     return null;
                 }
@@ -2984,9 +2981,9 @@ public final class AuthenticationContextTest {
             Mockito.doAnswer(new Answer() {
                 @Override
                 public Object answer(InvocationOnMock invocationOnMock) {
-                    mStartActivityIntent = invocationOnMock.getArgumentAt(0, Intent.class);
-                    mStartActivityRequestCode = invocationOnMock.getArgumentAt(1, Integer.class);
-                    mStartActivityOptions = invocationOnMock.getArgumentAt(2, Bundle.class);
+                    mStartActivityIntent = invocationOnMock.getArgument(0);
+                    mStartActivityRequestCode = invocationOnMock.getArgument(1);
+                    mStartActivityOptions = invocationOnMock.getArgument(2);
                     countDownLatch();
                     return null;
                 }

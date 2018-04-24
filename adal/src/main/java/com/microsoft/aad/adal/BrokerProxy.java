@@ -647,9 +647,16 @@ class BrokerProxy implements IBrokerProxy {
             // Callback is not passed since it is making a blocking call to get
             // intent. Activity needs to be launched from calling app
             // to get the calling app's metadata if needed at BrokerActivity.
-            final AccountManagerFuture<Bundle> result = mAcctManager.addAccount(
-                    AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
-                    AuthenticationConstants.Broker.AUTHTOKEN_TYPE, null, addAccountOptions, null, null, mHandler);
+            final AccountManagerFuture<Bundle> result =
+                    mAcctManager.addAccount(
+                            AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
+                            AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
+                            null,
+                            addAccountOptions,
+                            null,
+                            null,
+                            mHandler
+                    );
 
             // Making blocking request here
             Bundle bundleResult = result.getResult();
