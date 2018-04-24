@@ -84,7 +84,7 @@ public class TestLogResponse {
             public void Log(String tag, String message, String additionalMessage, LogLevel level,
                             ADALError errorCode) {
                 for (String msg : msgs) {
-                    if (message.contains(msg) || additionalMessage.contains(msg)) {
+                    if (message.contains(msg) || (null != additionalMessage && additionalMessage.contains(msg))) {
                         response.mTag = tag;
                         response.mMessage = message;
                         response.mAdditionalMessage = additionalMessage;
