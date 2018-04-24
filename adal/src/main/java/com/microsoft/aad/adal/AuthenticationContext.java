@@ -347,7 +347,7 @@ public class AuthenticationContext {
 
             final String requestId = Telemetry.registerNewRequest();
             final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_3);
-            apiEvent.setPromptBehavior(prompt.toString());
+            apiEvent.setPromptBehavior(prompt);
 
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                     clientId, redirectUri, null, prompt, null, getRequestCorrelationId(), getExtendedLifetimeEnabled(), null);
@@ -385,7 +385,7 @@ public class AuthenticationContext {
 
             final String requestId = Telemetry.registerNewRequest();
             final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_4);
-            apiEvent.setPromptBehavior(prompt.toString());
+            apiEvent.setPromptBehavior(prompt);
 
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                     clientId, redirectUri, null, prompt, extraQueryParameters,
@@ -426,7 +426,7 @@ public class AuthenticationContext {
             redirectUri = getRedirectUri(redirectUri);
             final String requestId = Telemetry.registerNewRequest();
             final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_5);
-            apiEvent.setPromptBehavior(prompt.toString());
+            apiEvent.setPromptBehavior(prompt);
             apiEvent.setLoginHint(loginHint);
 
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
@@ -470,7 +470,7 @@ public class AuthenticationContext {
             redirectUri = getRedirectUri(redirectUri);
             final String requestId = Telemetry.registerNewRequest();
             final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_8);
-            apiEvent.setPromptBehavior(prompt.toString());
+            apiEvent.setPromptBehavior(prompt);
             apiEvent.setLoginHint(loginHint);
 
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
@@ -510,7 +510,7 @@ public class AuthenticationContext {
             redirectUri = getRedirectUri(redirectUri);
             final String requestId = Telemetry.registerNewRequest();
             final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_6);
-            apiEvent.setPromptBehavior(prompt.toString());
+            apiEvent.setPromptBehavior(prompt);
             apiEvent.setLoginHint(loginHint);
 
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
@@ -553,7 +553,7 @@ public class AuthenticationContext {
             redirectUri = getRedirectUri(redirectUri);
             final String requestId = Telemetry.registerNewRequest();
             final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_9);
-            apiEvent.setPromptBehavior(prompt.toString());
+            apiEvent.setPromptBehavior(prompt);
             apiEvent.setLoginHint(loginHint);
 
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
@@ -594,7 +594,7 @@ public class AuthenticationContext {
             redirectUri = getRedirectUri(redirectUri);
             final String requestId = Telemetry.registerNewRequest();
             final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_7);
-            apiEvent.setPromptBehavior(prompt.toString());
+            apiEvent.setPromptBehavior(prompt);
             apiEvent.setLoginHint(loginHint);
 
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
@@ -639,7 +639,7 @@ public class AuthenticationContext {
             redirectUri = getRedirectUri(redirectUri);
             final String requestId = Telemetry.registerNewRequest();
             final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_10);
-            apiEvent.setPromptBehavior(prompt.toString());
+            apiEvent.setPromptBehavior(prompt);
             apiEvent.setLoginHint(loginHint);
 
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
