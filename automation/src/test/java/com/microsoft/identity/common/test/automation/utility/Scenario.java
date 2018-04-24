@@ -1,13 +1,16 @@
-package com.microsoft.aad.automation.testapp.utility;
+package com.microsoft.identity.common.test.automation.utility;
 
 import com.google.gson.Gson;
 import com.microsoft.identity.internal.test.labapi.model.TestConfiguration;
+
+import jdk.nashorn.internal.parser.Token;
 
 public class Scenario {
 
     private TestConfiguration mTestConfiguration;
     private Credential mCredential;
     private TokenRequest mTokenRequest;
+    private TokenRequest mSilentTokenRequest;
 
     public TestConfiguration getTestConfiguration() {
         return mTestConfiguration;
@@ -16,6 +19,7 @@ public class Scenario {
     public void setTestConfiguration(TestConfiguration testConfiguration) {
         this.mTestConfiguration = testConfiguration;
         this.createTokenRequest();
+        this.createSilentTokenRequest();
     }
 
     public Credential getCredential() {
@@ -30,6 +34,10 @@ public class Scenario {
         return mTokenRequest;
     }
 
+    public TokenRequest getSilentTokenRequest() {
+        return mSilentTokenRequest;
+    }
+
     public String getTokenRequestAsJson() {
         Gson gson = new Gson();
         String requestJson = gson.toJson(this.mTokenRequest);
@@ -38,11 +46,30 @@ public class Scenario {
 
     private void createTokenRequest() {
         TokenRequest tr = new TokenRequest();
-        tr.setAuthority(this.getTestConfiguration().getAuthority().get(0) + "common");
+        tr.setAuthority(getAuthority(this.getTestConfiguration().getAuthority().get(0)));
         tr.setRedirectUri(this.getTestConfiguration().getRedirectUri().get(0));
         tr.setResourceId(this.getTestConfiguration().getResourceIds().get(0));
         tr.setClientId(this.getTestConfiguration().getAppId());
         this.mTokenRequest = tr;
+    }
+
+    private void createSilentTokenRequest(){
+        // mAuthenticationContext.acquireTokenSilentAsync(mResource, mClientId, mUserId, getAdalCallback());
+        TokenRequest tr = new TokenRequest();
+        tr.setAuthority(getAuthority(this.getTestConfiguration().getAuthority().get(0)));
+        tr.setResourceId(this.getTestConfiguration().getResourceIds().get(0));
+        tr.setClientId(this.getTestConfiguration().getAppId());
+        tr.setUniqueUserId(this.getTestConfiguration().getUsers().getObjectId());
+        this.mSilentTokenRequest = tr;
+    }
+
+    private String getAuthority(String authorityHost){
+        return authorityHost + "common";
+    }
+
+    private String getTenantedAuthority(String authorityHost, String tenantId){
+
+        return authorityHost + tenantId;
     }
 
     public static Scenario GetScenario(TestConfigurationQuery query) {

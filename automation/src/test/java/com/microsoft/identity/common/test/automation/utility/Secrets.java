@@ -1,11 +1,8 @@
-package com.microsoft.aad.automation.testapp.utility;
-
-import android.security.KeyChain;
-import android.security.KeyChainException;
-import android.support.test.InstrumentationRegistry;
-import android.util.Log;
+package com.microsoft.identity.common.test.automation.utility;
 
 import com.microsoft.identity.common.internal.providers.keys.CertificateCredential;
+import com.microsoft.identity.common.internal.providers.keys.ClientCertificateMetadata;
+import com.microsoft.identity.common.internal.providers.keys.KeyStoreConfiguration;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftClientAssertion;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Configuration;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Strategy;
@@ -19,10 +16,8 @@ import java.io.IOException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-import java.security.PrivateKey;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 
 
 public class Secrets {
@@ -33,12 +28,12 @@ public class Secrets {
     private final static String SCOPE = "https://vault.azure.net/.default";
     private final static String GRANT_TYPE = "client_credentials";
     private final static String CERTIFICATE_ALIAS = "AutomationRunner";
-    private final static String KEYSTORE_TYPE = "AndroidKeyStore";
-    private final static String KEYSTORE_PROVIDER = "AndroidKeyStore";
+    private final static String KEYSTORE_TYPE = "Windows-MY";
+    private final static String KEYSTORE_PROVIDER = "SunMSCAPI";
     private final static String MSSTS_CLIENT_ASSERTION_AUDIENCE = "https://login.microsoftonline.com/microsoft.com/oauth2/v2.0/token";
 
 
-    public static String getAccessToken() throws CertificateException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, IOException, KeyChainException, InterruptedException {
+    public static String getAccessToken() throws CertificateException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, IOException, InterruptedException {
         if (mAccessToken != null) {
             return mAccessToken;
         } else {
@@ -50,15 +45,11 @@ public class Secrets {
     /**
      * Yep.  Hardcoding this method to retrieve access token for reading key vault
      */
-    private static void requestAccessTokenForAutomation() throws CertificateException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, IOException, KeyChainException, InterruptedException {
-
-        PrivateKey pk = KeyChain.getPrivateKey(InstrumentationRegistry.getTargetContext().getApplicationContext(), "te-5676ab88-cb56-4b1a-a707-db44711a147a");
-
-        X509Certificate[] certificates = KeyChain.getCertificateChain(InstrumentationRegistry.getTargetContext().getApplicationContext(), "te-5676ab88-cb56-4b1a-a707-db44711a147a");
+    private static void requestAccessTokenForAutomation() throws CertificateException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, IOException, InterruptedException {
 
         CertificateCredential credential = new CertificateCredential.CertificateCredentialBuilder(CLIENT_ID)
-                .privateKey(pk)
-                .certificate(certificates[0])
+                .clientCertificateMetadata(new ClientCertificateMetadata(CERTIFICATE_ALIAS, null))
+                .keyStoreConfiguration(new KeyStoreConfiguration(KEYSTORE_TYPE, KEYSTORE_PROVIDER, null))
                 .build();
 
         String audience = MSSTS_CLIENT_ASSERTION_AUDIENCE;
@@ -86,7 +77,7 @@ public class Secrets {
     }
 
 
-    public static Credential GetCredential(String upn, String secretName) throws CertificateException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, IOException, KeyChainException, InterruptedException {
+    public static Credential GetCredential(String upn, String secretName) throws CertificateException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, IOException, InterruptedException {
 
         Configuration.getDefaultApiClient().setBasePath("https://msidlabs.vault.azure.net");
         Configuration.getDefaultApiClient().setAccessToken(Secrets.getAccessToken());
@@ -99,7 +90,6 @@ public class Secrets {
             SecretBundle secretBundle = secretsApi.getSecret(secretName, "", Secrets.API_VERSION);
             credential.password = secretBundle.getValue();
         } catch (com.microsoft.identity.internal.test.keyvault.ApiException ex) {
-            Log.e("KEYVAULT", "Error accessing secret named: " + secretName, ex);
             throw new RuntimeException("exception accessing secret", ex);
         }
 

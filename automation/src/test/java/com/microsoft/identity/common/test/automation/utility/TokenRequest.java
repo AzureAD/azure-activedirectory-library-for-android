@@ -1,6 +1,8 @@
-package com.microsoft.aad.automation.testapp.utility;
+package com.microsoft.identity.common.test.automation.utility;
 
 import com.google.gson.annotations.SerializedName;
+
+import jnr.ffi.annotations.SaveError;
 
 /**
  * Created by shoatman on 3/9/2018.
@@ -28,6 +30,8 @@ public class TokenRequest {
     private String mUserIdentifier = null;
     @SerializedName("user_identifier_type")
     private String mUserIdentifierType = null;
+    @SerializedName("unique_id")
+    private String mUniqueUserId = null;
 
 
     public String getClientId() {
@@ -108,5 +112,13 @@ public class TokenRequest {
 
     public void setUserIdentifierType(String mUserIdentifierType) {
         this.mUserIdentifierType = mUserIdentifierType;
+    }
+
+    public String getUniqueUserId(){
+        return this.mUniqueUserId;
+    }
+
+    public void setUniqueUserId(String uniqueUserId){
+        this.mUniqueUserId = uniqueUserId;
     }
 }

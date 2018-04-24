@@ -29,6 +29,11 @@ android {
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
 
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
+
     defaultConfig {
         applicationId "com.microsoft.aad.automation.testapp"
         minSdkVersion rootProject.ext.automationAppMinSDKVersion
@@ -77,14 +82,11 @@ dependencies {
     //msalRImplementation group: 'com.microsoft.identity.client', name: 'msal', version: "$rootProject.ext.msal"
     adalRImplementation group: 'com.microsoft.aad', name: 'adal', version: "$rootProject.ext.adalLegacy"
     testImplementation "junit:junit:$rootProject.ext.junitVersion"
-    androidTestImplementation "junit:junit:$rootProject.ext.junitVersion"
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
-    androidTestImplementation 'com.android.support.test:runner:1.0.1'
-    androidTestImplementation 'com.android.support.test.uiautomator:uiautomator-v18:2.1.1'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-idling-resource:3.0.1'
-    implementation 'com.android.support.test.espresso:espresso-idling-resource:3.0.1'
+
     implementation "com.google.code.gson:gson:2.8.1"
-    implementation project(':keyvault')
-    implementation project(':labapi')
+    androidTestImplementation project(':keyvault')
+    androidTestImplementation project(':labapi')
+    androidTestImplementation 'com.squareup.okio:okio:1.13.0'
+
 
 }
