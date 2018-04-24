@@ -102,6 +102,14 @@ dependencies {
     }
     api(project(":common")){
         exclude group: 'com.google.code.gson', module: 'gson'
+        exclude group: 'com.android.support', module: 'appcompat-v7'
+        exclude group: 'com.nimbusds', module: 'nimbus-jose-jwt'
+        exclude group: 'org.mockito', module: 'mockito-core'
+        exclude group: 'com.google.dexmaker', module: 'dexmaker-mockito'
+        exclude group: 'org.powermock', module: 'powermock-module-junit4'
+        exclude group: 'org.powermock', module: 'powermock-module-junit4-rule'
+        exclude group: 'org.powermock', module: 'powermock-api-mockito'
+        exclude group: 'org.powermock', module: 'powermock-classloading-xstream'
     }
 
     // Android Instrumented Test Dependencies
