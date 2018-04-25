@@ -36,7 +36,7 @@ import static com.microsoft.aad.adal.EventStrings.LOGIN_HINT;
 import static com.microsoft.aad.adal.EventStrings.TENANT_ID;
 import static com.microsoft.aad.adal.EventStrings.USER_ID;
 
-final class TelemetryUtils {
+public final class TelemetryUtils {
 
     static final Set<String> GDPR_FILTERED_FIELDS = new HashSet<>();
 
@@ -60,7 +60,7 @@ final class TelemetryUtils {
         );
     }
 
-    static class CliTelemInfo implements Serializable {
+    public static class CliTelemInfo implements Serializable {
 
         private String mVersion;
         private String mServerErrorCode;
@@ -68,7 +68,7 @@ final class TelemetryUtils {
         private String mRefreshTokenAge;
         private String mSpeRing;
 
-        String getVersion() {
+        public String getVersion() {
             return mVersion;
         }
 
@@ -76,7 +76,7 @@ final class TelemetryUtils {
             this.mVersion = version;
         }
 
-        String getServerErrorCode() {
+        public String getServerErrorCode() {
             return mServerErrorCode;
         }
 
@@ -84,7 +84,7 @@ final class TelemetryUtils {
             this.mServerErrorCode = serverErrorCode;
         }
 
-        String getServerSubErrorCode() {
+        public String getServerSubErrorCode() {
             return mServerSubErrorCode;
         }
 
@@ -92,7 +92,7 @@ final class TelemetryUtils {
             this.mServerSubErrorCode = serverSubErrorCode;
         }
 
-        String getRefreshTokenAge() {
+        public String getRefreshTokenAge() {
             return mRefreshTokenAge;
         }
 
@@ -100,7 +100,7 @@ final class TelemetryUtils {
             this.mRefreshTokenAge = refreshTokenAge;
         }
 
-        String getSpeRing() {
+        public String getSpeRing() {
             return mSpeRing;
         }
 
@@ -109,7 +109,7 @@ final class TelemetryUtils {
         }
     }
 
-    static CliTelemInfo parseXMsCliTelemHeader(final String headerValue) {
+    public static CliTelemInfo parseXMsCliTelemHeader(final String headerValue) {
         // if the header isn't present, do nothing
         if (StringExtensions.isNullOrBlank(headerValue)) {
             return null;
