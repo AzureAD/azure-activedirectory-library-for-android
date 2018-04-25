@@ -85,6 +85,8 @@ class Oauth2 {
 
     private static final String HTTPS_PROTOCOL_STRING = "https";
 
+    private String mBrokerClientVersion = "";
+
     Oauth2(AuthenticationRequest request) {
         mRequest = request;
         mWebRequestHandler = null;
@@ -105,6 +107,16 @@ class Oauth2 {
         mWebRequestHandler = webRequestHandler;
         mJWSBuilder = jwsMessageBuilder;
         setTokenEndpoint(mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT);
+    }
+
+    public void setAdalClientVersion(String version) {
+        if (mWebRequestHandler != null) {
+            mWebRequestHandler.setAdalClientVersion(version);
+        }
+    }
+
+    public void setBrokerClientVersion(String version) {
+        mBrokerClientVersion = version;
     }
 
     public String getAuthorizationEndpoint() {
@@ -148,6 +160,11 @@ class Oauth2 {
                 .appendQueryParameter(AuthenticationConstants.AAD.ADAL_ID_DM,
                         URLEncoder.encode(android.os.Build.MODEL,
                                 AuthenticationConstants.ENCODING_UTF8));
+
+        if (!StringExtensions.isNullOrBlank(mBrokerClientVersion)) {
+            queryParameter.appendQueryParameter(AuthenticationConstants.AAD.ADAL_BROKER_VERSION,
+                    URLEncoder.encode(mBrokerClientVersion, AuthenticationConstants.ENCODING_UTF8));
+        }
 
         if (mRequest.getCorrelationId() != null) {
             queryParameter.appendQueryParameter(AuthenticationConstants.AAD.CLIENT_REQUEST_ID,
@@ -417,7 +434,7 @@ class Oauth2 {
         return result;
     }
 
-    private static void extractJsonObjects(Map<String, String> responseItems, String jsonStr)
+    public static void extractJsonObjects(Map<String, String> responseItems, String jsonStr)
             throws JSONException {
         final JSONObject jsonObject = new JSONObject(jsonStr);
 
@@ -857,7 +874,7 @@ class Oauth2 {
                 EventStrings.HTTP_EVENT);
     }
 
-    private void setTokenEndpoint(final String tokenEndpoint) {
+    public void setTokenEndpoint(final String tokenEndpoint) {
         mTokenEndpoint = tokenEndpoint;
     }
 }
