@@ -45,7 +45,7 @@ import java.security.NoSuchAlgorithmException;
 /**
  * Gets information about calling activity.
  */
-class PackageHelper {
+public class PackageHelper {
     private static final String TAG = "CallerInfo";
 
     private Context mContext;
@@ -57,7 +57,7 @@ class PackageHelper {
      * 
      * @param ctx The android app/activity context
      */
-    PackageHelper(Context ctx) {
+    public PackageHelper(Context ctx) {
         mContext = ctx;
         mAcctManager = AccountManager.get(mContext);
     }

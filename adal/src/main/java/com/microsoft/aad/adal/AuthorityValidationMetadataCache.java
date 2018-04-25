@@ -40,7 +40,7 @@ import java.util.concurrent.ConcurrentMap;
  * Hold the authority validation metadata.
  */
 
-final class AuthorityValidationMetadataCache {
+class AuthorityValidationMetadataCache {
     private static final String TAG = AuthorityValidationMetadataCache.class.getSimpleName();
 
     static final String TENANT_DISCOVERY_ENDPOINT = "tenant_discovery_endpoint";
@@ -55,7 +55,7 @@ final class AuthorityValidationMetadataCache {
 
     private static ConcurrentMap<String, InstanceDiscoveryMetadata> sAadAuthorityHostMetadata = new ConcurrentHashMap<>();
 
-    private AuthorityValidationMetadataCache() {
+    protected AuthorityValidationMetadataCache() {
         // Utility class, no public constructor
     }
 
@@ -67,7 +67,7 @@ final class AuthorityValidationMetadataCache {
         return containsAuthorityHost(authorityUrl) && getCachedInstanceDiscoveryMetadata(authorityUrl).isValidated();
     }
 
-    static InstanceDiscoveryMetadata getCachedInstanceDiscoveryMetadata(final URL authorityUrl) {
+    public static InstanceDiscoveryMetadata getCachedInstanceDiscoveryMetadata(final URL authorityUrl) {
         return sAadAuthorityHostMetadata.get(authorityUrl.getHost().toLowerCase(Locale.US));
     }
 
@@ -92,7 +92,7 @@ final class AuthorityValidationMetadataCache {
         processInstanceDiscoveryResponse(metadata);
     }
 
-    static void updateInstanceDiscoveryMap(final String host, final InstanceDiscoveryMetadata metadata) {
+    public static void updateInstanceDiscoveryMap(final String host, final InstanceDiscoveryMetadata metadata) {
         sAadAuthorityHostMetadata.put(host.toLowerCase(Locale.US), metadata);
     }
 

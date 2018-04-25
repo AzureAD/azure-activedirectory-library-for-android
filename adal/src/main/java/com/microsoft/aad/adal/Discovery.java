@@ -51,7 +51,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * sends common as a tenant name. Discovery checks only authorization endpoint.
  * It does not do tenant verification. Initialize and call from UI thread.
  */
-final class Discovery {
+class Discovery {
 
     private static final String TAG = "Discovery";
 
@@ -112,7 +112,7 @@ final class Discovery {
         validateADFS(authorizationEndpoint, domain);
     }
 
-    void validateAuthority(final URL authorizationEndpoint) throws AuthenticationException {
+    public void validateAuthority(final URL authorizationEndpoint) throws AuthenticationException {
         verifyAuthorityValidInstance(authorizationEndpoint);
 
         if (AuthorityValidationMetadataCache.containsAuthorityHost(authorizationEndpoint)) {
