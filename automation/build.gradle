@@ -17,6 +17,10 @@ dependencies {
     testImplementation group: 'com.nimbusds', name: 'nimbus-jose-jwt', version: '5.7'
 }
 
+test {
+    exclude 'com/microsoft/identity/common/test/automation/**'
+}
+
 gradle.startParameter.continueOnFailure = true
 
 sourceCompatibility = "1.7"
