@@ -42,6 +42,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -460,7 +461,6 @@ public class OauthTests {
                 testResult.getAuthenticationResult().getRefreshToken());
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testRefreshTokenWebResponseDeviceChallengePositive()
             throws IOException, AuthenticationException, NoSuchAlgorithmException {
@@ -494,10 +494,12 @@ public class OauthTests {
                 HttpURLConnection.HTTP_OK, tokenPositiveResponse, null);
         // first call returns 401 and second call returns token
         when(
-                mockWebRequest.sendPost(eq(new URL(TEST_AUTHORITY + "/oauth2/token")),
-                        any(headers.getClass()), any(byte[].class),
-                        eq("application/x-www-form-urlencoded"))).thenReturn(responeChallenge)
-                .thenReturn(responseValid);
+                mockWebRequest.sendPost(
+                        eq(new URL(TEST_AUTHORITY + "/oauth2/token")),
+                        Mockito.<String, String>anyMap(),
+                        any(byte[].class),
+                        eq("application/x-www-form-urlencoded"))
+        ).thenReturn(responeChallenge).thenReturn(responseValid);
 
         // send request
         final MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),
@@ -540,9 +542,12 @@ public class OauthTests {
                 AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER, " ");
         HttpWebResponse responseChallenge = new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, headers);
         when(
-                mockWebRequest.sendPost(eq(new URL(TEST_AUTHORITY + "/oauth2/token")),
-                        any(headers.getClass()), any(byte[].class),
-                        eq("application/x-www-form-urlencoded"))).thenReturn(responseChallenge);
+                mockWebRequest.sendPost(
+                        eq(new URL(TEST_AUTHORITY + "/oauth2/token")),
+                        Mockito.<String, String>anyMap(),
+                        any(byte[].class),
+                        eq("application/x-www-form-urlencoded"))
+        ).thenReturn(responseChallenge);
 
         // send request
         MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),

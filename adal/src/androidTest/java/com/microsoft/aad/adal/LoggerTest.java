@@ -28,14 +28,14 @@ import android.support.test.runner.AndroidJUnit4;
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
 
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -47,19 +47,21 @@ public class LoggerTest extends AndroidTestHelper {
     @Test
     public void testSetCallback() {
 
-        final TestLogResponse response = new TestLogResponse();
+        final List<TestLogResponse> logResponses = new ArrayList<>();
+        int index = 0;
         Logger.getInstance().setEnablePII(true);
         Logger.getInstance().setExternalLogger(new ILogger() {
 
             @Override
             public void Log(String tag, String message, String additionalMessage, LogLevel level,
                             ADALError errorCode) {
-
+                TestLogResponse response = new TestLogResponse();
                 response.setTag(tag);
                 response.setMessage(message);
                 response.setAdditionalMessage(additionalMessage);
                 response.setLevel(level);
                 response.setErrorCode(errorCode);
+                logResponses.add(response);
             }
         });
 
@@ -67,33 +69,33 @@ public class LoggerTest extends AndroidTestHelper {
         Logger.getInstance().setLogLevel(Logger.LogLevel.Verbose);
         Logger.v("test", "testmessage", "additionalMessage", ADALError.AUTH_FAILED_BAD_STATE);
 
-        verifyLogMessage(response);
+        verifyLogMessage(logResponses);
+        logResponses.clear();
 
         Logger.getInstance().setLogLevel(Logger.LogLevel.Debug);
         Logger.e("test", "testmessage", "additionalMessage", ADALError.AUTH_FAILED_BAD_STATE);
 
-        verifyLogMessage(response);
+        verifyLogMessage(logResponses);
+        logResponses.clear();
 
         Logger.getInstance().setLogLevel(Logger.LogLevel.Error);
         Logger.e("test", "testmessage", "additionalMessage", ADALError.AUTH_FAILED_BAD_STATE);
 
-        verifyLogMessage(response);
+        verifyLogMessage(logResponses);
+        logResponses.clear();
 
         Logger.getInstance().setLogLevel(Logger.LogLevel.Debug);
         Logger.d("test", "testmessage");
 
-        assertEquals("same log tag", "test", response.getTag());
-        assertTrue("same log message", response.getMessage().contains("testmessage"));
-        response.reset();
+        assertEquals("same log tag", "test", logResponses.get(0).getTag());
+        assertTrue("same log message", logResponses.get(0).getMessage().contains("testmessage"));
+        logResponses.clear();
 
         // set to warn
-        response.setTag(null);
-        response.setMessage(null);
         Logger.getInstance().setLogLevel(Logger.LogLevel.Warn);
         Logger.v("test", "testmessage", "additionalMessage", ADALError.AUTH_FAILED_BAD_STATE);
 
-        assertNull("not logged", response.getTag());
-        assertNull("not logged", response.getMessage());
+        assertEquals(0, logResponses.size());
     }
 
     @Test
@@ -114,22 +116,7 @@ public class LoggerTest extends AndroidTestHelper {
             }
         });
 
-        // set to v
-        Logger.getInstance().setLogLevel(Logger.LogLevel.Verbose);
-        Logger.v(null, null, null, ADALError.AUTH_FAILED_BAD_STATE);
-
-        assertNull("null log tag", response.getTag());
-        assertTrue(response.getMessage().contains(" ver:" + AuthenticationContext.getVersionName()));
-        assertNull("null log detail message", response.getAdditionalMessage());
-        assertEquals("same log error code", ADALError.AUTH_FAILED_BAD_STATE, response.getErrorCode());
-        response.reset();
-
         Logger.getInstance().setLogLevel(Logger.LogLevel.Debug);
-        Logger.d("TAG", null);
-        assertNull("null log tag since not logging this", response.getTag());
-        assertNull("null log message", response.getMessage());
-        assertNull("null log detail message", response.getAdditionalMessage());
-        response.reset();
 
         Logger.d(null, "someMessage234");
         assertNull("null log tag since not logging this", response.getTag());
@@ -148,27 +135,21 @@ public class LoggerTest extends AndroidTestHelper {
         Logger.w(null, null, null, ADALError.AUTH_FAILED_BAD_STATE);
 
         assertNull("null log tag", response.getTag());
-        assertNotNull("log message has version", response.getMessage());
         assertNull("null log detail message", response.getAdditionalMessage());
-        assertEquals("same log error code", ADALError.AUTH_FAILED_BAD_STATE, response.getErrorCode());
         response.reset();
 
         Logger.getInstance().setLogLevel(Logger.LogLevel.Info);
         Logger.i(null, null, null, ADALError.AUTH_FAILED_BAD_STATE);
 
         assertNull("null log tag", response.getTag());
-        assertNotNull("log message", response.getMessage());
         assertNull("null log detail message", response.getAdditionalMessage());
-        assertEquals("same log error code", ADALError.AUTH_FAILED_BAD_STATE, response.getErrorCode());
         response.reset();
 
         Logger.getInstance().setLogLevel(Logger.LogLevel.Error);
         Logger.e(null, null, null, ADALError.AUTH_FAILED_BAD_STATE);
 
         assertNull("null log tag", response.getTag());
-        assertNotNull("null log message", response.getMessage());
         assertNull("null log detail message", response.getAdditionalMessage());
-        assertEquals("same log error code", ADALError.AUTH_FAILED_BAD_STATE, response.getErrorCode());
         response.reset();
     }
 
@@ -196,11 +177,13 @@ public class LoggerTest extends AndroidTestHelper {
         assertTrue("same log message", response.getMessage().contains("testMessage") && response.getMessage().contains(testId.toString()));
     }
 
-    private void verifyLogMessage(final TestLogResponse response) {
-        assertEquals("same log tag", "test", response.getTag());
-        assertTrue("same log message", response.getMessage().contains("testmessage"));
-        assertEquals("same log detail message", "additionalMessage", response.getAdditionalMessage());
-        assertEquals("same log error code", ADALError.AUTH_FAILED_BAD_STATE, response.getErrorCode());
-        response.reset();
+    private void verifyLogMessage(final List<TestLogResponse> responses) {
+        for (final TestLogResponse response : responses) {
+            assertEquals("same log tag", "test", response.getTag());
+            assertEquals("same log error code", ADALError.AUTH_FAILED_BAD_STATE, response.getErrorCode());
+        }
+
+        assertTrue("same log message", responses.get(0).getMessage().contains("testmessage"));
+        assertTrue("same log detail message", responses.get(1).getMessage().contains("additionalMessage"));
     }
 }
