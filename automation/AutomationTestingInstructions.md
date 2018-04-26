@@ -59,7 +59,7 @@ Many (if not all of you) at the time of writing are using a version of Windows 1
 2. Running the following command from an elevated command prompt:
 
 ```powershell
-
+DG_Readiness_Tool_v3.4.ps1 -Disable
 ```
 
 ## Running Tests
