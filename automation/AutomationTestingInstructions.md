@@ -36,6 +36,18 @@ Other instructions:
 3. When prompted for credentails the username doesn't matter, just enter something, but the password does. Please use a strong password as this will be used to protect the private key when the certificate is written to disk.  (NOTE: The certificate will be deleted )
 
 ```powershell
+#Attribution: http://www.sherweb.com/blog/powershell-ing-on-windows-server-how-to-import-certificates-using-powershell/
+function Import-NewPfxCertificate {
+param([String]$certPath,[String]$certRootStore = “CurrentUser”,[String]$certStore = “My”,$pfxPass = $null)
+ $pfx = new-object System.Security.Cryptography.X509Certificates.X509Certificate2
+ if ($pfxPass -eq $null) {$pfxPass = read-host “Enter the pfx password” -assecurestring}
+ $pfx.import($certPath,$pfxPass,“Exportable,PersistKeySet”)
+ $store = new-object System.Security.Cryptography.X509Certificates.X509Store($certStore,$certRootStore)
+ $store.open(“MaxAllowed”)
+ $store.add($pfx)
+ $store.close()
+}
+
 Login-AzureRMAccount -TenantId microsoft.com
 
 $pfxPath="C:\temp\test\automationrunner.pfx"
@@ -45,7 +57,11 @@ $credential = Get-Credential
 $certBytes = $cert.Certificate.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Pfx, $credential.Password)
 [System.IO.File]::WriteAllBytes($pfxPath, $certBytes)
 
-Import-PfxCertificate -FilePath $pfxPath Cert:\CurrentUser\My -Password $credential.Password
+Import-NewPfxCertificate -certPath $pfxPath -pfxPass $credential.Password
+
+Set-Location cert:\currentuser\My
+
+(gci '33BC9D3DEB420C998D818EAFAA0BAE26296A9AA4').FriendlyName = "AutomationRunner"
 
 Remove-Item $pfxPath
 
