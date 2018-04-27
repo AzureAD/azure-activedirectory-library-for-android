@@ -70,6 +70,7 @@ final class CoreAdapter {
         if (null != result.getClientInfo()) {
             adTokenResponse.setClientInfo(result.getClientInfo().getRawClientInfo()); // TODO
         }
+
         // TODO populate other missing fields...
         return adTokenResponse;
 

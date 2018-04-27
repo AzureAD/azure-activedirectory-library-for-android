@@ -33,6 +33,8 @@ import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.exception.ServiceException;
+import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.ClientInfo;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -198,17 +200,23 @@ class Oauth2 {
     public String buildTokenRequestMessage(String code) throws UnsupportedEncodingException {
         Logger.v(TAG, "Building request message for redeeming token with auth code.");
 
-        return String.format("%s=%s&%s=%s&%s=%s&%s=%s",
+        return String.format("%s=%s&%s=%s&%s=%s&%s=%s&%s=%s",
                 AuthenticationConstants.OAuth2.GRANT_TYPE,
                 StringExtensions.urlFormEncode(AuthenticationConstants.OAuth2.AUTHORIZATION_CODE),
 
-                AuthenticationConstants.OAuth2.CODE, StringExtensions.urlFormEncode(code),
+                AuthenticationConstants.OAuth2.CODE,
+                StringExtensions.urlFormEncode(code),
 
                 AuthenticationConstants.OAuth2.CLIENT_ID,
                 StringExtensions.urlFormEncode(mRequest.getClientId()),
 
                 AuthenticationConstants.OAuth2.REDIRECT_URI,
-                StringExtensions.urlFormEncode(mRequest.getRedirectUri()));
+                StringExtensions.urlFormEncode(mRequest.getRedirectUri()),
+
+                // Request client_info
+                AuthenticationConstants.OAuth2.CLIENT_INFO,
+                AuthenticationConstants.OAuth2.CLIENT_INFO_TRUE
+        );
     }
 
     public String buildRefreshTokenRequestMessage(String refreshToken)
@@ -321,6 +329,16 @@ class Oauth2 {
                 familyClientId = response.get(AuthenticationConstants.OAuth2.ADAL_CLIENT_FAMILY_ID);
             }
 
+            ClientInfo clientInfo = null;
+            if (response.containsKey(AuthenticationConstants.OAuth2.CLIENT_INFO)) {
+                final String rawClientInfo = response.get(AuthenticationConstants.OAuth2.CLIENT_INFO);
+                try {
+                    clientInfo = new ClientInfo(rawClientInfo);
+                } catch (ServiceException e) {
+                    Logger.w(TAG, "ClientInfo decoding/parsing failed.");
+                }
+            }
+
             result = new AuthenticationResult(
                     response.get(AuthenticationConstants.OAuth2.ACCESS_TOKEN),
                     refreshToken,
@@ -333,6 +351,7 @@ class Oauth2 {
                     mRequest.getClientId()
             );
 
+            result.setClientInfo(clientInfo);
             result.setExpiresIn(expiresInLong);
             result.setResponseReceived(System.currentTimeMillis());
 
