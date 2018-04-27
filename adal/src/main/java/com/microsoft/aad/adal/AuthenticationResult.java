@@ -26,6 +26,7 @@ package com.microsoft.aad.adal;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
+import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.ClientInfo;
 
 import org.json.JSONException;
 
@@ -46,6 +47,8 @@ public class AuthenticationResult implements Serializable {
      * Serial version number for serialization.
      */
     private static final long serialVersionUID = 2243372613182536368L;
+
+    private ClientInfo mClientInfo;
 
     /**
      * Status for authentication.
@@ -496,6 +499,24 @@ public class AuthenticationResult implements Serializable {
 
     public void setClientId(final String clientId) {
         mClientId = clientId;
+    }
+
+    /**
+     * Sets the ClientInfo.
+     *
+     * @param clientInfo The ClientInfo to set.
+     */
+    public void setClientInfo(final ClientInfo clientInfo) {
+        mClientInfo = clientInfo;
+    }
+
+    /**
+     * Gets the {@link ClientInfo}.
+     *
+     * @return The ClientInfo to get.
+     */
+    public ClientInfo getClientInfo() {
+        return mClientInfo;
     }
 
 }
