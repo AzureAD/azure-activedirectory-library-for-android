@@ -49,6 +49,7 @@ public class AuthenticationResult implements Serializable {
     private static final long serialVersionUID = 2243372613182536368L;
 
     private ClientInfo mClientInfo;
+    private String mResource;
 
     /**
      * Status for authentication.
@@ -506,7 +507,7 @@ public class AuthenticationResult implements Serializable {
      *
      * @param clientInfo The ClientInfo to set.
      */
-    public void setClientInfo(final ClientInfo clientInfo) {
+    void setClientInfo(final ClientInfo clientInfo) {
         mClientInfo = clientInfo;
     }
 
@@ -517,6 +518,24 @@ public class AuthenticationResult implements Serializable {
      */
     public ClientInfo getClientInfo() {
         return mClientInfo;
+    }
+
+    /**
+     * Sets the resource of this AuthenticationResult.
+     *
+     * @param resource The resource to set.
+     */
+    void setResource(String resource) {
+        mResource = resource;
+    }
+
+    /**
+     * Gets the resource of this AuthenticationResult.
+     *
+     * @return The resource to get.
+     */
+    public String getResource() {
+        return mResource;
     }
 
 }

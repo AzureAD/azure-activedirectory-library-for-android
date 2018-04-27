@@ -66,14 +66,19 @@ final class CoreAdapter {
         adTokenResponse.setResponseReceivedTime(result.getResponseReceived());
         adTokenResponse.setFamilyId(result.getFamilyClientId());
         adTokenResponse.setClientId(result.getClientId());
+        adTokenResponse.setResource(result.getResource());
+
+        // This is kind of weird, but because the v1 endpoint doesn't have any notion of scopes
+        // we treat the resource as the scope and, in cases where this issued-token is sent to
+        // AAD v2, we append '/.default' to end of the resource value
+        adTokenResponse.setScope(result.getResource());
 
         if (null != result.getClientInfo()) {
-            adTokenResponse.setClientInfo(result.getClientInfo().getRawClientInfo()); // TODO
+            adTokenResponse.setClientInfo(result.getClientInfo().getRawClientInfo());
         }
 
         // TODO populate other missing fields...
         return adTokenResponse;
-
     }
 
 

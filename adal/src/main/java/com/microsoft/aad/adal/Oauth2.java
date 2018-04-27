@@ -302,9 +302,12 @@ class Oauth2 {
                             : Integer.parseInt(expiresIn));
 
             final String refreshToken = response.get(AuthenticationConstants.OAuth2.REFRESH_TOKEN);
+
+            String resource = null;
             if (response.containsKey(AuthenticationConstants.AAD.RESOURCE)
                     && !StringExtensions.isNullOrBlank(refreshToken)) {
                 isMultiResourceToken = true;
+                resource = response.get(AuthenticationConstants.AAD.RESOURCE);
             }
 
             UserInfo userinfo = null;
@@ -351,6 +354,7 @@ class Oauth2 {
                     mRequest.getClientId()
             );
 
+            result.setResource(resource);
             result.setClientInfo(clientInfo);
             result.setExpiresIn(expiresInLong);
             result.setResponseReceived(System.currentTimeMillis());
