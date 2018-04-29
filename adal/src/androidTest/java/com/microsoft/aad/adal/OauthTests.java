@@ -331,7 +331,7 @@ public class OauthTests {
         final Oauth2 oauth2 = createOAuthInstance(request);
         assertEquals(
                 "Token request",
-                "grant_type=authorization_code&code=authorizationcodevalue%3D&client_id=client+1234567890-%2B%3D%3B%27&redirect_uri=redirect+1234567890-%2B%3D%3B%27",
+                "grant_type=authorization_code&code=authorizationcodevalue%3D&client_id=client+1234567890-%2B%3D%3B%27&redirect_uri=redirect+1234567890-%2B%3D%3B%27&client_info=1",
                 oauth2.buildTokenRequestMessage("authorizationcodevalue="));
 
         // without login hint
@@ -342,7 +342,7 @@ public class OauthTests {
         final Oauth2 oauthWithoutLoginHint = createOAuthInstance(requestWithoutLogin);
         assertEquals(
                 "Token request",
-                "grant_type=authorization_code&code=authorizationcodevalue%3D&client_id=client+1234567890-%2B%3D%3B%27&redirect_uri=redirect+1234567890-%2B%3D%3B%27",
+                "grant_type=authorization_code&code=authorizationcodevalue%3D&client_id=client+1234567890-%2B%3D%3B%27&redirect_uri=redirect+1234567890-%2B%3D%3B%27&client_info=1",
                 oauthWithoutLoginHint.buildTokenRequestMessage("authorizationcodevalue="));
     }
 
