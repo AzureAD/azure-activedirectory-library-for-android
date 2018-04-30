@@ -91,6 +91,12 @@ final class APIEvent extends DefaultEvent {
         setProperty(EventStrings.PROMPT_BEHAVIOR, promptBehavior);
     }
 
+    void setPromptBehavior(final PromptBehavior promptBehavior) {
+        if(promptBehavior != null) {
+            setProperty(EventStrings.PROMPT_BEHAVIOR, promptBehavior.toString());
+        }
+    }
+
     void setAPIId(final String id) {
         setProperty(EventStrings.API_ID, id);
     }
