@@ -24,7 +24,10 @@
 package com.microsoft.aad.adal;
 
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.internal.logging.DiagnosticContext;
 import com.microsoft.identity.common.internal.logging.ILoggerCallback;
+import com.microsoft.identity.common.internal.logging.IRequestContext;
+import com.microsoft.identity.common.internal.logging.RequestContext;
 
 import java.util.UUID;
 
@@ -437,7 +440,15 @@ public class Logger {
     public static void setCorrelationId(UUID correlation) {
         Logger.getInstance().mCorrelationId = "";
         if (correlation != null) {
-            Logger.getInstance().mCorrelationId = correlation.toString();
+            final String correlationId = correlation.toString();
+            Logger.getInstance().mCorrelationId = correlationId;
+
+            // Update to use the new common cache. The correlationId will be set on the
+            // DiagnosticContext.
+            final IRequestContext requestContext = new RequestContext();
+            requestContext.put("correlation_id", correlationId);
+
+            DiagnosticContext.setRequestContext(requestContext);
         }
     }
 

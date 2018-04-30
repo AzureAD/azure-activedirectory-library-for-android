@@ -109,6 +109,11 @@ class AcquireTokenRequest {
         THREAD_EXECUTOR.execute(new Runnable() {
             @Override
             public void run() {
+                // With the introduction of DiagnosticContext, correlationIds are now tracked
+                // per-thread. To support passing the correlationId to the worker thread, we need
+                // to call setCorrelationId() again.
+                Logger.setCorrelationId(authRequest.getCorrelationId());
+
                 Logger.v(TAG + methodName, "Running task in thread:" + android.os.Process.myTid());
                 try {
                     // Validate acquire token call first.
