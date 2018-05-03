@@ -500,7 +500,7 @@ public final class AcquireTokenRequestTest {
         userInfo.setUserId(anotherUserId);
         final String idToken = "I am a different id token";
 
-        final AuthenticationResult result = new AuthenticationResult("different at", "different rt", expiresOn, false, userInfo, "", idToken, null);
+        final AuthenticationResult result = new AuthenticationResult("different at", "different rt", expiresOn, false, userInfo, "", idToken, null, clientId);
         final TokenCacheItem differentTokenItem = TokenCacheItem.createRegularTokenCacheItem(VALID_AUTHORITY, resource, clientId, result);
         cacheStore.setItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, resource, clientId, anotherUserId), differentTokenItem);
         cacheStore.setItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, resource, clientId, anotherUpn), differentTokenItem);
@@ -666,10 +666,10 @@ public final class AcquireTokenRequestTest {
         final AuthenticationResult result;
         if (extendedExpiresOn == null) {
             result = new AuthenticationResult(accessToken, refreshToken, expiresOn, storeMRRT,
-                    userInfo, "", idToken, null);
+                    userInfo, "", idToken, null, clientId);
         } else {
             result = new AuthenticationResult(accessToken, refreshToken, expiresOn, storeMRRT,
-                    userInfo, "", idToken, extendedExpiresOn);
+                    userInfo, "", idToken, extendedExpiresOn, clientId);
         }
 
         final ITokenCacheStore cacheStore = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());

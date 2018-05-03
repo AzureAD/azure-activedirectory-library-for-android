@@ -174,8 +174,16 @@ final class Util {
         Logger.d("Test", "Time now:" + expiredTime.toString());
         expiredTime.add(Calendar.MINUTE, -TOKENS_EXPIRES_MINUTE);
         final UserInfo userInfo = new UserInfo(userId, "GivenName", "FamilyName", "idp", displayableId);
-        final AuthenticationResult authResult = new AuthenticationResult("accessToken", "refresh_token", expiredTime.getTime(),
-                isMRRT, userInfo, "TenantId", "IdToken", null);
+        final AuthenticationResult authResult = new AuthenticationResult(
+                "accessToken", "refresh_token",
+                expiredTime.getTime(),
+                isMRRT,
+                userInfo,
+                "TenantId",
+                "IdToken",
+                null,
+                "ClientId"
+        );
 
         if (StringExtensions.isNullOrBlank(familyClientId)) {
             return authResult;

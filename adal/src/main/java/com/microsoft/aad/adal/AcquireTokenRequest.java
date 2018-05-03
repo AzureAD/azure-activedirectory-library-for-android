@@ -109,6 +109,11 @@ class AcquireTokenRequest {
         THREAD_EXECUTOR.execute(new Runnable() {
             @Override
             public void run() {
+                // With the introduction of DiagnosticContext, correlationIds are now tracked
+                // per-thread. To support passing the correlationId to the worker thread, we need
+                // to call setCorrelationId() again.
+                Logger.setCorrelationId(authRequest.getCorrelationId());
+
                 Logger.v(TAG + methodName, "Running task in thread:" + android.os.Process.myTid());
                 try {
                     // Validate acquire token call first.
@@ -701,9 +706,27 @@ class AcquireTokenRequest {
                     final String refreshTokenAge = data.getStringExtra(AuthenticationConstants.Broker.CliTelemInfo.RT_AGE);
                     final String speRingInfo = data.getStringExtra(AuthenticationConstants.Broker.CliTelemInfo.SPE_RING);
 
+                    // Use the waitingRequest to get the original request to get the clientId
+                    final AuthenticationRequest originalRequest = waitingRequest.getRequest();
+                    String clientId = null;
+
+                    if (null != originalRequest) {
+                        clientId = originalRequest.getClientId();
+                    }
+
                     // create the broker AuthenticationResult
-                    final AuthenticationResult brokerResult = new AuthenticationResult(accessToken, null,
-                            expire, false, userinfo, tenantId, idtoken, null);
+                    final AuthenticationResult brokerResult =
+                            new AuthenticationResult(
+                                    accessToken,
+                                    null,
+                                    expire,
+                                    false,
+                                    userinfo,
+                                    tenantId,
+                                    idtoken,
+                                    null,
+                                    clientId
+                            );
                     final String authority = data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY);
                     brokerResult.setAuthority(authority);
 
