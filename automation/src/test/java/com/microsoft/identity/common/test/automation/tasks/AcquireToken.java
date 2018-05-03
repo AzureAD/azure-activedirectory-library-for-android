@@ -4,9 +4,9 @@ import com.microsoft.identity.common.test.automation.actors.User;
 import com.microsoft.identity.common.test.automation.interactions.CloseKeyboard;
 import com.microsoft.identity.common.test.automation.ui.Main;
 import com.microsoft.identity.common.test.automation.ui.Request;
-import com.microsoft.identity.common.test.automation.ui.googleplaystore.AppDetailView;
 import com.microsoft.identity.common.test.automation.ui.identityproviders.AADV1.SignInPagePassword;
 import com.microsoft.identity.common.test.automation.ui.identityproviders.AADV1.SignInPageUserName;
+import com.microsoft.identity.common.test.automation.utility.TokenRequest;
 
 import net.serenitybdd.screenplay.Actor;
 import net.serenitybdd.screenplay.Task;
@@ -22,10 +22,15 @@ public class AcquireToken implements Task{
     @Steps
     CloseKeyboard closeKeyboard;
 
+    String prompt;
+    String userIdentifier;
 
     @Override
     public <T extends Actor> void performAs(T actor) {
         User user = (User)actor;
+        TokenRequest tokenRequest = user.getTokenRequest();
+        tokenRequest.setPromptBehavior(prompt);
+        tokenRequest.setUserIdentitfier(userIdentifier);
         SignInUser signInUser = SignInUser.GetSignInUserByFederationProvider(user.getFederationProvider());
         actor.attemptsTo(
                 WaitUntil.the(Main.ACQUIRE_TOKEN_BUTTON, isVisible()).forNoMoreThan(10).seconds(),
@@ -39,6 +44,16 @@ public class AcquireToken implements Task{
                 WaitUntil.the(SignInPagePassword.PASSWORD, isVisible()).forNoMoreThan(10).seconds(),
                 signInUser
         );
+    }
+
+    public AcquireToken withPrompt(String prompt){
+            this.prompt = prompt;
+            return this;
+    }
+
+    public AcquireToken withUserIdentifier(String userIdentifier){
+        this.userIdentifier = userIdentifier;
+        return this;
     }
 
 
