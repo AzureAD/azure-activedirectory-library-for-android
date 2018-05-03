@@ -32,9 +32,11 @@ import static net.serenitybdd.screenplay.GivenWhenThen.then;
 import static org.hamcrest.Matchers.is;
 
 @RunWith(SerenityParameterizedRunner.class)
-public class AcquireTokenBasicPromptAutoTest {
+public class AcquireTokenBasicPromptAlwaysTest {
+
     @TestData
     public static Collection<Object[]> FederationProviders() {
+
 
         return Arrays.asList(new Object[][]{
                 {"ADFSv2"},
@@ -42,7 +44,9 @@ public class AcquireTokenBasicPromptAutoTest {
                 {"ADFSv4"},
                 {"PingFederate"},
                 {"Shibboleth"}
+
         });
+
     }
 
     static AppiumDriverLocalService appiumService = null;
@@ -73,7 +77,7 @@ public class AcquireTokenBasicPromptAutoTest {
     @Steps
     ClickDone clickDone;
 
-    public AcquireTokenBasicPromptAutoTest(String federationProvider) {
+    public AcquireTokenBasicPromptAlwaysTest(String federationProvider) {
         this.federationProvider = federationProvider;
     }
 
@@ -95,6 +99,7 @@ public class AcquireTokenBasicPromptAutoTest {
         newUser.setFederationProvider(scenario.getTestConfiguration().getUsers().getFederationProvider());
         newUser.setTokenRequest(scenario.getTokenRequest());
         newUser.setCredential(scenario.getCredential());
+
         return newUser;
     }
 
@@ -103,7 +108,7 @@ public class AcquireTokenBasicPromptAutoTest {
     public void should_be_able_to_acquire_token() {
 
         james.attemptsTo(
-                acquireToken.withPrompt("Auto"),
+                acquireToken.withPrompt("Always"),
                 clickDone,
                 readCache);
 
