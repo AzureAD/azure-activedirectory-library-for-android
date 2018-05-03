@@ -19,11 +19,11 @@ public class SignInUserADFSv3 extends SignInUser {
     public <T extends Actor> void performAs(T actor) {
         User user = (User)actor;
         user.attemptsTo(
-            //Not using static method here to avoid logging the password via instrumentation... this won't show up as a step
-            WaitUntil.the(SignInPage.PASSWORD_FIELD, isVisible()).forNoMoreThan(10).seconds(),
-            new EnterValueIntoTarget(user.getCredential().password, SignInPage.PASSWORD_FIELD),
-            new CloseKeyboard(),
-            Click.on(SignInPage.SIGN_IN_BUTTON)
+                //Not using static method here to avoid logging the password via instrumentation... this won't show up as a step
+                WaitUntil.the(SignInPage.PASSWORD_FIELD, isVisible()).forNoMoreThan(10).seconds(),
+                new EnterValueIntoTarget(user.getCredential().password, SignInPage.PASSWORD_FIELD),
+                new CloseKeyboard(),
+                Click.on(SignInPage.SIGN_IN_BUTTON)
         );
     }
 }

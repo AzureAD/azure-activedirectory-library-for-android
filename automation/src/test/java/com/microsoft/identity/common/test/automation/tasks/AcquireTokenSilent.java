@@ -10,7 +10,10 @@ import net.serenitybdd.screenplay.Actor;
 import net.serenitybdd.screenplay.Task;
 import net.serenitybdd.screenplay.actions.Click;
 import net.serenitybdd.screenplay.actions.Enter;
+import net.serenitybdd.screenplay.waits.WaitUntil;
 import net.thucydides.core.annotations.Steps;
+
+import static net.serenitybdd.screenplay.matchers.WebElementStateMatchers.isVisible;
 
 public class AcquireTokenSilent implements Task{
 
@@ -21,6 +24,7 @@ public class AcquireTokenSilent implements Task{
     public <T extends Actor> void performAs(T actor) {
         User user = (User)actor;
         actor.attemptsTo(
+                WaitUntil.the(Main.ACQUIRE_TOKEN_SILENT, isVisible()).forNoMoreThan(10).seconds(),
                 Click.on(Main.ACQUIRE_TOKEN_SILENT),
                 Enter.theValue(user.getSilentTokenRequestAsJson()).into(Request.REQUEST_INFO_FIELD),
                 closeKeyboard,
