@@ -419,6 +419,9 @@ public class User {
   **/
   @ApiModelProperty(value = "")
   public String getFederationProvider() {
+    if(upn.matches("(.*)onmicrosoft(.*)")){
+      return "Cloud";
+    }
     return federationProvider;
   }
 

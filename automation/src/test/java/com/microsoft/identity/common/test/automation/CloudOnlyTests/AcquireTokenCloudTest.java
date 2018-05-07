@@ -4,6 +4,7 @@ import com.microsoft.identity.common.test.automation.actors.User;
 import com.microsoft.identity.common.test.automation.interactions.ClickDone;
 import com.microsoft.identity.common.test.automation.questions.TokenCacheItemCount;
 import com.microsoft.identity.common.test.automation.tasks.AcquireToken;
+import com.microsoft.identity.common.test.automation.tasks.AcquireTokenCloud;
 import com.microsoft.identity.common.test.automation.tasks.ReadCache;
 import com.microsoft.identity.common.test.automation.utility.Scenario;
 import com.microsoft.identity.common.test.automation.utility.TestConfigurationQuery;
@@ -39,7 +40,7 @@ public class AcquireTokenCloudTest {
 
 
         return Arrays.asList(new Object[][]{
-                {"ADFSv3"}
+                {"Cloud"}
         });
     }
 
@@ -63,7 +64,7 @@ public class AcquireTokenCloudTest {
     private String federationProvider;
 
     @Steps
-    AcquireToken acquireToken;
+    AcquireTokenCloud acquireTokenCloud;
 
     @Steps
     ReadCache readCache;
@@ -78,7 +79,6 @@ public class AcquireTokenCloudTest {
     @Before
     public void jamesCanUseAMobileDevice(){
         TestConfigurationQuery query = new TestConfigurationQuery();
-        query.federationProvider = this.federationProvider;
         query.isFederated = false;
         query.userType = "Member";
         james = getUser(query);
@@ -102,7 +102,7 @@ public class AcquireTokenCloudTest {
     public void should_be_able_to_acquire_token() {
 
         james.attemptsTo(
-                acquireToken,
+                acquireTokenCloud,
                 clickDone,
                 readCache);
 
