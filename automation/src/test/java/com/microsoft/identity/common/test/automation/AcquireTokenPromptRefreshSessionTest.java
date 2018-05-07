@@ -47,10 +47,7 @@ public class AcquireTokenPromptRefreshSessionTest {
         return Arrays.asList(new Object[][]{
                 {"ADFSv2"},
                 {"ADFSv3"},
-                {"ADFSv4"},
-                {"PingFederate"},
-                {"Shibboleth"}
-
+                {"ADFSv4"}
         });
     }
 
@@ -121,7 +118,7 @@ public class AcquireTokenPromptRefreshSessionTest {
         james.attemptsTo(clickDone);
 
         when(james).attemptsTo(
-                selectAccount.withPrompt("RefreshSession"),
+                selectAccount.withPrompt("REFRESH_SESSION"),
                 clickDone,
                 readCache);
         then(james).should(seeThat(TokenCacheItemCount.displayed(), is(6)));

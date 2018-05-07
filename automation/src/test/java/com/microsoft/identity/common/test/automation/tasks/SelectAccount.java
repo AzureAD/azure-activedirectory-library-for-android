@@ -38,7 +38,9 @@ public class SelectAccount implements Task{
                 Enter.theValue(user.getTokenRequestAsJson()).into(Request.REQUEST_INFO_FIELD),
                 closeKeyboard,
                 WaitUntil.the(Request.SUBMIT_REQUEST_BUTTON, isVisible()).forNoMoreThan(10).seconds(),
-                Click.on(Request.SUBMIT_REQUEST_BUTTON)
+                Click.on(Request.SUBMIT_REQUEST_BUTTON),
+                WaitUntil.the(Request.SELECT_ACCOUNT_BUTTON, isVisible()).forNoMoreThan(10).seconds(),
+                Click.on(Request.SELECT_ACCOUNT_BUTTON)
         );
     }
 
