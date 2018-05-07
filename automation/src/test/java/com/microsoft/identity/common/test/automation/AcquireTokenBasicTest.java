@@ -1,35 +1,35 @@
 package com.microsoft.identity.common.test.automation;
 
-        import com.microsoft.identity.common.test.automation.actors.User;
-        import com.microsoft.identity.common.test.automation.interactions.ClickDone;
-        import com.microsoft.identity.common.test.automation.questions.TokenCacheItemCount;
-        import com.microsoft.identity.common.test.automation.tasks.AcquireToken;
-        import com.microsoft.identity.common.test.automation.tasks.ReadCache;
-        import com.microsoft.identity.common.test.automation.utility.Scenario;
-        import com.microsoft.identity.common.test.automation.utility.TestConfigurationQuery;
+import com.microsoft.identity.common.test.automation.actors.User;
+import com.microsoft.identity.common.test.automation.interactions.ClickDone;
+import com.microsoft.identity.common.test.automation.questions.TokenCacheItemCount;
+import com.microsoft.identity.common.test.automation.tasks.AcquireToken;
+import com.microsoft.identity.common.test.automation.tasks.ReadCache;
+import com.microsoft.identity.common.test.automation.utility.Scenario;
+import com.microsoft.identity.common.test.automation.utility.TestConfigurationQuery;
 
-        import net.serenitybdd.junit.runners.SerenityParameterizedRunner;
-        import net.serenitybdd.screenplay.abilities.BrowseTheWeb;
-        import net.thucydides.core.annotations.Managed;
-        import net.thucydides.core.annotations.Steps;
-        import net.thucydides.junit.annotations.TestData;
+import net.serenitybdd.junit.runners.SerenityParameterizedRunner;
+import net.serenitybdd.screenplay.abilities.BrowseTheWeb;
+import net.thucydides.core.annotations.Managed;
+import net.thucydides.core.annotations.Steps;
+import net.thucydides.junit.annotations.TestData;
 
-        import org.junit.AfterClass;
-        import org.junit.Before;
-        import org.junit.BeforeClass;
-        import org.junit.Test;
-        import org.junit.runner.RunWith;
-        import org.openqa.selenium.WebDriver;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.openqa.selenium.WebDriver;
 
-        import java.io.IOException;
-        import java.util.Arrays;
-        import java.util.Collection;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
 
-        import io.appium.java_client.service.local.AppiumDriverLocalService;
+import io.appium.java_client.service.local.AppiumDriverLocalService;
 
-        import static net.serenitybdd.screenplay.GivenWhenThen.seeThat;
-        import static net.serenitybdd.screenplay.GivenWhenThen.then;
-        import static org.hamcrest.Matchers.is;
+import static net.serenitybdd.screenplay.GivenWhenThen.seeThat;
+import static net.serenitybdd.screenplay.GivenWhenThen.then;
+import static org.hamcrest.Matchers.is;
 
 @RunWith(SerenityParameterizedRunner.class)
 public class AcquireTokenBasicTest {
@@ -40,10 +40,10 @@ public class AcquireTokenBasicTest {
 
         return Arrays.asList(new Object[][]{
                 {"ADFSv2"},
-                //{"ADFSv3"},
-                {"ADFSv4"}//,
-                //{"PingFederate"}//,
-                //{"Shibboleth"}
+                {"ADFSv3"},
+                {"ADFSv4"},
+                {"PingFederate"},
+                {"Shibboleth"}
 
         });
 

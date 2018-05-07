@@ -1,8 +1,10 @@
 package com.microsoft.identity.common.test.automation;
 
 import com.microsoft.identity.common.test.automation.actors.User;
+import com.microsoft.identity.common.test.automation.interactions.ClickDone;
+import com.microsoft.identity.common.test.automation.questions.TokenCacheItemCount;
 import com.microsoft.identity.common.test.automation.tasks.AcquireToken;
-import com.microsoft.identity.common.test.automation.tasks.AcquireTokenSilent;
+import com.microsoft.identity.common.test.automation.tasks.ReadCache;
 import com.microsoft.identity.common.test.automation.utility.Scenario;
 import com.microsoft.identity.common.test.automation.utility.TestConfigurationQuery;
 
@@ -25,11 +27,15 @@ import java.util.Collection;
 
 import io.appium.java_client.service.local.AppiumDriverLocalService;
 
+import static net.serenitybdd.screenplay.GivenWhenThen.seeThat;
+import static net.serenitybdd.screenplay.GivenWhenThen.then;
+import static org.hamcrest.Matchers.is;
+
 @RunWith(SerenityParameterizedRunner.class)
-public class AcquireTokenSilentBasicTest {
+public class AcquireTokenBasicPromptAlwaysTest {
 
     @TestData
-    public static Collection<Object[]> FederationProviders(){
+    public static Collection<Object[]> FederationProviders() {
 
 
         return Arrays.asList(new Object[][]{
@@ -43,12 +49,9 @@ public class AcquireTokenSilentBasicTest {
 
     }
 
-    @Steps
-    AcquireTokenSilent acquireTokenSilent;
-
     static AppiumDriverLocalService appiumService = null;
 
-    @Managed(driver="Appium")
+    @Managed(driver = "Appium")
     WebDriver hisMobileDevice;
 
     @BeforeClass
@@ -65,12 +68,21 @@ public class AcquireTokenSilentBasicTest {
     private User james;
     private String federationProvider;
 
-    public AcquireTokenSilentBasicTest(String federationProvider){
+    @Steps
+    AcquireToken acquireToken;
+
+    @Steps
+    ReadCache readCache;
+
+    @Steps
+    ClickDone clickDone;
+
+    public AcquireTokenBasicPromptAlwaysTest(String federationProvider) {
         this.federationProvider = federationProvider;
     }
 
     @Before
-    public void jamesCanUseAMobileDevice(){
+    public void jamesCanUseAMobileDevice() {
         TestConfigurationQuery query = new TestConfigurationQuery();
         query.federationProvider = this.federationProvider;
         query.isFederated = true;
@@ -79,7 +91,7 @@ public class AcquireTokenSilentBasicTest {
         james.can(BrowseTheWeb.with(hisMobileDevice));
     }
 
-    private static User getUser(TestConfigurationQuery query){
+    private static User getUser(TestConfigurationQuery query) {
 
         Scenario scenario = Scenario.GetScenario(query);
 
@@ -93,9 +105,14 @@ public class AcquireTokenSilentBasicTest {
 
 
     @Test
-    public void should_be_able_to_acquire_token_silent() {
+    public void should_be_able_to_acquire_token() {
 
-        james.attemptsTo(acquireTokenSilent);
+        james.attemptsTo(
+                acquireToken.withPrompt("Always"),
+                clickDone,
+                readCache);
+
+        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(6)));
 
     }
 

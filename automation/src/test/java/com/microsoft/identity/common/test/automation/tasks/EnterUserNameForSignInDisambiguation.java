@@ -7,6 +7,9 @@ import net.serenitybdd.screenplay.Actor;
 import net.serenitybdd.screenplay.Task;
 import net.serenitybdd.screenplay.actions.Click;
 import net.serenitybdd.screenplay.actions.Enter;
+import net.serenitybdd.screenplay.waits.WaitUntil;
+
+import static net.serenitybdd.screenplay.matchers.WebElementStateMatchers.isVisible;
 
 
 public class EnterUserNameForSignInDisambiguation implements Task {
@@ -15,6 +18,7 @@ public class EnterUserNameForSignInDisambiguation implements Task {
     public <T extends Actor> void performAs(T actor) {
         User user = (User)actor;
         user.attemptsTo(
+                WaitUntil.the(SignInPageUserName.USERNAME, isVisible()).forNoMoreThan(10).seconds(),
                 Enter.theValue(user.getCredential().userName).into(SignInPageUserName.USERNAME),
                 Click.on(SignInPageUserName.NEXT_BUTTON)
         );
