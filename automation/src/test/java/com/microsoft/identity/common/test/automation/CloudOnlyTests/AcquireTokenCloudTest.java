@@ -79,7 +79,7 @@ public class AcquireTokenCloudTest {
     public void jamesCanUseAMobileDevice(){
         TestConfigurationQuery query = new TestConfigurationQuery();
         query.federationProvider = this.federationProvider;
-        query.isFederated = true;
+        query.isFederated = false;
         query.userType = "Member";
         james = getUser(query);
         james.can(BrowseTheWeb.with(hisMobileDevice));
