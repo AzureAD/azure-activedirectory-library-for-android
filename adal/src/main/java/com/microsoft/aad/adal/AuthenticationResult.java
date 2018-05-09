@@ -514,7 +514,7 @@ public class AuthenticationResult implements Serializable {
     /**
      * Gets the {@link ClientInfo}.
      *
-     * @return The ClientInfo to get.
+     * @return The ClientInfo to get or null (if the broker was used to acquire tokens).
      */
     public ClientInfo getClientInfo() {
         return mClientInfo;
