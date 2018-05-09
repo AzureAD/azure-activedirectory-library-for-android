@@ -15,6 +15,8 @@ import net.serenitybdd.screenplay.actions.Enter;
 import net.serenitybdd.screenplay.waits.WaitUntil;
 import net.thucydides.core.annotations.Steps;
 
+import org.apache.http.util.TextUtils;
+
 import static net.serenitybdd.screenplay.matchers.WebElementStateMatchers.isVisible;
 
 public class AcquireToken implements Task{
@@ -38,12 +40,19 @@ public class AcquireToken implements Task{
                 Enter.theValue(user.getTokenRequestAsJson()).into(Request.REQUEST_INFO_FIELD),
                 closeKeyboard,
                 WaitUntil.the(Request.SUBMIT_REQUEST_BUTTON, isVisible()).forNoMoreThan(10).seconds(),
-                Click.on(Request.SUBMIT_REQUEST_BUTTON),
-                WaitUntil.the(SignInPageUserName.USERNAME, isVisible()).forNoMoreThan(10).seconds(),
-                new EnterUserNameForSignInDisambiguation(),
-                WaitUntil.the(SignInPagePassword.PASSWORD, isVisible()).forNoMoreThan(10).seconds(),
-                signInUser
+                Click.on(Request.SUBMIT_REQUEST_BUTTON)
         );
+
+        // If userIdentifier was not provided in acquire token call , attempt to enter username for sign in
+        if(TextUtils.isEmpty(userIdentifier)){
+            actor.attemptsTo(
+                    WaitUntil.the(SignInPageUserName.USERNAME, isVisible()).forNoMoreThan(10).seconds(),
+                    new EnterUserNameForSignInDisambiguation(),
+                    WaitUntil.the(SignInPagePassword.PASSWORD, isVisible()).forNoMoreThan(10).seconds()
+            );
+        }
+
+        actor.attemptsTo(signInUser);
     }
 
     public AcquireToken withPrompt(String prompt){
