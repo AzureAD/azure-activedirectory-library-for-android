@@ -30,7 +30,6 @@ import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.cache.ADALOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.AccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
-import com.microsoft.identity.common.internal.cache.DefaultSsoValidator;
 import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
 import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentialAdapter;
@@ -40,7 +39,6 @@ import com.microsoft.identity.common.internal.providers.microsoft.azureactivedir
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryOAuth2Configuration;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryTokenResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
-import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -64,7 +62,7 @@ class TokenCacheAccessor {
 
     private final String mTelemetryRequestId;
     private boolean mUseCommonCache = false;
-    private OAuth2TokenCache mCommonCache = null;
+    private ADALOAuth2TokenCache mCommonCache = null;
     private boolean mValidateAuthorityHost = true;
 
     TokenCacheAccessor(final Context appContext, final ITokenCacheStore tokenCacheStore, final String authority, final String telemetryRequestId) {
@@ -96,8 +94,7 @@ class TokenCacheAccessor {
                 new MsalOAuth2TokenCache(
                         appContext,
                         accountCredentialCache,
-                        new MicrosoftStsAccountCredentialAdapter(),
-                        new DefaultSsoValidator()
+                        new MicrosoftStsAccountCredentialAdapter()
                 );
 
         sharedSSOCaches.add(msalOAuth2TokenCache);
