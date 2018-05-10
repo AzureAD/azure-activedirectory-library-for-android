@@ -37,8 +37,8 @@ import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryOAuth2Configuration;
+import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryOAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryTokenResponse;
-import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -330,7 +330,7 @@ class TokenCacheAccessor {
         AzureActiveDirectoryTokenResponse tokenResponse = CoreAdapter.asAadTokenResponse(result);
         AzureActiveDirectoryOAuth2Configuration config = new AzureActiveDirectoryOAuth2Configuration();
         config.setAuthorityHostValdiationEnabled(this.isValidateAuthorityHost());
-        OAuth2Strategy strategy = ad.createOAuth2Strategy(config);
+        AzureActiveDirectoryOAuth2Strategy strategy = ad.createOAuth2Strategy(config);
         AzureActiveDirectoryAuthorizationRequest request = new AzureActiveDirectoryAuthorizationRequest();
         request.setClientId(clientId);
         request.setScope(resource);
