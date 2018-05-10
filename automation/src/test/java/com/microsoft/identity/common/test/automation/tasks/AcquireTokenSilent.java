@@ -4,7 +4,7 @@ import com.microsoft.identity.common.test.automation.actors.User;
 import com.microsoft.identity.common.test.automation.interactions.CloseKeyboard;
 import com.microsoft.identity.common.test.automation.ui.Main;
 import com.microsoft.identity.common.test.automation.ui.Request;
-import com.microsoft.identity.common.test.automation.ui.Results;
+import com.microsoft.identity.common.test.automation.utility.TokenRequest;
 
 import net.serenitybdd.screenplay.Actor;
 import net.serenitybdd.screenplay.Task;
@@ -17,12 +17,16 @@ import static net.serenitybdd.screenplay.matchers.WebElementStateMatchers.isVisi
 
 public class AcquireTokenSilent implements Task{
 
+    private String userIdentifier;
+
     @Steps
     CloseKeyboard closeKeyboard;
 
     @Override
     public <T extends Actor> void performAs(T actor) {
         User user = (User)actor;
+        TokenRequest tokenRequest = user.getTokenRequest();
+        tokenRequest.setUserIdentitfier(userIdentifier);
         actor.attemptsTo(
                 WaitUntil.the(Main.ACQUIRE_TOKEN_SILENT, isVisible()).forNoMoreThan(10).seconds(),
                 Click.on(Main.ACQUIRE_TOKEN_SILENT),
@@ -30,6 +34,11 @@ public class AcquireTokenSilent implements Task{
                 closeKeyboard,
                 Click.on(Request.SUBMIT_REQUEST_BUTTON)
         );
+    }
+
+    public AcquireTokenSilent withUserIdentifier(String userIdentifier){
+        this.userIdentifier = userIdentifier;
+        return this;
     }
 
 }
