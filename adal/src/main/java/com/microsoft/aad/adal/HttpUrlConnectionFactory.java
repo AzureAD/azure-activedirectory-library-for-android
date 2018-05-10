@@ -35,7 +35,7 @@ import java.net.URL;
  */
 final class HttpUrlConnectionFactory {
 
-    private static HttpURLConnection sMockedConnection = null;
+    static HttpURLConnection sMockedConnection = null;
 
     private static URL sMockedConnectionOpenUrl = null;
 
@@ -54,7 +54,7 @@ final class HttpUrlConnectionFactory {
             sMockedConnectionOpenUrl = null;
         }
     }
-    
+
     static HttpURLConnection createHttpUrlConnection(final URL url) throws IOException {
         if (sMockedConnection != null) {
             sMockedConnectionOpenUrl = url;
