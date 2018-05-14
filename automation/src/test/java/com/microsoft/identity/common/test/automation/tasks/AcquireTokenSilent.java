@@ -16,6 +16,8 @@ import net.thucydides.core.annotations.Steps;
 import static net.serenitybdd.screenplay.matchers.WebElementStateMatchers.isVisible;
 
 public class AcquireTokenSilent implements Task{
+    String prompt;
+    String userIdentifier;
 
     @Steps
     CloseKeyboard closeKeyboard;
@@ -32,4 +34,13 @@ public class AcquireTokenSilent implements Task{
         );
     }
 
+    public AcquireTokenSilent withPrompt(String prompt){
+        this.prompt = prompt;
+        return this;
+    }
+
+    public AcquireTokenSilent withUserIdentifier(String userIdentifier){
+        this.userIdentifier = userIdentifier;
+        return this;
+    }
 }
