@@ -48,12 +48,15 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Base64;
 
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+
 import junit.framework.Assert;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 
@@ -310,7 +313,7 @@ public class BrokerProxyTests {
         bundle.putBoolean("com.microsoft.workaccount.user.info", true);
         when(mockedAccountManager.updateCredentials(eq(accounts[0]), eq(AuthenticationConstants.Broker.AUTHTOKEN_TYPE),
                 any(Bundle.class), (Activity) eq(null), (AccountManagerCallback) eq(null), (Handler) eq(null)))
-                        .thenReturn(mockResult);
+                .thenReturn(mockResult);
 
         final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
         context.setMockedAccountManager(mockedAccountManager);
@@ -365,7 +368,7 @@ public class BrokerProxyTests {
         AuthenticatorDescription[] descriptions = getAuthenticator(authenticatorType, brokerPackage);
         Context mockContext = getMockContext(signature, brokerPackage, brokerPackage, true);
         when(mockAcctManager.getAuthenticatorTypes()).thenReturn(descriptions);
-        when(mockAcctManager.getAccountsByType(Matchers.refEq(authenticatorType))).thenReturn(new Account[] {});
+        when(mockAcctManager.getAccountsByType(Matchers.refEq(authenticatorType))).thenReturn(new Account[]{});
         when(mockContext.getPackageName()).thenReturn(brokerPackage);
         ReflectionUtils.setFieldValue(brokerProxy, "mContext", mockContext);
         ReflectionUtils.setFieldValue(brokerProxy, "mAcctManager", mockAcctManager);
@@ -726,7 +729,7 @@ public class BrokerProxyTests {
 
     @Test
     public void testGetAuthTokenInBackgroundVerifyErrorNoNetworkConnection() throws NameNotFoundException,
-    OperationCanceledException, IOException, AuthenticatorException {
+            OperationCanceledException, IOException, AuthenticatorException {
         final String acctName = "testAcct123";
         final AuthenticationRequest authRequest = createAuthenticationRequest("https://login.windows.net/omercantest", "resource", "client",
                 "redirect", acctName.toLowerCase(Locale.US), PromptBehavior.Auto, "", UUID.randomUUID(), false);
@@ -956,10 +959,10 @@ public class BrokerProxyTests {
         assertEquals("intent is not null", AuthenticationConstants.Broker.BROKER_REQUEST,
                 intent.getStringExtra(AuthenticationConstants.Broker.BROKER_REQUEST));
     }
-    
+
     /**
      * Test verifying if always is set when speaking to new broker, intent for doing auth via broker will have prompt behavior
-     * reset as always. 
+     * reset as always.
      */
     @Test
     public void testForcePromptFlagOldBroker() throws OperationCanceledException, IOException, AuthenticatorException, NameNotFoundException, AuthenticationException {
@@ -967,22 +970,22 @@ public class BrokerProxyTests {
         final AuthenticationRequest authenticationRequest = getAuthRequest(PromptBehavior.FORCE_PROMPT);
         intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT, authenticationRequest.getPrompt().name());
 
-        final AccountManager mockedAccoutManager = getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
+        final AccountManager mockedAccountManager = getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
-        mockAddAccountResponse(mockedAccoutManager, getMockedAccountManagerFuture(intent));
-        
+        mockAddAccountResponse(mockedAccountManager, getMockedAccountManagerFuture(intent));
+
         final FileMockContext mockedContext = new FileMockContext(InstrumentationRegistry.getContext());
-        mockedContext.setMockedAccountManager(mockedAccoutManager);
+        mockedContext.setMockedAccountManager(mockedAccountManager);
         mockedContext.setMockedPackageManager(getMockedPackageManagerWithBrokerAccountServiceDisabled(mock(Signature.class),
                 AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, true));
         final BrokerProxy brokerProxy = new BrokerProxy(mockedContext);
         final Intent returnedIntent = brokerProxy.getIntentForBrokerActivity(authenticationRequest, null);
         assertTrue(returnedIntent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT).equalsIgnoreCase(PromptBehavior.Always.name()));
     }
-    
+
     /**
      * Test verifying if force_prmopt is set when speaking to new broker, intent for doing auth via broker will have prompt behavior
-     * as Force_Prompt. 
+     * as Force_Prompt.
      */
     @Test
     public void testForcePromptNewBroker() throws OperationCanceledException, IOException, AuthenticatorException, NameNotFoundException, AuthenticationException {
@@ -990,7 +993,7 @@ public class BrokerProxyTests {
         final AuthenticationRequest authenticationRequest = getAuthRequest(PromptBehavior.FORCE_PROMPT);
         intent.putExtra(AuthenticationConstants.Broker.BROKER_VERSION, AuthenticationConstants.Broker.BROKER_PROTOCOL_VERSION);
         intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT, authenticationRequest.getPrompt().name());
-        
+
         // mock account manager
         final AccountManager mockedAccoutManager = getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
@@ -1005,10 +1008,10 @@ public class BrokerProxyTests {
         final Intent returnedIntent = brokerProxy.getIntentForBrokerActivity(authenticationRequest, null);
         assertTrue(returnedIntent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT).equalsIgnoreCase(PromptBehavior.FORCE_PROMPT.name()));
     }
-    
+
     /**
      * Test verifying if always is set when speaking to new broker, intent for doing auth via broker will have prompt behavior
-     * as always. 
+     * as always.
      */
     @Test
     public void testPromptAlwaysNewBroker() throws OperationCanceledException, IOException, AuthenticatorException, NameNotFoundException, AuthenticationException {
@@ -1016,7 +1019,7 @@ public class BrokerProxyTests {
         final AuthenticationRequest authenticationRequest = getAuthRequest(PromptBehavior.Always);
         intent.putExtra(AuthenticationConstants.Broker.BROKER_VERSION, AuthenticationConstants.Broker.BROKER_PROTOCOL_VERSION);
         intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT, authenticationRequest.getPrompt().name());
-        
+
         // mock account manager
         final AccountManager mockedAccoutManager = getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
@@ -1031,47 +1034,54 @@ public class BrokerProxyTests {
         final Intent returnedIntent = brokerProxy.getIntentForBrokerActivity(authenticationRequest, null);
         assertTrue(returnedIntent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT).equalsIgnoreCase(PromptBehavior.Always.name()));
     }
-    
+
     private FileMockContext getMockedContext(final AccountManager mockedAccountManager) {
         final FileMockContext mockedContext = new FileMockContext(InstrumentationRegistry.getContext());
         mockedContext.setMockedAccountManager(mockedAccountManager);
-        
+
         return mockedContext;
     }
-    
+
     private AuthenticationRequest getAuthRequest(final PromptBehavior promptBehavior) {
         final AuthenticationRequest authenticationRequest = new AuthenticationRequest();
         authenticationRequest.setPrompt(promptBehavior);
-        
+
         return authenticationRequest;
     }
-    
+
     private AccountManagerFuture<Bundle> getMockedAccountManagerFuture(final Intent intent)
             throws OperationCanceledException, IOException, AuthenticatorException {
         final Bundle bundle = new Bundle();
         bundle.putParcelable(AccountManager.KEY_INTENT, intent);
-        
+
         final AccountManagerFuture<Bundle> mockedAccountManagerFuture = Mockito.mock(AccountManagerFuture.class);
         Mockito.when(mockedAccountManagerFuture.getResult()).thenReturn(bundle);
-        
+
         return mockedAccountManagerFuture;
     }
-    
+
     private AccountManager getMockedAccountManager(final AccountManagerFuture<Bundle> mockedAccountManagerFuture) {
         final AccountManager mockedAccoutManager = Mockito.mock(AccountManager.class);
-        Mockito.when(mockedAccoutManager.addAccount(Matchers.anyString(), Mockito.anyString(), Matchers.any(String[].class), 
-                Matchers.any(Bundle.class), Matchers.any(Activity.class), Matchers.any(AccountManagerCallback.class), 
+        Mockito.when(mockedAccoutManager.addAccount(Matchers.anyString(), Mockito.anyString(), Matchers.any(String[].class),
+                Matchers.any(Bundle.class), Matchers.any(Activity.class), Matchers.any(AccountManagerCallback.class),
                 Mockito.any(Handler.class))).thenReturn(mockedAccountManagerFuture);
-        
+
         return mockedAccoutManager;
     }
 
     private void mockAddAccountResponse(final AccountManager mockedAccountManager,
                                         final AccountManagerFuture<Bundle> mockedAccountManagerFuture) {
-        Mockito.when(mockedAccountManager.addAccount(Matchers.anyString(), Mockito.anyString(), Matchers.any(String[].class),
-                Matchers.any(Bundle.class), Matchers.any(Activity.class), Matchers.any(AccountManagerCallback.class),
-                Mockito.any(Handler.class))).thenReturn(mockedAccountManagerFuture);
-
+        Mockito.when(
+                mockedAccountManager.addAccount(
+                        Mockito.anyString(),
+                        Mockito.anyString(),
+                        ArgumentMatchers.nullable(String[].class),
+                        Mockito.any(Bundle.class),
+                        ArgumentMatchers.nullable(Activity.class),
+                        Mockito.<AccountManagerCallback<Bundle>>any(),
+                        Mockito.any(Handler.class)
+                )
+        ).thenReturn(mockedAccountManagerFuture);
     }
 
     @SuppressLint("CommitPrefEdits")
@@ -1089,7 +1099,7 @@ public class BrokerProxyTests {
         when(mockFuture.getResult()).thenReturn(expected);
         when(mockAcctManager.addAccount(anyString(), anyString(), (String[]) eq(null), any(Bundle.class),
                 (Activity) eq(null), (AccountManagerCallback<Bundle>) eq(null), any(Handler.class)))
-                        .thenReturn(mockFuture);
+                .thenReturn(mockFuture);
         when(mockAcctManager.getAccountsByType(anyString()))
                 .thenReturn(getAccountList("test", AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE));
     }
@@ -1108,7 +1118,7 @@ public class BrokerProxyTests {
                 brokerPackage, 0, 0, 0, 0);
         final AuthenticatorDescription mockedAuthenticator = Mockito.spy(authenticatorDescription);
         final AuthenticatorDescription[] mockedAuthenticatorTypes
-                = new AuthenticatorDescription[] {mockedAuthenticator};
+                = new AuthenticatorDescription[]{mockedAuthenticator};
 
         Mockito.when(mockAcctManager.getAuthenticatorTypes()).thenReturn(mockedAuthenticatorTypes);
 
@@ -1116,7 +1126,7 @@ public class BrokerProxyTests {
     }
 
     private Context getMockContext(final Signature signature, final String brokerPackageName,
-            final String contextPackageName, boolean permissionStatus) throws NameNotFoundException {
+                                   final String contextPackageName, boolean permissionStatus) throws NameNotFoundException {
         Context mockContext = mock(Context.class);
         // insert packagemanager mocks
         PackageManager mockPackageManager = getPackageManager(signature, brokerPackageName, permissionStatus);
@@ -1130,7 +1140,7 @@ public class BrokerProxyTests {
 
     @SuppressLint("PackageManagerGetSignatures")
     private PackageManager getPackageManager(final Signature signature, final String packageName,
-            boolean permissionStatus) throws NameNotFoundException {
+                                             boolean permissionStatus) throws NameNotFoundException {
         PackageManager mockPackage = mock(PackageManager.class);
         PackageInfo info = new PackageInfo();
         Signature[] signatures = new Signature[1];

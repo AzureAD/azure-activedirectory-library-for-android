@@ -3,17 +3,25 @@ buildscript {
 
     repositories {
         jcenter()
+        google()
     }
 
     dependencies {
         classpath "com.android.tools.build:gradle:$rootProject.ext.gradleVersion"
         classpath "com.github.dcendents:android-maven-gradle-plugin:$rootProject.ext.androidMavenGradlePluginVersion"
+        classpath "net.serenity-bdd:serenity-gradle-plugin:1.9.6"
     }
 }
 
 allprojects {
+    // Windows has a maximum path length of 260 characters - to avoid hitting this ceiling
+    // stage the builds close to the root of C://
+    if (org.gradle.internal.os.OperatingSystem.current().isWindows()) {
+        buildDir = "C:/temp/${rootProject.name}/${project.name}"
+    }
     repositories {
         jcenter()
+        google()
     }
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {

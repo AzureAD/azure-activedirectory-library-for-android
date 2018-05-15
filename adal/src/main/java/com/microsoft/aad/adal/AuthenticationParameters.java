@@ -26,6 +26,11 @@ package com.microsoft.aad.adal;
 import android.content.Context;
 import android.os.Handler;
 
+import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
+import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
+import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;

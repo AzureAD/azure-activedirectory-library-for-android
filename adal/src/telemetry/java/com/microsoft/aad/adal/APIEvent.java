@@ -26,6 +26,8 @@ package com.microsoft.aad.adal;
 import android.content.Context;
 import android.util.Pair;
 
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
@@ -89,8 +91,8 @@ final class APIEvent extends DefaultEvent {
         setProperty(EventStrings.PROMPT_BEHAVIOR, promptBehavior);
     }
 
-    void setPromptBehavior(PromptBehavior promptBehavior){
-        if(promptBehavior != null){
+    void setPromptBehavior(final PromptBehavior promptBehavior) {
+        if(promptBehavior != null) {
             setProperty(EventStrings.PROMPT_BEHAVIOR, promptBehavior.toString());
         }
     }

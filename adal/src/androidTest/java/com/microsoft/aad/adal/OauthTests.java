@@ -27,14 +27,22 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Base64;
 
-import com.microsoft.aad.adal.AuthenticationConstants.AAD;
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
+
+
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants.AAD;
+import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
+import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
+import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
+import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;
 
 import org.json.JSONException;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.runner.RunWith;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -74,6 +82,7 @@ public class OauthTests {
     private static final String TEST_AUTHORITY = "https://login.windows.net/common";
 
     private static final int RETRY_AFTER = 429;
+
     @Before
     public void setUp() throws Exception {
         System.setProperty("dexmaker.dexcache", InstrumentationRegistry.getContext().getCacheDir().getPath());
@@ -324,7 +333,7 @@ public class OauthTests {
         final Oauth2 oauth2 = createOAuthInstance(request);
         assertEquals(
                 "Token request",
-                "grant_type=authorization_code&code=authorizationcodevalue%3D&client_id=client+1234567890-%2B%3D%3B%27&redirect_uri=redirect+1234567890-%2B%3D%3B%27",
+                "grant_type=authorization_code&code=authorizationcodevalue%3D&client_id=client+1234567890-%2B%3D%3B%27&redirect_uri=redirect+1234567890-%2B%3D%3B%27&client_info=1",
                 oauth2.buildTokenRequestMessage("authorizationcodevalue="));
 
         // without login hint
@@ -335,7 +344,7 @@ public class OauthTests {
         final Oauth2 oauthWithoutLoginHint = createOAuthInstance(requestWithoutLogin);
         assertEquals(
                 "Token request",
-                "grant_type=authorization_code&code=authorizationcodevalue%3D&client_id=client+1234567890-%2B%3D%3B%27&redirect_uri=redirect+1234567890-%2B%3D%3B%27",
+                "grant_type=authorization_code&code=authorizationcodevalue%3D&client_id=client+1234567890-%2B%3D%3B%27&redirect_uri=redirect+1234567890-%2B%3D%3B%27&client_info=1",
                 oauthWithoutLoginHint.buildTokenRequestMessage("authorizationcodevalue="));
     }
 
@@ -454,7 +463,6 @@ public class OauthTests {
                 testResult.getAuthenticationResult().getRefreshToken());
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testRefreshTokenWebResponseDeviceChallengePositive()
             throws IOException, AuthenticationException, NoSuchAlgorithmException {
@@ -488,10 +496,12 @@ public class OauthTests {
                 HttpURLConnection.HTTP_OK, tokenPositiveResponse, null);
         // first call returns 401 and second call returns token
         when(
-                mockWebRequest.sendPost(eq(new URL(TEST_AUTHORITY + "/oauth2/token")),
-                        any(headers.getClass()), any(byte[].class),
-                        eq("application/x-www-form-urlencoded"))).thenReturn(responeChallenge)
-                .thenReturn(responseValid);
+                mockWebRequest.sendPost(
+                        eq(new URL(TEST_AUTHORITY + "/oauth2/token")),
+                        Mockito.<String, String>anyMap(),
+                        any(byte[].class),
+                        eq("application/x-www-form-urlencoded"))
+        ).thenReturn(responeChallenge).thenReturn(responseValid);
 
         // send request
         final MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),
@@ -533,9 +543,12 @@ public class OauthTests {
                 AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER, " ");
         HttpWebResponse responseChallenge = new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, headers);
         when(
-                mockWebRequest.sendPost(eq(new URL(TEST_AUTHORITY + "/oauth2/token")),
-                        any(headers.getClass()), any(byte[].class),
-                        eq("application/x-www-form-urlencoded"))).thenReturn(responseChallenge);
+                mockWebRequest.sendPost(
+                        eq(new URL(TEST_AUTHORITY + "/oauth2/token")),
+                        Mockito.<String, String>anyMap(),
+                        any(byte[].class),
+                        eq("application/x-www-form-urlencoded"))
+        ).thenReturn(responseChallenge);
 
         // send request
         MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),
@@ -550,7 +563,7 @@ public class OauthTests {
     }
 
     @Test
-    public void testprocessTokenResponse() throws  IOException {
+    public void testprocessTokenResponse() throws IOException {
 
         final AuthenticationRequest request = createAuthenticationRequest(TEST_AUTHORITY,
                 "resource", "client", "redirect", "loginhint", null, null, UUID.randomUUID(), false);

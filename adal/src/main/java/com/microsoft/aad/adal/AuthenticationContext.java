@@ -37,6 +37,8 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.SparseArray;
 
 import com.microsoft.aad.adal.AuthenticationRequest.UserIdentifierType;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -89,7 +91,7 @@ public class AuthenticationContext {
      * default cache that stores encrypted tokens.
      *
      * @param appContext        It needs to have handle to the {@link Context} to use
-     *                          the SharedPreferences as a Default cache storage. It does not
+     *                          the SharedPreferencesFileManager as a Default cache storage. It does not
      *                          need to be activity.
      * @param authority         Authority url to send code and token requests
      * @param validateAuthority validate authority before sending token request
@@ -151,7 +153,7 @@ public class AuthenticationContext {
 
     /**
      * Returns referenced cache. You can use default cache, which uses
-     * SharedPreferences and handles synchronization by itself.
+     * SharedPreferencesFileManager and handles synchronization by itself.
      *
      * @return ITokenCacheStore Current cache used
      */
@@ -1222,7 +1224,7 @@ public class AuthenticationContext {
          * apps. So the client ID for the FoCI token cache item is hard coded
          * below.
          */
-        final TokenCacheAccessor tokenCacheAccessor = new TokenCacheAccessor(mTokenCacheStore, this.getAuthority(),
+        final TokenCacheAccessor tokenCacheAccessor = new TokenCacheAccessor(this.mContext.getApplicationContext(), mTokenCacheStore, this.getAuthority(),
                 Telemetry.registerNewRequest());
         final TokenCacheItem tokenItem;
         try {

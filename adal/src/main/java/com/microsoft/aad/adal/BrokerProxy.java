@@ -30,11 +30,8 @@ import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -46,6 +43,10 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Base64;
+
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -72,11 +73,11 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 
-import static com.microsoft.aad.adal.AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT;
-import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.RT_AGE;
-import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_ERROR;
-import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_SUBERROR;
-import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.SPE_RING;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.RT_AGE;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_ERROR;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_SUBERROR;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.SPE_RING;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT;
 
 /**
  * Handles interactions to authenticator inside the Account Manager.
@@ -494,7 +495,7 @@ class BrokerProxy implements IBrokerProxy {
             if (null != responseHeaders && responseHeaders instanceof HashMap) {
                 exception.setHttpResponseHeaders((HashMap) responseHeaders);
             }
-            
+
             exception.setServiceStatusCode(bundleResult.getInt(AuthenticationConstants.OAuth2.HTTP_STATUS_CODE));
             throw exception;
         } else {
@@ -502,7 +503,7 @@ class BrokerProxy implements IBrokerProxy {
             if (initialRequest) {
                 // Initial request from app to Authenticator needs to launch
                 // prompt
-                return AuthenticationResult.createResultForInitialRequest();
+                return AuthenticationResult.createResultForInitialRequest(request.getClientId());
             }
 
             // IDtoken is not present in the current broker user model
@@ -520,8 +521,17 @@ class BrokerProxy implements IBrokerProxy {
                 expires = new Date(bundleResult.getLong(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE));
             }
 
-            final AuthenticationResult result = new AuthenticationResult(bundleResult.getString(AccountManager.KEY_AUTHTOKEN),
-                    "", expires, false, userinfo, tenantId, "", null);
+            final AuthenticationResult result = new AuthenticationResult(
+                    bundleResult.getString(AccountManager.KEY_AUTHTOKEN),
+                    "",
+                    expires,
+                    false,
+                    userinfo,
+                    tenantId,
+                    "",
+                    null,
+                    request.getClientId()
+            );
 
             // set the x-ms-clitelem data
             final TelemetryUtils.CliTelemInfo cliTelemInfo = new TelemetryUtils.CliTelemInfo();
@@ -546,15 +556,12 @@ class BrokerProxy implements IBrokerProxy {
             return;
         }
 
-        SharedPreferences prefs = mContext.getSharedPreferences(KEY_SHARED_PREF_ACCOUNT_LIST, Activity.MODE_PRIVATE);
-        String accountList = prefs.getString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL, "");
+        SharedPreferencesFileManager prefs = new SharedPreferencesFileManager(mContext, KEY_SHARED_PREF_ACCOUNT_LIST);
+        String accountList = prefs.getString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL);
+        accountList = null != accountList ? accountList : "";
         if (!accountList.contains(KEY_ACCOUNT_LIST_DELIM + accountName)) {
             accountList += KEY_ACCOUNT_LIST_DELIM + accountName;
-            Editor prefsEditor = prefs.edit();
-            prefsEditor.putString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL, accountList);
-
-            // apply will do Async disk write operation.
-            prefsEditor.apply();
+            prefs.putString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL, accountList);
         }
     }
 
@@ -649,9 +656,16 @@ class BrokerProxy implements IBrokerProxy {
             // Callback is not passed since it is making a blocking call to get
             // intent. Activity needs to be launched from calling app
             // to get the calling app's metadata if needed at BrokerActivity.
-            final AccountManagerFuture<Bundle> result = mAcctManager.addAccount(
-                    AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
-                    AuthenticationConstants.Broker.AUTHTOKEN_TYPE, null, addAccountOptions, null, null, mHandler);
+            final AccountManagerFuture<Bundle> result =
+                    mAcctManager.addAccount(
+                            AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
+                            AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
+                            null,
+                            addAccountOptions,
+                            null,
+                            null,
+                            mHandler
+                    );
 
             // Making blocking request here
             Bundle bundleResult = result.getResult();
@@ -730,7 +744,7 @@ class BrokerProxy implements IBrokerProxy {
             brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_PROMPT, request.getPrompt().name());
         }
 
-        if (Utility.isClaimsChallengePresent(request)) {
+        if (request.isClaimsChallengePresent()) {
             brokerOptions.putString(AuthenticationConstants.Broker.BROKER_SKIP_CACHE, Boolean.toString(true));
             brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CLAIMS, request.getClaimsChallenge());
         }

@@ -67,7 +67,7 @@ public class CacheKeyTests {
                 "ClientId123", false, "user123", null);
         assertEquals("expected key", "authority123endsslash$Resource123$clientid123$n$user123",
                 testKeySlash);
-        
+
         final String testKeyWithFamilyClientId = CacheKey.createCacheKey("authority", null, null, true, "user123", "family123");
         assertEquals("authority$null$null$y$user123$foci-family123", testKeyWithFamilyClientId);
     }
@@ -121,7 +121,7 @@ public class CacheKeyTests {
             assertEquals("contains resource", "resource",
                     ((IllegalArgumentException) exc).getMessage());
         }
-        
+
         // Test resource is null but the cache key is for MRRT. 
         try {
             final String cacheKey = CacheKey.createCacheKey("authority", null, "clientid", true, "user123", null);
@@ -143,7 +143,7 @@ public class CacheKeyTests {
             assertEquals("contains clientId", "both clientId and familyClientId are null",
                     ((IllegalArgumentException) exc).getMessage());
         }
-        
+
         // Test client id is null but family client id is not null
         try {
             final String key = CacheKey.createCacheKey("authority", null, null, true, "user123", "family123");

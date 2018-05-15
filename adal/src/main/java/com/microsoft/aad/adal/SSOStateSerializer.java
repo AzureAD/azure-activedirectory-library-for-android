@@ -113,7 +113,7 @@ final class SSOStateSerializer {
 
     /**
      * Deserialize the serializedBlob.
-     *
+     * <p>
      * this function covers the details of the deserialization process
      *
      * @param serializedBlob String blob to convert to TokenCacheItem

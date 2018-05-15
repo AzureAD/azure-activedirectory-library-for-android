@@ -29,7 +29,7 @@ import java.util.List;
 final class InstanceDiscoveryMetadata {
     private final String mPreferredNetwork;
     private final String mPreferredCache;
-    private final List<String> mAliases = new ArrayList();
+    private final List<String> mAliases = new ArrayList<String>();
     private final boolean mIsValidated;
 
     InstanceDiscoveryMetadata(boolean isValidated) {

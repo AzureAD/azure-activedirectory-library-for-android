@@ -57,7 +57,7 @@ class AuthenticationRequestState {
     public void setDelegate(AuthenticationCallback<AuthenticationResult> delegate) {
         mDelegate = delegate;
     }
-    
+
     public boolean isCancelled() {
         return mCancelled;
     }
@@ -65,7 +65,7 @@ class AuthenticationRequestState {
     public void setCancelled(boolean cancelled) {
         mCancelled = cancelled;
     }
-    
+
     public AuthenticationRequest getRequest() {
         return mRequest;
     }

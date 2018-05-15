@@ -23,6 +23,8 @@
 
 package com.microsoft.aad.adal;
 
+import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
+
 /**
  * server responding with retryable error.
  */
@@ -31,7 +33,7 @@ class ServerRespondingWithRetryableException extends AuthenticationException {
 
     /**
      * Constructs a new ServerRespondingWithRetryableException with message.
-     * 
+     *
      * @param msg Detailed message for the reason causing the exception.
      */
     ServerRespondingWithRetryableException(String msg) {
@@ -41,7 +43,7 @@ class ServerRespondingWithRetryableException extends AuthenticationException {
     /**
      * Constructs a new ServerRespondingWithRetryableException with message and the cause exception.
      *
-     * @param msg Detailed message for the reason causing the exception.
+     * @param msg       Detailed message for the reason causing the exception.
      * @param throwable {@link Throwable}
      */
     ServerRespondingWithRetryableException(String msg, Throwable throwable) {
@@ -50,7 +52,8 @@ class ServerRespondingWithRetryableException extends AuthenticationException {
 
     /**
      * Constructs a new ServerRespondingWithRetryableException with message and the http web response.
-     * @param msg Detailed message for the reason causing the exception.
+     *
+     * @param msg      Detailed message for the reason causing the exception.
      * @param response {@Link HttpWebResponse}
      */
     ServerRespondingWithRetryableException(String msg, HttpWebResponse response) {

@@ -48,11 +48,11 @@ public enum PromptBehavior {
      * to passing prompt=refresh_session as an extra query parameter during
      * the authorization.
      */
-    REFRESH_SESSION, 
-    
+    REFRESH_SESSION,
+
     /**
-     * If Azure Authenticator or Company Portal is installed, this flag will have 
-     * the broker app force the prompt behavior, otherwise it will be same as Always. 
+     * If Azure Authenticator or Company Portal is installed, this flag will have
+     * the broker app force the prompt behavior, otherwise it will be same as Always.
      * If using embedded flow, please keep using Always, if FORCE_PROMPT is set for
      * embedded flow, the sdk will re-intepret it to Always.
      */

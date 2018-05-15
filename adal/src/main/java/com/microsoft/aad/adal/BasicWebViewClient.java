@@ -35,6 +35,8 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -66,18 +68,18 @@ abstract class BasicWebViewClient extends WebViewClient {
     public abstract void showSpinner(boolean status);
 
     public abstract void sendResponse(int returnCode, Intent responseIntent);
-    
+
     public abstract void cancelWebViewRequest();
-    
+
     public abstract void prepareForBrokerResumeRequest();
-    
+
     public abstract void setPKeyAuthStatus(boolean status);
-    
-    public abstract void postRunnable(Runnable item);    
+
+    public abstract void postRunnable(Runnable item);
 
     @Override
     public void onReceivedHttpAuthRequest(WebView view, final HttpAuthHandler handler,
-            String host, String realm) {
+                                          String host, String realm) {
         final String methodName = ":onReceivedHttpAuthRequest";
         // Create a dialog to ask for creds and post it to the handler.
         Logger.i(TAG + methodName, "Start. ", "Host:" + host);
@@ -103,7 +105,7 @@ abstract class BasicWebViewClient extends WebViewClient {
         Logger.i(TAG + methodName, "Show dialog. ", "");
         authDialog.show();
     }
-    
+
     @Override
     public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
         super.onReceivedError(view, errorCode, description, failingUrl);
@@ -174,7 +176,7 @@ abstract class BasicWebViewClient extends WebViewClient {
         } else {
             Logger.v(TAG + methodName, "Webview starts loading. ",
                     " Host: " + uri.getHost() + " Path: " + uri.getPath()
-                    + " Auth code is returned for the loading url.", null);
+                            + " Auth code is returned for the loading url.", null);
         }
     }
 
@@ -235,8 +237,8 @@ abstract class BasicWebViewClient extends WebViewClient {
                         // returns errors to callback.
                         Intent resultIntent = new Intent();
                         resultIntent.putExtra(
-                                        AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION,
-                                        e);
+                                AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION,
+                                e);
                         if (mRequest != null) {
                             resultIntent.putExtra(
                                     AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
@@ -245,7 +247,7 @@ abstract class BasicWebViewClient extends WebViewClient {
                         sendResponse(
                                 AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION,
                                 resultIntent);
-                        }
+                    }
                 }
             }).start();
 
@@ -259,7 +261,7 @@ abstract class BasicWebViewClient extends WebViewClient {
                 cancelWebViewRequest();
                 return true;
             }
-            
+
             processRedirectUrl(view, url);
             return true;
         } else if (url.startsWith(AuthenticationConstants.Broker.BROWSER_EXT_PREFIX)) {
@@ -291,7 +293,7 @@ abstract class BasicWebViewClient extends WebViewClient {
 
         return processInvalidUrl(view, url);
     }
-    
+
     public abstract void processRedirectUrl(final WebView view, String url);
 
     public abstract boolean processInvalidUrl(final WebView view, String url);
@@ -299,14 +301,14 @@ abstract class BasicWebViewClient extends WebViewClient {
     final Context getCallingContext() {
         return mCallingContext;
     }
-    
+
     protected void openLinkInBrowser(String url) {
         String link = url
                 .replace(AuthenticationConstants.Broker.BROWSER_EXT_PREFIX, "https://");
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(link));
         mCallingContext.startActivity(intent);
     }
-    
+
     private boolean hasCancelError(String redirectUrl) {
         Map<String, String> parameters = StringExtensions.getUrlParameters(redirectUrl);
         String error = parameters.get("error");
