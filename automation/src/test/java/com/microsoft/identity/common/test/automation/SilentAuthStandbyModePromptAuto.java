@@ -1,16 +1,17 @@
 package com.microsoft.identity.common.test.automation;
 
+import com.microsoft.identity.common.test.automation.DeviceModes.BatteryReset;
 import com.microsoft.identity.common.test.automation.DeviceModes.DozeOff;
 import com.microsoft.identity.common.test.automation.DeviceModes.DozeOn;
+import com.microsoft.identity.common.test.automation.DeviceModes.StandbyOff;
+import com.microsoft.identity.common.test.automation.DeviceModes.StandbyOn;
 import com.microsoft.identity.common.test.automation.actors.User;
 import com.microsoft.identity.common.test.automation.interactions.ClickDone;
-
 import com.microsoft.identity.common.test.automation.tasks.AcquireTokenSilent;
 import com.microsoft.identity.common.test.automation.tasks.ReadCache;
 import com.microsoft.identity.common.test.automation.utility.Scenario;
 import com.microsoft.identity.common.test.automation.utility.TestConfigurationQuery;
 
-import net.serenitybdd.core.Serenity;
 import net.serenitybdd.junit.runners.SerenityParameterizedRunner;
 import net.serenitybdd.screenplay.abilities.BrowseTheWeb;
 import net.thucydides.core.annotations.Managed;
@@ -29,16 +30,13 @@ import java.util.Collection;
 
 
 @RunWith(SerenityParameterizedRunner.class)
-public class SilentAuthDozeModePromptAuto {
+public class SilentAuthStandbyModePromptAuto {
 
     @TestData
     public static Collection<Object[]> FederationProviders(){
-
-
         return Arrays.asList(new Object[][]{
                 {"ADFSv2"}
         });
-
     }
 
     @Managed(driver="Appium")
@@ -64,10 +62,13 @@ public class SilentAuthDozeModePromptAuto {
     private String federationProvider;
 
     @Steps
-    DozeOn DozeOn;
+    StandbyOn standbyOn;
 
     @Steps
-    DozeOff DozeOff;
+    StandbyOff standbyOff;
+
+    @Steps
+    BatteryReset resetBattery;
 
     @Steps
     AcquireTokenSilent acquireTokenSilent;
@@ -78,7 +79,7 @@ public class SilentAuthDozeModePromptAuto {
     @Steps
     ClickDone clickDone;
 
-    public SilentAuthDozeModePromptAuto(String federationProvider){
+    public SilentAuthStandbyModePromptAuto(String federationProvider){
         this.federationProvider = federationProvider;
     }
 
@@ -93,26 +94,23 @@ public class SilentAuthDozeModePromptAuto {
     }
 
     private static User getUser(TestConfigurationQuery query){
-
         Scenario scenario = Scenario.GetScenario(query);
-
         User newUser = User.named("james");
         newUser.setFederationProvider(scenario.getTestConfiguration().getUsers().getFederationProvider());
         newUser.setTokenRequest(scenario.getTokenRequest());
         newUser.setCredential(scenario.getCredential());
-
         return newUser;
     }
 
     @Test
-    public void set_doze_on() {
+    public void set_standby_and_get_token() {
         james.attemptsTo(
                 acquireTokenSilent.withPrompt("Auto"),
-                DozeOn,
-                DozeOff,
+                standbyOn,
+                standbyOff,
                 clickDone,
-                readCache
+                readCache,
+                resetBattery
         );
     }
-
 }

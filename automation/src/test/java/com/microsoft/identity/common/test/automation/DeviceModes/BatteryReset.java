@@ -13,29 +13,19 @@ import java.util.Map;
 
 import io.appium.java_client.android.AndroidDriver;
 
-public class StandbyOn implements Interaction {
+public class BatteryReset implements Interaction {
     @Override
     public <T extends Actor> void performAs(T actor) {
-
         WebDriverFacade facade = (WebDriverFacade)BrowseTheWeb.as(actor).getDriver();
         AndroidDriver driver = (AndroidDriver)facade.getProxiedDriver();
 
-        String packageName = "com.microsoft.aad.automation.testapp.adal";
-
-        List<String> battery_args = Arrays.asList("battery", "unplug");
-        List<String> inactive_args = Arrays.asList("set-inactive", packageName,"true");
+        List<String> battery_args = Arrays.asList("battery", "reset");
 
         Map<String, Object> battery = ImmutableMap.of(
                 "command", "dumpsys",
                 "args", battery_args
         );
 
-        Map<String, Object> inactive = ImmutableMap.of(
-                "command", "am",
-                "args", inactive_args
-        );
-
         driver.executeScript("mobile: shell", battery);
-        driver.executeScript("mobile: shell", inactive);
     }
 }
