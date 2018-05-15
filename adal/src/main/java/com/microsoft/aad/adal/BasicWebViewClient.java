@@ -53,7 +53,7 @@ abstract class BasicWebViewClient extends WebViewClient {
     public static final String BLANK_PAGE = "about:blank";
 
     protected String mRedirect;
-    private final AuthenticationRequest mRequest;
+    protected final AuthenticationRequest mRequest;
     protected final Context mCallingContext;
     private final UIEvent mUIEvent;
 

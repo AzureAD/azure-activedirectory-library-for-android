@@ -87,6 +87,8 @@ class Oauth2 {
 
     private String mBrokerClientVersion = "";
 
+    private String mAdalClientVersion = "";
+
     Oauth2(AuthenticationRequest request) {
         mRequest = request;
         mWebRequestHandler = null;
@@ -110,6 +112,7 @@ class Oauth2 {
     }
 
     public void setAdalClientVersion(String version) {
+        mAdalClientVersion = version;
         if (mWebRequestHandler != null) {
             mWebRequestHandler.setAdalClientVersion(version);
         }
@@ -148,12 +151,16 @@ class Oauth2 {
                             AuthenticationConstants.ENCODING_UTF8));
         }
 
+        if (StringExtensions.isNullOrBlank(mAdalClientVersion)) {
+            mAdalClientVersion = AuthenticationContext.getVersionName();
+        }
+
         // append device and platform info in the query parameters
         queryParameter.appendQueryParameter(AuthenticationConstants.AAD.ADAL_ID_PLATFORM,
                 AuthenticationConstants.AAD.ADAL_ID_PLATFORM_VALUE)
+
                 .appendQueryParameter(AuthenticationConstants.AAD.ADAL_ID_VERSION,
-                        URLEncoder.encode(AuthenticationContext.getVersionName(),
-                                AuthenticationConstants.ENCODING_UTF8))
+                        URLEncoder.encode(mAdalClientVersion, AuthenticationConstants.ENCODING_UTF8))
                 .appendQueryParameter(AuthenticationConstants.AAD.ADAL_ID_OS_VER,
                         URLEncoder.encode(String.valueOf(Build.VERSION.SDK_INT),
                                 AuthenticationConstants.ENCODING_UTF8))
