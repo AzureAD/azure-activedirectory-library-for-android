@@ -15,7 +15,6 @@ import net.serenitybdd.junit.runners.SerenityParameterizedRunner;
 import net.serenitybdd.screenplay.abilities.BrowseTheWeb;
 import net.thucydides.core.annotations.Managed;
 import net.thucydides.core.annotations.Steps;
-import net.thucydides.core.util.PropertiesFileLocalPreferences;
 import net.thucydides.junit.annotations.TestData;
 
 import org.junit.AfterClass;
@@ -25,8 +24,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.openqa.selenium.WebDriver;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -109,9 +106,11 @@ public class SilentAuthDozeModePromptAuto {
     @Test
     public void set_doze_on() {
         james.attemptsTo(
-                DozeOn,
                 acquireTokenSilent.withPrompt("Auto"),
-                DozeOff
+                DozeOn,
+                DozeOff,
+                clickDone,
+                readCache
         );
     }
 

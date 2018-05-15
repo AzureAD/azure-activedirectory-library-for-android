@@ -26,9 +26,7 @@ public class DozeOff implements Interaction {
                 "command", "dumpsys",
                 "args", Args
         );
-
-        //String lsOutput = (String)
-        Object wtf = driver.executeScript("mobile: shell", fullCommand);
+        driver.executeScript("mobile: shell", fullCommand);
 
     }
 }
