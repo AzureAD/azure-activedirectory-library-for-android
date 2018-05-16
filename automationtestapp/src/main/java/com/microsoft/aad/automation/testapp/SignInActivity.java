@@ -81,6 +81,7 @@ public class SignInActivity extends AppCompatActivity {
     public static final String TENANT_ID = "tenant_id";
     public static final String USER_IDENTIFIER_TYPE = "user_identifier_type";
     public static final String CORRELATION_ID = "correlation_id";
+    public static final String FAMLIY_CLIENT_ID = "family_client_id";
 
     static final String INVALID_REFRESH_TOKEN = "some invalid refresh token";
 
@@ -97,6 +98,8 @@ public class SignInActivity extends AppCompatActivity {
     private AuthenticationContext mAuthenticationContext;
     private boolean mValidateAuthority;
     private UUID mCorrelationId;
+    private String mTenantId;
+    private String mFamilyClientId;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -275,7 +278,11 @@ public class SignInActivity extends AppCompatActivity {
         }
         final String tenantId = inputItems.get(TENANT_ID);
         if(!TextUtils.isEmpty(tenantId)){
-
+            mTenantId = tenantId;
+        }
+        final String familyClientId = inputItems.get(FAMLIY_CLIENT_ID);
+        if(!TextUtils.isEmpty(familyClientId)){
+            mFamilyClientId = familyClientId;
         }
     }
 
@@ -309,24 +316,21 @@ public class SignInActivity extends AppCompatActivity {
     private int expireAccessToken() {
         final ITokenCacheStore tokenCacheStore = mAuthenticationContext.getCache();
         int count = 0;
-//        for (String userId : getCacheIdentifiers()){
-//
-//            String cacheKeyRT = createCacheKeyForRTEntry(mAuthority, mResource, mClientId, userId);
-//            final TokenCacheItem tokenCacheItemRT = tokenCacheStore.getItem(cacheKeyRT);
-//            count += tokenExpired(tokenCacheItemRT, cacheKeyRT, tokenCacheStore);
-//
-//            if (cacheItem.getIsMultiResourceRefreshToken()) {
-//                String cacheKeyMRRT = createCacheKeyForMRRT(mAuthority, mClientId, userId);
-//                final TokenCacheItem tokenCacheItemMRRT = tokenCacheStore.getItem(cacheKeyMRRT);
-//                count += tokenExpired(tokenCacheItemMRRT, cacheKeyMRRT, tokenCacheStore);
-//            }
-//
-//            if (!StringExtensions.isNullOrBlank(cacheItem.getFamilyClientId())) {
-//                String cacheKeyFRT = createCacheKeyForFRT(authority, cacheItem.getFamilyClientId(), userId);
-//                final TokenCacheItem tokenCacheItemFRRT = tokenCacheStore.getItem(cacheKeyFRT);
-//                count += tokenExpired(tokenCacheItemFRRT, cacheKeyFRT, tokenCacheStore);
-//            }
-//        }
+        for (String userId : getCacheIdentifiers()) {
+            String cacheKeyRT = createCacheKeyForRTEntry(mAuthority, mResource, mClientId, userId);
+            final TokenCacheItem tokenCacheItemRT = tokenCacheStore.getItem(cacheKeyRT);
+            count += tokenExpired(tokenCacheItemRT, cacheKeyRT, tokenCacheStore);
+
+            String cacheKeyMRRT = createCacheKeyForMRRT(mAuthority, mClientId, userId);
+            final TokenCacheItem tokenCacheItemMRRT = tokenCacheStore.getItem(cacheKeyMRRT);
+            count += tokenExpired(tokenCacheItemMRRT, cacheKeyMRRT, tokenCacheStore);
+
+            if (!TextUtils.isEmpty(mFamilyClientId)) {
+                String cacheKeyFRT = createCacheKeyForFRT(mAuthority, mFamilyClientId, userId);
+                final TokenCacheItem tokenCacheItemFRRT = tokenCacheStore.getItem(cacheKeyFRT);
+                count += tokenExpired(tokenCacheItemFRRT, cacheKeyFRT, tokenCacheStore);
+            }
+        }
 
 
         return count;
@@ -346,19 +350,17 @@ public class SignInActivity extends AppCompatActivity {
         return 0;
     }
 
-    private List<String> getCacheIdentifiers(TokenCacheItem cacheItem) {
+    private List<String> getCacheIdentifiers() {
         List<String> cacheIdentifiers = new ArrayList<>();
-        String userId = cacheItem.getUserInfo().getUserId();
-        if (!TextUtils.isEmpty(userId)) {
-            cacheIdentifiers.add(userId);
+        if (!TextUtils.isEmpty(mUserId)) {
+            cacheIdentifiers.add(mUserId);
         }
-        String displayableId = cacheItem.getUserInfo().getDisplayableId();
-        if (!TextUtils.isEmpty(displayableId)) {
-            cacheIdentifiers.add(displayableId);
+
+        if (!TextUtils.isEmpty(mLoginHint)) {
+            cacheIdentifiers.add(mLoginHint);
         }
-        String utid = cacheItem.getTenantId();
-        if (!TextUtils.isEmpty(userId) && !TextUtils.isEmpty(utid)) {
-            cacheIdentifiers.add(StringExtensions.base64UrlEncodeToString(userId) + "." + StringExtensions.base64UrlEncodeToString(utid));
+        if (!TextUtils.isEmpty(mUserId) && !TextUtils.isEmpty(mTenantId)) {
+            cacheIdentifiers.add(StringExtensions.base64UrlEncodeToString(mUserId) + "." + StringExtensions.base64UrlEncodeToString(mTenantId));
         }
         // For cache keys where cache identifier is empty
         cacheIdentifiers.add("");
