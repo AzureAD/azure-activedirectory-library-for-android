@@ -107,7 +107,7 @@ public class SignInActivity extends AppCompatActivity {
         setContentView(R.layout.activity_request);
 
         mTextView = (EditText) findViewById(R.id.requestInfo);
-        
+
         final Button goButton = (Button) findViewById(R.id.requestGo);
         goButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -125,7 +125,7 @@ public class SignInActivity extends AppCompatActivity {
 
     private void performAuthentication() {
         final Intent receivedIntent = getIntent();
-        
+
         int flowCode = receivedIntent.getIntExtra(MainActivity.FLOW_CODE, 0);
 
         final Map<String, String> inputItems;
@@ -193,7 +193,7 @@ public class SignInActivity extends AppCompatActivity {
         intent.putExtra(Constants.INVALIDATED_REFRESH_TOKEN_COUNT, String.valueOf(count));
         launchResultActivity(intent);
     }
-    
+
     private void processInvalidateFamilyRefreshTokenRequest() {
         int count = invalidateFamilyRefreshToken();
         final Intent intent = new Intent();
@@ -265,11 +265,11 @@ public class SignInActivity extends AppCompatActivity {
         mExtraQueryParam = inputItems.get(EXTRA_QUERY_PARAM);
         mValidateAuthority = inputItems.get(VALIDATE_AUTHORITY) == null ? true : Boolean.valueOf(
                 inputItems.get(VALIDATE_AUTHORITY));
-        
+
         if (!TextUtils.isEmpty(inputItems.get(UNIQUE_ID))) {
             mUserId = inputItems.get(UNIQUE_ID);
         }
-        
+
         if (!TextUtils.isEmpty(inputItems.get(DISPLAYABLE_ID)) || !TextUtils.isEmpty(inputItems.get("user_identifier"))) {
             mLoginHint = inputItems.get(DISPLAYABLE_ID) == null ? inputItems.get("user_identifier") : inputItems.get("displayable_id");
         }
@@ -373,19 +373,23 @@ public class SignInActivity extends AppCompatActivity {
         expireAccessToken();
 
         int count = 0;
-        // invalidate RT
-        count += invalidateRefreshToken(createCacheKeyForRTEntry(mAuthority, mResource, mClientId, mUserId));
-        count += invalidateRefreshToken(createCacheKeyForRTEntry(mAuthority, mResource, mClientId, mLoginHint));
-        count += invalidateRefreshToken(createCacheKeyForRTEntry(mAuthority, mResource, mClientId, ""));
+        for (String userId : getCacheIdentifiers()) {
+            if(!TextUtils.isEmpty(mResource)) {
+                String cacheKeyRT = createCacheKeyForRTEntry(mAuthority, mResource, mClientId, userId);
+                count += invalidateRefreshToken(cacheKeyRT);
+            }
 
-        // invalidate MRRT
-        count += invalidateRefreshToken(createCacheKeyForMRRT(mAuthority, mClientId, mUserId));
-        count += invalidateRefreshToken(createCacheKeyForMRRT(mAuthority, mClientId, mLoginHint));
-        count += invalidateRefreshToken(createCacheKeyForMRRT(mAuthority, mClientId, ""));
+            String cacheKeyMRRT = createCacheKeyForMRRT(mAuthority, mClientId, userId);
+            count += invalidateRefreshToken(cacheKeyMRRT);
 
+            if (!TextUtils.isEmpty(mFamilyClientId)) {
+                String cacheKeyFRT = createCacheKeyForFRT(mAuthority, mFamilyClientId, userId);
+                count += invalidateRefreshToken(cacheKeyFRT);
+            }
+        }
         return count;
     }
-    
+
     private int invalidateFamilyRefreshToken() {
         invalidateRefreshToken();
 
