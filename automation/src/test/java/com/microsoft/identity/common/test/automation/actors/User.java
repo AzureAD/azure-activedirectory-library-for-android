@@ -1,12 +1,11 @@
 package com.microsoft.identity.common.test.automation.actors;
 
 import com.google.gson.Gson;
+import com.microsoft.identity.common.test.automation.model.TokenCacheItemReadResult;
 import com.microsoft.identity.common.test.automation.utility.Credential;
 import com.microsoft.identity.common.test.automation.utility.TokenRequest;
 
 import net.serenitybdd.screenplay.Actor;
-
-import jdk.nashorn.internal.parser.Token;
 
 public class User extends Actor {
 
@@ -14,6 +13,7 @@ public class User extends Actor {
     private TokenRequest silentTokenRequest;
     private String federationProvider;
     private Credential credential;
+    private TokenCacheItemReadResult cacheResult;
 
     public void setTokenRequest(TokenRequest tokenRequest){
         this.tokenRequest = tokenRequest;
@@ -69,5 +69,16 @@ public class User extends Actor {
     }
 
 
+    public TokenCacheItemReadResult getCacheResult() {
+        return cacheResult;
+    }
 
+    public void setCacheResult(TokenCacheItemReadResult cacheResult) {
+        this.cacheResult = cacheResult;
+    }
+
+    public String getCacheResultAsJson(){
+        String cacheJson = new Gson().toJson(this.cacheResult);
+        return cacheJson;
+    }
 }
