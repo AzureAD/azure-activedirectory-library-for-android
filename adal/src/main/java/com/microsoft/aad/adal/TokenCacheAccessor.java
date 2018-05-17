@@ -263,6 +263,11 @@ class TokenCacheAccessor {
             throw new IllegalArgumentException("result");
         }
 
+        //Moving this such that the correct authority is available to all code paths
+        if (!StringExtensions.isNullOrBlank(result.getAuthority())) {
+            mAuthority = result.getAuthority();
+        }
+
         if (result.getStatus() == AuthenticationStatus.Succeeded) {
             Logger.v(TAG + methodName, "Save returned AuthenticationResult into cache.");
             if (cachedItem != null && cachedItem.getUserInfo() != null && result.getUserInfo() == null) {
@@ -272,7 +277,7 @@ class TokenCacheAccessor {
             }
 
             try {
-                if (mUseCommonCache) {
+                if (mUseCommonCache && !UrlExtensions.isADFSAuthority(new URL(mAuthority))) {
                     updateTokenCacheUsingCommonCache(resource, clientId, result);
                 } else {
                     updateTokenCache(resource, clientId, result);
@@ -318,13 +323,6 @@ class TokenCacheAccessor {
 
 
     void updateTokenCacheUsingCommonCache(final String resource, final String clientId, final AuthenticationResult result) throws MalformedURLException {
-
-        //prepare request state for transfer to common cache
-        //TODO: Need to detect whether this is an AAD, ADFS or other IDP... so that we create the correct objects
-        if (result.getUserInfo() == null) {
-            //ADFS 2012R2 it seems
-            Logger.v(TAG + "updateTokenCacheUsingCommonCache", "UserInfo is null... i guess this is ADFS 2012 R2");
-        }
 
         AzureActiveDirectory ad = new AzureActiveDirectory();
         AzureActiveDirectoryTokenResponse tokenResponse = CoreAdapter.asAadTokenResponse(result);
@@ -436,10 +434,6 @@ class TokenCacheAccessor {
         final CacheEvent cacheEvent = new CacheEvent(EventStrings.TOKEN_CACHE_WRITE);
         cacheEvent.setRequestId(mTelemetryRequestId);
         Telemetry.getInstance().startEvent(mTelemetryRequestId, EventStrings.TOKEN_CACHE_WRITE);
-
-        if (!StringExtensions.isNullOrBlank(result.getAuthority())) {
-            mAuthority = result.getAuthority();
-        }
 
         // new tokens will only be saved into preferred cache location
         mTokenCacheStore.setItem(CacheKey.createCacheKeyForRTEntry(getAuthorityUrlWithPreferredCache(), resource, clientId, userId),
