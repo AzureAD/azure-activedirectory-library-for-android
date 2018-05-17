@@ -81,7 +81,7 @@ public class SignInActivity extends AppCompatActivity {
     public static final String TENANT_ID = "tenant_id";
     public static final String USER_IDENTIFIER_TYPE = "user_identifier_type";
     public static final String CORRELATION_ID = "correlation_id";
-    public static final String FAMLIY_CLIENT_ID = "family_client_id";
+    public static final String FAMLIY_CLIENT_ID = "foci";
 
     static final String INVALID_REFRESH_TOKEN = "some invalid refresh token";
 
@@ -248,8 +248,10 @@ public class SignInActivity extends AppCompatActivity {
             throw new IllegalArgumentException("redirect_uri");
         }
 
-        if (flowCode == MainActivity.INVALIDATE_ACCESS_TOKEN && TextUtils.isEmpty(inputItems.get(USER_IDENTIFIER))) {
-            throw new IllegalArgumentException("user identifier");
+        if (flowCode == MainActivity.INVALIDATE_ACCESS_TOKEN &&
+                (TextUtils.isEmpty(inputItems.get(USER_IDENTIFIER))
+                        && TextUtils.isEmpty(inputItems.get(UNIQUE_ID)) && TextUtils.isEmpty(inputItems.get(DISPLAYABLE_ID)))) {
+            throw new IllegalArgumentException("user identifier, unique id or displayable id");
         }
     }
 
@@ -317,9 +319,11 @@ public class SignInActivity extends AppCompatActivity {
         final ITokenCacheStore tokenCacheStore = mAuthenticationContext.getCache();
         int count = 0;
         for (String userId : getCacheIdentifiers()) {
-            String cacheKeyRT = createCacheKeyForRTEntry(mAuthority, mResource, mClientId, userId);
-            final TokenCacheItem tokenCacheItemRT = tokenCacheStore.getItem(cacheKeyRT);
-            count += tokenExpired(tokenCacheItemRT, cacheKeyRT, tokenCacheStore);
+            if(!TextUtils.isEmpty(mResource)) {
+                String cacheKeyRT = createCacheKeyForRTEntry(mAuthority, mResource, mClientId, userId);
+                final TokenCacheItem tokenCacheItemRT = tokenCacheStore.getItem(cacheKeyRT);
+                count += tokenExpired(tokenCacheItemRT, cacheKeyRT, tokenCacheStore);
+            }
 
             String cacheKeyMRRT = createCacheKeyForMRRT(mAuthority, mClientId, userId);
             final TokenCacheItem tokenCacheItemMRRT = tokenCacheStore.getItem(cacheKeyMRRT);
@@ -331,8 +335,6 @@ public class SignInActivity extends AppCompatActivity {
                 count += tokenExpired(tokenCacheItemFRRT, cacheKeyFRT, tokenCacheStore);
             }
         }
-
-
         return count;
     }
 
