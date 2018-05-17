@@ -18,6 +18,7 @@ import static net.serenitybdd.screenplay.matchers.WebElementStateMatchers.isVisi
 public class AcquireTokenSilent implements Task{
 
     private String userIdentifier;
+    private String uniqueId;
 
     @Steps
     CloseKeyboard closeKeyboard;
@@ -27,6 +28,7 @@ public class AcquireTokenSilent implements Task{
         User user = (User)actor;
         TokenRequest tokenRequest = user.getTokenRequest();
         tokenRequest.setUserIdentitfier(userIdentifier);
+        tokenRequest.setUniqueUserId(uniqueId);
         actor.attemptsTo(
                 WaitUntil.the(Main.ACQUIRE_TOKEN_SILENT, isVisible()).forNoMoreThan(10).seconds(),
                 Click.on(Main.ACQUIRE_TOKEN_SILENT),
@@ -34,6 +36,11 @@ public class AcquireTokenSilent implements Task{
                 closeKeyboard,
                 Click.on(Request.SUBMIT_REQUEST_BUTTON)
         );
+    }
+
+    public AcquireTokenSilent withUniqueId(String uniqueId){
+        this.uniqueId = uniqueId;
+        return this;
     }
 
     public AcquireTokenSilent withUserIdentifier(String userIdentifier){

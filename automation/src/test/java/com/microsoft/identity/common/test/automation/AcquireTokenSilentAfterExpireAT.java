@@ -135,7 +135,7 @@ public class AcquireTokenSilentAfterExpireAT {
         james.attemptsTo(clickDone, expireAccessToken, clickDone);
 
         when(james).attemptsTo(
-                acquireTokenSilent.withUserIdentifier(james.getCredential().userName),
+                acquireTokenSilent.withUniqueId(james.getCacheResult().uniqueUserId),
                 clickDone,
                 readCache);
 

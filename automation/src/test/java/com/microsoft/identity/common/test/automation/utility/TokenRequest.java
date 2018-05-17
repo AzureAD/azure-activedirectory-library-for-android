@@ -32,6 +32,8 @@ public class TokenRequest {
     private String mUserIdentifierType = null;
     @SerializedName("unique_id")
     private String mUniqueUserId = null;
+    @SerializedName("tenant_id")
+    private String mTenantId;
 
 
     public String getClientId() {
@@ -120,5 +122,13 @@ public class TokenRequest {
 
     public void setUniqueUserId(String uniqueUserId){
         this.mUniqueUserId = uniqueUserId;
+    }
+
+    public String getTenantId(){
+        return mTenantId;
+    }
+
+    public void setTenantId(String tenantId){
+        mTenantId = tenantId;
     }
 }
