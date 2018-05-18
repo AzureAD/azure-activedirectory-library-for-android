@@ -17,7 +17,6 @@ public class AccessToken implements Question<String> {
         ReadCacheResult readCacheResult = ResultsMapper.GetReadCacheResultFromString(results);
         User user = (User) actor;
         user.setCacheResult(readCacheResult.tokenCacheItems.get(0));
-        //TODO : Understand why access token could be null in a cache item
         String accessToken = null;
         for(TokenCacheItemReadResult readResult :  readCacheResult.tokenCacheItems){
             if(readResult.accessToken != null){

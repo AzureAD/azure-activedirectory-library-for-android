@@ -1,7 +1,6 @@
 package com.microsoft.identity.common.test.automation;
 
 import com.microsoft.identity.common.test.automation.actors.User;
-import com.microsoft.identity.common.test.automation.tasks.AcquireToken;
 import com.microsoft.identity.common.test.automation.tasks.AcquireTokenSilent;
 import com.microsoft.identity.common.test.automation.utility.Scenario;
 import com.microsoft.identity.common.test.automation.utility.TestConfigurationQuery;
