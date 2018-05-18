@@ -42,7 +42,7 @@ import static org.hamcrest.Matchers.not;
  */
 
 @RunWith(SerenityParameterizedRunner.class)
-public class AcquireTokenSilentAfterExpireAT {
+public class AcquireTokenAfterExpireAT {
 
     @TestData
     public static Collection<Object[]> FederationProviders(){
@@ -93,7 +93,7 @@ public class AcquireTokenSilentAfterExpireAT {
     private User james;
     private String federationProvider;
 
-    public AcquireTokenSilentAfterExpireAT(String federationProvider){
+    public AcquireTokenAfterExpireAT(String federationProvider){
         this.federationProvider = federationProvider;
     }
 
@@ -135,7 +135,9 @@ public class AcquireTokenSilentAfterExpireAT {
         james.attemptsTo(clickDone, expireAccessToken, clickDone);
 
         when(james).attemptsTo(
-                acquireTokenSilent.withUniqueId(james.getCacheResult().uniqueUserId),
+                acquireToken
+                        .tokenExists(true)
+                        .withUserIdentifier(james.getCacheResult().displayableId),
                 clickDone,
                 readCache);
 
