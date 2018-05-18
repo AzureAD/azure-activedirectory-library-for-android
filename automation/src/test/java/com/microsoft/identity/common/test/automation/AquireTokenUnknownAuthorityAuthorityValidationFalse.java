@@ -32,7 +32,7 @@ import static net.serenitybdd.screenplay.GivenWhenThen.then;
 import static org.hamcrest.Matchers.is;
 
 @RunWith(SerenityParameterizedRunner.class)
-public class AcquireTokenBasicTest {
+public class AquireTokenUnknownAuthorityAuthorityValidationFalse {
 
     @TestData
     public static Collection<Object[]> FederationProviders(){
@@ -40,10 +40,7 @@ public class AcquireTokenBasicTest {
         return Arrays.asList(new Object[][]{
                 {"ADFSv2"},
                 {"ADFSv3"},
-                {"ADFSv4"},
-                {"PingFederate"},
-                {"Shibboleth"}
-
+                {"ADFSv4"}
         });
 
     }
@@ -76,7 +73,7 @@ public class AcquireTokenBasicTest {
     @Steps
     ClickDone clickDone;
 
-    public AcquireTokenBasicTest(String federationProvider){
+    public AquireTokenUnknownAuthorityAuthorityValidationFalse(String federationProvider){
         this.federationProvider = federationProvider;
     }
 
@@ -98,7 +95,8 @@ public class AcquireTokenBasicTest {
         newUser.setFederationProvider(scenario.getTestConfiguration().getUsers().getFederationProvider());
         newUser.setTokenRequest(scenario.getTokenRequest());
         newUser.setCredential(scenario.getCredential());
-
+        newUser.setAuthority("https://myfakeauthority.com");
+        newUser.setValidateAuthority(false);
         return newUser;
     }
 

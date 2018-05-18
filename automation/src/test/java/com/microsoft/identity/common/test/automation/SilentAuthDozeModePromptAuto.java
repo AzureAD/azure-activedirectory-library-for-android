@@ -2,8 +2,7 @@ package com.microsoft.identity.common.test.automation;
 
 import com.microsoft.identity.common.test.automation.actors.User;
 import com.microsoft.identity.common.test.automation.interactions.ClickDone;
-import com.microsoft.identity.common.test.automation.questions.TokenCacheItemCount;
-import com.microsoft.identity.common.test.automation.tasks.AcquireToken;
+import com.microsoft.identity.common.test.automation.tasks.AcquireTokenSilent;
 import com.microsoft.identity.common.test.automation.tasks.ReadCache;
 import com.microsoft.identity.common.test.automation.utility.Scenario;
 import com.microsoft.identity.common.test.automation.utility.TestConfigurationQuery;
@@ -21,21 +20,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.openqa.selenium.WebDriver;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 
-import io.appium.java_client.service.local.AppiumDriverLocalService;
-
-import static net.serenitybdd.screenplay.GivenWhenThen.seeThat;
-import static net.serenitybdd.screenplay.GivenWhenThen.then;
-import static org.hamcrest.Matchers.is;
 
 @RunWith(SerenityParameterizedRunner.class)
-public class AcquireTokenBasicTest {
+public class SilentAuthDozeModePromptAuto {
 
     @TestData
     public static Collection<Object[]> FederationProviders(){
+
 
         return Arrays.asList(new Object[][]{
                 {"ADFSv2"},
@@ -43,32 +37,40 @@ public class AcquireTokenBasicTest {
                 {"ADFSv4"},
                 {"PingFederate"},
                 {"Shibboleth"}
-
         });
 
     }
 
-    static AppiumDriverLocalService appiumService = null;
-
     @Managed(driver="Appium")
     WebDriver hisMobileDevice;
+    public static Process appium;
 
     @BeforeClass
-    public static void startAppiumServer() throws IOException {
-        appiumService = AppiumDriverLocalService.buildDefaultService();
-        appiumService.start();
+    public static void  startAppiumServer_with_relaxed_security() throws java.io.IOException {
+        appium = Runtime.getRuntime().exec(
+                "cmd /c start cmd.exe /C appium --relaxed-security"
+        );
     }
 
     @AfterClass
-    public static void stopAppiumServer() {
-        appiumService.stop();
+    public static void stopAppiumServer() throws java.io.IOException{
+        appium.destroy();
+        Process stop_node = Runtime.getRuntime().exec("taskkill /f /im node.exe");
+        stop_node.destroy();
     }
+
 
     private User james;
     private String federationProvider;
 
     @Steps
-    AcquireToken acquireToken;
+    com.microsoft.identity.common.test.automation.DeviceModes.DozeOn DozeOn;
+
+    @Steps
+    com.microsoft.identity.common.test.automation.DeviceModes.DozeOff DozeOff;
+
+    @Steps
+    AcquireTokenSilent acquireTokenSilent;
 
     @Steps
     ReadCache readCache;
@@ -76,7 +78,7 @@ public class AcquireTokenBasicTest {
     @Steps
     ClickDone clickDone;
 
-    public AcquireTokenBasicTest(String federationProvider){
+    public SilentAuthDozeModePromptAuto(String federationProvider){
         this.federationProvider = federationProvider;
     }
 
@@ -91,28 +93,24 @@ public class AcquireTokenBasicTest {
     }
 
     private static User getUser(TestConfigurationQuery query){
-
         Scenario scenario = Scenario.GetScenario(query);
 
         User newUser = User.named("james");
         newUser.setFederationProvider(scenario.getTestConfiguration().getUsers().getFederationProvider());
         newUser.setTokenRequest(scenario.getTokenRequest());
         newUser.setCredential(scenario.getCredential());
-
         return newUser;
     }
 
-
     @Test
-    public void should_be_able_to_acquire_token() {
-
+    public void set_doze_on() {
         james.attemptsTo(
-                acquireToken,
+                acquireTokenSilent.withPrompt("Auto"),
+                DozeOn,
+                DozeOff,
                 clickDone,
-                readCache);
-
-        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(6) ));
-
+                readCache
+        );
     }
 
 }
