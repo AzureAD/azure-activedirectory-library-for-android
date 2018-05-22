@@ -13,6 +13,8 @@ import net.serenitybdd.screenplay.actions.Enter;
 import net.serenitybdd.screenplay.waits.WaitUntil;
 import net.thucydides.core.annotations.Steps;
 
+import org.apache.http.util.TextUtils;
+
 import static net.serenitybdd.screenplay.matchers.WebElementStateMatchers.isVisible;
 
 public class AcquireTokenSilent implements Task{
@@ -27,11 +29,16 @@ public class AcquireTokenSilent implements Task{
     public <T extends Actor> void performAs(T actor) {
         User user = (User)actor;
         TokenRequest tokenRequest = user.getTokenRequest();
-        tokenRequest.setUserIdentitfier(userIdentifier);
-        tokenRequest.setUniqueUserId(uniqueId);
+        if(!TextUtils.isEmpty(userIdentifier)) {
+            tokenRequest.setUserIdentitfier(userIdentifier);
+        }
+        if(TextUtils.isEmpty(uniqueId)) {
+            tokenRequest.setUniqueUserId(uniqueId);
+        }
         actor.attemptsTo(
                 WaitUntil.the(Main.ACQUIRE_TOKEN_SILENT, isVisible()).forNoMoreThan(10).seconds(),
                 Click.on(Main.ACQUIRE_TOKEN_SILENT),
+
                 Enter.theValue(user.getSilentTokenRequestAsJson()).into(Request.REQUEST_INFO_FIELD),
                 closeKeyboard,
                 Click.on(Request.SUBMIT_REQUEST_BUTTON)
