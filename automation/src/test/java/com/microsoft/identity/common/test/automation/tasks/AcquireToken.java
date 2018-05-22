@@ -32,8 +32,12 @@ public class AcquireToken implements Task{
     public <T extends Actor> void performAs(T actor) {
         User user = (User) actor;
         TokenRequest tokenRequest = user.getTokenRequest();
-        tokenRequest.setPromptBehavior(prompt);
-        tokenRequest.setUserIdentitfier(userIdentifier);
+        if(!TextUtils.isEmpty(prompt)) {
+            tokenRequest.setPromptBehavior(prompt);
+        }
+        if(!TextUtils.isEmpty(userIdentifier)) {
+            tokenRequest.setUserIdentitfier(userIdentifier);
+        }
         SignInUser signInUser = SignInUser.GetSignInUserByFederationProvider(user.getFederationProvider());
 
         actor.attemptsTo(
