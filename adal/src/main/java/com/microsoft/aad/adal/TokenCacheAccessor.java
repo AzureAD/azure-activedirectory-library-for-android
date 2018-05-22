@@ -300,7 +300,7 @@ class TokenCacheAccessor {
             return;
         }
 
-        if (mUseCommonCache == true) {
+        if (mUseCommonCache && !UrlExtensions.isADFSAuthority(new URL(mAuthority))) {
             updateTokenCacheUsingCommonCache(resource, clientId, result);
             return;
         }
