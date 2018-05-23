@@ -727,6 +727,92 @@ public class AuthenticationContext {
     }
 
     /**
+     * This is sync function. It will first look at the cache and automatically
+     * checks for the token expiration. Additionally, if no suitable access
+     * token is found in the cache, but refresh token is available, the function
+     * will use the refresh token automatically. This method will not show UI
+     * for the user. If prompt is needed, the method will return an exception
+     *
+     * @param resource required resource identifier.
+     * @param clientId required client identifier.
+     * @param userId   UserID obtained from
+     *                 {@link AuthenticationResult #getUserInfo()}
+     * @return A {@link Future} object representing the
+     * {@link AuthenticationResult} of the call. It contains Access
+     * Token,the Access Token's expiration time, Refresh token, and
+     * {@link UserInfo}.
+     * @throws AuthenticationException If silent request fails to get the token back.
+     * @throws InterruptedException    If the main thread is interrupted before or during the activity.
+     */
+    public AuthenticationResult acquireTokenSilentSync(String resource, String clientId, String userId, boolean forceRefresh)
+            throws AuthenticationException, InterruptedException {
+
+        final String methodName = ":acquireTokenSilentSync";
+        checkPreRequirements(resource, clientId);
+        checkADFSValidationRequirements(null);
+        final AtomicReference<AuthenticationResult> authenticationResult = new AtomicReference<>();
+        final AtomicReference<Exception> exception = new AtomicReference<>();
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        final String requestId = Telemetry.registerNewRequest();
+        final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_SILENT_SYNC);
+        apiEvent.setPromptBehavior(PromptBehavior.Auto.toString());
+
+        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
+                clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled(), forceRefresh);
+        request.setSilent(true);
+        request.setPrompt(PromptBehavior.Auto);
+        request.setUserIdentifierType(UserIdentifierType.UniqueId);
+        request.setTelemetryRequestId(requestId);
+
+        final Looper currentLooper = Looper.myLooper();
+        if (currentLooper != null && currentLooper == mContext.getMainLooper()) {
+            Logger.e(TAG + methodName,
+                    "Sync network calls must not be invoked in main thread. "
+                            + "This method will throw android.os.NetworkOnMainThreadException in next major release",
+                    new NetworkOnMainThreadException());
+        }
+        createAcquireTokenRequest(apiEvent).acquireToken(null, false, request,
+                new AuthenticationCallback<AuthenticationResult>() {
+                    @Override
+                    public void onSuccess(AuthenticationResult result) {
+                        authenticationResult.set(result);
+                        latch.countDown();
+                    }
+
+                    @Override
+                    public void onError(Exception exc) {
+                        exception.set(exc);
+                        latch.countDown();
+                    }
+                });
+
+        latch.await();
+
+        Exception e = exception.get();
+        if (e != null) {
+            if (e instanceof AuthenticationException) {
+                throw (AuthenticationException) e;
+            } else if (e instanceof RuntimeException) {
+                throw (RuntimeException) e;
+            }
+            if (e.getCause() != null) {
+                if (e.getCause() instanceof AuthenticationException) {
+                    throw (AuthenticationException) e.getCause();
+                } else if (e.getCause() instanceof RuntimeException) {
+                    throw (RuntimeException) e.getCause();
+                } else {
+                    throw new AuthenticationException(ADALError.ERROR_SILENT_REQUEST, e.getCause()
+                            .getMessage(), e.getCause());
+                }
+            }
+            throw new AuthenticationException(ADALError.ERROR_SILENT_REQUEST, e.getMessage(), e);
+        }
+
+        return authenticationResult.get();
+    }
+
+    /**
      * The function will first look at the cache and automatically checks for
      * the token expiration. Additionally, if no suitable access token is found
      * in the cache, but refresh token is available, the function will use the
@@ -836,6 +922,47 @@ public class AuthenticationContext {
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled());
+        request.setSilent(true);
+        request.setPrompt(PromptBehavior.Auto);
+        request.setUserIdentifierType(UserIdentifierType.UniqueId);
+
+        request.setTelemetryRequestId(requestId);
+
+        createAcquireTokenRequest(apiEvent).acquireToken(null, false, request, callback);
+    }
+
+    /**
+     * The function will first look at the cache and automatically checks for
+     * the token expiration. Additionally, if no suitable access token is found
+     * in the cache, but refresh token is available, the function will use the
+     * refresh token automatically. This method will not show UI for the user.
+     * If prompt is needed, the method will return an exception
+     *
+     * @param resource required resource identifier.
+     * @param clientId required client identifier.
+     * @param userId   UserId obtained from {@link UserInfo} inside
+     *                 {@link AuthenticationResult}
+     * @param forceRefresh when true access token is renewed using broker owned refresh token or local if not available
+     * @param callback required {@link AuthenticationCallback} object for async
+     *                 call.
+     */
+    public void acquireTokenSilentAsync(String resource,
+                                        String clientId,
+                                        String userId,
+                                        boolean forceRefresh,
+                                        AuthenticationCallback<AuthenticationResult> callback) {
+        if (!checkPreRequirements(resource, clientId, callback) || !checkADFSValidationRequirements(null, callback)) {
+            // AD FS validation cannot be perfomed, stop executing
+            return;
+        }
+
+        final String requestId = Telemetry.registerNewRequest();
+        final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId,
+                EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC);
+        apiEvent.setPromptBehavior(PromptBehavior.Auto.toString());
+
+        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
+                clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled(), forceRefresh);
         request.setSilent(true);
         request.setPrompt(PromptBehavior.Auto);
         request.setUserIdentifierType(UserIdentifierType.UniqueId);

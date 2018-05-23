@@ -420,33 +420,27 @@ class AcquireTokenRequest {
      */
     private AuthenticationResult acquireTokenSilentFlow(final AuthenticationRequest authenticationRequest)
             throws AuthenticationException {
-        final String methodName = ":acquireTokenSilentFlow";
-        // Always try with local cache first.
+
+        final boolean requestEligibleForBroker = mBrokerProxy.verifyBrokerForSilentRequest(authenticationRequest);
+
+        //1. if forceRefresh == true AND the request is eligible for the broker
+        if(authenticationRequest.getForceRefresh() && requestEligibleForBroker){
+            return tryAcquireTokenSilentWithBroker(authenticationRequest);
+        }
+
+        //2. Try to acquire silent locally
         final AuthenticationResult authResult = tryAcquireTokenSilentLocally(authenticationRequest);
         if (isAccessTokenReturned(authResult)) {
             return authResult;
         }
 
-        // If we cannot switch to broker, return the result from local flow.
-        final BrokerProxy.SwitchToBroker switchToBrokerFlag = mBrokerProxy.canSwitchToBroker(authenticationRequest.getAuthority());
-        if (switchToBrokerFlag == BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER
-                || !mBrokerProxy.verifyUser(authenticationRequest.getLoginHint(), authenticationRequest.getUserId())) {
+        //3. We couldn't get locally...If eligible return via broker... otherwise return local result
+        if(requestEligibleForBroker){
+            return tryAcquireTokenSilentWithBroker(authenticationRequest);
+        }else{
             return authResult;
-        } else if (switchToBrokerFlag == BrokerProxy.SwitchToBroker.NEED_PERMISSIONS_TO_SWITCH_TO_BROKER) {
-            //For android M and above
-            throw new UsageAuthenticationException(
-                    ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,
-                    "Broker related permissions are missing for GET_ACCOUNTS");
         }
 
-        // If we can try with broker for silent flow, it indicates ADAL can switch to broker for auth. Even broker does
-        // not return the token back silently, and we go to interactive flow, we'll still go to broker. The token in
-        // app local cache is no longer useful, when user uninstalls broker, we should prompt user in the next sign-in.
-        Logger.d(TAG + methodName, "Cannot get AT from local cache, switch to Broker for auth, "
-                + "clear tokens from local cache for the user.");
-        removeTokensForUser(authenticationRequest);
-
-        return tryAcquireTokenSilentWithBroker(authenticationRequest);
     }
 
     /**
@@ -467,6 +461,15 @@ class AcquireTokenRequest {
      */
     private AuthenticationResult tryAcquireTokenSilentWithBroker(final AuthenticationRequest authenticationRequest)
             throws AuthenticationException {
+
+        final String methodName = ":tryAcquireTokenSilentWithBroker";
+
+        // If we can try with broker for silent flow, it indicates ADAL can switch to broker for auth. Even broker does
+        // not return the token back silently, and we go to interactive flow, we'll still go to broker. The token in
+        // app local cache is no longer useful, when user uninstalls broker, we should prompt user in the next sign-in.
+        Logger.d(TAG + methodName, "Either could not get tokens from local cache or is force refresh request, switch to Broker for auth, "
+                + "clear tokens from local cache for the user.");
+        removeTokensForUser(authenticationRequest);
 
         final AuthenticationResult authResult;
 
