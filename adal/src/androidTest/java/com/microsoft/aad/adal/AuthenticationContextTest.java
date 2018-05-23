@@ -2286,6 +2286,7 @@ public final class AuthenticationContextTest {
 
         final String response = "{\"access_token\":\"accesstoken"
                 + "\",\"token_type\":\"Bearer\",\"expires_in\":\"29344\",\"expires_on\":\"1368768616\","
+                + "\"resource\":1,"
                 + "\"refresh_token\":\""
                 + "refreshToken" + "\",\"scope\":\"*\",\"id_token\":\"" + TEST_IDTOKEN + "\", \"client_info\":\"" + Util.TEST_CLIENT_INFO + "\"}";
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
@@ -2330,8 +2331,6 @@ public final class AuthenticationContextTest {
 
         assertEquals("Token is returned from refresh token request", expectedAT,
                 callback.getAuthenticationResult().getAccessToken());
-        assertFalse("Multiresource is not set in the mocked response",
-                callback.getAuthenticationResult().getIsMultiResourceRefreshToken());
 
         // Same call again to use it from cache
         signal = new CountDownLatch(1);
@@ -2344,21 +2343,6 @@ public final class AuthenticationContextTest {
 
         assertEquals("Same token in response as in cache for same call", expectedAT,
                 callback.getAuthenticationResult().getAccessToken());
-
-        // Empty userid will prompt.
-        // Items are linked to userid. If it is not there, it can't use for
-        // refresh or access token.
-        signal = new CountDownLatch(1);
-        testActivity = new MockActivity(signal);
-        callback = new MockAuthenticationCallback(signal);
-        context.acquireToken(testActivity.getTestActivity(), resource, "ClienTid", "redirectUri", "", callback);
-        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
-
-        assertNull("Result is null since it tries to start activity",
-                callback.getAuthenticationResult());
-        assertEquals("Activity was attempted to start.",
-                AuthenticationConstants.UIRequest.BROWSER_FLOW,
-                testActivity.mStartActivityRequestCode);
 
         clearCache(context);
     }
