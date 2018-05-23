@@ -48,4 +48,9 @@ public class Constants {
         static final String GIVEN_NAME = Constants.GIVEN_NAME;
         static final String IDENTITY_PROVIDER = Constants.IDENTITY_PROVIDER;
     }
+
+    protected static class ADAL_ERROR_DATA {
+        static final String ERROR = "error";
+        static final String ERROR_DESCRIPTION = "error_description";
+    }
 }

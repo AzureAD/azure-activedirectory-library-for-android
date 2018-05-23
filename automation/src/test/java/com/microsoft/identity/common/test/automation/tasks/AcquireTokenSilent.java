@@ -21,6 +21,7 @@ public class AcquireTokenSilent implements Task{
 
     private String userIdentifier;
     private String uniqueId;
+    private String authority;
 
     @Steps
     CloseKeyboard closeKeyboard;
@@ -32,7 +33,7 @@ public class AcquireTokenSilent implements Task{
         if(!TextUtils.isEmpty(userIdentifier)) {
             tokenRequest.setUserIdentitfier(userIdentifier);
         }
-        if(TextUtils.isEmpty(uniqueId)) {
+        if(!TextUtils.isEmpty(uniqueId)) {
             tokenRequest.setUniqueUserId(uniqueId);
         }
         actor.attemptsTo(

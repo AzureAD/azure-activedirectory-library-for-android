@@ -373,16 +373,20 @@ public class SignInActivity extends AppCompatActivity {
         expireAccessToken();
 
         int count = 0;
-        // invalidate RT
-        count += invalidateRefreshToken(createCacheKeyForRTEntry(mAuthority, mResource, mClientId, mUserId));
-        count += invalidateRefreshToken(createCacheKeyForRTEntry(mAuthority, mResource, mClientId, mLoginHint));
-        count += invalidateRefreshToken(createCacheKeyForRTEntry(mAuthority, mResource, mClientId, ""));
+        for (String userId : getCacheIdentifiers()) {
+            if(!TextUtils.isEmpty(mResource)) {
+                String cacheKeyRT = createCacheKeyForRTEntry(mAuthority, mResource, mClientId, userId);
+                count += invalidateRefreshToken(cacheKeyRT);
+            }
 
-        // invalidate MRRT
-        count += invalidateRefreshToken(createCacheKeyForMRRT(mAuthority, mClientId, mUserId));
-        count += invalidateRefreshToken(createCacheKeyForMRRT(mAuthority, mClientId, mLoginHint));
-        count += invalidateRefreshToken(createCacheKeyForMRRT(mAuthority, mClientId, ""));
+            String cacheKeyMRRT = createCacheKeyForMRRT(mAuthority, mClientId, userId);
+            count += invalidateRefreshToken(cacheKeyMRRT);
 
+            if (!TextUtils.isEmpty(mFamilyClientId)) {
+                String cacheKeyFRT = createCacheKeyForFRT(mAuthority, mFamilyClientId, userId);
+                count += invalidateRefreshToken(cacheKeyFRT);
+            }
+        }
         return count;
     }
     
