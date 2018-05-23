@@ -16,4 +16,9 @@ public class ResultsMapper {
         return readCacheResult;
 
     }
+
+    public static ADALErrorResult GetADALErrorResultFromString(String results){
+        ADALErrorResult adalErrorResult = (ADALErrorResult) ObjectMapper.deserializeJsonStringToObject(results, ADALErrorResult.class);
+        return adalErrorResult;
+    }
 }
