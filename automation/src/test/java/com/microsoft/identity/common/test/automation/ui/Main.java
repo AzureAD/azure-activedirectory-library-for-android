@@ -4,6 +4,8 @@ import net.serenitybdd.screenplay.targets.Target;
 
 import org.openqa.selenium.By;
 
+import io.appium.java_client.MobileBy;
+
 public class Main {
 
     public static Target ACQUIRE_TOKEN_BUTTON = Target.the("Acquire token button").located(By.id("com.microsoft.aad.automation.testapp.adal:id/acquireToken"));
@@ -14,5 +16,4 @@ public class Main {
     public static Target READ_CACHE = Target.the("Read cache button").located(By.id("com.microsoft.aad.automation.testapp.adal:id/readCache"));
     public static Target CLEAR_CACHE = Target.the("Clear cache button").located(By.id("com.microsoft.aad.automation.testapp.adal:id/clearCache"));
     public static Target CONSENT_TO_CERT = Target.the("Consent to automation certificate button").located(By.id("com.microsoft.aad.automation.testapp.adal:id/consentToCertificate"));
-
 }

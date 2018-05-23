@@ -8,6 +8,9 @@ public abstract class SignInUser implements Task {
         SignInUser signInUserTask = null;
 
         switch(federationProvider){
+            case "Cloud":
+                signInUserTask = new SignInUserCloud();
+                break;
             case "ADFSv2":
                 signInUserTask = new SignInUserADFSv2();
                 break;
