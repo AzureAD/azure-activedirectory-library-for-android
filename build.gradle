@@ -7,7 +7,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.1.2'
+        classpath "com.android.tools.build:gradle:$rootProject.ext.gradleVersion"
         classpath "com.github.dcendents:android-maven-gradle-plugin:$rootProject.ext.androidMavenGradlePluginVersion"
         classpath "net.serenity-bdd:serenity-gradle-plugin:1.9.6"
     }
