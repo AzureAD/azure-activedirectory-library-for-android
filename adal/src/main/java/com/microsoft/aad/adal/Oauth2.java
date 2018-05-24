@@ -230,8 +230,7 @@ class Oauth2 {
                 StringExtensions.urlFormEncode(refreshToken),
 
                 AuthenticationConstants.OAuth2.CLIENT_ID,
-                StringExtensions.urlFormEncode(mRequest.getClientId()
-                ),
+                StringExtensions.urlFormEncode(mRequest.getClientId()),
 
                 AuthenticationConstants.OAuth2.CLIENT_INFO,
                 AuthenticationConstants.OAuth2.CLIENT_INFO_TRUE
