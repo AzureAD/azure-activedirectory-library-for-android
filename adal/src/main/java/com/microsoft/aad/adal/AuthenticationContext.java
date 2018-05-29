@@ -1280,8 +1280,7 @@ public class AuthenticationContext {
         final TokenCacheItem tokenCacheItem = SSOStateSerializer.deserialize(serializedBlob);
         if (tokenCacheItem == null || StringExtensions.isNullOrBlank(tokenCacheItem.getAuthority()) ||
                 (StringExtensions.isNullOrBlank(tokenCacheItem.getClientId()) && StringExtensions.isNullOrBlank(tokenCacheItem.getFamilyClientId()))) {
-            throw new UsageAuthenticationException(ADALError.FAIL_TO_IMPORT,
-                    "Failed to import the serialized blob because authority or client id is null/empty.");
+            throw new DeserializationAuthenticationException("Failed to deserialize the blob because authority or client id is null/empty.");
         }
         final String cacheKey = CacheKey.createCacheKey(tokenCacheItem);
         this.getCache().setItem(cacheKey, tokenCacheItem);
