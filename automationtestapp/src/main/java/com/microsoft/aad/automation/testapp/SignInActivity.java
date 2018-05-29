@@ -265,11 +265,9 @@ public class SignInActivity extends AppCompatActivity {
         mExtraQueryParam = inputItems.get(EXTRA_QUERY_PARAM);
         mValidateAuthority = inputItems.get(VALIDATE_AUTHORITY) == null ? true : Boolean.valueOf(
                 inputItems.get(VALIDATE_AUTHORITY));
-
         if (!TextUtils.isEmpty(inputItems.get(UNIQUE_ID))) {
             mUserId = inputItems.get(UNIQUE_ID);
         }
-
         if (!TextUtils.isEmpty(inputItems.get(DISPLAYABLE_ID)) || !TextUtils.isEmpty(inputItems.get("user_identifier"))) {
             mLoginHint = inputItems.get(DISPLAYABLE_ID) == null ? inputItems.get("user_identifier") : inputItems.get("displayable_id");
         }
