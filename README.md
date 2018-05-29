@@ -38,7 +38,7 @@ You can find version-to-version differences in the [change log](https://github.c
 
 Checkout the [ADAL for Android sample app for help getting started](https://github.com/Azure-Samples/active-directory-android).
 
-Looking for [Xamarin])(https://github.com/AzureADSamples/NativeClient-Xamarin-Android)?
+Looking for [Xamarin](https://github.com/AzureADSamples/NativeClient-Xamarin-Android)?
 
 ## Community Help and Support
 
@@ -67,7 +67,7 @@ To build with Gradle,
 * Clone this repo in to a directory of your choice
 * Setup emulator with SDK 23
 * Go to the root folder where you cloned this repo
-* To run the sample app, connect the test device and run the command: ./gradlew :sample:installDebug
+* To run the sample app, connect the test device and run the command: `./gradlew :sample:installDebug`
 * You should see app 'hello' installed in the test device
 * Enter test user credentials to try
 
@@ -77,9 +77,9 @@ To build with Maven, you can use the pom.xml at top level
 * Follow the steps at [Prerequests section to setup your maven for android](https://github.com/MSOpenTech/azure-activedirectory-library-for-android/wiki/Setting-up-maven-environment-for-Android)
 * Setup emulator with SDK 19
 * Go to the root folder where you cloned this repo
-* Run the command: mvn clean install
-* Change the directory to the Quick Start sample: cd samples\hello
-* Run the command: mvn android:deploy android:run
+* Run the command: `mvn clean install`
+* Change the directory to the Quick Start sample: `cd samples\hello`
+* Run the command: `mvn android:deploy android:run`
 * You should see app launching
 * Enter test user credentials to try!
 
@@ -156,7 +156,7 @@ You can get the jar file from maven the repo and drop into the *libs* folder in 
 
 1. Follow the Prerequisites
 
-2. Add a reference to your project and specify it as an Android library. If you are uncertain how to do this, click here for more information: http://developer.android.com/tools/projects/projects-eclipse.html
+2. Add a reference to your project and specify it as an Android library. If you are uncertain how to do this, [click here](http://developer.android.com/tools/projects/projects-eclipse.html) for more information.
 
 3. Add the project dependency for debugging in to your project settings
 
@@ -310,7 +310,7 @@ In order to acquire token via broker, the following requirements have to be met 
 * Starting version 1.1.14, developer has to explicitly specify set to use broker via:
     `AuthenticationSettings.INSTANCE.setUseBroker(true);`
 * Developer needs to register special redirectUri for broker usage. RedirectUri is in the format of msauth://packagename/Base64UrlencodedSignature. You can get your redirecturi for your app using the script `brokerRedirectPrint.ps1` on Windows or `brokerRedirectPrint.sh` on Linux or Mac. You can also use API call mContext.getBrokerRedirectUri. Signature is related to your signing certificates.
-* If target version is lower than 23, calling app has to have the following permissions declared in manifest(http://developer.android.com/reference/android/accounts/AccountManager.html):
+* If target version is lower than 23, calling app has to have the following permissions declared in [the manifest](http://developer.android.com/reference/android/accounts/AccountManager.html):
   * `GET_ACCOUNTS`
   * `USE_CREDENTIALS`
   * `MANAGE_ACCOUNTS`
