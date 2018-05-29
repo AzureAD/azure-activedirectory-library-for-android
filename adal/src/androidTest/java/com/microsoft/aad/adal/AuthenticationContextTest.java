@@ -2659,6 +2659,32 @@ public final class AuthenticationContextTest {
         }
     }
 
+    @Test
+    public void testDeserializeMissingAuthority() {
+        final String missingAttributeString = "{\"tokenCacheItems\":[{\"refresh_token\":\"FRT\",\"foci\":\"1\"}],\"version\":1}";
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
+        final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
+        try {
+            context.deserialize(missingAttributeString);
+        } catch (final Exception exception) {
+            assertTrue("argument exception", exception instanceof DeserializationAuthenticationException);
+        }
+    }
+
+    @Test
+    public void testDeserializeMissingClientId() {
+        final String missingAttributeString = "{\"tokenCacheItems\":[{\"authority\":\"https://login.windows.net/ComMon/\",\"refresh_token\":\"FRT\"}],\"version\":1}";
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
+        final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
+        try {
+            context.deserialize(missingAttributeString);
+        } catch (final Exception exception) {
+            assertTrue("argument exception", exception instanceof DeserializationAuthenticationException);
+        }
+    }
+
     /**
      * Test the deserialize() function where the deserialize input is a json
      * token which has one additional attribute. The function is expected to
