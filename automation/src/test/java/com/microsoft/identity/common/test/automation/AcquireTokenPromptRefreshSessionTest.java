@@ -2,14 +2,18 @@ package com.microsoft.identity.common.test.automation;
 
 import com.microsoft.identity.common.test.automation.actors.User;
 import com.microsoft.identity.common.test.automation.interactions.ClickDone;
+import com.microsoft.identity.common.test.automation.questions.AccessToken;
 import com.microsoft.identity.common.test.automation.questions.TokenCacheItemCount;
 import com.microsoft.identity.common.test.automation.tasks.AcquireToken;
 import com.microsoft.identity.common.test.automation.tasks.ReadCache;
+import com.microsoft.identity.common.test.automation.tasks.SelectAccount;
+import com.microsoft.identity.common.test.automation.ui.Results;
 import com.microsoft.identity.common.test.automation.utility.Scenario;
 import com.microsoft.identity.common.test.automation.utility.TestConfigurationQuery;
 
 import net.serenitybdd.junit.runners.SerenityParameterizedRunner;
 import net.serenitybdd.screenplay.abilities.BrowseTheWeb;
+import net.serenitybdd.screenplay.questions.Text;
 import net.thucydides.core.annotations.Managed;
 import net.thucydides.core.annotations.Steps;
 import net.thucydides.junit.annotations.TestData;
@@ -27,30 +31,29 @@ import java.util.Collection;
 
 import io.appium.java_client.service.local.AppiumDriverLocalService;
 
+import static net.serenitybdd.screenplay.GivenWhenThen.givenThat;
 import static net.serenitybdd.screenplay.GivenWhenThen.seeThat;
 import static net.serenitybdd.screenplay.GivenWhenThen.then;
+import static net.serenitybdd.screenplay.GivenWhenThen.when;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 
 @RunWith(SerenityParameterizedRunner.class)
-public class AcquireTokenBasicTest {
+public class AcquireTokenPromptRefreshSessionTest {
 
     @TestData
-    public static Collection<Object[]> FederationProviders(){
+    public static Collection<Object[]> FederationProviders() {
 
         return Arrays.asList(new Object[][]{
                 {"ADFSv2"},
                 {"ADFSv3"},
-                {"ADFSv4"},
-                {"PingFederate"},
-                {"Shibboleth"}
-
+                {"ADFSv4"}
         });
-
     }
 
     static AppiumDriverLocalService appiumService = null;
 
-    @Managed(driver="Appium")
+    @Managed(driver = "Appium")
     WebDriver hisMobileDevice;
 
     @BeforeClass
@@ -71,17 +74,21 @@ public class AcquireTokenBasicTest {
     AcquireToken acquireToken;
 
     @Steps
+    SelectAccount selectAccount;
+
+    @Steps
     ReadCache readCache;
 
     @Steps
     ClickDone clickDone;
 
-    public AcquireTokenBasicTest(String federationProvider){
+
+    public AcquireTokenPromptRefreshSessionTest(String federationProvider) {
         this.federationProvider = federationProvider;
     }
 
     @Before
-    public void jamesCanUseAMobileDevice(){
+    public void jamesCanUseAMobileDevice() {
         TestConfigurationQuery query = new TestConfigurationQuery();
         query.federationProvider = this.federationProvider;
         query.isFederated = true;
@@ -90,29 +97,31 @@ public class AcquireTokenBasicTest {
         james.can(BrowseTheWeb.with(hisMobileDevice));
     }
 
-    private static User getUser(TestConfigurationQuery query){
-
+    private static User getUser(TestConfigurationQuery query) {
         Scenario scenario = Scenario.GetScenario(query);
-
         User newUser = User.named("james");
         newUser.setFederationProvider(scenario.getTestConfiguration().getUsers().getFederationProvider());
         newUser.setTokenRequest(scenario.getTokenRequest());
         newUser.setCredential(scenario.getCredential());
-
         return newUser;
     }
 
-
     @Test
-    public void should_be_able_to_acquire_token() {
-
-        james.attemptsTo(
+    public void should_be_able_to_acquire_token_then_prompt_refresh() {
+        givenThat(james).wasAbleTo(
                 acquireToken,
                 clickDone,
                 readCache);
+        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(6)));
 
-        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(6) ));
+        String Token1 = Text.of(Results.RESULT_FIELD).viewedBy(james).asString();
+        james.attemptsTo(clickDone);
 
+        when(james).attemptsTo(
+                selectAccount.withPrompt("REFRESH_SESSION"),
+                clickDone,
+                readCache);
+        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(6)));
+        then(james).should(seeThat(AccessToken.displayed(), not(Token1)));
     }
-
 }

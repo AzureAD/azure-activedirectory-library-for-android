@@ -1,9 +1,9 @@
-package com.microsoft.identity.common.test.automation;
+package com.microsoft.identity.common.test.automation.CloudOnlyTests;
 
 import com.microsoft.identity.common.test.automation.actors.User;
 import com.microsoft.identity.common.test.automation.interactions.ClickDone;
 import com.microsoft.identity.common.test.automation.questions.TokenCacheItemCount;
-import com.microsoft.identity.common.test.automation.tasks.AcquireToken;
+import com.microsoft.identity.common.test.automation.tasks.AcquireTokenCloud;
 import com.microsoft.identity.common.test.automation.tasks.ReadCache;
 import com.microsoft.identity.common.test.automation.utility.Scenario;
 import com.microsoft.identity.common.test.automation.utility.TestConfigurationQuery;
@@ -32,20 +32,14 @@ import static net.serenitybdd.screenplay.GivenWhenThen.then;
 import static org.hamcrest.Matchers.is;
 
 @RunWith(SerenityParameterizedRunner.class)
-public class AcquireTokenBasicTest {
+public class AcquireTokenCloudTest {
 
     @TestData
     public static Collection<Object[]> FederationProviders(){
 
         return Arrays.asList(new Object[][]{
-                {"ADFSv2"},
-                {"ADFSv3"},
-                {"ADFSv4"},
-                {"PingFederate"},
-                {"Shibboleth"}
-
+                {"Cloud"}
         });
-
     }
 
     static AppiumDriverLocalService appiumService = null;
@@ -68,7 +62,7 @@ public class AcquireTokenBasicTest {
     private String federationProvider;
 
     @Steps
-    AcquireToken acquireToken;
+    AcquireTokenCloud acquireTokenCloud;
 
     @Steps
     ReadCache readCache;
@@ -76,15 +70,14 @@ public class AcquireTokenBasicTest {
     @Steps
     ClickDone clickDone;
 
-    public AcquireTokenBasicTest(String federationProvider){
+    public AcquireTokenCloudTest(String federationProvider){
         this.federationProvider = federationProvider;
     }
 
     @Before
     public void jamesCanUseAMobileDevice(){
         TestConfigurationQuery query = new TestConfigurationQuery();
-        query.federationProvider = this.federationProvider;
-        query.isFederated = true;
+        query.isFederated = false;
         query.userType = "Member";
         james = getUser(query);
         james.can(BrowseTheWeb.with(hisMobileDevice));
@@ -107,12 +100,9 @@ public class AcquireTokenBasicTest {
     public void should_be_able_to_acquire_token() {
 
         james.attemptsTo(
-                acquireToken,
+                acquireTokenCloud,
                 clickDone,
                 readCache);
-
         then(james).should(seeThat(TokenCacheItemCount.displayed(), is(6) ));
-
     }
-
 }

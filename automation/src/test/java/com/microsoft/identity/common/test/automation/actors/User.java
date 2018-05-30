@@ -60,6 +60,14 @@ public class User extends Actor {
         this.federationProvider = federationProvider;
     }
 
+    public void setValidateAuthority(Boolean validateAuthority){
+        this.tokenRequest.setValidateAuthority(validateAuthority);
+    }
+
+    public void setAuthority(String authority){
+        this.tokenRequest.setAuthority(authority);
+    }
+
     public User(String name) {
         super(name);
     }
