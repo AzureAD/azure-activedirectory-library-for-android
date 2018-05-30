@@ -77,6 +77,7 @@ dependencies {
     adalImplementation project(':adal')
     //msalRImplementation group: 'com.microsoft.identity.client', name: 'msal', version: "$rootProject.ext.msal"
     adalRImplementation group: 'com.microsoft.aad', name: 'adal', version: "$rootProject.ext.adalLegacy"
+    implementation project(":common")
 
     testImplementation "junit:junit:$rootProject.ext.junitVersion"
     androidTestImplementation "junit:junit:$rootProject.ext.junitVersion"
