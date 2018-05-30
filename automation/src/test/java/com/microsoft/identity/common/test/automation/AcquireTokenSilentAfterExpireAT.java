@@ -1,7 +1,13 @@
 package com.microsoft.identity.common.test.automation;
 
 import com.microsoft.identity.common.test.automation.actors.User;
+import com.microsoft.identity.common.test.automation.interactions.ClickDone;
+import com.microsoft.identity.common.test.automation.questions.AccessToken;
+import com.microsoft.identity.common.test.automation.questions.TokenCacheItemCount;
+import com.microsoft.identity.common.test.automation.tasks.AcquireToken;
 import com.microsoft.identity.common.test.automation.tasks.AcquireTokenSilent;
+import com.microsoft.identity.common.test.automation.tasks.ExpireAccessToken;
+import com.microsoft.identity.common.test.automation.tasks.ReadCache;
 import com.microsoft.identity.common.test.automation.utility.Scenario;
 import com.microsoft.identity.common.test.automation.utility.TestConfigurationQuery;
 
@@ -24,8 +30,19 @@ import java.util.Collection;
 
 import io.appium.java_client.service.local.AppiumDriverLocalService;
 
+import static net.serenitybdd.screenplay.GivenWhenThen.givenThat;
+import static net.serenitybdd.screenplay.GivenWhenThen.seeThat;
+import static net.serenitybdd.screenplay.GivenWhenThen.then;
+import static net.serenitybdd.screenplay.GivenWhenThen.when;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+
+/**
+ * Test case : https://identitydivision.visualstudio.com/IDDP/_workitems/edit/98555
+ */
+
 @RunWith(SerenityParameterizedRunner.class)
-public class AcquireTokenSilentBasicTest {
+public class AcquireTokenSilentAfterExpireAT {
 
     @TestData
     public static Collection<Object[]> FederationProviders(){
@@ -44,6 +61,18 @@ public class AcquireTokenSilentBasicTest {
 
     @Steps
     AcquireTokenSilent acquireTokenSilent;
+
+    @Steps
+    AcquireToken acquireToken;
+
+    @Steps
+    ExpireAccessToken expireAccessToken;
+
+    @Steps
+    ReadCache readCache;
+
+    @Steps
+    ClickDone clickDone;
 
     static AppiumDriverLocalService appiumService = null;
 
@@ -64,7 +93,7 @@ public class AcquireTokenSilentBasicTest {
     private User james;
     private String federationProvider;
 
-    public AcquireTokenSilentBasicTest(String federationProvider){
+    public AcquireTokenSilentAfterExpireAT(String federationProvider){
         this.federationProvider = federationProvider;
     }
 
@@ -93,9 +122,25 @@ public class AcquireTokenSilentBasicTest {
 
 
     @Test
-    public void should_be_able_to_acquire_token_silent() {
+    public void should_be_able_to_new_access_token_after_expiry_on_silent() {
 
-        james.attemptsTo(acquireTokenSilent);
+        givenThat(james).wasAbleTo(
+                acquireToken,
+                clickDone,
+                readCache);
+        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(6)));
+
+        String accessToken1 = james.asksFor(AccessToken.displayed());
+
+        james.attemptsTo(clickDone, expireAccessToken, clickDone);
+
+        when(james).attemptsTo(
+                acquireTokenSilent.withUniqueId(james.getCacheResult().uniqueUserId),
+                clickDone,
+                readCache);
+
+        then(james).should(seeThat(AccessToken.displayed(), not(accessToken1)));
+
 
     }
 
