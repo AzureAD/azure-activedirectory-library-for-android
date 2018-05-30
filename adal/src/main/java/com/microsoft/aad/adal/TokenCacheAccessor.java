@@ -289,9 +289,9 @@ class TokenCacheAccessor {
             // make sure to set authority to the one in preferred cache
             try {
                 mAuthority = getAuthorityUrlWithPreferredCache();
-            }catch (MalformedURLException e){
+            } catch (final MalformedURLException e) {
                 //TODO : Understand what can be done here
-                Logger.d(TAG + methodName,  "Authority from preferred caches is invalid");
+                Logger.d(TAG + methodName, "Authority from preferred caches is invalid");
             }
             // remove Item if oauth2_error is invalid_grant
             Logger.v(TAG + methodName, "Received INVALID_GRANT error code, remove existing cache entry.");
@@ -393,6 +393,7 @@ class TokenCacheAccessor {
         }
 
         for (final String key : keys) {
+          // mTokenCacheStore.removeItem(key);
             TokenCacheItem cacheItem = mTokenCacheStore.getItem(key);
             if(cacheItem!=null && cacheItem.getRefreshToken().equals(toBeDeletedCacheItem.getRefreshToken())) {
                 mTokenCacheStore.removeItem(key);

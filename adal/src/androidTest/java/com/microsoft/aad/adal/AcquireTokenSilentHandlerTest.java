@@ -328,11 +328,11 @@ public final class AcquireTokenSilentHandlerTest {
         Mockito.verify(mockedWebRequestHandler).sendPost(Mockito.any(URL.class), Mockito.<String, String>anyMap(), webRequestHandlerArgument.capture(), Mockito.anyString());
         assertTrue(Arrays.equals(postMessage, webRequestHandlerArgument.getValue()));
 
-        // verify regular token entry not existed
-        assertNull(mockedCache.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, resource, clientId, TEST_IDTOKEN_USERID)));
-        assertNull(mockedCache.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, resource, clientId, TEST_IDTOKEN_UPN)));
+        // verify that RT is not deleted as the token is different from the MRRT token
+        assertNotNull(mockedCache.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, resource, clientId, TEST_IDTOKEN_USERID)));
+        assertNotNull(mockedCache.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, resource, clientId, TEST_IDTOKEN_UPN)));
 
-        // verify MRRT entry exist
+        // verify MRRT entry is deleted
         assertNull(mockedCache.getItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, clientId, TEST_IDTOKEN_USERID)));
         assertNull(mockedCache.getItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, clientId, TEST_IDTOKEN_UPN)));
 
