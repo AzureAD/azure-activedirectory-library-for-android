@@ -2610,34 +2610,42 @@ public final class AuthenticationContextTest {
      * Test the deserialize() function where the deserialize input is null. The
      * function is expected to throw IllegalArgumentException
      */
-    @Test
-    public void testDeserializeNullSerializedBlob() {
+    @Test(expected = IllegalArgumentException.class)
+    public void testDeserializeNullSerializedBlob() throws AuthenticationException {
         final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
         addFRTCacheItem(mockCache);
         final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
-        try {
-            context.deserialize(null);
-        } catch (final Exception exception) {
-            assertTrue("argument exception", exception instanceof IllegalArgumentException);
-        }
+        context.deserialize(null);
+    }
+
+    /**
+     * Test the deserialize() function where the deserialize input is a json
+     * token which has no tokencacheitems . The function is expected to
+     * throw AuthenticationException
+     *
+     * @throws AuthenticationException
+     */
+    @Test(expected = AuthenticationException.class)
+    public void testDeserializeNoTokenCacheItem() throws AuthenticationException {
+        final String additionalAttributeString = "{\"version\":1}";
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
+        final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
+        context.deserialize(additionalAttributeString);
     }
 
     /**
      * Test the deserialize() function where the deserialize input is a random
      * string. The function is expected to throw AuthenticationException
      */
-    @Test
-    public void testDeserializeRandomString() {
+    @Test(expected = DeserializationAuthenticationException.class)
+    public void testDeserializeRandomString() throws AuthenticationException {
         final String ramdomString = "abc";
         final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
         final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
-        try {
-            context.deserialize(ramdomString);
-        } catch (final Exception exception) {
-            assertTrue("argument exception", exception instanceof DeserializationAuthenticationException);
-        }
+        context.deserialize(ramdomString);
     }
 
     /**
@@ -2646,43 +2654,43 @@ public final class AuthenticationContextTest {
      * the tokenCacheItem. The function is expected to throw
      * AuthenticationException
      */
-    @Test
-    public void testDeserializeMissingAttribute() {
+    @Test(expected = DeserializationAuthenticationException.class)
+    public void testDeserializeMissingAttribute() throws AuthenticationException {
         final String missingAttributeString = "{\"tokenCacheItems\":[{\"authority\":\"https://login.windows.net/ComMon/\",\"refresh_token\":\"FRT\",\"foci\":\"1\"}],\"version\":1}";
         final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
         final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
-        try {
-            context.deserialize(missingAttributeString);
-        } catch (final Exception exception) {
-            assertTrue("argument exception", exception instanceof DeserializationAuthenticationException);
-        }
+        context.deserialize(missingAttributeString);
     }
 
-    @Test
-    public void testDeserializeMissingAuthority() {
+    /**
+     * Test the deserialize() function where the deserialize input is a json
+     * token which missing authority which is needed in the deserialization of
+     * the tokenCacheItem. The function is expected to throw
+     * DeserializationAuthenticationException
+     */
+    @Test(expected = DeserializationAuthenticationException.class)
+    public void testDeserializeMissingAuthority() throws AuthenticationException {
         final String missingAttributeString = "{\"tokenCacheItems\":[{\"refresh_token\":\"FRT\",\"foci\":\"1\"}],\"version\":1}";
         final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
         final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
-        try {
-            context.deserialize(missingAttributeString);
-        } catch (final Exception exception) {
-            assertTrue("argument exception", exception instanceof DeserializationAuthenticationException);
-        }
+        context.deserialize(missingAttributeString);
     }
 
-    @Test
-    public void testDeserializeMissingClientId() {
+    /**
+     * Test the deserialize() function where the deserialize input is a json
+     * token which missing Client Id which is needed in the deserialization of
+     * the tokenCacheItem. The function is expected to throw
+     * DeserializationAuthenticationException
+     */
+    @Test(expected = DeserializationAuthenticationException.class)
+    public void testDeserializeMissingClientId() throws AuthenticationException {
         final String missingAttributeString = "{\"tokenCacheItems\":[{\"authority\":\"https://login.windows.net/ComMon/\",\"refresh_token\":\"FRT\"}],\"version\":1}";
         final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
         final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
-        try {
-            context.deserialize(missingAttributeString);
-        } catch (final Exception exception) {
-            assertTrue("argument exception", exception instanceof DeserializationAuthenticationException);
-        }
+        context.deserialize(missingAttributeString);
     }
 
     /**
@@ -2707,17 +2715,13 @@ public final class AuthenticationContextTest {
      * with expected one. The calling should throw the
      * DeserializationAuthenticationException
      */
-    @Test
-    public void testDeserializeDifferentVersion() {
+    @Test(expected = DeserializationAuthenticationException.class)
+    public void testDeserializeDifferentVersion() throws AuthenticationException {
         final String differentVersionString = "{\"tokenCacheItems\":[{\"authority\":\"https://login.windows.net/ComMon/\",\"refresh_token\":\"FRT\",\"id_token\":\"eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiJlNzBiMTE1ZS1hYzBhLTQ4MjMtODVkYS04ZjRiN2I0ZjAwZTYiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8zMGJhYTY2Ni04ZGY4LTQ4ZTctOTdlNi03N2NmZDA5OTU5NjMvIiwibmJmIjoxMzc2NDI4MzEwLCJleHAiOjEzNzY0NTcxMTAsInZlciI6IjEuMCIsInRpZCI6IjMwYmFhNjY2LThkZjgtNDhlNy05N2U2LTc3Y2ZkMDk5NTk2MyIsIm9pZCI6IjRmODU5OTg5LWEyZmYtNDExZS05MDQ4LWMzMjIyNDdhYzYyYyIsInVwbiI6ImFkbWluQGFhbHRlc3RzLm9ubWljcm9zb2Z0LmNvbSIsInVuaXF1ZV9uYW1lIjoiYWRtaW5AYWFsdGVzdHMub25taWNyb3NvZnQuY29tIiwic3ViIjoiVDU0V2hGR1RnbEJMN1VWYWtlODc5UkdhZEVOaUh5LXNjenNYTmFxRF9jNCIsImZhbWlseV9uYW1lIjoiU2VwZWhyaSIsImdpdmVuX25hbWUiOiJBZnNoaW4ifQ.\",\"foci\":\"1\"}],\"version\":2}";
         final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
         final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
-        try {
-            context.deserialize(differentVersionString);
-        } catch (final Exception exception) {
-            assertTrue("argument exception", exception instanceof DeserializationAuthenticationException);
-        }
+        context.deserialize(differentVersionString);
     }
 
     private String getErrorResponseBody(final String errorCode) {
