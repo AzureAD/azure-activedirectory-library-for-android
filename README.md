@@ -92,18 +92,14 @@ We've made it easy for you to have multiple options to use this library in your 
 * You can use the source code to import this library into Android Studio and link to your application.
 * If using Android Studio, you can use *aar* package format and reference the binaries.
 
-### Option 1: Source Zip
-
-To download a copy of the source code, click "Download ZIP" on the right side of the page or click [here](https://github.com/AzureAD/azure-activedirectory-library-for-android/archive/v1.1.5.tar.gz).
-
-### Option 2: Source via Git
+### Option 1: Source via Git
 
 To get the source code of the SDK via git:
 
-    git clone git@github.com:AzureAD/azure-activedirectory-library-for-android.git
+    git clone --recurse-submodules git@github.com:AzureAD/azure-activedirectory-library-for-android.git
     cd ./azure-activedirectory-library-for-android/src
 
-### Option 3: Binaries via Gradle
+### Option 2: Binaries via Gradle
 
 You can get the binaries from Maven central repo. AAR package can be included as follows in your project in AndroidStudio:
 
@@ -126,7 +122,7 @@ dependencies {
 }
 ```
 
-### Option 4: aar via Maven
+### Option 3: aar via Maven
 
 If you are using the m2e plugin in Eclipse, you can specify the dependency in your pom.xml file:
 
@@ -139,7 +135,7 @@ If you are using the m2e plugin in Eclipse, you can specify the dependency in yo
 </dependency>
 ```
 
-### Option 5: jar package inside libs folder
+### Option 4: jar package inside libs folder
 
 You can get the jar file from maven the repo and drop into the *libs* folder in your project. You need to copy the required resources to your project as well since the jar packages don't include them.
 
