@@ -69,7 +69,7 @@ To build with Gradle,
 * Go to the root folder where you cloned this repo
 * To run the sample app, connect the test device and run the command: `./gradlew :userappwithbroker:installDebug`
 * You should see app 'Fancy ADAL Test App' installed on the test device
-* Select an authority, [optionally] enter a login hint and/or query parameters, and clikc `Acquire Token` to enter credentials with AAD
+* Select an authority, [optionally] enter a login hint and/or query parameters, and click `Acquire Token` to enter credentials with AAD
 
 To build with Maven, you can use the pom.xml at top level
 
