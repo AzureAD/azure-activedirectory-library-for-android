@@ -67,18 +67,18 @@ To build with Gradle,
 * Clone this repo in to a directory of your choice
 * Setup emulator with SDK 23
 * Go to the root folder where you cloned this repo
-* To run the sample app, connect the test device and run the command: `./gradlew :sample:installDebug`
-* You should see app 'hello' installed in the test device
-* Enter test user credentials to try
+* To run the sample app, connect the test device and run the command: `./gradlew :userappwithbroker:installDebug`
+* You should see app 'Fancy ADAL Test App' installed on the test device
+* Select an authority, [optionally] enter a login hint and/or query parameters, and clikc `Acquire Token` to enter credentials with AAD
 
 To build with Maven, you can use the pom.xml at top level
 
 * Clone this repo in to a directory of your choice
-* Follow the steps at [Prerequests section to setup your maven for android](https://github.com/MSOpenTech/azure-activedirectory-library-for-android/wiki/Setting-up-maven-environment-for-Android)
+* Follow the steps at [Prerequisites section to setup your maven for android](https://github.com/AzureAD/azure-activedirectory-library-for-android/wiki/Maven)
 * Setup emulator with SDK 19
 * Go to the root folder where you cloned this repo
 * Run the command: `mvn clean install`
-* Change the directory to the Quick Start sample: `cd samples\hello`
+* Change the directory to the Quick Start sample: `cd userappwithbroker/`
 * Run the command: `mvn android:deploy android:run`
 * You should see app launching
 * Enter test user credentials to try!
