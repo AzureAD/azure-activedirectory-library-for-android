@@ -2,6 +2,7 @@ package com.microsoft.identity.common.test.automation;
 
 import com.microsoft.identity.common.test.automation.actors.User;
 import com.microsoft.identity.common.test.automation.interactions.ClickDone;
+import com.microsoft.identity.common.test.automation.model.ResultsMapper;
 import com.microsoft.identity.common.test.automation.questions.ADALError;
 import com.microsoft.identity.common.test.automation.questions.TokenCacheItemCount;
 import com.microsoft.identity.common.test.automation.tasks.AcquireToken;
@@ -14,6 +15,7 @@ import com.microsoft.identity.common.test.automation.utility.TestConfigurationQu
 
 import net.serenitybdd.junit.runners.SerenityParameterizedRunner;
 import net.serenitybdd.screenplay.abilities.BrowseTheWeb;
+import net.serenitybdd.screenplay.questions.Text;
 import net.serenitybdd.screenplay.waits.WaitUntil;
 import net.thucydides.core.annotations.Managed;
 import net.thucydides.core.annotations.Steps;
@@ -132,7 +134,8 @@ public class AcquireTokenSilentAfterExpireATAndRT {
                 acquireToken,
                 clickDone,
                 readCache);
-        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(6)));
+        int expectedCacheCount = ResultsMapper.getExpectedCacheCount(Text.of(Results.RESULT_FIELD).viewedBy(james).asString());
+        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(expectedCacheCount)));
 
         james.attemptsTo(clickDone, expireATAndInvalidateRT, clickDone);
 

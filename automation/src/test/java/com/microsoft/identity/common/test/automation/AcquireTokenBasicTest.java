@@ -2,14 +2,17 @@ package com.microsoft.identity.common.test.automation;
 
 import com.microsoft.identity.common.test.automation.actors.User;
 import com.microsoft.identity.common.test.automation.interactions.ClickDone;
+import com.microsoft.identity.common.test.automation.model.ResultsMapper;
 import com.microsoft.identity.common.test.automation.questions.TokenCacheItemCount;
 import com.microsoft.identity.common.test.automation.tasks.AcquireToken;
 import com.microsoft.identity.common.test.automation.tasks.ReadCache;
+import com.microsoft.identity.common.test.automation.ui.Results;
 import com.microsoft.identity.common.test.automation.utility.Scenario;
 import com.microsoft.identity.common.test.automation.utility.TestConfigurationQuery;
 
 import net.serenitybdd.junit.runners.SerenityParameterizedRunner;
 import net.serenitybdd.screenplay.abilities.BrowseTheWeb;
+import net.serenitybdd.screenplay.questions.Text;
 import net.thucydides.core.annotations.Managed;
 import net.thucydides.core.annotations.Steps;
 import net.thucydides.junit.annotations.TestData;
@@ -39,11 +42,11 @@ public class AcquireTokenBasicTest {
 
 
         return Arrays.asList(new Object[][]{
-                {"ADFSv2"},
+                {"ADFSv2"}/*,
                 {"ADFSv3"},
                 {"ADFSv4"},
                 {"PingFederate"},
-                {"Shibboleth"}
+                {"Shibboleth"}*/
 
         });
 
@@ -111,8 +114,8 @@ public class AcquireTokenBasicTest {
                 acquireToken,
                 clickDone,
                 readCache);
-
-        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(6) ));
+        int expectedCacheCount = ResultsMapper.getExpectedCacheCount(Text.of(Results.RESULT_FIELD).viewedBy(james).asString());
+        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(expectedCacheCount)));
 
     }
 

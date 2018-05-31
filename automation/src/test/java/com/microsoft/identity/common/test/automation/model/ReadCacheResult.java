@@ -15,8 +15,11 @@ public class ReadCacheResult {
     @SerializedName(ITEM_COUNT)
     public Integer itemCount;
 
-    @SerializedName("items")
+    @SerializedName(ITEMS)
     public List<String> items;
+
+    @SerializedName(COMMON_CACHE)
+    public boolean isCommonCache;
 
     public List<TokenCacheItemReadResult> tokenCacheItems = new ArrayList<TokenCacheItemReadResult>();
 }
