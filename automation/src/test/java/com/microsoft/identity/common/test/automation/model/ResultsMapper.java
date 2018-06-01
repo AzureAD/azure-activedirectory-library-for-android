@@ -27,7 +27,10 @@ public class ResultsMapper {
 
     public static int getExpectedCacheCount(String results) {
         ReadCacheResult readCacheResult = (ReadCacheResult) ObjectMapper.deserializeJsonStringToObject(results, ReadCacheResult.class);
-        return readCacheResult.isCommonCache ? COMMON_CACHE_COUNT : ADAL_LEGACY_CACHE_COUNT;
+        if(readCacheResult!=null) {
+            return readCacheResult.isCommonCache ? COMMON_CACHE_COUNT : ADAL_LEGACY_CACHE_COUNT;
+        }
+        return COMMON_CACHE_COUNT;
 
     }
 }
