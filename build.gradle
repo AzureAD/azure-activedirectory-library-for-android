@@ -23,17 +23,18 @@ allprojects {
         jcenter()
         google()
     }
-    /*
+
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {
             options.compilerArgs << "-Xlint:unchecked"
         }
     }
-    */
+
     tasks.withType(Javadoc) {
         options.addStringOption('Xdoclint:none', '-quiet')
     }
 }
+
 
 task clean(type: Delete) {
     delete rootProject.buildDir

@@ -15,7 +15,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt')
         }
     }
-    buildToolsVersion rootProject.ext.buildToolsVersion
+
+    lintOptions {
+        abortOnError false
+    }
 }
 
 dependencies {
