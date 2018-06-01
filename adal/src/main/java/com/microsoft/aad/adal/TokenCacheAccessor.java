@@ -290,8 +290,9 @@ class TokenCacheAccessor {
             try {
                 mAuthority = getAuthorityUrlWithPreferredCache();
             } catch (final MalformedURLException e) {
-                //TODO : Understand what can be done here
-                Logger.d(TAG + methodName, "Authority from preferred caches is invalid");
+                // This should never happen. If the exception is thrown, mAuthority will  have the value passed from the request.
+                com.microsoft.identity.common.internal.logging.Logger.error(TAG, "Authority from preferred cache is invalid", null);
+                com.microsoft.identity.common.internal.logging.Logger.errorPII(TAG, "Failed with Exception", e);
             }
             // remove Item if oauth2_error is invalid_grant
             Logger.v(TAG + methodName, "Received INVALID_GRANT error code, remove existing cache entry.");
@@ -393,9 +394,8 @@ class TokenCacheAccessor {
         }
 
         for (final String key : keys) {
-          // mTokenCacheStore.removeItem(key);
             TokenCacheItem cacheItem = mTokenCacheStore.getItem(key);
-            if(cacheItem!=null && cacheItem.getRefreshToken().equals(toBeDeletedCacheItem.getRefreshToken())) {
+            if (cacheItem != null && cacheItem.getRefreshToken().equals(toBeDeletedCacheItem.getRefreshToken())) {
                 mTokenCacheStore.removeItem(key);
             }
         }
