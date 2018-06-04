@@ -737,6 +737,7 @@ public class AuthenticationContext {
      * @param clientId required client identifier.
      * @param userId   UserID obtained from
      *                 {@link AuthenticationResult #getUserInfo()}
+     * @param forceRefresh when true, access token is renewed using broker if available; otherwise, uses local refresh token
      * @return A {@link Future} object representing the
      * {@link AuthenticationResult} of the call. It contains Access
      * Token,the Access Token's expiration time, Refresh token, and
@@ -942,7 +943,7 @@ public class AuthenticationContext {
      * @param clientId required client identifier.
      * @param userId   UserId obtained from {@link UserInfo} inside
      *                 {@link AuthenticationResult}
-     * @param forceRefresh when true access token is renewed using broker owned refresh token or local if not available
+     * @param forceRefresh when true, access token is renewed using broker if available; otherwise, uses local refresh token
      * @param callback required {@link AuthenticationCallback} object for async
      *                 call.
      */
