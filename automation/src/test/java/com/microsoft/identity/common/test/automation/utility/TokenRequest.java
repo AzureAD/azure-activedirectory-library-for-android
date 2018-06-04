@@ -32,6 +32,8 @@ public class TokenRequest {
     private String mUserIdentifierType = null;
     @SerializedName("unique_id")
     private String mUniqueUserId = null;
+    @SerializedName("force_refresh")
+    private Boolean mForceRefresh = false;
 
 
     public String getClientId() {
@@ -120,5 +122,13 @@ public class TokenRequest {
 
     public void setUniqueUserId(String uniqueUserId){
         this.mUniqueUserId = uniqueUserId;
+    }
+
+    public Boolean getForceRefresh() {
+        return mForceRefresh;
+    }
+
+    public void setForceRefresh(Boolean forceRefresh) {
+        this.mForceRefresh = forceRefresh;
     }
 }

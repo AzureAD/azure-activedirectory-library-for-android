@@ -86,6 +86,7 @@ public class AcquireTokenSilentBasicTest {
         User newUser = User.named("james");
         newUser.setFederationProvider(scenario.getTestConfiguration().getUsers().getFederationProvider());
         newUser.setTokenRequest(scenario.getTokenRequest());
+        newUser.setSilentTokenRequest(scenario.getSilentTokenRequest());
         newUser.setCredential(scenario.getCredential());
 
         return newUser;

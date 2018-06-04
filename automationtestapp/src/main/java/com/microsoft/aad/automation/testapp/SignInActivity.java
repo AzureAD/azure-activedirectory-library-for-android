@@ -72,6 +72,7 @@ public class SignInActivity extends AppCompatActivity {
     public static final String USER_IDENTIFIER = "user_identifier";
     public static final String USER_IDENTIFIER_TYPE = "user_identifier_type";
     public static final String CORRELATION_ID = "correlation_id";
+    public static final String FORCE_REFRESH = "force_refresh";
 
     static final String INVALID_REFRESH_TOKEN = "some invalid refresh token";
 
@@ -88,6 +89,8 @@ public class SignInActivity extends AppCompatActivity {
     private AuthenticationContext mAuthenticationContext;
     private boolean mValidateAuthority;
     private UUID mCorrelationId;
+    private boolean mForceRefresh;
+    private boolean mForceRefreshParameterProvided;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -251,6 +254,8 @@ public class SignInActivity extends AppCompatActivity {
         mExtraQueryParam = inputItems.get(EXTRA_QUERY_PARAM);
         mValidateAuthority = inputItems.get(VALIDATE_AUTHORITY) == null ? true : Boolean.valueOf(
                 inputItems.get(VALIDATE_AUTHORITY));
+        mForceRefreshParameterProvided = inputItems.get(FORCE_REFRESH) == null ? false : true;
+        mForceRefresh = inputItems.get(FORCE_REFRESH) == null ? false : Boolean.valueOf(inputItems.get(FORCE_REFRESH));
         
         if (!TextUtils.isEmpty(inputItems.get("unique_id"))) {
             mUserId = inputItems.get("unique_id");
@@ -290,7 +295,12 @@ public class SignInActivity extends AppCompatActivity {
     }
 
     private void acquireTokenSilent() {
-        mAuthenticationContext.acquireTokenSilentAsync(mResource, mClientId, mUserId, getAdalCallback());
+        //TODO: Will need to figure out how to address executing automation for newly added functions... that will not be present in prior versions
+        if(mForceRefreshParameterProvided){
+            mAuthenticationContext.acquireTokenSilentAsync(mResource, mClientId, mUserId, mForceRefresh, getAdalCallback());
+        }else {
+            mAuthenticationContext.acquireTokenSilentAsync(mResource, mClientId, mUserId, getAdalCallback());
+        }
     }
 
     private int expireAccessToken() {

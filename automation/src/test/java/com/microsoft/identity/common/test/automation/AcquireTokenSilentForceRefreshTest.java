@@ -34,13 +34,14 @@ import static net.serenitybdd.screenplay.GivenWhenThen.seeThat;
 import static net.serenitybdd.screenplay.GivenWhenThen.then;
 import static net.serenitybdd.screenplay.GivenWhenThen.when;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 
 /**
  * Test case : https://identitydivision.visualstudio.com/IDDP/_workitems/edit/98555
  */
 
 @RunWith(SerenityParameterizedRunner.class)
-public class AcquireTokenSilentLoginHint {
+public class AcquireTokenSilentForceRefreshTest {
 
     @TestData
     public static Collection<Object[]> FederationProviders(){
@@ -88,7 +89,7 @@ public class AcquireTokenSilentLoginHint {
     private User james;
     private String federationProvider;
 
-    public AcquireTokenSilentLoginHint(String federationProvider){
+    public AcquireTokenSilentForceRefreshTest(String federationProvider){
         this.federationProvider = federationProvider;
     }
 
@@ -117,7 +118,7 @@ public class AcquireTokenSilentLoginHint {
 
 
     @Test
-    public void should_be_able_to_acquire_token_and_then_acquire_silent_with_login_hint() {
+    public void should_be_able_to_acquire_token_and_then_acquire_silent_with_force_refresh() {
 
         givenThat(james).wasAbleTo(
                 acquireToken,
@@ -129,11 +130,13 @@ public class AcquireTokenSilentLoginHint {
         james.attemptsTo(clickDone);
 
         when(james).attemptsTo(
-                acquireTokenSilent.withUserIdentifier(james.getCredential().userName),
+                acquireTokenSilent.withUserIdentifier(james.getCredential().userName).withForceRefresh(),
                 clickDone,
                 readCache);
 
-        then(james).should(seeThat(AccessToken.displayed(), is(accessToken1)));
+        String accessToken2 = james.asksFor(AccessToken.displayed());
+
+        then(james).should(seeThat(AccessToken.displayed(), not(accessToken1)));
 
 
     }
