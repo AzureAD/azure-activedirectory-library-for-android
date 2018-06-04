@@ -46,6 +46,8 @@ import com.microsoft.aad.adal.AuthenticationException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -295,13 +297,30 @@ public class SignInActivity extends AppCompatActivity {
     }
 
     private void acquireTokenSilent() {
-        //TODO: Will need to figure out how to address executing automation for newly added functions... that will not be present in prior versions
-        if(mForceRefreshParameterProvided){
-            mAuthenticationContext.acquireTokenSilentAsync(mResource, mClientId, mUserId, mForceRefresh, getAdalCallback());
+        Method m = getAcquireTokenSilentMethodWithForceRefresh();
+        if(mForceRefreshParameterProvided && m != null){
+            try {
+                m.invoke(mResource, mClientId, mUserId, mForceRefresh, getAdalCallback());
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
         }else {
             mAuthenticationContext.acquireTokenSilentAsync(mResource, mClientId, mUserId, getAdalCallback());
         }
     }
+
+    private Method getAcquireTokenSilentMethodWithForceRefresh(){
+        try {
+            Method m = mAuthenticationContext.getClass().getMethod("acquireTokenSilentAsync", String.class, String.class, String.class, boolean.class, AuthenticationCallback.class);
+            return m;
+        } catch (NoSuchMethodException e) {
+            return null;
+        }
+    }
+
+
 
     private int expireAccessToken() {
         final ITokenCacheStore tokenCacheStore = mAuthenticationContext.getCache();
