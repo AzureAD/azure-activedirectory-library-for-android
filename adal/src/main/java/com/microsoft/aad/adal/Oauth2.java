@@ -222,7 +222,7 @@ class Oauth2 {
     public String buildRefreshTokenRequestMessage(String refreshToken)
             throws UnsupportedEncodingException {
         Logger.v(TAG, "Building request message for redeeming token with refresh token.");
-        String message = String.format("%s=%s&%s=%s&%s=%s",
+        String message = String.format("%s=%s&%s=%s&%s=%s&%s=%s",
                 AuthenticationConstants.OAuth2.GRANT_TYPE,
                 StringExtensions.urlFormEncode(AuthenticationConstants.OAuth2.REFRESH_TOKEN),
 
@@ -230,7 +230,11 @@ class Oauth2 {
                 StringExtensions.urlFormEncode(refreshToken),
 
                 AuthenticationConstants.OAuth2.CLIENT_ID,
-                StringExtensions.urlFormEncode(mRequest.getClientId()));
+                StringExtensions.urlFormEncode(mRequest.getClientId()),
+
+                AuthenticationConstants.OAuth2.CLIENT_INFO,
+                AuthenticationConstants.OAuth2.CLIENT_INFO_TRUE
+        );
 
         if (!StringExtensions.isNullOrBlank(mRequest.getResource())) {
             message = String.format("%s&%s=%s", message, AuthenticationConstants.AAD.RESOURCE,
