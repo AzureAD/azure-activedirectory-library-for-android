@@ -159,7 +159,7 @@ task createPom  {
             name 'adal'
 
             description 'Azure active directory library for Android gives you the ability to add Windows Azure Active Directory authentication to your application with just a few lines of additional code. Using our ADAL SDKs you can quickly and easily extend your existing application to all the employees that use Windows Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.'
-            url 'https://github.com/MSOpenTech/azure-activedirectory-library-for-android'
+            url 'https://github.com/AzureAD/azure-activedirectory-library-for-android'
 
             developers {
                 developer {
@@ -181,7 +181,7 @@ task createPom  {
             }
 
             scm {
-                url "https://github.com/MSOpenTech/azure-activedirectory-library-for-android/tree/master"
+                url "https://github.com/AzureAD/azure-activedirectory-library-for-android/tree/master"
             }
         }
     }.writeTo("${archivesBaseName}-${version}.pom")
