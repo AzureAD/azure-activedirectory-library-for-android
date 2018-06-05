@@ -120,7 +120,7 @@ final class SSOStateSerializer {
      * @return TokenCacheItem
      * @throws AuthenticationException
      */
-    private TokenCacheItem internalDeserialize(String serializedBlob) throws AuthenticationException {
+    private TokenCacheItem internalDeserialize(final String serializedBlob) throws AuthenticationException {
         try {
             final JSONObject jsonObject = new JSONObject(serializedBlob);
             if (jsonObject.getInt("version") == this.getVersion()) {
@@ -160,7 +160,7 @@ final class SSOStateSerializer {
      * @return TokenCacheItem
      * @throws AuthenticationException
      */
-    static TokenCacheItem deserialize(String serializedBlob) throws AuthenticationException {
+    static TokenCacheItem deserialize(final String serializedBlob) throws AuthenticationException {
         SSOStateSerializer ssoStateSerializer = new SSOStateSerializer();
         return ssoStateSerializer.internalDeserialize(serializedBlob);
     }

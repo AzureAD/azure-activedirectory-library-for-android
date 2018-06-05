@@ -1278,6 +1278,10 @@ public class AuthenticationContext {
         // first, we'll fall back to passed in authority host and all the aliased hosts if necessary; If app receives the blob has the old
         // version of adal, since all the apps using token share library are using login.windows.net, token lookup will keep working.
         final TokenCacheItem tokenCacheItem = SSOStateSerializer.deserialize(serializedBlob);
+        if (StringExtensions.isNullOrBlank(tokenCacheItem.getAuthority()) ||
+                (StringExtensions.isNullOrBlank(tokenCacheItem.getClientId()) && StringExtensions.isNullOrBlank(tokenCacheItem.getFamilyClientId()))) {
+            throw new DeserializationAuthenticationException("Failed to deserialize the blob because authority or client id is null/empty.");
+        }
         final String cacheKey = CacheKey.createCacheKey(tokenCacheItem);
         this.getCache().setItem(cacheKey, tokenCacheItem);
     }
