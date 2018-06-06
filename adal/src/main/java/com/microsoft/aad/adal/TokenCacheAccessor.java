@@ -286,6 +286,14 @@ class TokenCacheAccessor {
                 throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e.getMessage(), e);
             }
         } else if (AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT.equalsIgnoreCase(result.getErrorCode())) {
+            // make sure to set authority to the one in preferred cache
+            try {
+                mAuthority = getAuthorityUrlWithPreferredCache();
+            } catch (final MalformedURLException e) {
+                // This should never happen. If the exception is thrown, mAuthority will  have the value passed from the request.
+                com.microsoft.identity.common.internal.logging.Logger.error(TAG, "Authority from preferred cache is invalid", null);
+                com.microsoft.identity.common.internal.logging.Logger.errorPII(TAG, "Failed with Exception", e);
+            }
             // remove Item if oauth2_error is invalid_grant
             Logger.v(TAG + methodName, "Received INVALID_GRANT error code, remove existing cache entry.");
             removeTokenCacheItem(cachedItem, resource);
@@ -347,7 +355,7 @@ class TokenCacheAccessor {
      *
      * @throws AuthenticationException
      */
-    void removeTokenCacheItem(final TokenCacheItem tokenCacheItem, final String resource)
+    void removeTokenCacheItem(final TokenCacheItem toBeDeletedCacheItem, final String resource)
             throws AuthenticationException {
         final String methodName = ":removeTokenCacheItem";
         final CacheEvent cacheEvent = new CacheEvent(EventStrings.TOKEN_CACHE_DELETE);
@@ -355,23 +363,23 @@ class TokenCacheAccessor {
         Telemetry.getInstance().startEvent(mTelemetryRequestId, EventStrings.TOKEN_CACHE_DELETE);
 
         final List<String> keys;
-        final TokenEntryType tokenEntryType = tokenCacheItem.getTokenEntryType();
+        final TokenEntryType tokenEntryType = toBeDeletedCacheItem.getTokenEntryType();
         switch (tokenEntryType) {
 
             case REGULAR_TOKEN_ENTRY:
                 cacheEvent.setTokenTypeRT(true);
                 Logger.v(TAG + methodName, "Regular RT was used to get access token, remove entries "
                         + "for regular RT entries.");
-                keys = getKeyListToRemoveForRT(tokenCacheItem);
+                keys = getKeyListToRemoveForRT(toBeDeletedCacheItem);
                 break;
             case MRRT_TOKEN_ENTRY:
                 // We delete both MRRT and RT in this case.
                 cacheEvent.setTokenTypeMRRT(true);
                 Logger.v(TAG + methodName, "MRRT was used to get access token, remove entries for both "
                         + "MRRT entries and regular RT entries.");
-                keys = getKeyListToRemoveForMRRT(tokenCacheItem);
+                keys = getKeyListToRemoveForMRRT(toBeDeletedCacheItem);
 
-                final TokenCacheItem regularRTItem = new TokenCacheItem(tokenCacheItem);
+                final TokenCacheItem regularRTItem = new TokenCacheItem(toBeDeletedCacheItem);
                 regularRTItem.setResource(resource);
                 keys.addAll(getKeyListToRemoveForRT(regularRTItem));
                 break;
@@ -379,14 +387,17 @@ class TokenCacheAccessor {
                 cacheEvent.setTokenTypeFRT(true);
                 Logger.v(TAG + methodName, "FRT was used to get access token, remove entries for "
                         + "FRT entries.");
-                keys = getKeyListToRemoveForFRT(tokenCacheItem);
+                keys = getKeyListToRemoveForFRT(toBeDeletedCacheItem);
                 break;
             default:
                 throw new AuthenticationException(ADALError.INVALID_TOKEN_CACHE_ITEM);
         }
 
         for (final String key : keys) {
-            mTokenCacheStore.removeItem(key);
+            TokenCacheItem cacheItem = mTokenCacheStore.getItem(key);
+            if (cacheItem != null && cacheItem.getRefreshToken().equals(toBeDeletedCacheItem.getRefreshToken())) {
+                mTokenCacheStore.removeItem(key);
+            }
         }
         Telemetry.getInstance().stopEvent(mTelemetryRequestId, cacheEvent,
                 EventStrings.TOKEN_CACHE_DELETE);
