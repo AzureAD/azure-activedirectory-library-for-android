@@ -29,7 +29,7 @@ public class AcquireTokenSilent implements Task{
     @Override
     public <T extends Actor> void performAs(T actor) {
         User user = (User)actor;
-        TokenRequest tokenRequest = user.getTokenRequest();
+        TokenRequest tokenRequest = user.getSilentTokenRequest();
         if(!TextUtils.isEmpty(userIdentifier)) {
             tokenRequest.setUserIdentitfier(userIdentifier);
         }
