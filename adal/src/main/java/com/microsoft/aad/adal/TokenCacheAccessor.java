@@ -470,7 +470,7 @@ class TokenCacheAccessor {
             }
         } catch (final MalformedURLException exception) {
             com.microsoft.identity.common.internal.logging.Logger.error(TAG, "Authority from preferred cache is invalid", null);
-            com.microsoft.identity.common.internal.logging.Logger.errorPII(TAG, "Authority from preferred cache is invalid", exception);
+            com.microsoft.identity.common.internal.logging.Logger.errorPII(TAG, "Failed with exception", exception);
 
         }
         addDeletionKeysForRTEntry(mAuthority, cachedItem, keysToRemove);
@@ -511,7 +511,7 @@ class TokenCacheAccessor {
             }
         } catch (final MalformedURLException exception) {
             com.microsoft.identity.common.internal.logging.Logger.error(TAG, "Authority from preferred cache is invalid", null);
-            com.microsoft.identity.common.internal.logging.Logger.errorPII(TAG, "Authority from preferred cache is invalid", exception);
+            com.microsoft.identity.common.internal.logging.Logger.errorPII(TAG, "Failed with exception", exception);
         }
 
         addDeletionKeysForMRRTOrFRTEntry(mAuthority, cachedItem, keysToRemove, keymaker);
