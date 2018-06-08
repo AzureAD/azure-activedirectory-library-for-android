@@ -335,7 +335,6 @@ class TokenCacheAccessor {
         request.setAuthority(new URL(mAuthority));
 
         mCommonCache.saveTokens(strategy, request, tokenResponse);
-
     }
 
 
@@ -458,6 +457,7 @@ class TokenCacheAccessor {
         Telemetry.getInstance().stopEvent(mTelemetryRequestId, cacheEvent,
                 EventStrings.TOKEN_CACHE_WRITE);
     }
+
     /**
      * @return List of keys to remove when using regular RT to send refresh token request.
      */
@@ -481,7 +481,6 @@ class TokenCacheAccessor {
         }
         return keysToRemove;
     }
-
 
     /**
      * @return List of keys to remove when using MRRT or FRT to send refresh token request.
@@ -526,6 +525,7 @@ class TokenCacheAccessor {
 
     interface KeyMakerStrategy {
         boolean isFrt();
+
         String makeKey(final String authority, final String clientId, final String userId);
     }
 
@@ -542,7 +542,7 @@ class TokenCacheAccessor {
             }
             if (userInfo.getUserId() != null) {
                 keys.add(CacheKey.createCacheKeyForRTEntry(authority, resource, clientId, userInfo.getUserId()));
-                if(item.getTenantId()!=null){
+                if (item.getTenantId() != null) {
                     String uniqueId = getUniqueIdentifierForCacheKey(userInfo.getUserId(), item.getTenantId());
                     keys.add(CacheKey.createCacheKeyForRTEntry(authority, resource, clientId, uniqueId));
                 }
@@ -578,6 +578,7 @@ class TokenCacheAccessor {
             addDeletionKeyForMRRTOrFRTEntry(keys, item, authority, clientId, userId, strategy);
         }
     }
+
     private void addDeletionKeyForMRRTOrFRTEntry(final List<String> keysToRemove,
                                                  final TokenCacheItem deletionTarget,
                                                  final String authority,
@@ -601,7 +602,7 @@ class TokenCacheAccessor {
         }
     }
 
-    private String getUniqueIdentifierForCacheKey(String userId, String tenantId){
+    private String getUniqueIdentifierForCacheKey(final String userId, final String tenantId) {
         return StringExtensions.base64UrlEncodeToString(userId) + "." + StringExtensions.base64UrlEncodeToString(tenantId);
     }
 
@@ -632,22 +633,6 @@ class TokenCacheAccessor {
             Logger.i(TAG, "Access tokenID and refresh tokenID returned. ", null);
         }
     }
-
-    /*
-    //No usages found... commenting out to make PMD happy.
-    private String getTokenHash(String token) {
-        try {
-            return StringExtensions.createHash(token);
-        } catch (NoSuchAlgorithmException e) {
-            Logger.e(TAG, "Digest error", "", ADALError.DEVICE_NO_SUCH_ALGORITHM, e);
-        } catch (UnsupportedEncodingException e) {
-            Logger.e(TAG, "Digest error", "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
-        }
-
-        return "";
-    }
-    */
-
 
     private CacheEvent startCacheTelemetryRequest(String tokenType) {
         final CacheEvent cacheEvent = new CacheEvent(EventStrings.TOKEN_CACHE_LOOKUP);
