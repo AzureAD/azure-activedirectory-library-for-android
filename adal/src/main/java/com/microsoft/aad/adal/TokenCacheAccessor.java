@@ -342,7 +342,6 @@ class TokenCacheAccessor {
         request.setAuthority(new URL(mAuthority));
 
         mCommonCache.saveTokens(strategy, request, tokenResponse);
-
     }
 
 
@@ -376,7 +375,7 @@ class TokenCacheAccessor {
                 cacheEvent.setTokenTypeMRRT(true);
                 Logger.v(TAG + methodName, "MRRT was used to get access token, remove entries for both "
                         + "MRRT entries and regular RT entries.");
-                keys = getKeyListToRemoveForMRRT(tokenCacheItem);
+                keys = getKeyListToRemoveForMRRTOrFRT(tokenCacheItem, false);
 
                 final TokenCacheItem regularRTItem = new TokenCacheItem(tokenCacheItem);
                 regularRTItem.setResource(resource);
@@ -386,7 +385,7 @@ class TokenCacheAccessor {
                 cacheEvent.setTokenTypeFRT(true);
                 Logger.v(TAG + methodName, "FRT was used to get access token, remove entries for "
                         + "FRT entries.");
-                keys = getKeyListToRemoveForFRT(tokenCacheItem);
+                keys = getKeyListToRemoveForMRRTOrFRT(tokenCacheItem, true);
                 break;
             default:
                 throw new AuthenticationException(ADALError.INVALID_TOKEN_CACHE_ITEM);
@@ -471,41 +470,147 @@ class TokenCacheAccessor {
      */
     private List<String> getKeyListToRemoveForRT(final TokenCacheItem cachedItem) {
         final List<String> keysToRemove = new ArrayList<>();
-        keysToRemove.add(CacheKey.createCacheKeyForRTEntry(mAuthority, cachedItem.getResource(), cachedItem.getClientId(), null));
-        if (cachedItem.getUserInfo() != null) {
-            keysToRemove.add(CacheKey.createCacheKeyForRTEntry(mAuthority, cachedItem.getResource(), cachedItem.getClientId(), cachedItem.getUserInfo().getDisplayableId()));
-            keysToRemove.add(CacheKey.createCacheKeyForRTEntry(mAuthority, cachedItem.getResource(), cachedItem.getClientId(), cachedItem.getUserInfo().getUserId()));
+        try {
+            final String preferredAuthority = getAuthorityUrlWithPreferredCache();
+            if (preferredAuthority != null) {
+                addDeletionKeysForRTEntry(preferredAuthority, cachedItem, keysToRemove);
+            }
+        } catch (final MalformedURLException exception) {
+            com.microsoft.identity.common.internal.logging.Logger.error(TAG, "Authority from preferred cache is invalid", null);
+            com.microsoft.identity.common.internal.logging.Logger.errorPII(TAG, "Failed with exception", exception);
+
+        }
+        addDeletionKeysForRTEntry(mAuthority, cachedItem, keysToRemove);
+
+        // For back compatibility, remove the cache key with the passed-in request authority.
+        if (!mAuthority.equalsIgnoreCase(cachedItem.getAuthority())) {
+            addDeletionKeysForRTEntry(cachedItem.getAuthority(), cachedItem, keysToRemove);
+        }
+        return keysToRemove;
+    }
+
+    /**
+     * @return List of keys to remove when using MRRT or FRT to send refresh token request.
+     */
+    private List<String> getKeyListToRemoveForMRRTOrFRT(final TokenCacheItem cachedItem, final boolean isFRT) {
+
+        final List<String> keysToRemove = new ArrayList<>();
+        final KeyMakerStrategy keymaker = new KeyMakerStrategy() {
+            @Override
+            public boolean isFrt() {
+                return isFRT;
+            }
+
+            @Override
+            public String makeKey(String authority, String clientId, String userId) {
+                if (isFRT) {
+                    return CacheKey.createCacheKeyForFRT(authority, clientId, userId);
+                }
+                return CacheKey.createCacheKeyForMRRT(authority, clientId, userId);
+            }
+        };
+        // Remove the cache key with preferred authority.
+        try {
+            final String preferredAuthority = getAuthorityUrlWithPreferredCache();
+            if (preferredAuthority != null) {
+                addDeletionKeysForMRRTOrFRTEntry(preferredAuthority, cachedItem, keysToRemove, keymaker);
+            }
+        } catch (final MalformedURLException exception) {
+            com.microsoft.identity.common.internal.logging.Logger.error(TAG, "Authority from preferred cache is invalid", null);
+            com.microsoft.identity.common.internal.logging.Logger.errorPII(TAG, "Failed with exception", exception);
+        }
+
+        addDeletionKeysForMRRTOrFRTEntry(mAuthority, cachedItem, keysToRemove, keymaker);
+
+        // For back compatibility, remove the cache key with the passed-in request authority.
+        if (!mAuthority.equalsIgnoreCase(cachedItem.getAuthority())) {
+            addDeletionKeysForMRRTOrFRTEntry(cachedItem.getAuthority(), cachedItem, keysToRemove, keymaker);
         }
 
         return keysToRemove;
     }
 
-    /**
-     * @return List of keys to remove when using MRRT to send refresh token request.
-     */
-    private List<String> getKeyListToRemoveForMRRT(final TokenCacheItem cachedItem) {
-        final List<String> keysToRemove = new ArrayList<>();
+    interface KeyMakerStrategy {
+        boolean isFrt();
 
-        keysToRemove.add(CacheKey.createCacheKeyForMRRT(mAuthority, cachedItem.getClientId(), null));
-        if (cachedItem.getUserInfo() != null) {
-            keysToRemove.add(CacheKey.createCacheKeyForMRRT(mAuthority, cachedItem.getClientId(), cachedItem.getUserInfo().getDisplayableId()));
-            keysToRemove.add(CacheKey.createCacheKeyForMRRT(mAuthority, cachedItem.getClientId(), cachedItem.getUserInfo().getUserId()));
-        }
-
-        return keysToRemove;
+        String makeKey(final String authority, final String clientId, final String userId);
     }
 
-    /**
-     * @return List of keys to remove when using FRT to send refresh token request.
-     */
-    private List<String> getKeyListToRemoveForFRT(final TokenCacheItem cachedItem) {
-        final List<String> keysToRemove = new ArrayList<>();
-        if (cachedItem.getUserInfo() != null) {
-            keysToRemove.add(CacheKey.createCacheKeyForFRT(mAuthority, cachedItem.getFamilyClientId(), cachedItem.getUserInfo().getDisplayableId()));
-            keysToRemove.add(CacheKey.createCacheKeyForFRT(mAuthority, cachedItem.getFamilyClientId(), cachedItem.getUserInfo().getUserId()));
+    private void addDeletionKeysForRTEntry(final String authority, final TokenCacheItem item, final List<String> keys) {
+        final String resource = item.getResource();
+        final String clientId = item.getClientId();
+        final UserInfo userInfo = item.getUserInfo();
+
+        keys.add(CacheKey.createCacheKeyForRTEntry(authority, resource, clientId, null));
+
+        if (userInfo != null) {
+            if (userInfo.getDisplayableId() != null) {
+                keys.add(CacheKey.createCacheKeyForRTEntry(authority, resource, clientId, userInfo.getDisplayableId()));
+            }
+            if (userInfo.getUserId() != null) {
+                keys.add(CacheKey.createCacheKeyForRTEntry(authority, resource, clientId, userInfo.getUserId()));
+                if (item.getTenantId() != null) {
+                    String uniqueId = getUniqueIdentifierForCacheKey(userInfo.getUserId(), item.getTenantId());
+                    keys.add(CacheKey.createCacheKeyForRTEntry(authority, resource, clientId, uniqueId));
+                }
+            }
+        }
+    }
+
+    private void addDeletionKeysForMRRTOrFRTEntry(final String authority, final TokenCacheItem item, final List<String> keys, final KeyMakerStrategy strategy) {
+        final UserInfo userInfo = item.getUserInfo();
+        String clientId = item.getClientId();
+
+        if (strategy.isFrt()) {
+            clientId = item.getFamilyClientId();
         }
 
-        return keysToRemove;
+        final List<String> userIds = new ArrayList<>();
+        userIds.add(null); // no user affinity
+
+        if (userInfo != null) {
+            if (userInfo.getDisplayableId() != null) {
+                userIds.add(userInfo.getDisplayableId());
+            }
+            if (userInfo.getUserId() != null) {
+                userIds.add(userInfo.getUserId());
+                if (item.getTenantId() != null) {
+                    userIds.add(getUniqueIdentifierForCacheKey(userInfo.getUserId(), item.getTenantId()));
+                }
+            }
+        }
+        // Iterate over the userId permutations and, in the FRT-case, conditionally delete them if they match.
+        // Non-FRTs are unconditionally cleared.
+        for (final String userId : userIds) {
+            addDeletionKeyForMRRTOrFRTEntry(keys, item, authority, clientId, userId, strategy);
+        }
+    }
+
+    private void addDeletionKeyForMRRTOrFRTEntry(final List<String> keysToRemove,
+                                                 final TokenCacheItem deletionTarget,
+                                                 final String authority,
+                                                 final String clientId,
+                                                 final String userId,
+                                                 final KeyMakerStrategy strategy) {
+        final String keyToAdd = strategy.makeKey(authority, clientId, userId);
+        if (strategy.isFrt()) {
+            addDeletionKeyForFRTIfRTValueIsStale(keysToRemove, deletionTarget, keyToAdd);
+        } else {
+            keysToRemove.add(keyToAdd);
+        }
+    }
+
+    private void addDeletionKeyForFRTIfRTValueIsStale(final List<String> keysToRemove,
+                                                      final TokenCacheItem deletionTarget,
+                                                      final String deletionCandidateKey) {
+        final TokenCacheItem fociCacheItem = mTokenCacheStore.getItem(deletionCandidateKey);
+        if (null != fociCacheItem && deletionTarget.getRefreshToken().equalsIgnoreCase(fociCacheItem.getRefreshToken())) {
+            keysToRemove.add(deletionCandidateKey);
+        }
+    }
+
+    private String getUniqueIdentifierForCacheKey(final String userId, final String tenantId) {
+        return StringExtensions.base64UrlEncodeToString(userId) + "." + StringExtensions.base64UrlEncodeToString(tenantId);
     }
 
     private boolean isUserMisMatch(final String user, final TokenCacheItem tokenCacheItem) {
@@ -535,22 +640,6 @@ class TokenCacheAccessor {
             Logger.i(TAG, "Access tokenID and refresh tokenID returned. ", null);
         }
     }
-
-    /*
-    //No usages found... commenting out to make PMD happy.
-    private String getTokenHash(String token) {
-        try {
-            return StringExtensions.createHash(token);
-        } catch (NoSuchAlgorithmException e) {
-            Logger.e(TAG, "Digest error", "", ADALError.DEVICE_NO_SUCH_ALGORITHM, e);
-        } catch (UnsupportedEncodingException e) {
-            Logger.e(TAG, "Digest error", "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
-        }
-
-        return "";
-    }
-    */
-
 
     private CacheEvent startCacheTelemetryRequest(String tokenType) {
         final CacheEvent cacheEvent = new CacheEvent(EventStrings.TOKEN_CACHE_LOOKUP);
