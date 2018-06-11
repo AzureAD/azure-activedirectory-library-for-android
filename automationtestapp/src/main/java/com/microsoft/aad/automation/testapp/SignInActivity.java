@@ -139,6 +139,7 @@ public class SignInActivity extends AppCompatActivity {
         AuthenticationSettings.INSTANCE.setUseBroker(mUseBroker);
 
         mAuthenticationContext = new AuthenticationContext(getApplicationContext(), mAuthority, mValidateAuthority);
+        AuthenticationSettings.INSTANCE.setUseBroker(true);
         switch (flowCode) {
             case MainActivity.ACQUIRE_TOKEN:
                 acquireToken();
@@ -300,12 +301,15 @@ public class SignInActivity extends AppCompatActivity {
         Method m = getAcquireTokenSilentMethodWithForceRefresh();
         if(mForceRefreshParameterProvided && m != null){
             try {
-                m.invoke(mResource, mClientId, mUserId, mForceRefresh, getAdalCallback());
+                m.invoke(mAuthenticationContext, mResource, mClientId, mUserId, mForceRefresh, getAdalCallback());
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             } catch (InvocationTargetException e) {
                 e.printStackTrace();
+            } catch (Exception e){
+                e.printStackTrace();
             }
+
         }else {
             mAuthenticationContext.acquireTokenSilentAsync(mResource, mClientId, mUserId, getAdalCallback());
         }

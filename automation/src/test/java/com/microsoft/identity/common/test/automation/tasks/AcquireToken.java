@@ -26,6 +26,7 @@ public class AcquireToken implements Task{
 
     String prompt;
     String userIdentifier;
+    Boolean withBroker = false;
 
     @Override
     public <T extends Actor> void performAs(T actor) {
@@ -47,7 +48,7 @@ public class AcquireToken implements Task{
         if(TextUtils.isEmpty(userIdentifier)){
             actor.attemptsTo(
                     WaitUntil.the(SignInPageUserName.USERNAME, isVisible()).forNoMoreThan(10).seconds(),
-                    new EnterUserNameForSignInDisambiguation(),
+                    new EnterUserNameForSignInDisambiguation().withBroker(withBroker),
                     WaitUntil.the(SignInPagePassword.PASSWORD, isVisible()).forNoMoreThan(10).seconds()
             );
         }
@@ -62,6 +63,11 @@ public class AcquireToken implements Task{
 
     public AcquireToken withUserIdentifier(String userIdentifier){
         this.userIdentifier = userIdentifier;
+        return this;
+    }
+
+    public AcquireToken withBroker(){
+        this.withBroker = true;
         return this;
     }
 

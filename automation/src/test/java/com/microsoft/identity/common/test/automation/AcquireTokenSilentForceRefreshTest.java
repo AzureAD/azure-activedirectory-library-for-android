@@ -48,11 +48,13 @@ public class AcquireTokenSilentForceRefreshTest {
 
 
         return Arrays.asList(new Object[][]{
-                {"ADFSv2"},
+                {"ADFSv2"}//,
+                /*)
                 {"ADFSv3"},
                 {"ADFSv4"},
                 {"PingFederate"},
                 {"Shibboleth"}
+                */
 
         });
 
@@ -110,7 +112,9 @@ public class AcquireTokenSilentForceRefreshTest {
         User newUser = User.named("james");
         newUser.setFederationProvider(scenario.getTestConfiguration().getUsers().getFederationProvider());
         newUser.setTokenRequest(scenario.getTokenRequest());
+        newUser.getTokenRequest().setRedirectUri("msauth://com.microsoft.aad.automation.testapp.adal/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D");
         newUser.setSilentTokenRequest(scenario.getSilentTokenRequest());
+        newUser.getSilentTokenRequest().setRedirectUri("msauth://com.microsoft.aad.automation.testapp.adal/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D");
         newUser.setCredential(scenario.getCredential());
 
         return newUser;
@@ -121,7 +125,7 @@ public class AcquireTokenSilentForceRefreshTest {
     public void should_be_able_to_acquire_token_and_then_acquire_silent_with_force_refresh() {
 
         givenThat(james).wasAbleTo(
-                acquireToken,
+                acquireToken.withBroker(),
                 clickDone,
                 readCache);
 
