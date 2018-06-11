@@ -36,6 +36,8 @@ import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
 import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentialAdapter;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
+import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
+import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryOAuth2Configuration;
@@ -86,7 +88,7 @@ class TokenCacheAccessor {
         mTelemetryRequestId = telemetryRequestId;
 
         //Setup common cache implementation
-        List<IShareSingleSignOnState> sharedSSOCaches = new ArrayList<IShareSingleSignOnState>();
+        List<IShareSingleSignOnState<MicrosoftAccount, MicrosoftRefreshToken>> sharedSSOCaches = new ArrayList<>();
 
         // Set up the MsalAuth2TokenCache
         final IAccountCredentialCache accountCredentialCache = new AccountCredentialCache(
