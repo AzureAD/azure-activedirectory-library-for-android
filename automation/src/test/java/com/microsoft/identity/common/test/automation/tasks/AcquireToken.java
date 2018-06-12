@@ -53,7 +53,10 @@ public class AcquireToken implements Task{
             );
         }
 
-        actor.attemptsTo(signInUser);
+        // If the user is workplace joined... then they will not need to sign in... because we'll just select that account
+        if(!user.getWorkplaceJoined()) {
+            actor.attemptsTo(signInUser);
+        }
     }
 
     public AcquireToken withPrompt(String prompt){

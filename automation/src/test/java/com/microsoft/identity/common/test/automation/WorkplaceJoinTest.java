@@ -1,10 +1,11 @@
 package com.microsoft.identity.common.test.automation;
 
 import com.microsoft.identity.common.test.automation.actors.User;
-import com.microsoft.identity.common.test.automation.interactions.ClickDone;
-import com.microsoft.identity.common.test.automation.questions.AccessTokenFromAuthenticationResult;
-import com.microsoft.identity.common.test.automation.tasks.AcquireToken;
-import com.microsoft.identity.common.test.automation.tasks.AcquireTokenSilent;
+import com.microsoft.identity.common.test.automation.interactions.authenticatorapp.InstallAuthenticatorApp;
+import com.microsoft.identity.common.test.automation.interactions.authenticatorapp.OpenAuthenticatorApp;
+import com.microsoft.identity.common.test.automation.interactions.authenticatorapp.UninstallAuthenticatorApp;
+import com.microsoft.identity.common.test.automation.tasks.authenticatorapp.WorkplaceJoin;
+import com.microsoft.identity.common.test.automation.tasks.authenticatorapp.WorkplaceLeave;
 import com.microsoft.identity.common.test.automation.utility.Scenario;
 import com.microsoft.identity.common.test.automation.utility.TestConfigurationQuery;
 
@@ -27,10 +28,9 @@ import java.util.Collection;
 
 import io.appium.java_client.service.local.AppiumDriverLocalService;
 
-import static net.serenitybdd.screenplay.GivenWhenThen.givenThat;
 import static net.serenitybdd.screenplay.GivenWhenThen.seeThat;
 import static net.serenitybdd.screenplay.GivenWhenThen.then;
-import static net.serenitybdd.screenplay.GivenWhenThen.when;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
 /**
@@ -38,7 +38,7 @@ import static org.hamcrest.Matchers.not;
  */
 
 @RunWith(SerenityParameterizedRunner.class)
-public class AcquireTokenSilentForceRefreshTest {
+public class WorkplaceJoinTest {
 
     @TestData
     public static Collection<Object[]> FederationProviders(){
@@ -58,13 +58,10 @@ public class AcquireTokenSilentForceRefreshTest {
     }
 
     @Steps
-    AcquireTokenSilent acquireTokenSilent;
+    WorkplaceJoin workplaceJoin;
 
     @Steps
-    AcquireToken acquireToken;
-
-    @Steps
-    ClickDone clickDone;
+    WorkplaceLeave workplaceLeave;
 
     static AppiumDriverLocalService appiumService = null;
 
@@ -85,7 +82,7 @@ public class AcquireTokenSilentForceRefreshTest {
     private User james;
     private String federationProvider;
 
-    public AcquireTokenSilentForceRefreshTest(String federationProvider){
+    public WorkplaceJoinTest(String federationProvider){
         this.federationProvider = federationProvider;
     }
 
@@ -106,9 +103,9 @@ public class AcquireTokenSilentForceRefreshTest {
         User newUser = User.named("james");
         newUser.setFederationProvider(scenario.getTestConfiguration().getUsers().getFederationProvider());
         newUser.setTokenRequest(scenario.getTokenRequest());
-        //newUser.getTokenRequest().setRedirectUri("msauth://com.microsoft.aad.automation.testapp.adal/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D");
+        newUser.getTokenRequest().setRedirectUri("msauth://com.microsoft.aad.automation.testapp.adal/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D");
         newUser.setSilentTokenRequest(scenario.getSilentTokenRequest());
-        //newUser.getSilentTokenRequest().setRedirectUri("msauth://com.microsoft.aad.automation.testapp.adal/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D");
+        newUser.getSilentTokenRequest().setRedirectUri("msauth://com.microsoft.aad.automation.testapp.adal/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D");
         newUser.setCredential(scenario.getCredential());
 
         return newUser;
@@ -118,20 +115,15 @@ public class AcquireTokenSilentForceRefreshTest {
     @Test
     public void should_be_able_to_acquire_token_and_then_acquire_silent_with_force_refresh() {
 
-        givenThat(james).wasAbleTo(
-                acquireToken
-        );
+        james.attemptsTo(workplaceJoin);
 
-        String accessToken1 = james.asksFor(AccessTokenFromAuthenticationResult.displayed());
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
-        james.attemptsTo(clickDone);
-
-        when(james).attemptsTo(
-                acquireTokenSilent.withUserIdentifier(james.getCredential().userName).withForceRefresh()
-        );
-
-        then(james).should(seeThat(AccessTokenFromAuthenticationResult.displayed(), not(accessToken1)));
-
+        james.attemptsTo(workplaceLeave);
 
     }
 

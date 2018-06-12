@@ -38,7 +38,7 @@ import static org.hamcrest.Matchers.not;
  */
 
 @RunWith(SerenityParameterizedRunner.class)
-public class AcquireTokenSilentForceRefreshTest {
+public class AcquireTokenSilentForceRefreshWithBroker {
 
     @TestData
     public static Collection<Object[]> FederationProviders(){
@@ -85,7 +85,7 @@ public class AcquireTokenSilentForceRefreshTest {
     private User james;
     private String federationProvider;
 
-    public AcquireTokenSilentForceRefreshTest(String federationProvider){
+    public AcquireTokenSilentForceRefreshWithBroker(String federationProvider){
         this.federationProvider = federationProvider;
     }
 
@@ -106,9 +106,9 @@ public class AcquireTokenSilentForceRefreshTest {
         User newUser = User.named("james");
         newUser.setFederationProvider(scenario.getTestConfiguration().getUsers().getFederationProvider());
         newUser.setTokenRequest(scenario.getTokenRequest());
-        //newUser.getTokenRequest().setRedirectUri("msauth://com.microsoft.aad.automation.testapp.adal/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D");
+        newUser.getTokenRequest().setRedirectUri("msauth://com.microsoft.aad.automation.testapp.adal/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D");
         newUser.setSilentTokenRequest(scenario.getSilentTokenRequest());
-        //newUser.getSilentTokenRequest().setRedirectUri("msauth://com.microsoft.aad.automation.testapp.adal/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D");
+        newUser.getSilentTokenRequest().setRedirectUri("msauth://com.microsoft.aad.automation.testapp.adal/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D");
         newUser.setCredential(scenario.getCredential());
 
         return newUser;
@@ -119,7 +119,7 @@ public class AcquireTokenSilentForceRefreshTest {
     public void should_be_able_to_acquire_token_and_then_acquire_silent_with_force_refresh() {
 
         givenThat(james).wasAbleTo(
-                acquireToken
+                acquireToken.withBroker()
         );
 
         String accessToken1 = james.asksFor(AccessTokenFromAuthenticationResult.displayed());
