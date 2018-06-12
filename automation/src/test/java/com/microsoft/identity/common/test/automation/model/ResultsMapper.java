@@ -16,4 +16,9 @@ public class ResultsMapper {
         return readCacheResult;
 
     }
+
+
+    public static AuthenticationResult GetAuthenticationResultFromString(String result){
+       return (AuthenticationResult) ObjectMapper.deserializeJsonStringToObject(result, AuthenticationResult.class);
+    }
 }

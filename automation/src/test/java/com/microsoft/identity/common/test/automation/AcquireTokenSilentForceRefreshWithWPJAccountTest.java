@@ -2,9 +2,12 @@ package com.microsoft.identity.common.test.automation;
 
 import com.microsoft.identity.common.test.automation.actors.User;
 import com.microsoft.identity.common.test.automation.interactions.ClickDone;
+import com.microsoft.identity.common.test.automation.interactions.automationtestapp.OpenAutomationTestApp;
 import com.microsoft.identity.common.test.automation.questions.AccessTokenFromAuthenticationResult;
 import com.microsoft.identity.common.test.automation.tasks.AcquireToken;
 import com.microsoft.identity.common.test.automation.tasks.AcquireTokenSilent;
+import com.microsoft.identity.common.test.automation.tasks.authenticatorapp.WorkplaceJoin;
+import com.microsoft.identity.common.test.automation.tasks.authenticatorapp.WorkplaceLeave;
 import com.microsoft.identity.common.test.automation.utility.Scenario;
 import com.microsoft.identity.common.test.automation.utility.TestConfigurationQuery;
 
@@ -38,7 +41,7 @@ import static org.hamcrest.Matchers.not;
  */
 
 @RunWith(SerenityParameterizedRunner.class)
-public class AcquireTokenSilentForceRefreshTest {
+public class AcquireTokenSilentForceRefreshWithWPJAccountTest {
 
     @TestData
     public static Collection<Object[]> FederationProviders(){
@@ -58,6 +61,12 @@ public class AcquireTokenSilentForceRefreshTest {
     }
 
     @Steps
+    WorkplaceJoin workplaceJoin;
+
+    @Steps
+    WorkplaceLeave workplaceLeave;
+
+    @Steps
     AcquireTokenSilent acquireTokenSilent;
 
     @Steps
@@ -65,6 +74,9 @@ public class AcquireTokenSilentForceRefreshTest {
 
     @Steps
     ClickDone clickDone;
+
+    @Steps
+    OpenAutomationTestApp openAutomationTestApp;
 
     static AppiumDriverLocalService appiumService = null;
 
@@ -85,7 +97,7 @@ public class AcquireTokenSilentForceRefreshTest {
     private User james;
     private String federationProvider;
 
-    public AcquireTokenSilentForceRefreshTest(String federationProvider){
+    public AcquireTokenSilentForceRefreshWithWPJAccountTest(String federationProvider){
         this.federationProvider = federationProvider;
     }
 
@@ -104,11 +116,12 @@ public class AcquireTokenSilentForceRefreshTest {
         Scenario scenario = Scenario.GetScenario(query);
 
         User newUser = User.named("james");
+        newUser.setWorkplaceJoined(true);
         newUser.setFederationProvider(scenario.getTestConfiguration().getUsers().getFederationProvider());
         newUser.setTokenRequest(scenario.getTokenRequest());
-        //newUser.getTokenRequest().setRedirectUri("msauth://com.microsoft.aad.automation.testapp.adal/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D");
+        newUser.getTokenRequest().setRedirectUri("msauth://com.microsoft.aad.automation.testapp.adal/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D");
         newUser.setSilentTokenRequest(scenario.getSilentTokenRequest());
-        //newUser.getSilentTokenRequest().setRedirectUri("msauth://com.microsoft.aad.automation.testapp.adal/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D");
+        newUser.getSilentTokenRequest().setRedirectUri("msauth://com.microsoft.aad.automation.testapp.adal/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D");
         newUser.setCredential(scenario.getCredential());
 
         return newUser;
@@ -119,7 +132,9 @@ public class AcquireTokenSilentForceRefreshTest {
     public void should_be_able_to_acquire_token_and_then_acquire_silent_with_force_refresh() {
 
         givenThat(james).wasAbleTo(
-                acquireToken
+                workplaceJoin,
+                openAutomationTestApp,
+                acquireToken.withBroker()
         );
 
         String accessToken1 = james.asksFor(AccessTokenFromAuthenticationResult.displayed());
@@ -132,6 +147,7 @@ public class AcquireTokenSilentForceRefreshTest {
 
         then(james).should(seeThat(AccessTokenFromAuthenticationResult.displayed(), not(accessToken1)));
 
+        james.attemptsTo(workplaceLeave);
 
     }
 
