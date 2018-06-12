@@ -53,7 +53,7 @@ import java.util.List;
 import static com.microsoft.aad.adal.TokenEntryType.FRT_TOKEN_ENTRY;
 import static com.microsoft.aad.adal.TokenEntryType.MRRT_TOKEN_ENTRY;
 import static com.microsoft.aad.adal.TokenEntryType.REGULAR_TOKEN_ENTRY;
-import static com.microsoft.identity.common.internal.cache.AccountCredentialCache.ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
+import static com.microsoft.identity.common.internal.cache.AccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
 
 /**
  * Internal class handling the interaction with {@link AcquireTokenSilentHandler} and {@link ITokenCacheStore}.
@@ -95,7 +95,7 @@ class TokenCacheAccessor {
                 new CacheKeyValueDelegate(),
                 new SharedPreferencesFileManager(
                         appContext,
-                        ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
+                        DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
                         new StorageHelper(appContext)
                 )
         );
