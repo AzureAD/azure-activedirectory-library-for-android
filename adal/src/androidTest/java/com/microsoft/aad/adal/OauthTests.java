@@ -361,7 +361,7 @@ public class OauthTests {
         final Oauth2 oauth2 = createOAuthInstance(request);
         assertEquals(
                 "Token request",
-                "grant_type=refresh_token&refresh_token=refreshToken23434%3D&client_id=client+1234567890-%2B%3D%3B%27&resource=resource%2520+",
+                "grant_type=refresh_token&refresh_token=refreshToken23434%3D&client_id=client+1234567890-%2B%3D%3B%27&client_info=1&resource=resource%2520+",
                 oauth2.buildRefreshTokenRequestMessage("refreshToken23434="));
 
         // without resource
@@ -372,7 +372,7 @@ public class OauthTests {
         final Oauth2 oauthWithoutResource = createOAuthInstance(requestWithoutResource);
         assertEquals(
                 "Token request",
-                "grant_type=refresh_token&refresh_token=refreshToken234343455%3D&client_id=client+1234567890-%2B%3D%3B%27",
+                "grant_type=refresh_token&refresh_token=refreshToken234343455%3D&client_id=client+1234567890-%2B%3D%3B%27&client_info=1",
                 oauthWithoutResource.buildRefreshTokenRequestMessage("refreshToken234343455="));
     }
 

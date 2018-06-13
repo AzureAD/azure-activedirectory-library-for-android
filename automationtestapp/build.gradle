@@ -27,7 +27,6 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
 
     defaultConfig {
         applicationId "com.microsoft.aad.automation.testapp"
@@ -66,6 +65,10 @@ android {
             versionNameSuffix "-adalR"
             resValue("string", "application_name", "adalR")
         }
+    }
+
+    lintOptions {
+        abortOnError false
     }
 
 }
