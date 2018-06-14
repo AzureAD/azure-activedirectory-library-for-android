@@ -136,10 +136,10 @@ public class SignInActivity extends AppCompatActivity {
         validateUserInput(inputItems, flowCode);
 
         setAuthenticationData(inputItems);
-        AuthenticationSettings.INSTANCE.setUseBroker(mUseBroker);
+        AuthenticationSettings.INSTANCE.setUseBroker(true);
 
         mAuthenticationContext = new AuthenticationContext(getApplicationContext(), mAuthority, mValidateAuthority);
-        AuthenticationSettings.INSTANCE.setUseBroker(true);
+
         switch (flowCode) {
             case MainActivity.ACQUIRE_TOKEN:
                 acquireToken();

@@ -47,9 +47,7 @@ public class AcquireToken implements Task{
         // If userIdentifier was not provided in acquire token call , attempt to enter username for sign in
         if(TextUtils.isEmpty(userIdentifier)){
             actor.attemptsTo(
-                    WaitUntil.the(SignInPageUserName.USERNAME, isVisible()).forNoMoreThan(10).seconds(),
-                    new EnterUserNameForSignInDisambiguation().withBroker(withBroker),
-                    WaitUntil.the(SignInPagePassword.PASSWORD, isVisible()).forNoMoreThan(10).seconds()
+                    new EnterUserNameForSignInDisambiguation().withBroker(withBroker)
             );
         }
 

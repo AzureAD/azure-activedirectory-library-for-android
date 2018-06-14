@@ -3,7 +3,9 @@ package com.microsoft.identity.common.test.automation;
 import com.microsoft.identity.common.test.automation.actors.User;
 import com.microsoft.identity.common.test.automation.interactions.ClickDone;
 import com.microsoft.identity.common.test.automation.interactions.automationtestapp.OpenAutomationTestApp;
+import com.microsoft.identity.common.test.automation.model.AuthenticationResult;
 import com.microsoft.identity.common.test.automation.questions.AccessTokenFromAuthenticationResult;
+import com.microsoft.identity.common.test.automation.questions.AuthenticationResultFromResultInfo;
 import com.microsoft.identity.common.test.automation.tasks.AcquireToken;
 import com.microsoft.identity.common.test.automation.tasks.AcquireTokenSilent;
 import com.microsoft.identity.common.test.automation.tasks.authenticatorapp.WorkplaceJoin;
@@ -116,7 +118,6 @@ public class AcquireTokenSilentForceRefreshWithWPJAccountTest {
         Scenario scenario = Scenario.GetScenario(query);
 
         User newUser = User.named("james");
-        newUser.setWorkplaceJoined(true);
         newUser.setFederationProvider(scenario.getTestConfiguration().getUsers().getFederationProvider());
         newUser.setTokenRequest(scenario.getTokenRequest());
         newUser.getTokenRequest().setRedirectUri("msauth://com.microsoft.aad.automation.testapp.adal/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D");
@@ -132,14 +133,22 @@ public class AcquireTokenSilentForceRefreshWithWPJAccountTest {
     public void should_be_able_to_acquire_token_and_then_acquire_silent_with_force_refresh() {
 
         givenThat(james).wasAbleTo(
-                workplaceJoin,
+                workplaceJoin
+        );
+
+        james.setWorkplaceJoined(true);
+
+        givenThat(james).wasAbleTo(
                 openAutomationTestApp,
                 acquireToken.withBroker()
         );
 
         String accessToken1 = james.asksFor(AccessTokenFromAuthenticationResult.displayed());
+        AuthenticationResult result = james.asksFor(AuthenticationResultFromResultInfo.displayed());
 
         james.attemptsTo(clickDone);
+
+        james.getSilentTokenRequest().setAuthority("https://login.microsoftonline.com/" + result.tenantId);
 
         when(james).attemptsTo(
                 acquireTokenSilent.withUserIdentifier(james.getCredential().userName).withForceRefresh()
