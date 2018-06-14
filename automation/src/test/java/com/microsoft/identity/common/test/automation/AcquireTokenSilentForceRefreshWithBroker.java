@@ -2,7 +2,9 @@ package com.microsoft.identity.common.test.automation;
 
 import com.microsoft.identity.common.test.automation.actors.User;
 import com.microsoft.identity.common.test.automation.interactions.ClickDone;
+import com.microsoft.identity.common.test.automation.model.AuthenticationResult;
 import com.microsoft.identity.common.test.automation.questions.AccessTokenFromAuthenticationResult;
+import com.microsoft.identity.common.test.automation.questions.AuthenticationResultFromResultInfo;
 import com.microsoft.identity.common.test.automation.tasks.AcquireToken;
 import com.microsoft.identity.common.test.automation.tasks.AcquireTokenSilent;
 import com.microsoft.identity.common.test.automation.utility.Scenario;
@@ -123,8 +125,11 @@ public class AcquireTokenSilentForceRefreshWithBroker {
         );
 
         String accessToken1 = james.asksFor(AccessTokenFromAuthenticationResult.displayed());
+        AuthenticationResult result = james.asksFor(AuthenticationResultFromResultInfo.displayed());
 
         james.attemptsTo(clickDone);
+
+        james.getSilentTokenRequest().setAuthority("https://login.microsoftonline.com/" + result.tenantId);
 
         when(james).attemptsTo(
                 acquireTokenSilent.withUserIdentifier(james.getCredential().userName).withForceRefresh()
