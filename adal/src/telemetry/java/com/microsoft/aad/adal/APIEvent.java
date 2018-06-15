@@ -27,6 +27,7 @@ import android.content.Context;
 import android.util.Pair;
 
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.adal.internal.util.UrlExtensions;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URL;

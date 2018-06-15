@@ -27,6 +27,7 @@ import android.content.Context;
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.adal.internal.util.UrlExtensions;
 import com.microsoft.identity.common.internal.cache.ADALOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.AccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;

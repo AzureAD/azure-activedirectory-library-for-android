@@ -39,6 +39,7 @@ import android.util.SparseArray;
 import com.microsoft.aad.adal.AuthenticationRequest.UserIdentifierType;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.adal.internal.util.UrlExtensions;
 
 import java.io.IOException;
 import java.net.MalformedURLException;

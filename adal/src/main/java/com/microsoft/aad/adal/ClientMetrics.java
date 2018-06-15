@@ -23,6 +23,8 @@
 
 package com.microsoft.aad.adal;
 
+import com.microsoft.identity.common.adal.internal.util.UrlExtensions;
+
 import java.net.URL;
 import java.util.Map;
 import java.util.UUID;

@@ -34,6 +34,7 @@ import android.util.Log;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.adal.internal.util.UrlExtensions;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
