@@ -208,6 +208,11 @@ public enum ADALError {
     AUTH_FAILED_USER_MISMATCH("User returned by service does not match the one in the request"),
 
     /**
+     * Intune App Protection Policy required.
+     */
+    AUTH_FAILED_INTUNE_POLICY_REQUIRED("Intune App Protection Policy required"),
+
+    /**
      * Internet permissions are not set for the app.
      */
     DEVICE_INTERNET_IS_NOT_AVAILABLE("Internet permissions are not set for the app"),

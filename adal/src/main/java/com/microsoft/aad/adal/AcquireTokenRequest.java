@@ -370,16 +370,25 @@ class AcquireTokenRequest {
                 // TODO: investigate which server response actually should force user to sign in again
                 // and which error actually should just notify user that some resource require extra steps
 
-                final String errorInfo = authenticationResult == null
-                        ? "No result returned from acquireTokenSilent" : " ErrorCode:" + authenticationResult.getErrorCode();
-                // User does not want to launch activity
-                Logger.e(TAG + methodName,
-                        "Prompt is not allowed and failed to get token. " + errorInfo,
-                        authenticationRequest.getLogInfo(),
-                        ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
-                final AuthenticationException authenticationException = new AuthenticationException(
-                        ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, authenticationRequest.getLogInfo()
-                        + " " + errorInfo);
+                AuthenticationException authenticationException;
+                if (isIntunePolicyRequiredError(authenticationResult)) {
+                    Logger.e(TAG + methodName,
+                            "Prompt is not allowed and failed to get token. ",
+                            authenticationRequest.getLogInfo(),
+                            ADALError.AUTH_FAILED_INTUNE_POLICY_REQUIRED);
+                    authenticationException = new IntuneAppProtectionPolicyRequiredException(authenticationRequest.getLogInfo());
+                } else {
+                    final String errorInfo = authenticationResult == null
+                            ? "No result returned from acquireTokenSilent" : " ErrorCode:" + authenticationResult.getErrorCode();
+                    // User does not want to launch activity
+                    Logger.e(TAG + methodName,
+                            "Prompt is not allowed and failed to get token. " + errorInfo,
+                            authenticationRequest.getLogInfo(),
+                            ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
+                    authenticationException = new AuthenticationException(
+                            ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, authenticationRequest.getLogInfo()
+                            + " " + errorInfo);
+                }
 
                 addHttpInfoToException(authenticationResult, authenticationException);
 
@@ -392,6 +401,15 @@ class AcquireTokenRequest {
         }
 
         return authenticationResult;
+    }
+
+    private boolean isIntunePolicyRequiredError(AuthenticationResult authenticationResult) {
+        if (authenticationResult == null) {
+            return false;
+        }
+
+
+        return false;
     }
 
     private void addHttpInfoToException(AuthenticationResult result, AuthenticationException exception) {
