@@ -6,6 +6,8 @@ import com.microsoft.identity.common.test.automation.utility.TokenRequest;
 
 import net.serenitybdd.screenplay.Actor;
 
+import org.apache.xpath.operations.Bool;
+
 import jdk.nashorn.internal.parser.Token;
 
 public class User extends Actor {
@@ -14,6 +16,7 @@ public class User extends Actor {
     private TokenRequest silentTokenRequest;
     private String federationProvider;
     private Credential credential;
+    private Boolean workplaceJoined = false;
 
     public void setTokenRequest(TokenRequest tokenRequest){
         this.tokenRequest = tokenRequest;
@@ -59,6 +62,15 @@ public class User extends Actor {
     public void setFederationProvider(String federationProvider){
         this.federationProvider = federationProvider;
     }
+
+    public Boolean getWorkplaceJoined(){
+        return this.workplaceJoined;
+    }
+
+    public void setWorkplaceJoined(Boolean workplaceJoined){
+        this.workplaceJoined = workplaceJoined;
+    }
+
 
     public User(String name) {
         super(name);

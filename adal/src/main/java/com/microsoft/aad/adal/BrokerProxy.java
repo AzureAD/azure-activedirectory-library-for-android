@@ -187,6 +187,21 @@ class BrokerProxy implements IBrokerProxy {
         return true;
     }
 
+    public boolean verifyBrokerForSilentRequest(AuthenticationRequest request) throws AuthenticationException {
+        // If we cannot switch to broker, return the result from local flow.
+        final BrokerProxy.SwitchToBroker switchToBrokerFlag = canSwitchToBroker(request.getAuthority());
+        if (switchToBrokerFlag == SwitchToBroker.CAN_SWITCH_TO_BROKER) {
+            return verifyUser(request.getLoginHint(), request.getUserId());
+        } else if (switchToBrokerFlag == BrokerProxy.SwitchToBroker.NEED_PERMISSIONS_TO_SWITCH_TO_BROKER) {
+            //For android M and above
+            throw new UsageAuthenticationException(
+                    ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,
+                    "Broker related permissions are missing for GET_ACCOUNTS");
+        }
+
+        return false;
+    }
+
     @Override
     public boolean canUseLocalCache(final String authorityUrlStr) {
         final String methodName = ":canUseLocalCache";
@@ -747,6 +762,10 @@ class BrokerProxy implements IBrokerProxy {
         if (request.isClaimsChallengePresent()) {
             brokerOptions.putString(AuthenticationConstants.Broker.BROKER_SKIP_CACHE, Boolean.toString(true));
             brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CLAIMS, request.getClaimsChallenge());
+        }
+
+        if (request.getForceRefresh()){
+            brokerOptions.putString(AuthenticationConstants.Broker.BROKER_FORCE_REFRESH, Boolean.toString(true));
         }
 
         return brokerOptions;

@@ -37,11 +37,13 @@ public class AcquireTokenBasicLoginHintTest {
     public static Collection<Object[]> FederationProviders() {
 
         return Arrays.asList(new Object[][]{
-                {"ADFSv2"},
+                {"ADFSv2"}//,
+                /*
                 {"ADFSv3"},
                 {"ADFSv4"},
                 {"PingFederate"},
                 {"Shibboleth"}
+                */
         });
     }
 
@@ -107,7 +109,7 @@ public class AcquireTokenBasicLoginHintTest {
                 clickDone,
                 readCache);
 
-        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(6)));
+        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(8)));
 
     }
 

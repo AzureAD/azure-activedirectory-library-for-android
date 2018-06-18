@@ -2,11 +2,11 @@ package com.microsoft.identity.common.test.automation;
 
 import com.microsoft.identity.common.test.automation.actors.User;
 import com.microsoft.identity.common.test.automation.interactions.ClickDone;
-import com.microsoft.identity.common.test.automation.questions.AccessToken;
-import com.microsoft.identity.common.test.automation.questions.TokenCacheItemCount;
+import com.microsoft.identity.common.test.automation.model.AuthenticationResult;
+import com.microsoft.identity.common.test.automation.questions.AccessTokenFromAuthenticationResult;
+import com.microsoft.identity.common.test.automation.questions.AuthenticationResultFromResultInfo;
 import com.microsoft.identity.common.test.automation.tasks.AcquireToken;
 import com.microsoft.identity.common.test.automation.tasks.AcquireTokenSilent;
-import com.microsoft.identity.common.test.automation.tasks.ReadCache;
 import com.microsoft.identity.common.test.automation.utility.Scenario;
 import com.microsoft.identity.common.test.automation.utility.TestConfigurationQuery;
 
@@ -33,25 +33,27 @@ import static net.serenitybdd.screenplay.GivenWhenThen.givenThat;
 import static net.serenitybdd.screenplay.GivenWhenThen.seeThat;
 import static net.serenitybdd.screenplay.GivenWhenThen.then;
 import static net.serenitybdd.screenplay.GivenWhenThen.when;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 
 /**
  * Test case : https://identitydivision.visualstudio.com/IDDP/_workitems/edit/98555
  */
 
 @RunWith(SerenityParameterizedRunner.class)
-public class AcquireTokenSilentLoginHint {
+public class AcquireTokenSilentForceRefreshWithBroker {
 
     @TestData
     public static Collection<Object[]> FederationProviders(){
 
 
         return Arrays.asList(new Object[][]{
-                {"ADFSv2"},
+                {"ADFSv2"}//,
+                /*)
                 {"ADFSv3"},
                 {"ADFSv4"},
                 {"PingFederate"},
                 {"Shibboleth"}
+                */
 
         });
 
@@ -62,9 +64,6 @@ public class AcquireTokenSilentLoginHint {
 
     @Steps
     AcquireToken acquireToken;
-
-    @Steps
-    ReadCache readCache;
 
     @Steps
     ClickDone clickDone;
@@ -88,7 +87,7 @@ public class AcquireTokenSilentLoginHint {
     private User james;
     private String federationProvider;
 
-    public AcquireTokenSilentLoginHint(String federationProvider){
+    public AcquireTokenSilentForceRefreshWithBroker(String federationProvider){
         this.federationProvider = federationProvider;
     }
 
@@ -109,7 +108,9 @@ public class AcquireTokenSilentLoginHint {
         User newUser = User.named("james");
         newUser.setFederationProvider(scenario.getTestConfiguration().getUsers().getFederationProvider());
         newUser.setTokenRequest(scenario.getTokenRequest());
+        newUser.getTokenRequest().setRedirectUri("msauth://com.microsoft.aad.automation.testapp.adal/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D");
         newUser.setSilentTokenRequest(scenario.getSilentTokenRequest());
+        newUser.getSilentTokenRequest().setRedirectUri("msauth://com.microsoft.aad.automation.testapp.adal/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D");
         newUser.setCredential(scenario.getCredential());
 
         return newUser;
@@ -117,24 +118,24 @@ public class AcquireTokenSilentLoginHint {
 
 
     @Test
-    public void should_be_able_to_acquire_token_and_then_acquire_silent_with_login_hint() {
+    public void should_be_able_to_acquire_token_and_then_acquire_silent_with_force_refresh() {
 
         givenThat(james).wasAbleTo(
-                acquireToken,
-                clickDone,
-                readCache);
+                acquireToken.withBroker()
+        );
 
-        String accessToken1 = james.asksFor(AccessToken.displayed());
+        String accessToken1 = james.asksFor(AccessTokenFromAuthenticationResult.displayed());
+        AuthenticationResult result = james.asksFor(AuthenticationResultFromResultInfo.displayed());
 
         james.attemptsTo(clickDone);
 
+        james.getSilentTokenRequest().setAuthority("https://login.microsoftonline.com/" + result.tenantId);
+
         when(james).attemptsTo(
-                acquireTokenSilent.withUserIdentifier(james.getCredential().userName),
-                clickDone,
-                readCache);
+                acquireTokenSilent.withUserIdentifier(james.getCredential().userName).withForceRefresh()
+        );
 
-        then(james).should(seeThat(AccessToken.displayed(), is(accessToken1)));
-
+        then(james).should(seeThat(AccessTokenFromAuthenticationResult.displayed(), not(accessToken1)));
 
     }
 

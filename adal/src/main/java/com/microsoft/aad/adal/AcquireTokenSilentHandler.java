@@ -107,7 +107,8 @@ class AcquireTokenSilentHandler {
         // Check for if there is valid access token item in the cache.
         final TokenCacheItem accessTokenItem = mTokenCacheAccessor.getATFromCache(mAuthRequest.getResource(),
                 mAuthRequest.getClientId(), mAuthRequest.getUserFromRequest());
-        if (accessTokenItem == null) {
+        // If accessToken is null or if the user requested force refresh then get a new access token using local refresh tokens
+        if (accessTokenItem == null || mAuthRequest.getForceRefresh()) {
             Logger.v(TAG + methodName, "No valid access token exists, try with refresh token.");
             return tryRT();
         }

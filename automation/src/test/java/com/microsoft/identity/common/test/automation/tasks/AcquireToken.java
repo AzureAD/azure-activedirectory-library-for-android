@@ -26,6 +26,7 @@ public class AcquireToken implements Task{
 
     String prompt;
     String userIdentifier;
+    Boolean withBroker = false;
 
     @Override
     public <T extends Actor> void performAs(T actor) {
@@ -46,13 +47,14 @@ public class AcquireToken implements Task{
         // If userIdentifier was not provided in acquire token call , attempt to enter username for sign in
         if(TextUtils.isEmpty(userIdentifier)){
             actor.attemptsTo(
-                    WaitUntil.the(SignInPageUserName.USERNAME, isVisible()).forNoMoreThan(10).seconds(),
-                    new EnterUserNameForSignInDisambiguation(),
-                    WaitUntil.the(SignInPagePassword.PASSWORD, isVisible()).forNoMoreThan(10).seconds()
+                    new EnterUserNameForSignInDisambiguation().withBroker(withBroker)
             );
         }
 
-        actor.attemptsTo(signInUser);
+        // If the user is workplace joined... then they will not need to sign in... because we'll just select that account
+        if(!user.getWorkplaceJoined()) {
+            actor.attemptsTo(signInUser);
+        }
     }
 
     public AcquireToken withPrompt(String prompt){
@@ -62,6 +64,11 @@ public class AcquireToken implements Task{
 
     public AcquireToken withUserIdentifier(String userIdentifier){
         this.userIdentifier = userIdentifier;
+        return this;
+    }
+
+    public AcquireToken withBroker(){
+        this.withBroker = true;
         return this;
     }
 
