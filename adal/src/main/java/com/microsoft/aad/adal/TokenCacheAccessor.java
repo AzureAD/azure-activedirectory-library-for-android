@@ -26,6 +26,7 @@ import android.content.Context;
 
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.cache.ADALOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.AccountCredentialCache;
@@ -34,6 +35,9 @@ import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
 import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentialAdapter;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
+import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
+import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
+import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryOAuth2Configuration;
@@ -49,6 +53,7 @@ import java.util.List;
 import static com.microsoft.aad.adal.TokenEntryType.FRT_TOKEN_ENTRY;
 import static com.microsoft.aad.adal.TokenEntryType.MRRT_TOKEN_ENTRY;
 import static com.microsoft.aad.adal.TokenEntryType.REGULAR_TOKEN_ENTRY;
+import static com.microsoft.identity.common.internal.cache.AccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
 
 /**
  * Internal class handling the interaction with {@link AcquireTokenSilentHandler} and {@link ITokenCacheStore}.
@@ -83,12 +88,16 @@ class TokenCacheAccessor {
         mTelemetryRequestId = telemetryRequestId;
 
         //Setup common cache implementation
-        List<IShareSingleSignOnState> sharedSSOCaches = new ArrayList<IShareSingleSignOnState>();
+        List<IShareSingleSignOnState<MicrosoftAccount, MicrosoftRefreshToken>> sharedSSOCaches = new ArrayList<>();
 
         // Set up the MsalAuth2TokenCache
         final IAccountCredentialCache accountCredentialCache = new AccountCredentialCache(
-                appContext,
-                new CacheKeyValueDelegate()
+                new CacheKeyValueDelegate(),
+                new SharedPreferencesFileManager(
+                        appContext,
+                        DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
+                        new StorageHelper(appContext)
+                )
         );
         final MsalOAuth2TokenCache msalOAuth2TokenCache =
                 new MsalOAuth2TokenCache(
