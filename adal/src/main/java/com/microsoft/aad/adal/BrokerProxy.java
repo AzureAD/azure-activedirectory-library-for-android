@@ -764,6 +764,10 @@ class BrokerProxy implements IBrokerProxy {
             brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CLAIMS, request.getClaimsChallenge());
         }
 
+        if (request.getForceRefresh()){
+            brokerOptions.putString(AuthenticationConstants.Broker.BROKER_FORCE_REFRESH, Boolean.toString(true));
+        }
+
         return brokerOptions;
     }
 

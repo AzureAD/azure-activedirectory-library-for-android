@@ -137,7 +137,6 @@ public class AcquireTokenSilentForceRefreshWithBroker {
 
         then(james).should(seeThat(AccessTokenFromAuthenticationResult.displayed(), not(accessToken1)));
 
-
     }
 
 }

@@ -140,7 +140,7 @@ public class AcquireTokenSilentForceRefreshWithWPJAccountTest {
 
         givenThat(james).wasAbleTo(
                 openAutomationTestApp,
-                acquireToken.withBroker()
+                acquireTokenSilent.withUserIdentifier(james.getCredential().userName)
         );
 
         String accessToken1 = james.asksFor(AccessTokenFromAuthenticationResult.displayed());
