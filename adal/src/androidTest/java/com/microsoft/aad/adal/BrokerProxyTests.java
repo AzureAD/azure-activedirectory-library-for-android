@@ -49,6 +49,7 @@ import android.support.test.runner.AndroidJUnit4;
 import android.util.Base64;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.internal.broker.BrokerValidator;
 
 import junit.framework.Assert;
 
@@ -370,11 +371,13 @@ public class BrokerProxyTests {
         when(mockAcctManager.getAuthenticatorTypes()).thenReturn(descriptions);
         when(mockAcctManager.getAccountsByType(Matchers.refEq(authenticatorType))).thenReturn(new Account[]{});
         when(mockContext.getPackageName()).thenReturn(brokerPackage);
+        BrokerValidator mockBrokerValidator = mock(BrokerValidator.class);
+        when(mockBrokerValidator.verifySignature(brokerPackage)).thenReturn(true);
         ReflectionUtils.setFieldValue(brokerProxy, "mContext", mockContext);
         ReflectionUtils.setFieldValue(brokerProxy, "mAcctManager", mockAcctManager);
+        ReflectionUtils.setFieldValue(brokerProxy, "mBrokerValidator", mockBrokerValidator);
         AuthenticationSettings.INSTANCE.setBrokerPackageName(brokerPackage);
         AuthenticationSettings.INSTANCE.setBrokerSignature(mTestTag);
-        ReflectionUtils.setFieldValue(brokerProxy, "mBrokerTag", mTestTag);
 
         // action
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker", String.class);
