@@ -34,6 +34,7 @@ import android.os.Looper;
 import android.os.NetworkOnMainThreadException;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.EventLog;
 import android.util.SparseArray;
 
 import com.microsoft.aad.adal.AuthenticationRequest.UserIdentifierType;
@@ -660,70 +661,7 @@ public class AuthenticationContext {
      */
     public AuthenticationResult acquireTokenSilentSync(String resource, String clientId, String userId)
             throws AuthenticationException, InterruptedException {
-
-        final String methodName = ":acquireTokenSilentSync";
-        checkPreRequirements(resource, clientId);
-        checkADFSValidationRequirements(null);
-        final AtomicReference<AuthenticationResult> authenticationResult = new AtomicReference<>();
-        final AtomicReference<Exception> exception = new AtomicReference<>();
-        final CountDownLatch latch = new CountDownLatch(1);
-
-        final String requestId = Telemetry.registerNewRequest();
-        final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_SILENT_SYNC);
-        apiEvent.setPromptBehavior(PromptBehavior.Auto.toString());
-
-        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled());
-        request.setSilent(true);
-        request.setPrompt(PromptBehavior.Auto);
-        request.setUserIdentifierType(UserIdentifierType.UniqueId);
-        request.setTelemetryRequestId(requestId);
-
-        final Looper currentLooper = Looper.myLooper();
-        if (currentLooper != null && currentLooper == mContext.getMainLooper()) {
-            Logger.e(TAG + methodName,
-                    "Sync network calls must not be invoked in main thread. "
-                            + "This method will throw android.os.NetworkOnMainThreadException in next major release",
-                    new NetworkOnMainThreadException());
-        }
-        createAcquireTokenRequest(apiEvent).acquireToken(null, false, request,
-                new AuthenticationCallback<AuthenticationResult>() {
-                    @Override
-                    public void onSuccess(AuthenticationResult result) {
-                        authenticationResult.set(result);
-                        latch.countDown();
-                    }
-
-                    @Override
-                    public void onError(Exception exc) {
-                        exception.set(exc);
-                        latch.countDown();
-                    }
-                });
-
-        latch.await();
-
-        Exception e = exception.get();
-        if (e != null) {
-            if (e instanceof AuthenticationException) {
-                throw (AuthenticationException) e;
-            } else if (e instanceof RuntimeException) {
-                throw (RuntimeException) e;
-            }
-            if (e.getCause() != null) {
-                if (e.getCause() instanceof AuthenticationException) {
-                    throw (AuthenticationException) e.getCause();
-                } else if (e.getCause() instanceof RuntimeException) {
-                    throw (RuntimeException) e.getCause();
-                } else {
-                    throw new AuthenticationException(ADALError.ERROR_SILENT_REQUEST, e.getCause()
-                            .getMessage(), e.getCause());
-                }
-            }
-            throw new AuthenticationException(ADALError.ERROR_SILENT_REQUEST, e.getMessage(), e);
-        }
-
-        return authenticationResult.get();
+        return acquireTokenSilentSync(resource, clientId, userId, false, EventStrings.ACQUIRE_TOKEN_SILENT_SYNC);
     }
 
     /**
@@ -747,6 +685,11 @@ public class AuthenticationContext {
      */
     public AuthenticationResult acquireTokenSilentSync(String resource, String clientId, String userId, boolean forceRefresh)
             throws AuthenticationException, InterruptedException {
+        return acquireTokenSilentSync(resource, clientId, userId, false, EventStrings.ACQUIRE_TOKEN_SILENT_SYNC_FORCE_REFRESH);
+    }
+
+    private AuthenticationResult acquireTokenSilentSync(String resource, String clientId, String userId, boolean forceRefresh, String apiEventString)
+            throws AuthenticationException, InterruptedException {
 
         final String methodName = ":acquireTokenSilentSync";
         checkPreRequirements(resource, clientId);
@@ -756,7 +699,7 @@ public class AuthenticationContext {
         final CountDownLatch latch = new CountDownLatch(1);
 
         final String requestId = Telemetry.registerNewRequest();
-        final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_SILENT_SYNC);
+        final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, apiEventString);
         apiEvent.setPromptBehavior(PromptBehavior.Auto.toString());
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
@@ -911,25 +854,7 @@ public class AuthenticationContext {
                                         String clientId,
                                         String userId,
                                         AuthenticationCallback<AuthenticationResult> callback) {
-        if (!checkPreRequirements(resource, clientId, callback) || !checkADFSValidationRequirements(null, callback)) {
-            // AD FS validation cannot be perfomed, stop executing
-            return;
-        }
-
-        final String requestId = Telemetry.registerNewRequest();
-        final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId,
-                EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC);
-        apiEvent.setPromptBehavior(PromptBehavior.Auto.toString());
-
-        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled());
-        request.setSilent(true);
-        request.setPrompt(PromptBehavior.Auto);
-        request.setUserIdentifierType(UserIdentifierType.UniqueId);
-
-        request.setTelemetryRequestId(requestId);
-
-        createAcquireTokenRequest(apiEvent).acquireToken(null, false, request, callback);
+        acquireTokenSilentAsync(resource, clientId, userId, false, EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC, callback);
     }
 
     /**
@@ -952,6 +877,16 @@ public class AuthenticationContext {
                                         String userId,
                                         boolean forceRefresh,
                                         AuthenticationCallback<AuthenticationResult> callback) {
+        acquireTokenSilentAsync(resource, clientId, userId, forceRefresh, EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC_FORCE_REFRESH, callback);
+    }
+
+    private void acquireTokenSilentAsync(String resource,
+                                        String clientId,
+                                        String userId,
+                                        boolean forceRefresh,
+                                        String apiEventString,
+                                        AuthenticationCallback<AuthenticationResult> callback) {
+
         if (!checkPreRequirements(resource, clientId, callback) || !checkADFSValidationRequirements(null, callback)) {
             // AD FS validation cannot be perfomed, stop executing
             return;
@@ -959,7 +894,7 @@ public class AuthenticationContext {
 
         final String requestId = Telemetry.registerNewRequest();
         final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId,
-                EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC);
+                apiEventString);
         apiEvent.setPromptBehavior(PromptBehavior.Auto.toString());
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
@@ -971,7 +906,10 @@ public class AuthenticationContext {
         request.setTelemetryRequestId(requestId);
 
         createAcquireTokenRequest(apiEvent).acquireToken(null, false, request, callback);
+
     }
+
+
 
     /**
      * acquire token using refresh token if cache is not used. Otherwise, use
