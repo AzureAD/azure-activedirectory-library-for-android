@@ -688,7 +688,7 @@ public class AuthenticationContext {
         return acquireTokenSilentSync(resource, clientId, userId, false, EventStrings.ACQUIRE_TOKEN_SILENT_SYNC_FORCE_REFRESH);
     }
 
-    private AuthenticationResult acquireTokenSilentSync(String resource, String clientId, String userId, boolean forceRefresh, String apiEventString)
+    private AuthenticationResult acquireTokenSilentSync(final String resource, final String clientId, final String userId, final boolean forceRefresh, final String apiEventString)
             throws AuthenticationException, InterruptedException {
 
         final String methodName = ":acquireTokenSilentSync";
@@ -880,12 +880,12 @@ public class AuthenticationContext {
         acquireTokenSilentAsync(resource, clientId, userId, forceRefresh, EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC_FORCE_REFRESH, callback);
     }
 
-    private void acquireTokenSilentAsync(String resource,
-                                        String clientId,
-                                        String userId,
-                                        boolean forceRefresh,
-                                        String apiEventString,
-                                        AuthenticationCallback<AuthenticationResult> callback) {
+    private void acquireTokenSilentAsync(final String resource,
+                                        final String clientId,
+                                        final String userId,
+                                        final boolean forceRefresh,
+                                        final String apiEventString,
+                                        final AuthenticationCallback<AuthenticationResult> callback) {
 
         if (!checkPreRequirements(resource, clientId, callback) || !checkADFSValidationRequirements(null, callback)) {
             // AD FS validation cannot be perfomed, stop executing
