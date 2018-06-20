@@ -46,6 +46,8 @@ import com.microsoft.aad.adal.AuthenticationException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -72,6 +74,7 @@ public class SignInActivity extends AppCompatActivity {
     public static final String USER_IDENTIFIER = "user_identifier";
     public static final String USER_IDENTIFIER_TYPE = "user_identifier_type";
     public static final String CORRELATION_ID = "correlation_id";
+    public static final String FORCE_REFRESH = "force_refresh";
 
     static final String INVALID_REFRESH_TOKEN = "some invalid refresh token";
 
@@ -88,6 +91,8 @@ public class SignInActivity extends AppCompatActivity {
     private AuthenticationContext mAuthenticationContext;
     private boolean mValidateAuthority;
     private UUID mCorrelationId;
+    private boolean mForceRefresh;
+    private boolean mForceRefreshParameterProvided;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -131,9 +136,10 @@ public class SignInActivity extends AppCompatActivity {
         validateUserInput(inputItems, flowCode);
 
         setAuthenticationData(inputItems);
-        AuthenticationSettings.INSTANCE.setUseBroker(mUseBroker);
+        AuthenticationSettings.INSTANCE.setUseBroker(true);
 
         mAuthenticationContext = new AuthenticationContext(getApplicationContext(), mAuthority, mValidateAuthority);
+
         switch (flowCode) {
             case MainActivity.ACQUIRE_TOKEN:
                 acquireToken();
@@ -251,6 +257,8 @@ public class SignInActivity extends AppCompatActivity {
         mExtraQueryParam = inputItems.get(EXTRA_QUERY_PARAM);
         mValidateAuthority = inputItems.get(VALIDATE_AUTHORITY) == null ? true : Boolean.valueOf(
                 inputItems.get(VALIDATE_AUTHORITY));
+        mForceRefreshParameterProvided = inputItems.get(FORCE_REFRESH) == null ? false : true;
+        mForceRefresh = inputItems.get(FORCE_REFRESH) == null ? false : Boolean.valueOf(inputItems.get(FORCE_REFRESH));
         
         if (!TextUtils.isEmpty(inputItems.get("unique_id"))) {
             mUserId = inputItems.get("unique_id");
@@ -290,8 +298,33 @@ public class SignInActivity extends AppCompatActivity {
     }
 
     private void acquireTokenSilent() {
-        mAuthenticationContext.acquireTokenSilentAsync(mResource, mClientId, mUserId, getAdalCallback());
+        Method m = getAcquireTokenSilentMethodWithForceRefresh();
+        if(mForceRefreshParameterProvided && m != null){
+            try {
+                m.invoke(mAuthenticationContext, mResource, mClientId, mUserId, mForceRefresh, getAdalCallback());
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+
+        }else {
+            mAuthenticationContext.acquireTokenSilentAsync(mResource, mClientId, mUserId, getAdalCallback());
+        }
     }
+
+    private Method getAcquireTokenSilentMethodWithForceRefresh(){
+        try {
+            Method m = mAuthenticationContext.getClass().getMethod("acquireTokenSilentAsync", String.class, String.class, String.class, boolean.class, AuthenticationCallback.class);
+            return m;
+        } catch (NoSuchMethodException e) {
+            return null;
+        }
+    }
+
+
 
     private int expireAccessToken() {
         final ITokenCacheStore tokenCacheStore = mAuthenticationContext.getCache();

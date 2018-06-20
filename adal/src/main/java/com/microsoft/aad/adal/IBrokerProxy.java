@@ -39,7 +39,9 @@ interface IBrokerProxy {
      */
     BrokerProxy.SwitchToBroker canSwitchToBroker(final String authorityUrlStr);
 
-    boolean verifyUser(String username, String uniqueid);
+    boolean verifyUser(String username, String uniqueid) throws AuthenticationException;
+
+    boolean verifyBrokerForSilentRequest(AuthenticationRequest authenticationRequest) throws AuthenticationException;
 
     boolean canUseLocalCache(final String authorityUrlStr);
 
