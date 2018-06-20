@@ -14,11 +14,6 @@ import java.util.List;
 
 public class TokenCacheItemCount implements Question<Integer> {
 
-    private static final int COMMON_CACHE_COUNT = 8;
-    private static final int ADAL_LEGACY_CACHE_COUNT = 6;
-
-    private static boolean isCommonCache;
-
     @Override
     public Integer answeredBy(Actor actor) {
         String results = Text.of(Results.RESULT_FIELD).viewedBy(actor).asString();
@@ -28,15 +23,10 @@ public class TokenCacheItemCount implements Question<Integer> {
             User user = (User) actor;
             user.setCacheResult(readCacheResult.tokenCacheItems.get(0));
         }
-        isCommonCache = readCacheResult.isCommonCache;
         return readCacheResult.itemCount;
     }
 
     public static Question<Integer> displayed(){
         return new TokenCacheItemCount();
-    }
-
-    public static int getExpectedCacheCount(){
-        return isCommonCache ? COMMON_CACHE_COUNT : ADAL_LEGACY_CACHE_COUNT;
     }
 }
