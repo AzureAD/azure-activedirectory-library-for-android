@@ -697,6 +697,12 @@ public enum ADALError {
         exceptionMap.put(ErrorStrings.REQUEST_TIMEOUT, ADALError.SERVER_ERROR);
         exceptionMap.put(ErrorStrings.SERVICE_NOT_AVAILABLE, ADALError.SERVER_ERROR);
         exceptionMap.put(ErrorStrings.UNKNOWN_ERROR, ADALError.SERVER_ERROR);
+
+        // broker validation errors
+        exceptionMap.put(ErrorStrings.PACKAGE_NAME_NOT_FOUND, ADALError.PACKAGE_NAME_NOT_FOUND);
+        exceptionMap.put(ErrorStrings.BROKER_APP_VERIFICATION_FAILED, ADALError.BROKER_APP_VERIFICATION_FAILED);
+        exceptionMap.put(ErrorStrings.APP_PACKAGE_NAME_NOT_FOUND, ADALError.APP_PACKAGE_NAME_NOT_FOUND);
+
     }
 
     public static AuthenticationException fromCommon(final BaseException exception) {

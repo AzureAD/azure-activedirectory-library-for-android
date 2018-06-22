@@ -1,3 +1,26 @@
+//  Copyright (c) Microsoft Corporation.
+//  All rights reserved.
+//
+//  This code is licensed under the MIT License.
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files(the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions :
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//  THE SOFTWARE.
+
 package com.microsoft.identity.common.test.automation;
 
 import com.microsoft.identity.common.test.automation.actors.User;
@@ -36,7 +59,7 @@ import static org.hamcrest.Matchers.is;
 public class AcquireTokenInteractiveThenSilentBasicTest {
 
     @TestData
-    public static Collection<Object[]> FederationProviders(){
+    public static Collection<Object[]> FederationProviders() {
 
 
         return Arrays.asList(new Object[][]{
@@ -64,7 +87,7 @@ public class AcquireTokenInteractiveThenSilentBasicTest {
 
     static AppiumDriverLocalService appiumService = null;
 
-    @Managed(driver="Appium")
+    @Managed(driver = "Appium")
     WebDriver hisMobileDevice;
 
     @BeforeClass
@@ -81,12 +104,12 @@ public class AcquireTokenInteractiveThenSilentBasicTest {
     private User james;
     private String federationProvider;
 
-    public AcquireTokenInteractiveThenSilentBasicTest(String federationProvider){
+    public AcquireTokenInteractiveThenSilentBasicTest(String federationProvider) {
         this.federationProvider = federationProvider;
     }
 
     @Before
-    public void jamesCanUseAMobileDevice(){
+    public void jamesCanUseAMobileDevice() {
         TestConfigurationQuery query = new TestConfigurationQuery();
         query.federationProvider = this.federationProvider;
         query.isFederated = true;
@@ -95,7 +118,7 @@ public class AcquireTokenInteractiveThenSilentBasicTest {
         james.can(BrowseTheWeb.with(hisMobileDevice));
     }
 
-    private static User getUser(TestConfigurationQuery query){
+    private static User getUser(TestConfigurationQuery query) {
 
         Scenario scenario = Scenario.GetScenario(query);
 
@@ -119,7 +142,7 @@ public class AcquireTokenInteractiveThenSilentBasicTest {
                 clickDone,
                 readCache
         );
-        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(6) ));
+        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(6)));
 
 
     }

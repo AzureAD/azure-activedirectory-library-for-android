@@ -79,6 +79,8 @@ class AuthenticationRequest implements Serializable {
 
     private boolean mSkipCache = false;
 
+    private boolean mForceRefresh = false;
+
     /**
      * Developer can use acquireToken(with loginhint) or acquireTokenSilent(with
      * userid), so this sets the type of the request.
@@ -155,6 +157,17 @@ class AuthenticationRequest implements Serializable {
         mUserId = userid;
         mCorrelationId = correlationId;
         mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
+    }
+
+    AuthenticationRequest(String authority, String resource, String clientid, String userid,
+                          UUID correlationId, boolean isExtendedLifetimeEnabled, boolean forceRefresh) {
+        mAuthority = authority;
+        mResource = resource;
+        mClientId = clientid;
+        mUserId = userid;
+        mCorrelationId = correlationId;
+        mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
+        mForceRefresh = forceRefresh;
     }
 
     AuthenticationRequest(String authority, String resource, String clientId,
@@ -361,5 +374,13 @@ class AuthenticationRequest implements Serializable {
 
     InstanceDiscoveryMetadata getInstanceDiscoveryMetadata() {
         return mInstanceDiscoveryMetadata;
+    }
+
+    public boolean getForceRefresh(){
+        return mForceRefresh;
+    }
+
+    public void setForceRefresh(boolean forceRefresh){
+        mForceRefresh = forceRefresh;
     }
 }
