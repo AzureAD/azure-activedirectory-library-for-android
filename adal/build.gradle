@@ -16,6 +16,7 @@ configurations {
 
 allprojects {
     repositories {
+        mavenLocal()
         jcenter()
         google()
     }
@@ -52,6 +53,16 @@ android {
             minifyEnabled false
             debuggable false
             proguardFiles getDefaultProguardFile('proguard-android.txt')
+        }
+    }
+
+    flavorDimensions "main"
+
+    productFlavors {
+        adal{
+
+        }
+        adalR{
         }
     }
 
@@ -93,17 +104,27 @@ android {
 
 dependencies {
     // Compile Dependencies
-    implementation "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
-    implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
-    implementation "com.android.support:support-annotations:$rootProject.ext.supportLibraryVersion"
-    implementation "com.android.support:support-v4:$rootProject.ext.supportLibraryVersion"
-    compileOnly 'com.google.code.findbugs:annotations:3.0.1', {
+    adalImplementation "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
+    adalImplementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
+    adalImplementation "com.android.support:support-annotations:$rootProject.ext.supportLibraryVersion"
+    adalImplementation "com.android.support:support-v4:$rootProject.ext.supportLibraryVersion"
+    adalCompileOnly 'com.google.code.findbugs:annotations:3.0.1', {
         // Need to exclude these, or build is broken by:
         //   com.android.dex.DexException: Multiple dex files define Ljavax/annotation/CheckForNull
         exclude module: 'jsr305'
         exclude module: 'jcip-annotations'
     }
-    api(project(":common")){
+    adalRImplementation "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
+    adalRImplementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
+    adalRImplementation "com.android.support:support-annotations:$rootProject.ext.supportLibraryVersion"
+    adalRImplementation "com.android.support:support-v4:$rootProject.ext.supportLibraryVersion"
+    adalRCompileOnly 'com.google.code.findbugs:annotations:3.0.1', {
+        // Need to exclude these, or build is broken by:
+        //   com.android.dex.DexException: Multiple dex files define Ljavax/annotation/CheckForNull
+        exclude module: 'jsr305'
+        exclude module: 'jcip-annotations'
+    }
+    adalApi(project(":common")){
         exclude group: 'com.google.code.gson', module: 'gson'
         exclude group: 'com.android.support', module: 'appcompat-v7'
         exclude group: 'com.nimbusds', module: 'nimbus-jose-jwt'
@@ -114,6 +135,8 @@ dependencies {
         exclude group: 'org.powermock', module: 'powermock-api-mockito'
         exclude group: 'org.powermock', module: 'powermock-classloading-xstream'
     }
+
+    adalRImplementation "com.microsoft.identity:common:0.0.1"
 
     // Android Instrumented Test Dependencies
     androidTestImplementation "com.android.support.test:runner:$rootProject.ext.runnerVersion"
@@ -227,8 +250,8 @@ publishing {
             pom.withXml {
                 def dependenciesNode = asNode().appendNode('dependencies')
 
-                //Iterate over the compile dependencies (we don't want the test ones), adding a <dependency> node for each
-                configurations.compile.allDependencies.each {
+                //Iterate over the implementation dependencies (we don't want the test ones), adding a <dependency> node for each
+                configurations.adalRImplementation.allDependencies.each {
                     if (it.group != null && it.name != null) {
                         def dependencyNode = dependenciesNode.appendNode('dependency')
                         dependencyNode.appendNode('groupId', it.group)
@@ -236,12 +259,14 @@ publishing {
                         dependencyNode.appendNode('version', it.version)
                     }
                 }
+
             }
 
             artifact(sourcesJar)
             artifact(javadocJar)
             artifact("$buildDir/outputs/aar/adal-${project.version}.aar")
         }
+
     }
 
     // Repositories to which Gradle can publish artifacts
@@ -290,7 +315,7 @@ task findbugs(type: FindBugs) {
     description 'Run findbugs'
     group 'verification'
 
-    classes = fileTree("$project.buildDir/intermediates/classes/debug/")
+    classes = fileTree("$project.buildDir/intermediates/classes/adal/debug/")
     source = fileTree('src/main/java')
     classpath = files()
     effort = 'max'
