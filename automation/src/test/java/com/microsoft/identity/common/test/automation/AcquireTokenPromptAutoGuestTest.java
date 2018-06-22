@@ -55,7 +55,7 @@ import static net.serenitybdd.screenplay.GivenWhenThen.then;
 import static org.hamcrest.Matchers.is;
 
 @RunWith(SerenityParameterizedRunner.class)
-public class AcquireTokenBasicPromptAutoTestGuestNoMFANoCachedToken {
+public class AcquireTokenPromptAutoGuestTest {
     @TestData
     public static Collection<Object[]> FederationProviders() {
 
@@ -92,7 +92,7 @@ public class AcquireTokenBasicPromptAutoTestGuestNoMFANoCachedToken {
     @Steps
     ClickDone clickDone;
 
-    public AcquireTokenBasicPromptAutoTestGuestNoMFANoCachedToken(String federationProvider) {
+    public AcquireTokenPromptAutoGuestTest(String federationProvider) {
         this.federationProvider = federationProvider;
     }
 
@@ -112,6 +112,11 @@ public class AcquireTokenBasicPromptAutoTestGuestNoMFANoCachedToken {
 
         User newUser = User.named("james");
         newUser.setFederationProvider(scenario.getTestConfiguration().getUsers().getFederationProvider());
+
+        // Because LAB API is returning wrong IDP, until this is fixed, the guest scenarios will be ran against ADFSv3
+        if(query.userType == "Guest"){
+            newUser.setFederationProvider("ADFSv3");
+        }
         newUser.setTokenRequest(scenario.getTokenRequest());
         newUser.setCredential(scenario.getCredential());
         return newUser;
