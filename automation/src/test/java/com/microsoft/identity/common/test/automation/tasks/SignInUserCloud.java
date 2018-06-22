@@ -23,36 +23,24 @@
 
 package com.microsoft.identity.common.test.automation.tasks;
 
+import com.microsoft.identity.common.test.automation.actors.User;
+import com.microsoft.identity.common.test.automation.ui.identityproviders.ADFSv2.SignInPage;
 
-import net.serenitybdd.screenplay.Task;
+import net.serenitybdd.screenplay.Actor;
+import net.serenitybdd.screenplay.actions.Click;
+import net.serenitybdd.screenplay.actions.Enter;
+import net.serenitybdd.screenplay.actions.EnterValueIntoTarget;
 
-public abstract class SignInUser implements Task {
-    public static SignInUser GetSignInUserByFederationProvider(String federationProvider) {
-        SignInUser signInUserTask = null;
+public class SignInUserCloud extends SignInUser {
 
-        switch (federationProvider) {
-            case "ADFSv2":
-                signInUserTask = new SignInUserADFSv2();
-                break;
-            case "ADFSv3":
-                signInUserTask = new SignInUserADFSv3();
-                break;
-            case "ADFSv4":
-                signInUserTask = new SignInUserADFSv4();
-                break;
-            case "PingFederate V8.3":
-                signInUserTask = new SignInUserPing();
-                break;
-            case "Shibboleth":
-                signInUserTask = new SignInUserShibboleth();
-                break;
-            case "Cloud":
-                signInUserTask = new SignInUserCloud();
-                break;
-            default:
-                signInUserTask = new SignInUserADFSv2();
-        }
-
-        return signInUserTask;
+    @Override
+    public <T extends Actor> void performAs(T actor) {
+        User user = (User) actor;
+        user.attemptsTo(
+                Click.on(SignInPage.USERNAME_FIELD),
+                Enter.theValue(user.getCredential().password).into(SignInPage.PASSWORD_FIELD_CLOUD),
+                //Not using static method here to avoid logging the password via instrumentation... this won't show up as a step
+                Click.on(SignInPage.SIGN_IN_BUTTON)
+        );
     }
 }
