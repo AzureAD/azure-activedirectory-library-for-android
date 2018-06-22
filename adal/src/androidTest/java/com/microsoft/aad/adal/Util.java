@@ -38,16 +38,19 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URLEncoder;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.Map;
 
-final class Util {
-    /**
-     * Private constructor to prevent the class from being initiated.
-     */
-    private Util() {
-    }
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 
+class Util {
     public static final int TEST_PASSWORD_EXPIRATION = 1387227772;
     static final String TEST_IDTOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiJlNzBiMTE1ZS1hYzBhLTQ4MjMtODVkYS04ZjRiN2I0ZjAwZTYiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8zMGJhYTY2Ni04ZGY4LTQ4ZTctOTdlNi03N2NmZDA5OTU5NjMvIiwibmJmIjoxMzc2NDI4MzEwLCJleHAiOjEzNzY0NTcxMTAsInZlciI6IjEuMCIsInRpZCI6IjMwYmFhNjY2LThkZjgtNDhlNy05N2U2LTc3Y2ZkMDk5NTk2MyIsIm9pZCI6IjRmODU5OTg5LWEyZmYtNDExZS05MDQ4LWMzMjIyNDdhYzYyYyIsInVwbiI6ImFkbWluQGFhbHRlc3RzLm9ubWljcm9zb2Z0LmNvbSIsInVuaXF1ZV9uYW1lIjoiYWRtaW5AYWFsdGVzdHMub25taWNyb3NvZnQuY29tIiwic3ViIjoiVDU0V2hGR1RnbEJMN1VWYWtlODc5UkdhZEVOaUh5LXNjenNYTmFxRF9jNCIsImZhbWlseV9uYW1lIjoiU2VwZWhyaSIsImdpdmVuX25hbWUiOiJBZnNoaW4ifQ.";
     static final String TEST_CLIENT_INFO = "eyJ1aWQiOiI0Zjg1OTk4OS1hMmZmLTQxMWUtOTA0OC1jMzIyMjQ3YWM2MmMiLCJ1dGlkIjoiMzBiYWE2NjYtOGRmOC00OGU3LTk3ZTYtNzdjZmQwOTk1OTYzIn0=";
@@ -204,5 +207,19 @@ final class Util {
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Mockito.doNothing().when(mockedConnection).setConnectTimeout(Mockito.anyInt());
         Mockito.doNothing().when(mockedConnection).setDoInput(Mockito.anyBoolean());
+    }
+
+    static Map<String, byte[]> getSecretKeys() throws NoSuchAlgorithmException, InvalidKeySpecException, UnsupportedEncodingException {
+        SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBEWithSHA256And256BitAES-CBC-BC");
+        SecretKey tempkey1 = keyFactory.generateSecret(new PBEKeySpec("test1".toCharArray(),
+                    "abcdedfdfd".getBytes("UTF-8"), 100, 256));
+        SecretKey secretKey1 = new SecretKeySpec(tempkey1.getEncoded(), "AES");
+        SecretKey tempkey2 = keyFactory.generateSecret(new PBEKeySpec("test2".toCharArray(),
+                "abcdedfdfd".getBytes("UTF-8"), 100, 256));
+        SecretKey secretKey2 = new SecretKeySpec(tempkey2.getEncoded(), "AES");
+        Map<String, byte[]> secretKeys = new HashMap<String, byte[]>(2);
+        secretKeys.put(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, secretKey1.getEncoded());
+        secretKeys.put(AuthenticationSettings.INSTANCE.getBrokerPackageName(), secretKey2.getEncoded());
+        return secretKeys;
     }
 }

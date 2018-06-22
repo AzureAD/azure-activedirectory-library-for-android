@@ -23,6 +23,13 @@
 
 package com.microsoft.aad.adal;
 
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Settings to be used in AuthenticationContext.
  */
@@ -35,6 +42,18 @@ public enum AuthenticationSettings {
     private static final int DEFAULT_EXPIRATION_BUFFER = 300;
 
     private static final int DEFAULT_READ_CONNECT_TIMEOUT = 30000;
+
+    // This is used to accept two broker key. Today we have company portal and azure authenticator apps, 
+    // and each app is also going to send the other app's keys. They need to set package name and corresponding
+    // keys in the map. used by broker.
+    private final Map<String, byte[]> mSecretKeys = new HashMap<String, byte[]>(2);
+
+    // used by ADAL client
+    private AtomicReference<byte[]> mSecretKeyData = new AtomicReference<>();
+
+    private String mBrokerPackageName = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
+
+    private String mBrokerSignature = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_SIGNATURE;
 
     private Class<?> mClazzDeviceCertProxy;
 
