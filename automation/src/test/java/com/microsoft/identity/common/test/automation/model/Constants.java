@@ -1,3 +1,26 @@
+//  Copyright (c) Microsoft Corporation.
+//  All rights reserved.
+//
+//  This code is licensed under the MIT License.
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files(the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions :
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//  THE SOFTWARE.
+
 package com.microsoft.identity.common.test.automation.model;
 
 /**
@@ -43,7 +66,7 @@ public class Constants {
         static final String IS_MRRT = "is_mrrt";
         static final String TENANT_ID = Constants.TENANT_ID;
         static final String FAMILY_CLIENT_ID = "foci";
-        static final String EXTENDED_EXPIRES_ON= "extended_expires_on";
+        static final String EXTENDED_EXPIRES_ON = "extended_expires_on";
         static final String UNIQUE_USER_ID = Constants.UNIQUE_ID;
         static final String DISPLAYABLE_ID = Constants.DISPLAYABLE_ID;
         static final String FAMILY_NAME = Constants.FAMILY_NAME;
@@ -55,4 +78,7 @@ public class Constants {
         static final String ERROR = "error";
         static final String ERROR_DESCRIPTION = "error_description";
     }
+
+    public static final String AUTOMATION_TEST_APP_BROKER_REDIRECT_URI = "msauth://com.microsoft.aad.automation.testapp.adal/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D";
+
 }

@@ -34,18 +34,20 @@ import android.widget.TextView;
 
 import com.microsoft.aad.adal.AuthenticationCallback;
 import com.microsoft.aad.adal.AuthenticationContext;
+import com.microsoft.aad.adal.AuthenticationException;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.ITokenCacheStore;
 import com.microsoft.aad.adal.PromptBehavior;
 import com.microsoft.aad.adal.TokenCacheItem;
 import com.microsoft.aad.adal.UserInfo;
-import com.microsoft.aad.adal.AuthenticationException;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -82,6 +84,7 @@ public class SignInActivity extends AppCompatActivity {
     public static final String USER_IDENTIFIER_TYPE = "user_identifier_type";
     public static final String CORRELATION_ID = "correlation_id";
     public static final String FAMLIY_CLIENT_ID = "foci";
+    public static final String FORCE_REFRESH = "force_refresh";
 
     static final String INVALID_REFRESH_TOKEN = "some invalid refresh token";
 
@@ -100,6 +103,8 @@ public class SignInActivity extends AppCompatActivity {
     private UUID mCorrelationId;
     private String mTenantId;
     private String mFamilyClientId;
+    private boolean mForceRefresh;
+    private boolean mForceRefreshParameterProvided;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -143,9 +148,10 @@ public class SignInActivity extends AppCompatActivity {
         validateUserInput(inputItems, flowCode);
 
         setAuthenticationData(inputItems);
-        AuthenticationSettings.INSTANCE.setUseBroker(mUseBroker);
+        AuthenticationSettings.INSTANCE.setUseBroker(true);
 
         mAuthenticationContext = new AuthenticationContext(getApplicationContext(), mAuthority, mValidateAuthority);
+
         switch (flowCode) {
             case MainActivity.ACQUIRE_TOKEN:
                 acquireToken();
@@ -265,6 +271,8 @@ public class SignInActivity extends AppCompatActivity {
         mExtraQueryParam = inputItems.get(EXTRA_QUERY_PARAM);
         mValidateAuthority = inputItems.get(VALIDATE_AUTHORITY) == null ? true : Boolean.valueOf(
                 inputItems.get(VALIDATE_AUTHORITY));
+        mForceRefreshParameterProvided = inputItems.get(FORCE_REFRESH) == null ? false : true;
+        mForceRefresh = inputItems.get(FORCE_REFRESH) == null ? false : Boolean.valueOf(inputItems.get(FORCE_REFRESH));
         
         if (!TextUtils.isEmpty(inputItems.get(UNIQUE_ID))) {
             mUserId = inputItems.get(UNIQUE_ID);
@@ -312,8 +320,33 @@ public class SignInActivity extends AppCompatActivity {
     }
 
     private void acquireTokenSilent() {
-        mAuthenticationContext.acquireTokenSilentAsync(mResource, mClientId, mUserId, getAdalCallback());
+        Method m = getAcquireTokenSilentMethodWithForceRefresh();
+        if(mForceRefreshParameterProvided && m != null){
+            try {
+                m.invoke(mAuthenticationContext, mResource, mClientId, mUserId, mForceRefresh, getAdalCallback());
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+
+        }else {
+            mAuthenticationContext.acquireTokenSilentAsync(mResource, mClientId, mUserId, getAdalCallback());
+        }
     }
+
+    private Method getAcquireTokenSilentMethodWithForceRefresh(){
+        try {
+            Method m = mAuthenticationContext.getClass().getMethod("acquireTokenSilentAsync", String.class, String.class, String.class, boolean.class, AuthenticationCallback.class);
+            return m;
+        } catch (NoSuchMethodException e) {
+            return null;
+        }
+    }
+
+
 
     private int expireAccessToken() {
         final ITokenCacheStore tokenCacheStore = mAuthenticationContext.getCache();
