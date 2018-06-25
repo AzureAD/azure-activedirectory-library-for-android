@@ -207,6 +207,7 @@ task javadoc(type: Javadoc) {
         }
     }
     destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
+    failOnError false
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
