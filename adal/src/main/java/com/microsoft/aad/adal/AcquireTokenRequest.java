@@ -370,25 +370,16 @@ class AcquireTokenRequest {
                 // TODO: investigate which server response actually should force user to sign in again
                 // and which error actually should just notify user that some resource require extra steps
 
-                AuthenticationException authenticationException;
-                if (isIntunePolicyRequiredError(authenticationResult)) {
-                    Logger.e(TAG + methodName,
-                            "Prompt is not allowed and failed to get token. ",
-                            authenticationRequest.getLogInfo(),
-                            ADALError.AUTH_FAILED_INTUNE_POLICY_REQUIRED);
-                    authenticationException = new IntuneAppProtectionPolicyRequiredException(authenticationRequest.getLogInfo());
-                } else {
-                    final String errorInfo = authenticationResult == null
-                            ? "No result returned from acquireTokenSilent" : " ErrorCode:" + authenticationResult.getErrorCode();
-                    // User does not want to launch activity
-                    Logger.e(TAG + methodName,
-                            "Prompt is not allowed and failed to get token. " + errorInfo,
-                            authenticationRequest.getLogInfo(),
-                            ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
-                    authenticationException = new AuthenticationException(
-                            ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, authenticationRequest.getLogInfo()
-                            + " " + errorInfo);
-                }
+                final String errorInfo = authenticationResult == null
+                        ? "No result returned from acquireTokenSilent" : " ErrorCode:" + authenticationResult.getErrorCode();
+                // User does not want to launch activity
+                Logger.e(TAG + methodName,
+                        "Prompt is not allowed and failed to get token. " + errorInfo,
+                        authenticationRequest.getLogInfo(),
+                        ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
+                final AuthenticationException authenticationException = new AuthenticationException(
+                        ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, authenticationRequest.getLogInfo()
+                        + " " + errorInfo);
 
                 addHttpInfoToException(authenticationResult, authenticationException);
 
@@ -401,15 +392,6 @@ class AcquireTokenRequest {
         }
 
         return authenticationResult;
-    }
-
-    private boolean isIntunePolicyRequiredError(AuthenticationResult authenticationResult) {
-        if (authenticationResult == null) {
-            return false;
-        }
-
-
-        return false;
     }
 
     private void addHttpInfoToException(AuthenticationResult result, AuthenticationException exception) {
@@ -812,8 +794,20 @@ class AcquireTokenRequest {
                             .getString(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE);
                     Logger.v(TAG + methodName, "Error info:" + errCode + " for requestId: "
                             + requestId + " " + correlationInfo, errMessage, null);
-                    waitingRequestOnError(waitingRequest, requestId, new AuthenticationException(
-                            ADALError.SERVER_INVALID_REQUEST, errCode + " " + errMessage + correlationInfo));
+
+                    final String message =  errCode + " " + errMessage + correlationInfo;
+                    if (ADALError.AUTH_FAILED_INTUNE_POLICY_REQUIRED.name().compareTo(errCode) == 0) {
+                        final String accountUpn = extras.getString(AuthenticationConstants.Broker.ACCOUNT_NAME);
+                        final String accountId = extras.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID);
+                        final String tenantId = extras.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID);
+                        final String authority = extras.getString(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY);
+
+                        AuthenticationException intuneException = new IntuneAppProtectionPolicyRequiredException(message, accountUpn, accountId, tenantId, authority);
+                        waitingRequestOnError(waitingRequest, requestId, intuneException);
+                    } else {
+                        waitingRequestOnError(waitingRequest, requestId, new AuthenticationException(
+                                ADALError.SERVER_INVALID_REQUEST, message));
+                    }
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE) {
                     final AuthenticationRequest authenticationRequest = (AuthenticationRequest) extras
                             .getSerializable(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO);

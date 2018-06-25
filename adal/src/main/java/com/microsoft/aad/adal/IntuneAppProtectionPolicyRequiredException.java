@@ -25,11 +25,41 @@ package com.microsoft.aad.adal;
 
 public class IntuneAppProtectionPolicyRequiredException extends AuthenticationException {
 
+    private final String mAccountUpn;
+    private final String mAccountUserId;
+    private final String mTenantId;
+    private final String mAuthorityUrl;
+
     /**
-     * @param msg Details related to the error such as query string, request
-     *                info
+     * @param msg           Details related to the error such as query string, request
+     *                      info
+     * @param accountUpn    The UPN of the account, needed for Intune MAM enrollment.
+     * @param accountUserId The unique ID of the account, needed for Intune MAM enrollment.
+     * @param tenantId      The tenant ID, needed of Intune MAM enrollment.
+     * @param authorityUrl  The authority URL, used by Intune MAM enrollment to support
+     *                      sovereign clouds.  If null, default public cloud will be used.
      */
-    public IntuneAppProtectionPolicyRequiredException(final String msg) {
+    public IntuneAppProtectionPolicyRequiredException(final String msg, String accountUpn, String accountUserId, String tenantId, String authorityUrl) {
         super(ADALError.AUTH_FAILED_INTUNE_POLICY_REQUIRED, msg);
+        this.mAccountUpn = accountUpn;
+        this.mAccountUserId = accountUserId;
+        this.mTenantId = tenantId;
+        this.mAuthorityUrl = authorityUrl;
+    }
+
+    public String getAccountUpn() {
+        return mAccountUpn;
+    }
+
+    public String getAccountUserId() {
+        return mAccountUserId;
+    }
+
+    public String getTenantId() {
+        return mTenantId;
+    }
+
+    public String getAuthorityURL() {
+        return mAuthorityUrl;
     }
 }
