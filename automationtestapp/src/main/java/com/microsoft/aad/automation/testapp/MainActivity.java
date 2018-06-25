@@ -194,10 +194,17 @@ public class MainActivity extends AppCompatActivity {
         return allItems;
     }
 
-    private boolean isCommonCacheUsed(){
-        AuthenticationContext authenticationContext = createAuthenticationContext();
-        if(authenticationContext.getCache() instanceof DefaultTokenCacheStore){
-            return true;
+    private boolean isCommonCacheUsed() {
+        boolean isCommonAvailable = false;
+        try {
+            Class.forName("com.microsoft.identity.common.internal.cache.ADALOAuth2TokenCache");
+            isCommonAvailable = true;
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        if(isCommonAvailable) {
+            AuthenticationContext authenticationContext = createAuthenticationContext();
+            return authenticationContext.getCache() instanceof DefaultTokenCacheStore;
         }
         return false;
     }
