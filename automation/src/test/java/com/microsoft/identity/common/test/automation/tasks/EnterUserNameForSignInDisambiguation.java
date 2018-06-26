@@ -40,7 +40,7 @@ import static net.serenitybdd.screenplay.matchers.WebElementStateMatchers.isVisi
 
 public class EnterUserNameForSignInDisambiguation implements Task {
 
-    Boolean withBroker;
+    boolean withBroker;
 
     @Steps
     TapAccount tapAccount;
@@ -70,7 +70,7 @@ public class EnterUserNameForSignInDisambiguation implements Task {
         }
     }
 
-    public EnterUserNameForSignInDisambiguation withBroker(Boolean withBroker) {
+    public EnterUserNameForSignInDisambiguation withBroker(boolean withBroker) {
         this.withBroker = withBroker;
         return this;
     }
