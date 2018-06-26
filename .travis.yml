@@ -53,4 +53,4 @@ before_script:
 
 script:
   - cd $PWD
-  - ./gradlew clean adal:assembleAdal connectedAndroidTest -PdisablePreDex
+  - ./gradlew clean adal:assembleAdal adal:connectedAdalDebugAndroidTest -PdisablePreDex
