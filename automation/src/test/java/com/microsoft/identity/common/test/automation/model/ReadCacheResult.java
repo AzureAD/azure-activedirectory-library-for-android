@@ -28,6 +28,8 @@ import com.google.gson.annotations.SerializedName;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.microsoft.identity.common.test.automation.model.Constants.COMMON_CACHE;
+import static com.microsoft.identity.common.test.automation.model.Constants.ITEMS;
 import static com.microsoft.identity.common.test.automation.model.Constants.ITEM_COUNT;
 
 public class ReadCacheResult {
