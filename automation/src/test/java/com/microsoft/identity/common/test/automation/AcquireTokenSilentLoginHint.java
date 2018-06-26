@@ -26,6 +26,8 @@ package com.microsoft.identity.common.test.automation;
 import com.microsoft.identity.common.test.automation.actors.User;
 import com.microsoft.identity.common.test.automation.interactions.ClickDone;
 import com.microsoft.identity.common.test.automation.questions.AccessToken;
+import com.microsoft.identity.common.test.automation.questions.ExpectedCacheItemCount;
+import com.microsoft.identity.common.test.automation.questions.TokenCacheItemCount;
 import com.microsoft.identity.common.test.automation.tasks.AcquireToken;
 import com.microsoft.identity.common.test.automation.tasks.AcquireTokenSilent;
 import com.microsoft.identity.common.test.automation.tasks.ReadCache;
@@ -145,6 +147,9 @@ public class AcquireTokenSilentLoginHint {
                 acquireToken,
                 clickDone,
                 readCache);
+
+        int expectedCacheCount = james.asksFor(ExpectedCacheItemCount.displayed());
+        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(expectedCacheCount)));
 
         String accessToken1 = james.asksFor(AccessToken.displayed());
 

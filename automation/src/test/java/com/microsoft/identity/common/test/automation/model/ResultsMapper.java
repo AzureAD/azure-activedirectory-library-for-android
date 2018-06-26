@@ -40,6 +40,10 @@ public class ResultsMapper {
 
     }
 
+    public static ADALErrorResult GetADALErrorResultFromString(String results) {
+        ADALErrorResult adalErrorResult = (ADALErrorResult) ObjectMapper.deserializeJsonStringToObject(results, ADALErrorResult.class);
+        return adalErrorResult;
+    }
 
     public static AuthenticationResult GetAuthenticationResultFromString(String result) {
         return (AuthenticationResult) ObjectMapper.deserializeJsonStringToObject(result, AuthenticationResult.class);

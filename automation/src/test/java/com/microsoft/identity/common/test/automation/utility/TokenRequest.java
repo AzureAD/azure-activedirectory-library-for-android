@@ -53,9 +53,10 @@ public class TokenRequest {
     private String mUserIdentifierType = null;
     @SerializedName("unique_id")
     private String mUniqueUserId = null;
+    @SerializedName("tenant_id")
+    private String mTenantId;
     @SerializedName("force_refresh")
     private Boolean mForceRefresh = false;
-
 
     public String getClientId() {
         return mClientId;
@@ -143,6 +144,14 @@ public class TokenRequest {
 
     public void setUniqueUserId(String uniqueUserId) {
         this.mUniqueUserId = uniqueUserId;
+    }
+
+    public String getTenantId(){
+        return mTenantId;
+    }
+
+    public void setTenantId(String tenantId) {
+        mTenantId = tenantId;
     }
 
     public Boolean getForceRefresh() {
