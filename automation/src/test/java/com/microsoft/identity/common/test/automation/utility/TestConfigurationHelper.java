@@ -35,6 +35,11 @@ public class TestConfigurationHelper {
 
     public static TestConfiguration GetTestConfiguration(TestConfigurationQuery query) {
 
+        //Cloud set
+        if(query.federationProvider == "Cloud") {
+            query.federationProvider = " ";
+        }
+
         Configuration.getDefaultApiClient().setBasePath("http://api.msidlab.com/api");
 
         DefaultApi api = new DefaultApi();
