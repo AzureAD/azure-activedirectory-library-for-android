@@ -31,9 +31,11 @@ public class ResultsMapper {
     public static ReadCacheResult GetReadCacheResultFromString(String results) {
         ReadCacheResult readCacheResult = (ReadCacheResult) ObjectMapper.deserializeJsonStringToObject(results, ReadCacheResult.class);
 
-        for (String result : readCacheResult.items) {
-            TokenCacheItemReadResult tokenCacheItemReadResult = (TokenCacheItemReadResult) ObjectMapper.deserializeJsonStringToObject(result, TokenCacheItemReadResult.class);
-            readCacheResult.tokenCacheItems.add(tokenCacheItemReadResult);
+        if(readCacheResult!=null) {
+            for (String result : readCacheResult.items) {
+                TokenCacheItemReadResult tokenCacheItemReadResult = (TokenCacheItemReadResult) ObjectMapper.deserializeJsonStringToObject(result, TokenCacheItemReadResult.class);
+                readCacheResult.tokenCacheItems.add(tokenCacheItemReadResult);
+            }
         }
 
         return readCacheResult;

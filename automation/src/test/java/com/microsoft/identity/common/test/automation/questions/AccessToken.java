@@ -38,13 +38,15 @@ public class AccessToken implements Question<String> {
     public String answeredBy(Actor actor) {
         String results = Text.of(Results.RESULT_FIELD).viewedBy(actor).asString();
         ReadCacheResult readCacheResult = ResultsMapper.GetReadCacheResultFromString(results);
-        User user = (User) actor;
-        user.setCacheResult(readCacheResult.tokenCacheItems.get(0));
         String accessToken = null;
-        for(TokenCacheItemReadResult readResult :  readCacheResult.tokenCacheItems){
-            if(readResult.accessToken != null){
-                accessToken = readResult.accessToken;
-                break;
+        if (readCacheResult != null) {
+            User user = (User) actor;
+            user.setCacheResult(readCacheResult.tokenCacheItems.get(0));
+            for (TokenCacheItemReadResult readResult : readCacheResult.tokenCacheItems) {
+                if (readResult.accessToken != null) {
+                    accessToken = readResult.accessToken;
+                    break;
+                }
             }
         }
         return accessToken;

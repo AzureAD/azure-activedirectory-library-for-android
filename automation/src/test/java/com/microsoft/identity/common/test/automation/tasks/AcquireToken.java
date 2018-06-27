@@ -78,24 +78,25 @@ public class AcquireToken implements Task {
             if (TextUtils.isEmpty(userIdentifier)) {
                 actor.attemptsTo(
                         WaitUntil.the(SignInPageUserName.USERNAME, isVisible()).forNoMoreThan(10).seconds(),
-                        new EnterUserNameForSignInDisambiguation(),
+                        new EnterUserNameForSignInDisambiguation().withBroker(withBroker),
                         WaitUntil.the(SignInPagePassword.PASSWORD, isVisible()).forNoMoreThan(10).seconds()
                 );
             }
-            actor.attemptsTo(signInUser);
+            // If the user is workplace joined... then they will not need to sign in... because we'll just select that account
+            if (!user.getWorkplaceJoined()) {
+                actor.attemptsTo(signInUser);
+            }
+        }else {
+            // Token already exists, acquire token does a silent flow here.
+            // If userIdentifier was not provided in acquire token call , attempt to enter username for sign in
+            if (TextUtils.isEmpty(userIdentifier)) {
+                actor.attemptsTo(
+                        new EnterUserNameForSignInDisambiguation().withBroker(withBroker)
+                );
+            }
         }
 
-        // If userIdentifier was not provided in acquire token call , attempt to enter username for sign in
-        if (TextUtils.isEmpty(userIdentifier)) {
-            actor.attemptsTo(
-                    new EnterUserNameForSignInDisambiguation().withBroker(withBroker)
-            );
-        }
 
-        // If the user is workplace joined... then they will not need to sign in... because we'll just select that account
-        if (!user.getWorkplaceJoined()) {
-            actor.attemptsTo(signInUser);
-        }
     }
 
     public AcquireToken withPrompt(String prompt) {
