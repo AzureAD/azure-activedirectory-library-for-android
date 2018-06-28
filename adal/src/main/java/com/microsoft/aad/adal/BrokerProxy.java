@@ -39,7 +39,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
@@ -542,25 +541,23 @@ class BrokerProxy implements IBrokerProxy {
         }
     }
 
-    @NonNull
     private AuthenticationException getAuthenticationExceptionForResult(final String oauth2ErrorCode, final String oauth2ErrorDescription,
                                                                         final Bundle bundleResult) {
         final String message = "Received error from broker, errorCode: " + oauth2ErrorCode + "; ErrorDescription: " + oauth2ErrorDescription;
 
-        // check the request body for the "unauthorized_client" error and the "protection_policy_required" suberror
+        // check the response body for the "unauthorized_client" error and the "protection_policy_required" suberror
         final Serializable responseBody = bundleResult.getSerializable(AuthenticationConstants.OAuth2.HTTP_RESPONSE_BODY);
         if (null != responseBody && responseBody instanceof HashMap) {
             final HashMap<String, String> responseMap = (HashMap<String, String>) responseBody;
-            final String error = responseMap.get("error");
-            final String suberror = responseMap.get("suberror");
-            if ("unauthorized_client".compareTo(error) == 0 &&
-                    "protection_policy_required".compareTo(suberror) == 0) {
+            final String error = responseMap.get(AuthenticationConstants.OAuth2.ERROR);
+            final String suberror = responseMap.get(AuthenticationConstants.OAuth2.SUBERROR);
+            if (AuthenticationConstants.OAuth2ErrorCode.UNAUTHORIZED_CLIENT.compareTo(error) == 0 &&
+                    AuthenticationConstants.OAuth2ErrorCode.PROTECTION_POLICY_REQUIRED.compareTo(suberror) == 0) {
 
-                // TODO: update all strings to use shared constants
-                final String accountUpn = bundleResult.getString("accountupn");
-                final String accountUserId = bundleResult.getString("accountuniqueid");
-                final String tenantId = bundleResult.getString("tenantid");
-                final String authorityUrl = bundleResult.getString("authority");
+                final String accountUpn = bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_NAME);
+                final String accountUserId = bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID);
+                final String tenantId = bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID);
+                final String authorityUrl = bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY);
 
                 AuthenticationException exception = new IntuneAppProtectionPolicyRequiredException(
                         message, accountUpn, accountUserId, tenantId, authorityUrl);
