@@ -37,6 +37,7 @@ import net.serenitybdd.junit.runners.SerenityParameterizedRunner;
 import net.serenitybdd.screenplay.abilities.BrowseTheWeb;
 import net.thucydides.core.annotations.Managed;
 import net.thucydides.core.annotations.Steps;
+import net.thucydides.core.annotations.WithTag;
 import net.thucydides.junit.annotations.TestData;
 
 import org.junit.AfterClass;
@@ -64,6 +65,7 @@ import static org.hamcrest.Matchers.not;
  * Test case : https://identitydivision.visualstudio.com/IDDP/DevEx-Client-SDK/_testManagement?planId=345909&suiteId=345910&_a=tests
  */
 @RunWith(SerenityParameterizedRunner.class)
+@WithTag("requires:none")
 public class AcquireTokenPromptAutoThenAlwaysTest {
     @TestData
     public static Collection<Object[]> FederationProviders() {

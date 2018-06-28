@@ -18,7 +18,9 @@ dependencies {
 }
 
 test {
-    exclude 'com/microsoft/identity/common/test/automation/**'
+    //In order for test JVM to get the system properties provided to gradle they have to be propogated.
+    //In this case we're propagating all of them
+    systemProperties = System.getProperties()
 }
 
 gradle.startParameter.continueOnFailure = true

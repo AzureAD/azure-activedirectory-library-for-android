@@ -41,6 +41,7 @@ import net.serenitybdd.junit.runners.SerenityParameterizedRunner;
 import net.serenitybdd.screenplay.abilities.BrowseTheWeb;
 import net.thucydides.core.annotations.Managed;
 import net.thucydides.core.annotations.Steps;
+import net.thucydides.core.annotations.WithTag;
 import net.thucydides.junit.annotations.TestData;
 
 import org.junit.AfterClass;
@@ -67,6 +68,7 @@ import static org.hamcrest.Matchers.not;
  */
 
 @RunWith(SerenityParameterizedRunner.class)
+@WithTag("requires:broker")
 public class AcquireTokenSilentForceRefreshWithWPJAccountTest {
 
     @TestData

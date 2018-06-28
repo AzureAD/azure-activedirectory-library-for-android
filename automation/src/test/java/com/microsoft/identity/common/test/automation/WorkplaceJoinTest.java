@@ -33,6 +33,7 @@ import net.serenitybdd.junit.runners.SerenityParameterizedRunner;
 import net.serenitybdd.screenplay.abilities.BrowseTheWeb;
 import net.thucydides.core.annotations.Managed;
 import net.thucydides.core.annotations.Steps;
+import net.thucydides.core.annotations.WithTag;
 import net.thucydides.junit.annotations.TestData;
 
 import org.junit.AfterClass;
@@ -53,6 +54,7 @@ import io.appium.java_client.service.local.AppiumDriverLocalService;
  */
 
 @RunWith(SerenityParameterizedRunner.class)
+@WithTag("requires:broker")
 public class WorkplaceJoinTest {
 
     @TestData

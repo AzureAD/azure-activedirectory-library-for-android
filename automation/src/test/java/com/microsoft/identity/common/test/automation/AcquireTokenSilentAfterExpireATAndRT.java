@@ -18,6 +18,7 @@ import net.serenitybdd.screenplay.abilities.BrowseTheWeb;
 import net.serenitybdd.screenplay.waits.WaitUntil;
 import net.thucydides.core.annotations.Managed;
 import net.thucydides.core.annotations.Steps;
+import net.thucydides.core.annotations.WithTag;
 import net.thucydides.junit.annotations.TestData;
 
 import org.junit.AfterClass;
@@ -47,6 +48,7 @@ import static org.hamcrest.Matchers.is;
  */
 
 @RunWith(SerenityParameterizedRunner.class)
+@WithTag("requires:none")
 public class AcquireTokenSilentAfterExpireATAndRT {
 
     @TestData

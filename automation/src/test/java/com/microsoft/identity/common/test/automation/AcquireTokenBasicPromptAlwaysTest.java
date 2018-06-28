@@ -36,6 +36,7 @@ import net.serenitybdd.junit.runners.SerenityParameterizedRunner;
 import net.serenitybdd.screenplay.abilities.BrowseTheWeb;
 import net.thucydides.core.annotations.Managed;
 import net.thucydides.core.annotations.Steps;
+import net.thucydides.core.annotations.WithTag;
 import net.thucydides.junit.annotations.TestData;
 
 import org.junit.AfterClass;
@@ -56,6 +57,7 @@ import static net.serenitybdd.screenplay.GivenWhenThen.then;
 import static org.hamcrest.Matchers.is;
 
 @RunWith(SerenityParameterizedRunner.class)
+@WithTag("requires:none")
 public class AcquireTokenBasicPromptAlwaysTest {
 
     @TestData
