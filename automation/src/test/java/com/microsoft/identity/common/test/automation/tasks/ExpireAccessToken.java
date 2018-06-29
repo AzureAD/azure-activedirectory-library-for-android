@@ -13,12 +13,15 @@ import net.serenitybdd.screenplay.actions.Enter;
 import net.serenitybdd.screenplay.waits.WaitUntil;
 import net.thucydides.core.annotations.Steps;
 
+import org.apache.http.util.TextUtils;
+
 import static net.serenitybdd.screenplay.matchers.WebElementStateMatchers.isVisible;
 
 public class ExpireAccessToken implements Task {
 
     @Steps
     CloseKeyboard closeKeyboard;
+    private String clientId;
 
     @Override
     public <T extends Actor> void performAs(T actor) {
@@ -28,6 +31,10 @@ public class ExpireAccessToken implements Task {
         tokenRequest.setUserIdentitfier(user.getCredential().userName);
         tokenRequest.setUniqueUserId(user.getCacheResult().uniqueUserId);
         tokenRequest.setTenantId(user.getCacheResult().tenantId);
+        tokenRequest.setFamiiyClientId(user.getCacheResult().familyClientId);
+        if(!TextUtils.isEmpty(clientId)){
+            tokenRequest.setClientId(clientId);
+        }
       actor.attemptsTo(
               WaitUntil.the(Main.EXPIRE_ACCESS_TOKEN,  isVisible()).forNoMoreThan(10).seconds(),
               Click.on(Main.EXPIRE_ACCESS_TOKEN),
@@ -36,5 +43,10 @@ public class ExpireAccessToken implements Task {
               WaitUntil.the(Request.SUBMIT_REQUEST_BUTTON, isVisible()).forNoMoreThan(10).seconds(),
               Click.on(Request.SUBMIT_REQUEST_BUTTON)
       );
+    }
+
+    public ExpireAccessToken withClientId(String clientId){
+        this.clientId = clientId;
+        return this;
     }
 }

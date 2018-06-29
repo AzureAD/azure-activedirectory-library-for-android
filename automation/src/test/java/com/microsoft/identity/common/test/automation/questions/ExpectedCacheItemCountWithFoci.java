@@ -20,53 +20,32 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-
 package com.microsoft.identity.common.test.automation.questions;
 
-import com.microsoft.identity.common.test.automation.actors.User;
 import com.microsoft.identity.common.test.automation.model.ReadCacheResult;
 import com.microsoft.identity.common.test.automation.model.ResultsMapper;
-import com.microsoft.identity.common.test.automation.model.TokenCacheItemReadResult;
 import com.microsoft.identity.common.test.automation.ui.Results;
 
 import net.serenitybdd.screenplay.Actor;
 import net.serenitybdd.screenplay.Question;
 import net.serenitybdd.screenplay.questions.Text;
 
-import org.apache.http.util.TextUtils;
+public class ExpectedCacheItemCountWithFoci implements Question<Integer> {
 
-public class AccessToken implements Question<String> {
-
-    private String clientId;
-    public AccessToken(String clientId){
-        this.clientId = clientId;
-    }
+    private static final int COMMON_CACHE_COUNT_WITH_FOCI = 12;
+    private static final int ADAL_LEGACY_CACHE_COUNT_WITH_FOCI = 8;
 
     @Override
-    public String answeredBy(Actor actor) {
+    public Integer answeredBy(Actor actor) {
         String results = Text.of(Results.RESULT_FIELD).viewedBy(actor).asString();
         ReadCacheResult readCacheResult = ResultsMapper.GetReadCacheResultFromString(results);
-        String accessToken = null;
         if (readCacheResult != null) {
-            User user = (User) actor;
-            for (TokenCacheItemReadResult readResult : readCacheResult.tokenCacheItems) {
-                if (readResult.accessToken != null) {
-                    if (TextUtils.isEmpty(clientId) || (!TextUtils.isEmpty(clientId) && clientId.equals(readResult.clientId))) {
-                        accessToken = readResult.accessToken;
-                        user.setCacheResult(readResult);
-                        break;
-                    }
-                }
-            }
+            return readCacheResult.isCommonCache ? COMMON_CACHE_COUNT_WITH_FOCI : ADAL_LEGACY_CACHE_COUNT_WITH_FOCI;
         }
-        return accessToken;
+        return COMMON_CACHE_COUNT_WITH_FOCI;
     }
 
-    public static Question<String> displayed() {
-        return new AccessToken(null);
-    }
-
-    public static Question<String> displayed(String clientId) {
-        return new AccessToken(clientId);
+    public static Question<Integer> displayed() {
+        return new ExpectedCacheItemCountWithFoci();
     }
 }

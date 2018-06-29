@@ -42,9 +42,12 @@ import static net.serenitybdd.screenplay.matchers.WebElementStateMatchers.isVisi
 
 public class AcquireTokenSilent implements Task {
 
-    private String userIdentifier="";
+    private String userIdentifier = "";
     private String uniqueId;
     private Boolean forceRefresh = false;
+    private String authority = "";
+    private String clientId = "";
+    private String redirectUri = "";
 
     @Steps
     CloseKeyboard closeKeyboard;
@@ -58,6 +61,15 @@ public class AcquireTokenSilent implements Task {
         }
         if(!TextUtils.isEmpty(uniqueId)) {
             tokenRequest.setUniqueUserId(uniqueId);
+        }
+        if(!TextUtils.isEmpty(authority)){
+            tokenRequest.setAuthority(authority);
+        }
+        if(!TextUtils.isEmpty(clientId)){
+            tokenRequest.setClientId(clientId);
+        }
+        if(!TextUtils.isEmpty(redirectUri)){
+            tokenRequest.setRedirectUri(redirectUri);
         }
         tokenRequest.setForceRefresh(forceRefresh);
         actor.attemptsTo(
@@ -82,6 +94,21 @@ public class AcquireTokenSilent implements Task {
 
     public AcquireTokenSilent withForceRefresh() {
         this.forceRefresh = true;
+        return this;
+    }
+
+    public AcquireTokenSilent withAuthority(String authority){
+        this.authority = authority;
+        return this;
+    }
+
+    public AcquireTokenSilent withClientId(String clientId) {
+        this.clientId = clientId;
+        return this;
+    }
+
+    public AcquireTokenSilent withRedirectUri(String redirectUri) {
+        this.redirectUri = redirectUri;
         return this;
     }
 

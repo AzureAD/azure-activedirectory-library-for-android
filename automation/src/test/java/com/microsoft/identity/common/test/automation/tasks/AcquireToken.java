@@ -51,6 +51,8 @@ public class AcquireToken implements Task {
     String userIdentifier;
     boolean tokenExists;
     Boolean withBroker = false;
+    private String clientId = "";
+    private String redirectUri = "";
 
     @Override
     public <T extends Actor> void performAs(T actor) {
@@ -62,6 +64,14 @@ public class AcquireToken implements Task {
         if(!TextUtils.isEmpty(userIdentifier)) {
             tokenRequest.setUserIdentitfier(userIdentifier);
         }
+        if(!TextUtils.isEmpty(clientId)){
+            tokenRequest.setClientId(clientId);
+        }
+        if(!TextUtils.isEmpty(redirectUri)){
+            tokenRequest.setRedirectUri(redirectUri);
+        }
+        tokenRequest.setUseBroker(withBroker);
+
         SignInUser signInUser = SignInUser.GetSignInUserByFederationProvider(user.getFederationProvider());
 
         actor.attemptsTo(
@@ -116,6 +126,16 @@ public class AcquireToken implements Task {
 
     public AcquireToken withBroker() {
         this.withBroker = true;
+        return this;
+    }
+
+    public AcquireToken withClientId(String clientId) {
+        this.clientId = clientId;
+        return this;
+    }
+
+    public AcquireToken withRedirectUri(String redirectUri) {
+        this.redirectUri = redirectUri;
         return this;
     }
 
