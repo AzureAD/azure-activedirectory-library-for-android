@@ -2453,6 +2453,101 @@ public final class AuthenticationContextTest {
         clearCache(context);
     }
 
+    /**
+     * forceRefresh should result in the following behavior:
+     * 1) When broker available (installed and user has refresh tokens in broker cache) for current user,
+     * bypass local access and refresh token and perform refresh using the broker
+     *
+     * 2) When the broker is not available (not installed or the user does not have refresh tokens in broker cache)
+     * bypass the local access token and use the local refresh token to refresh
+     *
+     * setup cache with userid for normal access token and AAD  refresh token (MRRT)
+     * bound to one userid. verify that the forceRefresh parameter bypasses the local access token
+     * and refreshes using the local refresh token
+     *
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    @Test
+    public void testAcquireTokenSilentSyncWithForceRefreshWithoutBroker() throws IOException, InterruptedException, AuthenticationException {
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+
+        final String redirectUri = "redirectUri";
+        final String clientId = "clientId";
+
+        final String tokenToTest = "accessToken=" + UUID.randomUUID();
+        final String expectedAT = "accesstoken";
+        String resource = "Resource" + UUID.randomUUID();
+        ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
+        mockCache.removeAll();
+
+        TestCacheItem newItem = new TestCacheItem();
+        newItem.setToken(tokenToTest);
+        newItem.setRefreshToken("refreshTokenNormal");
+        newItem.setAuthority(VALID_AUTHORITY);
+        newItem.setResource(resource);
+        newItem.setClientId(clientId);
+        newItem.setUserId(TEST_IDTOKEN_USERID);
+        newItem.setName("name");
+        newItem.setFamilyName("familyName");
+        newItem.setDisplayId(TEST_IDTOKEN_UPN);
+        newItem.setTenantId("tenantId");
+        newItem.setMultiResource(false);
+
+        addItemToCache(mockCache, newItem);
+
+        newItem = new TestCacheItem();
+        newItem.setToken("");
+        newItem.setRefreshToken("refreshTokenMultiResource");
+        newItem.setAuthority(VALID_AUTHORITY);
+        newItem.setResource(resource);
+        newItem.setClientId(clientId);
+        newItem.setUserId(TEST_IDTOKEN_USERID);
+        newItem.setName("name");
+        newItem.setFamilyName("familyName");
+        newItem.setDisplayId(TEST_IDTOKEN_UPN);
+        newItem.setTenantId("tenantId");
+        newItem.setMultiResource(true);
+
+        addItemToCache(mockCache, newItem);
+        // only one MRRT for same user, client, authority
+        final AuthenticationContext context = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, mockCache);
+
+        final String response = "{\"access_token\":\"accesstoken"
+                + "\",\"token_type\":\"Bearer\",\"expires_in\":\"29344\",\"expires_on\":\"1368768616\","
+                + "\"resource\":\"" + resource + "\","
+                + "\"refresh_token\":\""
+                + "refreshToken" + "\",\"scope\":\"*\",\"id_token\":\"" + TEST_IDTOKEN + "\", \"client_info\":\"" + Util.TEST_CLIENT_INFO + "\"}";
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
+        Util.prepareMockedUrlConnection(mockedConnection);
+        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response),
+                Util.createInputStream(response));
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
+
+        // 1st token request, read from cache.
+        AuthenticationResult result = context.acquireTokenSilentSync(resource, clientId, TEST_IDTOKEN_UPN);
+        assertNull("Error is null", result.getErrorCode());
+        assertEquals("Same token in response as in cache", tokenToTest,
+                result.getAccessToken());
+
+        // 2st token request, forceRefresh false.
+        result = context.acquireTokenSilentSync(resource, clientId, TEST_IDTOKEN_UPN, false);
+        assertNull("Error is null", result.getErrorCode());
+        assertEquals("Same token in response as in cache", tokenToTest,
+                result.getAccessToken());
+
+        // 3nd token request with force refresh true.
+        result = context.acquireTokenSilentSync(resource, clientId, TEST_IDTOKEN_UPN, true);
+        assertNull("Error is null", result.getErrorCode());
+        assertEquals("Same token as refresh token result", expectedAT,
+                result.getAccessToken());
+
+        clearCache(context);
+    }
+
     @Test
     public void testAcquireTokenMultiResourceADFSIssue() throws InterruptedException {
         // adfs does not return userid and multiresource token
