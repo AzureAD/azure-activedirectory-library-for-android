@@ -76,12 +76,11 @@ public class AcquireTokenSilentAfterExpireATAndFRT {
 
 
         return Arrays.asList(new Object[][]{
-                {"ADFSv2"}/*,
+                {"ADFSv2"},
                 {"ADFSv3"},
                 {"ADFSv4"},
                 {"PingFederate"},
                 {"Shibboleth"}
-*/
         });
 
     }
