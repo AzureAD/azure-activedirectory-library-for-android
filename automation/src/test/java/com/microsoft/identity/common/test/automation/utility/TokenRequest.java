@@ -164,8 +164,8 @@ public class TokenRequest {
         this.mForceRefresh = forceRefresh;
     }
 
-    public void setFamiiyClientId(String famiiyClientId){
-        mFamilyClientId = famiiyClientId;
+    public void setFamilyClientId(String familyClientId){
+        mFamilyClientId = familyClientId;
     }
 
     public String getFamilyClientId(){

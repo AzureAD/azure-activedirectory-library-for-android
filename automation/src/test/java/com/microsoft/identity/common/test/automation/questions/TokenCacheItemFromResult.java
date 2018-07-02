@@ -21,16 +21,28 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 
-package com.microsoft.identity.common.test.automation.utility;
+package com.microsoft.identity.common.test.automation.questions;
 
-public class Constants {
+import com.microsoft.identity.common.test.automation.model.ResultsMapper;
+import com.microsoft.identity.common.test.automation.model.TokenCacheItemReadResult;
+import com.microsoft.identity.common.test.automation.ui.Results;
 
-    public static final String OUTLOOK_CLIENT_ID = "27922004-5251-4030-b22d-91ecd9a37ea4";
+import net.serenitybdd.screenplay.Actor;
+import net.serenitybdd.screenplay.Question;
+import net.serenitybdd.screenplay.questions.Text;
 
-    public static final String ONE_DRIVE_CLIENT_ID = "b26aadf8-566f-4478-926f-589f601d9c74";
+public class TokenCacheItemFromResult implements Question<TokenCacheItemReadResult> {
 
-    public static final String OUTLOOK_REDIRECT_URI = "urn:ietf:wg:oauth:2.0:oob";
 
-    public static final String ONE_DRIVE_REDIRECT_URI = "urn:ietf:wg:oauth:2.0:oob";
+    @Override
+    public TokenCacheItemReadResult answeredBy(Actor actor) {
+        String results = Text.of(Results.RESULT_FIELD).viewedBy(actor).asString();
+        TokenCacheItemReadResult tokenCacheItemReadResult = ResultsMapper.GetTokenCacheItemReadResult(results);
+        return tokenCacheItemReadResult;
+    }
+
+    public static Question<TokenCacheItemReadResult> displayed() {
+        return new TokenCacheItemFromResult();
+    }
 
 }

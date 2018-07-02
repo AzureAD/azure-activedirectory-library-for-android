@@ -23,7 +23,6 @@
 
 package com.microsoft.identity.common.test.automation.questions;
 
-import com.microsoft.identity.common.test.automation.actors.User;
 import com.microsoft.identity.common.test.automation.model.ReadCacheResult;
 import com.microsoft.identity.common.test.automation.model.ResultsMapper;
 import com.microsoft.identity.common.test.automation.model.TokenCacheItemReadResult;
@@ -48,12 +47,10 @@ public class AccessToken implements Question<String> {
         ReadCacheResult readCacheResult = ResultsMapper.GetReadCacheResultFromString(results);
         String accessToken = null;
         if (readCacheResult != null) {
-            User user = (User) actor;
             for (TokenCacheItemReadResult readResult : readCacheResult.tokenCacheItems) {
                 if (readResult.accessToken != null) {
                     if (TextUtils.isEmpty(clientId) || (!TextUtils.isEmpty(clientId) && clientId.equals(readResult.clientId))) {
                         accessToken = readResult.accessToken;
-                        user.setCacheResult(readResult);
                         break;
                     }
                 }

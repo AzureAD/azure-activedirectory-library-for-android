@@ -47,9 +47,9 @@ public class AcquireToken implements Task {
     @Steps
     CloseKeyboard closeKeyboard;
 
-    String prompt;
-    String userIdentifier;
-    boolean tokenExists;
+    String prompt ="";
+    String userIdentifier = "";
+    boolean tokenExists = false;
     Boolean withBroker = false;
     private String clientId = "";
     private String redirectUri = "";

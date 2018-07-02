@@ -24,6 +24,7 @@ package com.microsoft.identity.common.test.automation.tasks;
 
 import com.microsoft.identity.common.test.automation.actors.User;
 import com.microsoft.identity.common.test.automation.interactions.CloseKeyboard;
+import com.microsoft.identity.common.test.automation.model.TokenCacheItemReadResult;
 import com.microsoft.identity.common.test.automation.ui.Main;
 import com.microsoft.identity.common.test.automation.ui.Request;
 import com.microsoft.identity.common.test.automation.utility.TokenRequest;
@@ -42,19 +43,23 @@ import static net.serenitybdd.screenplay.matchers.WebElementStateMatchers.isVisi
 public class ExpireATAndInvalidateRT implements Task {
 
     private String clientId;
+    private TokenCacheItemReadResult tokenCacheItem = new TokenCacheItemReadResult();
 
     @Steps
     CloseKeyboard closeKeyboard;
+
 
     @Override
     public <T extends Actor> void performAs(T actor) {
         User user = (User) actor;
         TokenRequest tokenRequest = user.getTokenRequest();
-        tokenRequest.setAuthority(user.getCacheResult().authority);
-        tokenRequest.setUserIdentitfier(user.getCredential().userName);
-        tokenRequest.setUniqueUserId(user.getCacheResult().uniqueUserId);
-        tokenRequest.setTenantId(user.getCacheResult().tenantId);
-        tokenRequest.setFamiiyClientId(user.getCacheResult().familyClientId);
+        if (tokenCacheItem != null) {
+            tokenRequest.setAuthority(tokenCacheItem.authority);
+            tokenRequest.setUserIdentitfier(tokenCacheItem.displayableId);
+            tokenRequest.setUniqueUserId(tokenCacheItem.uniqueUserId);
+            tokenRequest.setTenantId(tokenCacheItem.tenantId);
+            tokenRequest.setFamilyClientId(tokenCacheItem.familyClientId);
+        }
         if (!TextUtils.isEmpty(clientId)) {
             tokenRequest.setClientId(clientId);
         }
@@ -71,6 +76,11 @@ public class ExpireATAndInvalidateRT implements Task {
 
     public ExpireATAndInvalidateRT withClientId(String clientId){
         this.clientId = clientId;
+        return this;
+    }
+
+    public ExpireATAndInvalidateRT withTokenCacheItem(TokenCacheItemReadResult tokenCacheItem) {
+        this.tokenCacheItem = tokenCacheItem;
         return this;
     }
 }

@@ -2,9 +2,11 @@ package com.microsoft.identity.common.test.automation;
 
 import com.microsoft.identity.common.test.automation.actors.User;
 import com.microsoft.identity.common.test.automation.interactions.ClickDone;
+import com.microsoft.identity.common.test.automation.model.TokenCacheItemReadResult;
 import com.microsoft.identity.common.test.automation.questions.AccessToken;
 import com.microsoft.identity.common.test.automation.questions.ExpectedCacheItemCount;
 import com.microsoft.identity.common.test.automation.questions.TokenCacheItemCount;
+import com.microsoft.identity.common.test.automation.questions.TokenCacheItemFromResult;
 import com.microsoft.identity.common.test.automation.tasks.AcquireToken;
 import com.microsoft.identity.common.test.automation.tasks.AcquireTokenSilent;
 import com.microsoft.identity.common.test.automation.tasks.ExpireAccessToken;
@@ -16,6 +18,7 @@ import net.serenitybdd.junit.runners.SerenityParameterizedRunner;
 import net.serenitybdd.screenplay.abilities.BrowseTheWeb;
 import net.thucydides.core.annotations.Managed;
 import net.thucydides.core.annotations.Steps;
+import net.thucydides.core.annotations.WithTag;
 import net.thucydides.junit.annotations.TestData;
 
 import org.junit.AfterClass;
@@ -39,10 +42,11 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
 @RunWith(SerenityParameterizedRunner.class)
+@WithTag("requires:none")
 public class AcquireTokenAuthorityMigrationTest {
 
     @TestData
-    public static Collection<Object[]> FederationProviders(){
+    public static Collection<Object[]> FederationProviders() {
 
 
         return Arrays.asList(new Object[][]{
@@ -73,7 +77,7 @@ public class AcquireTokenAuthorityMigrationTest {
 
     static AppiumDriverLocalService appiumService = null;
 
-    @Managed(driver="Appium")
+    @Managed(driver = "Appium")
     WebDriver hisMobileDevice;
 
     @BeforeClass
@@ -90,12 +94,12 @@ public class AcquireTokenAuthorityMigrationTest {
     private User james;
     private String federationProvider;
 
-    public AcquireTokenAuthorityMigrationTest(String federationProvider){
+    public AcquireTokenAuthorityMigrationTest(String federationProvider) {
         this.federationProvider = federationProvider;
     }
 
     @Before
-    public void jamesCanUseAMobileDevice(){
+    public void jamesCanUseAMobileDevice() {
         TestConfigurationQuery query = new TestConfigurationQuery();
         query.federationProvider = this.federationProvider;
         query.isFederated = true;
@@ -104,7 +108,7 @@ public class AcquireTokenAuthorityMigrationTest {
         james.can(BrowseTheWeb.with(hisMobileDevice));
     }
 
-    private static User getUser(TestConfigurationQuery query){
+    private static User getUser(TestConfigurationQuery query) {
 
         Scenario scenario = Scenario.GetScenario(query);
 
@@ -130,17 +134,18 @@ public class AcquireTokenAuthorityMigrationTest {
         then(james).should(seeThat(TokenCacheItemCount.displayed(), is(expectedCacheCount)));
 
         String accessToken1 = james.asksFor(AccessToken.displayed());
+        TokenCacheItemReadResult cacheItem = james.asksFor(TokenCacheItemFromResult.displayed());
 
-        james.attemptsTo(
+        givenThat(james).wasAbleTo(
                 clickDone,
-                expireAccessToken,
+                expireAccessToken.withTokenCacheItem(cacheItem),
                 clickDone);
 
         // acquire token silent with authority login.windows.net
         when(james).attemptsTo(
                 acquireTokenSilent
-                        .withUserIdentifier(james.getCacheResult().displayableId)
-                        .withAuthority(james.getCacheResult().authority),
+                        .withUserIdentifier(cacheItem.displayableId)
+                        .withAuthority(cacheItem.authority),
                 clickDone,
                 readCache);
 

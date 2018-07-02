@@ -2,9 +2,11 @@ package com.microsoft.identity.common.test.automation;
 
 import com.microsoft.identity.common.test.automation.actors.User;
 import com.microsoft.identity.common.test.automation.interactions.ClickDone;
+import com.microsoft.identity.common.test.automation.model.TokenCacheItemReadResult;
 import com.microsoft.identity.common.test.automation.questions.AccessToken;
 import com.microsoft.identity.common.test.automation.questions.ExpectedCacheItemCount;
 import com.microsoft.identity.common.test.automation.questions.TokenCacheItemCount;
+import com.microsoft.identity.common.test.automation.questions.TokenCacheItemFromResult;
 import com.microsoft.identity.common.test.automation.tasks.AcquireToken;
 import com.microsoft.identity.common.test.automation.tasks.AcquireTokenSilent;
 import com.microsoft.identity.common.test.automation.tasks.ExpireAccessToken;
@@ -16,6 +18,7 @@ import net.serenitybdd.junit.runners.SerenityParameterizedRunner;
 import net.serenitybdd.screenplay.abilities.BrowseTheWeb;
 import net.thucydides.core.annotations.Managed;
 import net.thucydides.core.annotations.Steps;
+import net.thucydides.core.annotations.WithTag;
 import net.thucydides.junit.annotations.TestData;
 
 import org.junit.AfterClass;
@@ -34,7 +37,6 @@ import io.appium.java_client.service.local.AppiumDriverLocalService;
 import static net.serenitybdd.screenplay.GivenWhenThen.givenThat;
 import static net.serenitybdd.screenplay.GivenWhenThen.seeThat;
 import static net.serenitybdd.screenplay.GivenWhenThen.then;
-import static net.serenitybdd.screenplay.GivenWhenThen.when;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
@@ -43,6 +45,7 @@ import static org.hamcrest.Matchers.not;
  */
 
 @RunWith(SerenityParameterizedRunner.class)
+@WithTag("requires:none")
 public class AcquireTokenAfterExpireAT {
 
     @TestData
@@ -133,13 +136,15 @@ public class AcquireTokenAfterExpireAT {
         then(james).should(seeThat(TokenCacheItemCount.displayed(), is(expectedCacheCount)));
 
         String accessToken1 = james.asksFor(AccessToken.displayed());
+        TokenCacheItemReadResult cacheItem = james.asksFor(TokenCacheItemFromResult.displayed());
 
-        james.attemptsTo(clickDone, expireAccessToken, clickDone);
-
-        when(james).attemptsTo(
+        givenThat(james).wasAbleTo(
+                clickDone,
+                expireAccessToken.withTokenCacheItem(cacheItem),
+                clickDone,
                 acquireToken
                         .tokenExists(true)
-                        .withUserIdentifier(james.getCacheResult().displayableId),
+                        .withUserIdentifier(cacheItem.displayableId),
                 clickDone,
                 readCache);
 
