@@ -196,7 +196,7 @@ class AuthenticationRequest implements Serializable {
         return mRedirectUri;
     }
     
-    void setRedirectUri(final String redirectUri) {
+    public void setRedirectUri(final String redirectUri) {
         mRedirectUri = redirectUri;
     }
 
@@ -208,7 +208,7 @@ class AuthenticationRequest implements Serializable {
         return mClientId;
     }
     
-    public void setClientId(String id) {
+    public void setClientId(final String id) {
         mClientId = id;
     }
 

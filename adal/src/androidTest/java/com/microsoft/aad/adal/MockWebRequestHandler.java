@@ -107,7 +107,7 @@ class MockWebRequestHandler implements IWebRequestHandler {
     }
 
     @Override
-    public void setAdalClientVersion(String adalClientVersion) {
+    public void setClientVersion(String clientVersion) {
         // intentionally empty.
     }
 }

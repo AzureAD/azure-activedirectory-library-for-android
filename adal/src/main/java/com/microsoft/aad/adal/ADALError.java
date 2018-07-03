@@ -344,7 +344,10 @@ public enum ADALError {
      */
     BROKER_PACKAGE_NAME_NOT_FOUND("Broker is not installed in your system"),
 
-    BROKER_PRT_FAILED("Broker is failed to get PRT"),
+    /**
+     * Broker failed to get the PRT.
+     */
+    BROKER_PRT_FAILED("Broker failed to get PRT"),
     
     /**
      * Authenticator is not responding.

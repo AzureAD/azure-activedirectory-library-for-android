@@ -36,7 +36,6 @@ import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.ClientInfo;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -46,7 +45,6 @@ import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -87,7 +85,7 @@ class Oauth2 {
 
     private String mBrokerClientVersion = "";
 
-    private String mAdalClientVersion = "";
+    private String mClientVersion = "";
 
     Oauth2(AuthenticationRequest request) {
         mRequest = request;
@@ -111,10 +109,10 @@ class Oauth2 {
         setTokenEndpoint(mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT);
     }
 
-    public void setAdalClientVersion(String version) {
-        mAdalClientVersion = version;
+    public void setClientVersion(String version) {
+        mClientVersion = version;
         if (mWebRequestHandler != null) {
-            mWebRequestHandler.setAdalClientVersion(version);
+            mWebRequestHandler.setClientVersion(version);
         }
     }
 
@@ -151,8 +149,8 @@ class Oauth2 {
                             AuthenticationConstants.ENCODING_UTF8));
         }
 
-        if (StringExtensions.isNullOrBlank(mAdalClientVersion)) {
-            mAdalClientVersion = AuthenticationContext.getVersionName();
+        if (StringExtensions.isNullOrBlank(mClientVersion)) {
+            mClientVersion = AuthenticationContext.getVersionName();
         }
 
         // append device and platform info in the query parameters
@@ -160,7 +158,7 @@ class Oauth2 {
                 AuthenticationConstants.AAD.ADAL_ID_PLATFORM_VALUE)
 
                 .appendQueryParameter(AuthenticationConstants.AAD.ADAL_ID_VERSION,
-                        URLEncoder.encode(mAdalClientVersion, AuthenticationConstants.ENCODING_UTF8))
+                        URLEncoder.encode(mClientVersion, AuthenticationConstants.ENCODING_UTF8))
                 .appendQueryParameter(AuthenticationConstants.AAD.ADAL_ID_OS_VER,
                         URLEncoder.encode(String.valueOf(Build.VERSION.SDK_INT),
                                 AuthenticationConstants.ENCODING_UTF8))

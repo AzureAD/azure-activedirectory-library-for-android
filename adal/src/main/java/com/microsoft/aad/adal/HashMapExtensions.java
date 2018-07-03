@@ -109,7 +109,7 @@ final class HashMapExtensions {
      * get key value pairs from response.
      *
      * @param webResponse HttpWebResponse to convert to a map
-     * @return Map
+     * @return HashMap
      * @throws JSONException
      */
     static HashMap<String, String> getJsonResponse(HttpWebResponse webResponse) throws JSONException {

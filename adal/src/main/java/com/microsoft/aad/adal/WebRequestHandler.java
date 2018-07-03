@@ -27,6 +27,7 @@ import android.os.Build;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
+import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
 
 import java.io.IOException;
 import java.net.URL;
@@ -55,7 +56,7 @@ public class WebRequestHandler implements IWebRequestHandler {
 
     private UUID mRequestCorrelationId = null;
 
-    private String mCurrentAdalClientVersion = AuthenticationContext.getVersionName();
+    private String mCurrentClientVersion = AuthenticationContext.getVersionName();
 
     private String mBrokerVersion = null;
 
@@ -88,7 +89,7 @@ public class WebRequestHandler implements IWebRequestHandler {
         }
 
         headers.put(AuthenticationConstants.AAD.ADAL_ID_PLATFORM, "Android");
-        headers.put(AuthenticationConstants.AAD.ADAL_ID_VERSION, mCurrentAdalClientVersion);
+        headers.put(AuthenticationConstants.AAD.ADAL_ID_VERSION, mCurrentClientVersion);
         // Broker Version to report x-client-brkrver
         if (!StringExtensions.isNullOrBlank(mBrokerVersion)) {
             headers.put(AuthenticationConstants.AAD.ADAL_BROKER_VERSION, mBrokerVersion);
@@ -109,9 +110,9 @@ public class WebRequestHandler implements IWebRequestHandler {
     }
 
     @Override
-    public void setAdalClientVersion(String adalClientVersion) {
-        if (!StringExtensions.isNullOrBlank(adalClientVersion)) {
-            mCurrentAdalClientVersion = adalClientVersion;
+    public void setClientVersion(String clientVersion) {
+        if (!StringExtensions.isNullOrBlank(clientVersion)) {
+            mCurrentClientVersion = clientVersion;
         }
     }
 

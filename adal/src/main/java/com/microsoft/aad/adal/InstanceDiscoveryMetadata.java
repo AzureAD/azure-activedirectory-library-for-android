@@ -30,7 +30,7 @@ import java.util.List;
  * Hold the instance discovery metadata returned from discovery endpoint, which includes the preferred network location,
  * preferred cache location and all the associated aliased host related to the passed in authority.
  */
-class InstanceDiscoveryMetadata {
+final class InstanceDiscoveryMetadata {
     private final String mPreferredNetwork;
     private final String mPreferredCache;
     private final List<String> mAliases = new ArrayList<String>();
