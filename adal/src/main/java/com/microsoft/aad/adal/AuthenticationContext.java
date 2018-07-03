@@ -685,7 +685,7 @@ public class AuthenticationContext {
      */
     public AuthenticationResult acquireTokenSilentSync(String resource, String clientId, String userId, boolean forceRefresh)
             throws AuthenticationException, InterruptedException {
-        return acquireTokenSilentSync(resource, clientId, userId, false, EventStrings.ACQUIRE_TOKEN_SILENT_SYNC_FORCE_REFRESH);
+        return acquireTokenSilentSync(resource, clientId, userId, forceRefresh, EventStrings.ACQUIRE_TOKEN_SILENT_SYNC_FORCE_REFRESH);
     }
 
     private AuthenticationResult acquireTokenSilentSync(final String resource, final String clientId, final String userId, final boolean forceRefresh, final String apiEventString)
