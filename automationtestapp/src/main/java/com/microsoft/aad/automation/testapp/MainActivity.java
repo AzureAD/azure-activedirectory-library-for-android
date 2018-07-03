@@ -34,6 +34,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.DateTimeAdapter;
+import com.microsoft.aad.adal.DefaultTokenCacheStore;
 import com.microsoft.aad.adal.TokenCacheItem;
 
 import org.json.JSONException;
@@ -149,6 +150,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             final ArrayList<String> allItems = getAllSerializedCacheItem(authenticationContext);
             intent.putStringArrayListExtra(Constants.READ_CACHE, allItems);
+            intent.putExtra(Constants.COMMON_CACHE, isCommonCacheUsed());
         } catch (JSONException e) {
             intent = SignInActivity.getErrorIntentForResultActivity(Constants.JSON_ERROR, "Unable to convert to Json "
                     + e.getMessage());
@@ -190,6 +192,21 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return allItems;
+    }
+
+    private boolean isCommonCacheUsed() {
+        boolean isCommonAvailable = false;
+        try {
+            Class.forName("com.microsoft.identity.common.internal.cache.ADALOAuth2TokenCache");
+            isCommonAvailable = true;
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        if(isCommonAvailable) {
+            AuthenticationContext authenticationContext = createAuthenticationContext();
+            return authenticationContext.getCache() instanceof DefaultTokenCacheStore;
+        }
+        return false;
     }
 
     private AuthenticationContext createAuthenticationContext() {

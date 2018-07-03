@@ -31,15 +31,21 @@ public class ResultsMapper {
     public static ReadCacheResult GetReadCacheResultFromString(String results) {
         ReadCacheResult readCacheResult = (ReadCacheResult) ObjectMapper.deserializeJsonStringToObject(results, ReadCacheResult.class);
 
-        for (String result : readCacheResult.items) {
-            TokenCacheItemReadResult tokenCacheItemReadResult = (TokenCacheItemReadResult) ObjectMapper.deserializeJsonStringToObject(result, TokenCacheItemReadResult.class);
-            readCacheResult.tokenCacheItems.add(tokenCacheItemReadResult);
+        if(readCacheResult!=null) {
+            for (String result : readCacheResult.items) {
+                TokenCacheItemReadResult tokenCacheItemReadResult = (TokenCacheItemReadResult) ObjectMapper.deserializeJsonStringToObject(result, TokenCacheItemReadResult.class);
+                readCacheResult.tokenCacheItems.add(tokenCacheItemReadResult);
+            }
         }
 
         return readCacheResult;
 
     }
 
+    public static ADALErrorResult GetADALErrorResultFromString(String results) {
+        ADALErrorResult adalErrorResult = (ADALErrorResult) ObjectMapper.deserializeJsonStringToObject(results, ADALErrorResult.class);
+        return adalErrorResult;
+    }
 
     public static AuthenticationResult GetAuthenticationResultFromString(String result) {
         return (AuthenticationResult) ObjectMapper.deserializeJsonStringToObject(result, AuthenticationResult.class);

@@ -25,6 +25,8 @@ package com.microsoft.identity.common.test.automation;
 
 import com.microsoft.identity.common.test.automation.actors.User;
 import com.microsoft.identity.common.test.automation.interactions.ClickDone;
+import com.microsoft.identity.common.test.automation.questions.ExpectedCacheItemCount;
+import com.microsoft.identity.common.test.automation.questions.TokenCacheItemCount;
 import com.microsoft.identity.common.test.automation.tasks.AcquireToken;
 import com.microsoft.identity.common.test.automation.tasks.ReadCache;
 import com.microsoft.identity.common.test.automation.utility.Scenario;
@@ -48,6 +50,10 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import io.appium.java_client.service.local.AppiumDriverLocalService;
+
+import static net.serenitybdd.screenplay.GivenWhenThen.seeThat;
+import static net.serenitybdd.screenplay.GivenWhenThen.then;
+import static org.hamcrest.Matchers.is;
 
 @RunWith(SerenityParameterizedRunner.class)
 public class AcquireTokenBasicTest {
@@ -126,19 +132,11 @@ public class AcquireTokenBasicTest {
     public void should_be_able_to_acquire_token() {
 
         james.attemptsTo(
-                acquireToken//,
-                //clickDone,
-                //readCache
-        );
-
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        //then(james).should(seeThat(TokenCacheItemCount.displayed(), is(6) ));
-
+                acquireToken,
+                clickDone,
+                readCache);
+        int expectedCacheCount = james.asksFor(ExpectedCacheItemCount.displayed());
+        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(expectedCacheCount)));
     }
 
 }

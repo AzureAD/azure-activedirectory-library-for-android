@@ -45,6 +45,8 @@ public class Constants {
 
     public static final String READ_CACHE = "all_items";
     public static final String ITEM_COUNT = "item_count";
+    public static final String ITEMS = "items";
+    public static final String COMMON_CACHE = "common_cache";
     public static final String EXPIRED_ACCESS_TOKEN_COUNT = "expired_access_token_count";
     public static final String INVALIDATED_REFRESH_TOKEN_COUNT = "invalidated_refresh_token_count";
     public static final String INVALIDATED_FAMILY_REFRESH_TOKEN_COUNT = "invalidated_family_refresh_token_count";
@@ -72,5 +74,11 @@ public class Constants {
         static final String IDENTITY_PROVIDER = Constants.IDENTITY_PROVIDER;
     }
 
+    protected static class ADAL_ERROR_DATA {
+        static final String ERROR = "error";
+        static final String ERROR_DESCRIPTION = "error_description";
+    }
+
     public static final String AUTOMATION_TEST_APP_BROKER_REDIRECT_URI = "msauth://com.microsoft.aad.automation.testapp.adal/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D";
+
 }

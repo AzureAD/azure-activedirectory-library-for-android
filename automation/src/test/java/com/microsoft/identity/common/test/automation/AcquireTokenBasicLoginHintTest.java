@@ -25,6 +25,7 @@ package com.microsoft.identity.common.test.automation;
 
 import com.microsoft.identity.common.test.automation.actors.User;
 import com.microsoft.identity.common.test.automation.interactions.ClickDone;
+import com.microsoft.identity.common.test.automation.questions.ExpectedCacheItemCount;
 import com.microsoft.identity.common.test.automation.questions.TokenCacheItemCount;
 import com.microsoft.identity.common.test.automation.tasks.AcquireToken;
 import com.microsoft.identity.common.test.automation.tasks.ReadCache;
@@ -60,13 +61,11 @@ public class AcquireTokenBasicLoginHintTest {
     public static Collection<Object[]> FederationProviders() {
 
         return Arrays.asList(new Object[][]{
-                {"ADFSv2"}//,
-                /*
+                {"ADFSv2"},
                 {"ADFSv3"},
                 {"ADFSv4"},
                 {"PingFederate"},
                 {"Shibboleth"}
-                */
         });
     }
 
@@ -131,9 +130,8 @@ public class AcquireTokenBasicLoginHintTest {
                 acquireToken.withUserIdentifier(james.getCredential().userName),
                 clickDone,
                 readCache);
-
-        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(8)));
-
+        int expectedCacheCount = james.asksFor(ExpectedCacheItemCount.displayed());
+        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(expectedCacheCount)));
     }
 
 }
