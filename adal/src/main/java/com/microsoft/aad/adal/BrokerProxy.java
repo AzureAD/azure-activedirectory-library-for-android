@@ -543,7 +543,8 @@ class BrokerProxy implements IBrokerProxy {
 
     private AuthenticationException getAuthenticationExceptionForResult(final String oauth2ErrorCode, final String oauth2ErrorDescription,
                                                                         final Bundle bundleResult) {
-        final String message = "Received error from broker, errorCode: " + oauth2ErrorCode + "; ErrorDescription: " + oauth2ErrorDescription;
+        final String message = String.format("Received error from broker, errorCode: %s; ErrorDescription: %s",
+                oauth2ErrorCode, oauth2ErrorDescription);
 
         // check the response body for the "unauthorized_client" error and the "protection_policy_required" suberror
         final Serializable responseBody = bundleResult.getSerializable(AuthenticationConstants.OAuth2.HTTP_RESPONSE_BODY);
