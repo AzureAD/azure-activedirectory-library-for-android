@@ -796,7 +796,8 @@ class AcquireTokenRequest {
                             + requestId + " " + correlationInfo, errMessage, null);
 
                     final String message = String.format("%s %s %s", errCode, errMessage, correlationInfo);
-                    if (ADALError.AUTH_FAILED_INTUNE_POLICY_REQUIRED.name().compareTo(errCode) == 0) {
+                    if (!StringExtensions.isNullOrBlank(errCode) &&
+                            ADALError.AUTH_FAILED_INTUNE_POLICY_REQUIRED.name().compareTo(errCode) == 0) {
                         final String accountUpn = extras.getString(AuthenticationConstants.Broker.ACCOUNT_NAME);
                         final String accountId = extras.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID);
                         final String tenantId = extras.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID);

@@ -552,7 +552,8 @@ class BrokerProxy implements IBrokerProxy {
             final HashMap<String, String> responseMap = (HashMap<String, String>) responseBody;
             final String error = responseMap.get(AuthenticationConstants.OAuth2.ERROR);
             final String suberror = responseMap.get(AuthenticationConstants.OAuth2.SUBERROR);
-            if (AuthenticationConstants.OAuth2ErrorCode.UNAUTHORIZED_CLIENT.compareTo(error) == 0 &&
+            if (!StringExtensions.isNullOrBlank(error) && !StringExtensions.isNullOrBlank(suberror) &&
+                    AuthenticationConstants.OAuth2ErrorCode.UNAUTHORIZED_CLIENT.compareTo(error) == 0 &&
                     AuthenticationConstants.OAuth2ErrorCode.PROTECTION_POLICY_REQUIRED.compareTo(suberror) == 0) {
 
                 final String accountUpn = bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_NAME);
