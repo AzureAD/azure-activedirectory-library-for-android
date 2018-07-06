@@ -69,7 +69,7 @@ public class AuthenticationResult implements Serializable {
         Succeeded,
     }
 
-    protected String mCode;
+    private String mCode;
 
     protected String mAccessToken;
 

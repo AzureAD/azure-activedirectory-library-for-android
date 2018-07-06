@@ -57,7 +57,7 @@ final class AuthorityValidationMetadataCache {
 
     private static ConcurrentMap<String, InstanceDiscoveryMetadata> sAadAuthorityHostMetadata = new ConcurrentHashMap<>();
 
-    protected AuthorityValidationMetadataCache() {
+    private AuthorityValidationMetadataCache() {
         // Utility class, no public constructor
     }
 
@@ -69,7 +69,7 @@ final class AuthorityValidationMetadataCache {
         return containsAuthorityHost(authorityUrl) && getCachedInstanceDiscoveryMetadata(authorityUrl).isValidated();
     }
 
-    public static InstanceDiscoveryMetadata getCachedInstanceDiscoveryMetadata(final URL authorityUrl) {
+    static InstanceDiscoveryMetadata getCachedInstanceDiscoveryMetadata(final URL authorityUrl) {
         return sAadAuthorityHostMetadata.get(authorityUrl.getHost().toLowerCase(Locale.US));
     }
 
@@ -94,7 +94,7 @@ final class AuthorityValidationMetadataCache {
         processInstanceDiscoveryResponse(metadata);
     }
 
-    public static void updateInstanceDiscoveryMap(final String host, final InstanceDiscoveryMetadata metadata) {
+    static void updateInstanceDiscoveryMap(final String host, final InstanceDiscoveryMetadata metadata) {
         sAadAuthorityHostMetadata.put(host.toLowerCase(Locale.US), metadata);
     }
 
