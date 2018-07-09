@@ -16,7 +16,7 @@ android:
     - platform-tools
     - tools
     - build-tools-27.0.3
-    - android-25
+    - android-27
     - android-21
     - extra
     - extra-android-m2repository
@@ -30,7 +30,7 @@ env:
       # This is to guaratee a clean gradle log
       - TERM=dumb
     matrix:
-      - ANDROID_SDKS=android-25 ANDROID_TARGET=android-25
+      - ANDROID_SDKS=android-27 ANDROID_TARGET=android-27
       
 before_install:
   - chmod +x gradlew
