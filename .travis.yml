@@ -21,6 +21,9 @@ android:
     - extra-android-m2repository
     - extra-google-m2repository
     - addon-google_apis-google-21
+    ## Emulator config ##
+    # The SDK version used for the emulator
+    - android-21
     #system images
     - sys-img-armeabi-v7a-android-21
 
