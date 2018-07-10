@@ -1,6 +1,4 @@
 apply plugin: 'com.android.library'
-// Add JaCoCo for coverage metrics
-apply plugin: 'jacoco'
 apply plugin: 'findbugs'
 apply plugin: 'pmd'
 apply plugin: 'checkstyle'
@@ -146,26 +144,6 @@ dependencies {
     // Javadoc Dependencies
     javadocDeps "com.android.support:support-annotations:$rootProject.ext.supportLibraryVersion"
     javadocDeps "com.android.support:support-v4:$rootProject.ext.supportLibraryVersion"
-}
-
-task jacocoTestReport(type: JacocoReport, dependsOn: 'testDebugUnitTest') {
-    reports {
-        xml.enabled = true
-        html.enabled = true
-    }
-
-    jacocoClasspath = configurations['jacocoAnt']
-
-    def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*', 'android/**/*.*', '**/AuthenticationConstants*.*', '**/IBrokerAccountService*.*', '**/EventStrings.class']
-    def debugTree = fileTree(dir: "${buildDir}/intermediates/classes/debug", excludes: fileFilter)
-    def mainSrc = "${project.projectDir}/src/main/java"
-
-    sourceDirectories = files([mainSrc])
-    classDirectories = files([debugTree])
-    executionData = fileTree(dir: "$buildDir", includes: [
-            "jacoco/testDebugUnitTest.exec",
-            "outputs/code-coverage/connected/*coverage.ec"
-    ])
 }
 
 task sourcesJar(type: Jar) {
