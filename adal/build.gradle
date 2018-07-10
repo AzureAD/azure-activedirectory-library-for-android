@@ -59,10 +59,17 @@ android {
     flavorDimensions "main"
 
     productFlavors {
-        adal{
-
+        // The 'local' productFlavor sources common from mavenLocal and is intended to be used
+        // during development.
+        local {
+            dimension "main"
+            versionNameSuffix "-local"
         }
-        adalR{
+
+        // The 'dist' productFlavor sources common from a central repository and is intended
+        // to be used for releases.
+        dist {
+            dimension "main"
         }
     }
 
@@ -103,40 +110,31 @@ android {
 }
 
 dependencies {
-    // Compile Dependencies
-    adalImplementation "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
-    adalImplementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
-    adalImplementation "com.android.support:support-annotations:$rootProject.ext.supportLibraryVersion"
-    adalImplementation "com.android.support:support-v4:$rootProject.ext.supportLibraryVersion"
-    adalCompileOnly 'com.google.code.findbugs:annotations:3.0.1', {
+    // Dependencies required only at compile time
+    compileOnly 'com.google.code.findbugs:annotations:3.0.1', {
         // Need to exclude these, or build is broken by:
         //   com.android.dex.DexException: Multiple dex files define Ljavax/annotation/CheckForNull
         exclude module: 'jsr305'
         exclude module: 'jcip-annotations'
-    }
-    adalRImplementation "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
-    adalRImplementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
-    adalRImplementation "com.android.support:support-annotations:$rootProject.ext.supportLibraryVersion"
-    adalRImplementation "com.android.support:support-v4:$rootProject.ext.supportLibraryVersion"
-    adalRCompileOnly 'com.google.code.findbugs:annotations:3.0.1', {
-        // Need to exclude these, or build is broken by:
-        //   com.android.dex.DexException: Multiple dex files define Ljavax/annotation/CheckForNull
-        exclude module: 'jsr305'
-        exclude module: 'jcip-annotations'
-    }
-    adalApi(project(":common")){
-        exclude group: 'com.google.code.gson', module: 'gson'
-        exclude group: 'com.android.support', module: 'appcompat-v7'
-        exclude group: 'com.nimbusds', module: 'nimbus-jose-jwt'
-        exclude group: 'org.mockito', module: 'mockito-core'
-        exclude group: 'com.google.dexmaker', module: 'dexmaker-mockito'
-        exclude group: 'org.powermock', module: 'powermock-module-junit4'
-        exclude group: 'org.powermock', module: 'powermock-module-junit4-rule'
-        exclude group: 'org.powermock', module: 'powermock-api-mockito'
-        exclude group: 'org.powermock', module: 'powermock-classloading-xstream'
     }
 
-    adalRImplementation "com.microsoft.identity:common:0.0.1"
+    // Dependencies
+    implementation "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
+    implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
+    implementation "com.android.support:support-annotations:$rootProject.ext.supportLibraryVersion"
+    implementation "com.android.support:support-v4:$rootProject.ext.supportLibraryVersion"
+
+    // 'local' flavor dependencies
+    localImplementation(project(":common")) {
+        transitive = false
+    }
+
+    // 'dist' flavor dependencies
+    //distImplementation "com.microsoft.identity:common:0.0.1"
+    // TODO delete below, uncomment above...
+    distImplementation(project(":common")) {
+        transitive = false
+    }
 
     // Android Instrumented Test Dependencies
     androidTestImplementation "com.android.support.test:runner:$rootProject.ext.runnerVersion"
@@ -172,7 +170,7 @@ task jacocoTestReport(type: JacocoReport, dependsOn: 'testDebugUnitTest') {
     ])
 }
 
-task createPom  {
+task createPom {
     pom {
         project {
             groupId 'com.microsoft.aad'
@@ -250,8 +248,11 @@ publishing {
             pom.withXml {
                 def dependenciesNode = asNode().appendNode('dependencies')
 
+                def deps = configurations.implementation.allDependencies.asList()
+                deps.addAll(configurations.distImplementation.allDependencies.asList())
+
                 //Iterate over the implementation dependencies (we don't want the test ones), adding a <dependency> node for each
-                configurations.adalRImplementation.allDependencies.each {
+                deps.each {
                     if (it.group != null && it.name != null) {
                         def dependencyNode = dependenciesNode.appendNode('dependency')
                         dependencyNode.appendNode('groupId', it.group)
@@ -315,7 +316,7 @@ task findbugs(type: FindBugs) {
     description 'Run findbugs'
     group 'verification'
 
-    classes = fileTree("$project.buildDir/intermediates/classes/adal/debug/")
+    classes = fileTree("$project.buildDir/intermediates/classes/local/debug/")
     source = fileTree('src/main/java')
     classpath = files()
     effort = 'max'
