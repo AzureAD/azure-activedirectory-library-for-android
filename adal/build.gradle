@@ -127,9 +127,10 @@ dependencies {
     }
 
     // 'dist' flavor dependencies
-    //distImplementation "com.microsoft.identity:common:0.0.1"
-    // TODO comment below, uncomment above...
-    localImplementation(project(":common")) {
+    // Once common is deployed to maven, uncomment the below line...
+    // distImplementation "com.microsoft.identity:common:0.0.1"
+    // and delete the 3 following lines....
+    distImplementation(project(":common")) {
         transitive = false
     }
 
