@@ -2,7 +2,7 @@
 
 language: android
 
-jdk: 
+jdk:
   - oraclejdk8
 
 # Don't use the Travis Container-Based Infrastructure
@@ -33,7 +33,7 @@ env:
       - TERM=dumb
     matrix:
       - ANDROID_SDKS=android-27 ANDROID_TARGET=android-27
-      
+
 before_install:
   - chmod +x gradlew
 
@@ -55,4 +55,4 @@ before_script:
 
 script:
   - cd $PWD
-  - ./gradlew clean adal:assembleLocal adal:connectedLocalDebugAndroidTest -PdisablePreDex
+  - ./gradlew clean build connectedAndroidTest -PdisablePreDex
