@@ -307,7 +307,7 @@ task checkstyle(type: Checkstyle) {
 
 tasks.whenTaskAdded { task ->
     if (task.name == 'assembleDebug' || task.name == 'assembleRelease') {
-        task.dependsOn 'checkstyle', 'pmd', 'lint', 'createPom'
+        task.dependsOn 'checkstyle', 'pmd', 'lint'
         task.finalizedBy 'findbugs'
     }
 }
