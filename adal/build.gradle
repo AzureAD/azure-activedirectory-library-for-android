@@ -186,6 +186,39 @@ publishing {
             version = project.version
 
             pom.withXml {
+                // Custom values
+
+                // Name
+                asNode().appendNode('name', 'adal')
+
+                // Description
+                asNode().appendNode(
+                        'description',
+                        'Azure active directory library for Android gives you the ability to add Windows Azure Active Directory authentication to your application with just a few lines of additional code. Using our ADAL SDKs you can quickly and easily extend your existing application to all the employees that use Windows Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.'
+                )
+
+                // URL
+                asNode().appendNode('url', 'https://github.com/AzureAD/azure-activedirectory-library-for-android')
+
+                // Inception Year
+                asNode().appendNode('inceptionYear', '2014')
+
+                // Licenses
+                asNode().appendNode('licenses').appendNode('license').appendNode('name', 'MIT License')
+
+                // Developers
+                def developerNode = asNode().appendNode('developers').appendNode('developer')
+                developerNode.appendNode('id', 'microsoft')
+                developerNode.appendNode('name', 'Microsoft')
+
+                // SCM
+                asNode().appendNode('scm').appendNode('url', 'https://github.com/AzureAD/azure-activedirectory-library-for-android/tree/master')
+
+                // Properties
+                def propertiesNode = asNode().appendNode('properties')
+                propertiesNode.appendNode('branch', 'master')
+                propertiesNode.appendNode('version', project.version)
+
                 def dependenciesNode = asNode().appendNode('dependencies')
 
                 def deps = configurations.implementation.allDependencies.asList()
