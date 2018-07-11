@@ -43,7 +43,7 @@ import static org.hamcrest.Matchers.not;
 
 @RunWith(SerenityParameterizedRunner.class)
 @WithTag("requires:none")
-public class AcquireTokenAuthorityMigrationTest {
+public class AcquireTokenAliasingTest {
 
     @TestData
     public static Collection<Object[]> FederationProviders() {
@@ -94,7 +94,7 @@ public class AcquireTokenAuthorityMigrationTest {
     private User james;
     private String federationProvider;
 
-    public AcquireTokenAuthorityMigrationTest(String federationProvider) {
+    public AcquireTokenAliasingTest(String federationProvider) {
         this.federationProvider = federationProvider;
     }
 
@@ -123,7 +123,7 @@ public class AcquireTokenAuthorityMigrationTest {
 
 
     @Test
-    public void should_be_able_to_new_access_token_after_authority_migration() {
+    public void should_be_able_to_new_access_token_after_authority_aliasing() {
 
         // acquire token with authority login.microsoftonline.com
         givenThat(james).wasAbleTo(
