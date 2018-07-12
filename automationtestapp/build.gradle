@@ -89,14 +89,17 @@ android {
 dependencies {
     implementation "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
+    implementation project(":common") // TODO is this needed?
 
+    // Flavored dependencies
     localImplementation project(':adal')
-    //distImplementation group: 'com.microsoft.identity.client', name: 'msal', version: "$rootProject.ext.msal"
     distImplementation group: 'com.microsoft.aad', name: 'adal', version: "$rootProject.ext.adalLegacy"
 
+    // Unit tests
     testImplementation "junit:junit:$rootProject.ext.junitVersion"
-    androidTestImplementation "junit:junit:$rootProject.ext.junitVersion"
 
+    // Instrumented tests
+    androidTestImplementation "junit:junit:$rootProject.ext.junitVersion"
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.uiautomator:uiautomator-v18:2.1.1'

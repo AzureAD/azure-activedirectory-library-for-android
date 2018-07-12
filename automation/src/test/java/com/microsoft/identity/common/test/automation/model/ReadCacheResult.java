@@ -28,6 +28,8 @@ import com.google.gson.annotations.SerializedName;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.microsoft.identity.common.test.automation.model.Constants.COMMON_CACHE;
+import static com.microsoft.identity.common.test.automation.model.Constants.ITEMS;
 import static com.microsoft.identity.common.test.automation.model.Constants.ITEM_COUNT;
 
 public class ReadCacheResult {
@@ -35,8 +37,11 @@ public class ReadCacheResult {
     @SerializedName(ITEM_COUNT)
     public Integer itemCount;
 
-    @SerializedName("items")
+    @SerializedName(ITEMS)
     public List<String> items;
+
+    @SerializedName(COMMON_CACHE)
+    public boolean isCommonCache;
 
     public List<TokenCacheItemReadResult> tokenCacheItems = new ArrayList<TokenCacheItemReadResult>();
 }

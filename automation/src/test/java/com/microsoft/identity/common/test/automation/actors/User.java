@@ -24,6 +24,7 @@
 package com.microsoft.identity.common.test.automation.actors;
 
 import com.google.gson.Gson;
+import com.microsoft.identity.common.test.automation.model.TokenCacheItemReadResult;
 import com.microsoft.identity.common.test.automation.utility.Credential;
 import com.microsoft.identity.common.test.automation.utility.TokenRequest;
 
@@ -35,6 +36,7 @@ public class User extends Actor {
     private TokenRequest silentTokenRequest;
     private String federationProvider;
     private Credential credential;
+    private TokenCacheItemReadResult cacheResult;
     private Boolean workplaceJoined = false;
 
     public void setTokenRequest(TokenRequest tokenRequest) {
@@ -100,4 +102,17 @@ public class User extends Actor {
     }
 
 
+
+    public TokenCacheItemReadResult getCacheResult() {
+        return cacheResult;
+    }
+
+    public void setCacheResult(TokenCacheItemReadResult cacheResult) {
+        this.cacheResult = cacheResult;
+    }
+
+    public String getCacheResultAsJson(){
+        String cacheJson = new Gson().toJson(this.cacheResult);
+        return cacheJson;
+    }
 }
