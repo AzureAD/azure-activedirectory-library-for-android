@@ -28,13 +28,13 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
 
-    signingConfigs{
-      debug {
-              storeFile file('debug/debug.keystore')
-              storePassword "android"
-              keyAlias "androiddebugkey"
-              keyPassword "android"
-      }
+    signingConfigs {
+        debug {
+            storeFile file('debug/debug.keystore')
+            storePassword "android"
+            keyAlias "androiddebugkey"
+            keyPassword "android"
+        }
     }
 
     defaultConfig {
@@ -60,10 +60,10 @@ android {
     flavorDimensions "main"
 
     productFlavors {
-        adal{
-            applicationIdSuffix ".adal"
-            versionNameSuffix "-adalD"
-            resValue("string", "application_name", "adal")
+        local {
+            applicationIdSuffix ".local"
+            versionNameSuffix "-local"
+            resValue("string", "application_name", "adal-local")
         }
         /*
         //Leaving out MSAL support until i look into dynamically linking
@@ -73,10 +73,10 @@ android {
             resValue("string", "application_name", "msalR")
         }
         */
-        adalR{
-            applicationIdSuffix ".adalR"
-            versionNameSuffix "-adalR"
-            resValue("string", "application_name", "adalR")
+        dist {
+            applicationIdSuffix ".dist"
+            versionNameSuffix "-dist"
+            resValue("string", "application_name", "adal-dist")
         }
     }
 
@@ -90,10 +90,11 @@ dependencies {
     implementation "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
 
-    adalImplementation project(':adal')
-    //msalRImplementation group: 'com.microsoft.identity.client', name: 'msal', version: "$rootProject.ext.msal"
-    adalRImplementation group: 'com.microsoft.aad', name: 'adal', version: "$rootProject.ext.adalLegacy"
     implementation project(":common")
+
+    localImplementation project(':adal')
+    //distImplementation group: 'com.microsoft.identity.client', name: 'msal', version: "$rootProject.ext.msal"
+    distImplementation group: 'com.microsoft.aad', name: 'adal', version: "$rootProject.ext.adalLegacy"
 
     testImplementation "junit:junit:$rootProject.ext.junitVersion"
     androidTestImplementation "junit:junit:$rootProject.ext.junitVersion"

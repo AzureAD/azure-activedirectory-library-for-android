@@ -20,5 +20,4 @@ ext {
     rulesVersion = "1.0.0"
     adalLegacy = "1.14.0"
     msal = "0.1.1"
-
 }

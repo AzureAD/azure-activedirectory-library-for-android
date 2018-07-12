@@ -9,7 +9,18 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
     }
 
+    flavorDimensions 'main'
+
+    productFlavors {
+        main {
+            matchingFallbacks = ['local', 'dist']
+        }
+    }
+
     buildTypes {
+        debug {
+
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt')
