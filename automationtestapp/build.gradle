@@ -91,6 +91,7 @@ dependencies {
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
 
     implementation project(":common")
+
     localImplementation project(':adal')
     //distImplementation group: 'com.microsoft.identity.client', name: 'msal', version: "$rootProject.ext.msal"
     distImplementation group: 'com.microsoft.aad', name: 'adal', version: "$rootProject.ext.adalLegacy"
