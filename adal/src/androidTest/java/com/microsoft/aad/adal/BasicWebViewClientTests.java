@@ -32,6 +32,8 @@ import android.test.UiThreadTest;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
 
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,8 +50,8 @@ import java.security.cert.X509Certificate;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static com.microsoft.aad.adal.AuthenticationConstants.Browser.RESPONSE_ERROR_CODE;
-import static com.microsoft.aad.adal.AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Browser.RESPONSE_ERROR_CODE;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;

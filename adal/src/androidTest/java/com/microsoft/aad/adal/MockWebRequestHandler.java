@@ -23,6 +23,9 @@
 
 package com.microsoft.aad.adal;
 
+import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
+import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
+
 import junit.framework.Assert;
 
 import java.io.IOException;
@@ -60,7 +63,7 @@ class MockWebRequestHandler implements IWebRequestHandler {
 
     @Override
     public HttpWebResponse sendPost(URL url, Map<String, String> headers, byte[] content,
-            String contentType) throws IOException {
+                                    String contentType) throws IOException {
         mRequestUrl = url;
         mRequestHeaders = headers;
         if (content != null) {
@@ -101,5 +104,10 @@ class MockWebRequestHandler implements IWebRequestHandler {
     @Override
     public void setRequestCorrelationId(UUID correlationId) {
         mCorrelationId = correlationId;
+    }
+
+    @Override
+    public void setClientVersion(String clientVersion) {
+        // Wire up if needed.
     }
 }

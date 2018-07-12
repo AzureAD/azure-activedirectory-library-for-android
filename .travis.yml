@@ -2,7 +2,7 @@
 
 language: android
 
-jdk: 
+jdk:
   - oraclejdk8
 
 # Don't use the Travis Container-Based Infrastructure
@@ -15,13 +15,15 @@ android:
     - tools
     - platform-tools
     - tools
-    - build-tools-25.0.3
-    - android-25
-    - android-21
+    - build-tools-27.0.3
+    - android-27
     - extra
     - extra-android-m2repository
     - extra-google-m2repository
     - addon-google_apis-google-21
+    ## Emulator config ##
+    # The SDK version used for the emulator
+    - android-21
     #system images
     - sys-img-armeabi-v7a-android-21
 
@@ -30,8 +32,8 @@ env:
       # This is to guaratee a clean gradle log
       - TERM=dumb
     matrix:
-      - ANDROID_SDKS=android-25 ANDROID_TARGET=android-25
-      
+      - ANDROID_SDKS=android-27 ANDROID_TARGET=android-27
+
 before_install:
   - chmod +x gradlew
 
@@ -53,4 +55,4 @@ before_script:
 
 script:
   - cd $PWD
-  - ./gradlew clean build connectedAndroidTest -PdisablePreDex
+  - ./gradlew clean adal:assembleLocal adal:connectedLocalDebugAndroidTest -PdisablePreDex

@@ -23,8 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import java.util.concurrent.atomic.AtomicReference;
-
 /**
  * Settings to be used in AuthenticationContext.
  */
@@ -34,22 +32,14 @@ public enum AuthenticationSettings {
      */
     INSTANCE;
 
-    private static final int SECRET_RAW_KEY_LENGTH = 32;
-
     private static final int DEFAULT_EXPIRATION_BUFFER = 300;
 
     private static final int DEFAULT_READ_CONNECT_TIMEOUT = 30000;
 
-    private AtomicReference<byte[]> mSecretKeyData = new AtomicReference<>();
-
-    private String mBrokerPackageName = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
-
-    private String mBrokerSignature = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_SIGNATURE;
-
     private Class<?> mClazzDeviceCertProxy;
 
     private String mActivityPackageName;
-    
+
     private boolean mEnableHardwareAcceleration = true;
 
     /**
@@ -73,75 +63,66 @@ public enum AuthenticationSettings {
 
     private int mReadTimeOut = DEFAULT_READ_CONNECT_TIMEOUT;
 
+
     /**
      * Get bytes to derive secretKey to use in encrypt/decrypt.
-     * 
+     *
      * @return byte[] secret data
      */
     public byte[] getSecretKeyData() {
-        return mSecretKeyData.get();
+        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.getSecretKeyData();
     }
 
     /**
      * set raw bytes to derive secretKey to use in encrypt/decrypt. KeySpec
      * algorithm is AES.
-     * 
+     *
      * @param rawKey App related key to use in encrypt/decrypt
      */
     public void setSecretKey(byte[] rawKey) {
-        if (rawKey == null || rawKey.length != SECRET_RAW_KEY_LENGTH) {
-            throw new IllegalArgumentException("rawKey");
-        }
-
-        mSecretKeyData.set(rawKey);
+        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.setSecretKey(rawKey);
     }
 
     /**
      * Gets packagename for broker app that installed authenticator.
-     * 
+     *
      * @return packagename
      */
     public String getBrokerPackageName() {
-        return mBrokerPackageName;
+        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.getBrokerPackageName();
     }
 
     /**
      * Sets package name for broker app that installed authenticator.
-     * 
+     *
      * @param packageName package name related to broker
      */
     public void setBrokerPackageName(String packageName) {
-        if (StringExtensions.isNullOrBlank(packageName)) {
-            throw new IllegalArgumentException("packageName cannot be empty or null");
-        }
-        mBrokerPackageName = packageName;
+        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.setBrokerPackageName(packageName);
     }
 
     /**
      * Gets broker signature for broker app that installed authenticator.
-     * 
+     *
      * @return signature
      */
     public String getBrokerSignature() {
-        return mBrokerSignature;
+        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.getBrokerSignature();
     }
 
     /**
      * Sets broker app info for ADAL to use.
-     * 
+     *
      * @param brokerSignature Signature for broker
      */
     public void setBrokerSignature(String brokerSignature) {
-        if (StringExtensions.isNullOrBlank(brokerSignature)) {
-            throw new IllegalArgumentException("brokerSignature cannot be empty or null");
-        }
-        this.mBrokerSignature = brokerSignature;
+        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.setBrokerSignature(brokerSignature);
     }
 
     /**
      * set class for work place join related API. This is only used from
      * Authenticator side.
-     * 
+     *
      * @param clazz class for workplace join
      */
     public void setDeviceCertificateProxyClass(Class clazz) {
@@ -155,7 +136,7 @@ public enum AuthenticationSettings {
     /**
      * get class for work place join related API. This is only used from
      * Authenticator side.
-     * 
+     *
      * @return Class
      */
     public Class<?> getDeviceCertificateProxy() {
@@ -164,90 +145,85 @@ public enum AuthenticationSettings {
 
     /**
      * get package name to setup intent for AuthenticationActivity.
-     * 
+     *
      * @return Package name for activity
      */
     public String getActivityPackageName() {
-        return mActivityPackageName;
+        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.getActivityPackageName();
     }
 
     /**
      * set package name to setup intent for AuthenticationActivity.
-     * 
+     *
      * @param activityPackageName activity to use from different package
      */
     public void setActivityPackageName(String activityPackageName) {
-        if (StringExtensions.isNullOrBlank(activityPackageName)) {
-            throw new IllegalArgumentException("activityPackageName cannot be empty or null");
-        }
-        mActivityPackageName = activityPackageName;
+        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.setActivityPackageName(activityPackageName);
     }
 
     /**
-     * @deprecated As of release 1.1.14, replaced by {@link #getUseBroker()}
-     *
      * @return true if broker is not used, false otherwise
+     * @deprecated As of release 1.1.14, replaced by {@link #getUseBroker()}
      */
-    @Deprecated 
+    @Deprecated
     public boolean getSkipBroker() {
-        return !mUseBroker;
+        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.getSkipBroker();
     }
 
     /**
-     * @deprecated As of release 1.1.14, replaced by {@link #setUseBroker(boolean)}
-     *
      * @param skip true if broker has to be skipped, false otherwise
+     * @deprecated As of release 1.1.14, replaced by {@link #setUseBroker(boolean)}
      */
-    @Deprecated 
+    @Deprecated
     public void setSkipBroker(boolean skip) {
-        mUseBroker = !skip;
+        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.setSkipBroker(skip);
     }
 
     /**
      * Get broker usage.
-     * 
+     *
      * @return true if broker is used.
      */
     public boolean getUseBroker() {
-        return mUseBroker;
+        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.getUseBroker();
     }
 
     /**
      * Set flag to use or skip broker.
      * By default, the flag value is false and ADAL will not talk to broker.
-     * 
+     *
      * @param useBroker True to use broker
      */
     public void setUseBroker(boolean useBroker) {
-        this.mUseBroker = useBroker;
+        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.setUseBroker(useBroker);
     }
-    
+
     /**
      * Sets package name to use {@link DefaultTokenCacheStore} with sharedUserId
      * apps.
-     * 
+     *
      * @param packageNameForSharedFile Package name of other app
      */
     public void setSharedPrefPackageName(String packageNameForSharedFile) {
-        this.mSharedPrefPackageName = packageNameForSharedFile;
+        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.setSharedPrefPackageName(packageNameForSharedFile);
     }
 
     /**
      * Gets package name provided for shared preferences.
-     * 
+     *
      * @return package name provided for shared preferences
      */
     public String getSharedPrefPackageName() {
-        return mSharedPrefPackageName;
+        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.getSharedPrefPackageName();
     }
 
     /**
      * Gets expiration buffer.
-     * 
+     *
      * @return the amount of buffer that is provided to the expiration time.
      */
     public int getExpirationBuffer() {
-        return mExpirationBuffer;
+        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.getExpirationBuffer();
     }
 
     /**
@@ -255,11 +231,11 @@ public enum AuthenticationSettings {
      * expiration is less than this value(in seconds). Example: Set to 300 to
      * give 5min buffer. Token with Expiry time of 12:04 will say expired when
      * actual time is 12:00 with 5min buffer.
-     * 
+     *
      * @param expirationBuffer the time buffer provided to expiration time.
      */
     public void setExpirationBuffer(int expirationBuffer) {
-        this.mExpirationBuffer = expirationBuffer;
+        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.setExpirationBuffer(expirationBuffer);
     }
 
     /**
@@ -268,7 +244,7 @@ public enum AuthenticationSettings {
      * @return connect timeout
      */
     public int getConnectTimeOut() {
-        return mConnectTimeOut;
+        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.getConnectTimeOut();
     }
 
     /**
@@ -276,14 +252,11 @@ public enum AuthenticationSettings {
      * Connecting to a server will fail with a SocketTimeoutException if the
      * timeout elapses before a connection is established. Default value is
      * 30000 milliseconds.
-     * 
+     *
      * @param timeOutMillis the non-negative connect timeout in milliseconds.
      */
     public void setConnectTimeOut(int timeOutMillis) {
-        if (timeOutMillis < 0) {
-            throw new IllegalArgumentException("Invalid timeOutMillis");
-        }
-        this.mConnectTimeOut = timeOutMillis;
+        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.setConnectTimeOut(timeOutMillis);
     }
 
     /**
@@ -292,48 +265,41 @@ public enum AuthenticationSettings {
      * @return read timeout
      */
     public int getReadTimeOut() {
-        return mReadTimeOut;
+        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.getReadTimeOut();
     }
 
     /**
      * Sets the maximum time to wait for an input stream read to complete before
      * giving up. Reading will fail with a SocketTimeoutException if the timeout
      * elapses before data becomes available. The default value is 30000.
-     * 
+     *
      * @param timeOutMillis the read timeout in milliseconds. Non-negative
      */
     public void setReadTimeOut(int timeOutMillis) {
-        if (timeOutMillis < 0) {
-            throw new IllegalArgumentException("Invalid timeOutMillis");
-        }
-
-        this.mReadTimeOut = timeOutMillis;
+        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.setReadTimeOut(timeOutMillis);
     }
 
     /**
      * Method to enable/disable WebView hardware acceleration used in
-     * {@link AuthenticationActivity} and {@link AuthenticationDialog}. 
+     * {@link AuthenticationActivity} and {@link AuthenticationDialog}.
      * By default hardware acceleration is enable in WebView.
-     *  
-     * @param enable
-     *             if true, WebView would be hardwareAccelerated else it 
-     *             would be disable.
-     *             
+     *
+     * @param enable if true, WebView would be hardwareAccelerated else it
+     *               would be disable.
      * @see #getDisableWebViewHardwareAcceleration()
      */
     public void setDisableWebViewHardwareAcceleration(boolean enable) {
-        this.mEnableHardwareAcceleration = enable;
+        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.setDisableWebViewHardwareAcceleration(enable);
     }
 
     /**
      * Method to check whether WebView used in {@link AuthenticationActivity} and
      * {@link AuthenticationDialog} would be hardware accelerated or not.
-     * 
+     *
      * @return true if WebView is hardwareAccelerated otherwise false
-     * 
      * @see #setDisableWebViewHardwareAcceleration(boolean)
      */
     public boolean getDisableWebViewHardwareAcceleration() {
-        return this.mEnableHardwareAcceleration;
+        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.getDisableWebViewHardwareAcceleration();
     }
 }

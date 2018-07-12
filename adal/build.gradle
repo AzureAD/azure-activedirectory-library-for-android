@@ -1,8 +1,4 @@
 apply plugin: 'com.android.library'
-// Add JaCoCo for coverage metrics
-apply plugin: 'jacoco'
-// This plugin publishes adal in to the local maven repo
-apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'findbugs'
 apply plugin: 'pmd'
 apply plugin: 'checkstyle'
@@ -16,10 +12,9 @@ configurations {
 
 allprojects {
     repositories {
+        mavenLocal()
         jcenter()
-        maven {
-            url "https://maven.google.com"
-        }
+        google()
     }
 }
 
@@ -28,13 +23,11 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "com.github.dcendents:android-maven-gradle-plugin:$rootProject.ext.androidMavenGradlePluginVersion"
     }
 }
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
 
     defaultConfig {
         minSdkVersion rootProject.ext.minSdkVersion
@@ -48,10 +41,30 @@ android {
     buildTypes {
         debug {
             testCoverageEnabled true
+            debuggable true
+
         }
         release {
             minifyEnabled false
+            debuggable false
             proguardFiles getDefaultProguardFile('proguard-android.txt')
+        }
+    }
+
+    flavorDimensions "main"
+
+    productFlavors {
+        // The 'local' productFlavor sources common from mavenLocal and is intended to be used
+        // during development.
+        local {
+            dimension "main"
+            versionNameSuffix "-local"
+        }
+
+        // The 'dist' productFlavor sources common from a central repository and is intended
+        // to be used for releases.
+        dist {
+            dimension "main"
         }
     }
 
@@ -81,96 +94,56 @@ android {
         disable 'GradleDependency'
         disable 'GradleOverrides'
         disable 'OldTargetApi'
+        disable 'PackageManagerGetSignatures'
     }
 
     libraryVariants.all { variant ->
-        variant.outputs.each { output ->
-            def outputFile = output.outputFile
-            if (outputFile != null && outputFile.name.endsWith('.aar')) {
-                def fileName = "${archivesBaseName}-${version}.aar"
-                output.outputFile = new File(outputFile.parent, fileName)
-            }
+        variant.outputs.all {
+            outputFileName = "${archivesBaseName}-${version}.aar"
         }
     }
 }
 
 dependencies {
-    // Compile Dependencies
-    compile "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
-    compile "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
-    compile "com.android.support:support-annotations:$rootProject.ext.supportLibraryVersion"
-    compile "com.android.support:support-v4:$rootProject.ext.supportLibraryVersion"
+    // Dependencies required only at compile time
+    compileOnly 'com.google.code.findbugs:annotations:3.0.1', {
+        // Need to exclude these, or build is broken by:
+        //   com.android.dex.DexException: Multiple dex files define Ljavax/annotation/CheckForNull
+        exclude module: 'jsr305'
+        exclude module: 'jcip-annotations'
+    }
 
-    // Android Instrumental Test Dependencies
-    androidTestCompile "com.android.support.test:runner:$rootProject.ext.runnerVersion"
-    androidTestCompile "com.android.support.test:rules:$rootProject.ext.rulesVersion"
-    androidTestCompile "org.mockito:mockito-core:$rootProject.ext.mockitoCoreVersion"
-    androidTestCompile "com.google.dexmaker:dexmaker-mockito:$rootProject.ext.dexmakerMockitoVersion"
+    // Dependencies
+    implementation "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
+    implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
+    implementation "com.android.support:support-annotations:$rootProject.ext.supportLibraryVersion"
+    implementation "com.android.support:support-v4:$rootProject.ext.supportLibraryVersion"
+
+    // 'local' flavor dependencies
+    localImplementation(project(":common")) {
+        transitive = false
+    }
+
+    // 'dist' flavor dependencies
+    // Once common is deployed to maven, uncomment the below line...
+    // distImplementation "com.microsoft.identity:common:0.0.1"
+    // and delete the 3 following lines....
+    distImplementation(project(":common")) {
+        transitive = false
+    }
+
+    // Android Instrumented Test Dependencies
+    androidTestImplementation "com.android.support.test:runner:$rootProject.ext.runnerVersion"
+    androidTestImplementation "com.android.support.test:rules:$rootProject.ext.rulesVersion"
+    androidTestImplementation "org.mockito:mockito-core:$rootProject.ext.mockitoCoreVersion"
+    androidTestImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
 
     // Test Dependencies
-    testCompile "junit:junit:$rootProject.ext.junitVersion"
+    testImplementation "junit:junit:$rootProject.ext.junitVersion"
 
     // Javadoc Dependencies
     javadocDeps "com.android.support:support-annotations:$rootProject.ext.supportLibraryVersion"
     javadocDeps "com.android.support:support-v4:$rootProject.ext.supportLibraryVersion"
-}
-
-task jacocoTestReport(type: JacocoReport, dependsOn: 'testDebugUnitTest') {
-    reports {
-        xml.enabled = true
-        html.enabled = true
-    }
-
-    jacocoClasspath = configurations['androidJacocoAnt']
-
-    def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*', 'android/**/*.*', '**/AuthenticationConstants*.*', '**/IBrokerAccountService*.*', '**/EventStrings.class']
-    def debugTree = fileTree(dir: "${buildDir}/intermediates/classes/debug", excludes: fileFilter)
-    def mainSrc = "${project.projectDir}/src/main/java"
-
-    sourceDirectories = files([mainSrc])
-    classDirectories = files([debugTree])
-    executionData = fileTree(dir: "$buildDir", includes: [
-            "jacoco/testDebugUnitTest.exec",
-            "outputs/code-coverage/connected/*coverage.ec"
-    ])
-}
-
-task createPom  {
-    pom {
-        project {
-            groupId 'com.microsoft.aad'
-            artifactId 'adal'
-            version = project.version
-            packaging 'aar'
-            name 'adal'
-
-            description 'Azure active directory library for Android gives you the ability to add Windows Azure Active Directory authentication to your application with just a few lines of additional code. Using our ADAL SDKs you can quickly and easily extend your existing application to all the employees that use Windows Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.'
-            url 'https://github.com/MSOpenTech/azure-activedirectory-library-for-android'
-
-            developers {
-                developer {
-                    id 'microsoft'
-                    name 'Microsoft'
-                }
-            }
-
-            licenses {
-                license {
-                    name 'MIT License'
-                }
-            }
-            inceptionYear '2014'
-
-            properties {
-                branch 'master'
-                adalVersion = project.version
-            }
-
-            scm {
-                url "https://github.com/MSOpenTech/azure-activedirectory-library-for-android/tree/master"
-            }
-        }
-    }.writeTo("${archivesBaseName}-${version}.pom")
 }
 
 task sourcesJar(type: Jar) {
@@ -185,6 +158,7 @@ task javadoc(type: Javadoc) {
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
     classpath += configurations.javadocDeps
     exclude '**/*.aidl'
+
     if (JavaVersion.current().isJava8Compatible()) {
         allprojects {
             tasks.withType(Javadoc) {
@@ -192,6 +166,7 @@ task javadoc(type: Javadoc) {
             }
         }
     }
+
     destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
 }
 
@@ -211,10 +186,46 @@ publishing {
             version = project.version
 
             pom.withXml {
+                // Custom values
+
+                // Name
+                asNode().appendNode('name', 'adal')
+
+                // Description
+                asNode().appendNode(
+                        'description',
+                        'Azure active directory library for Android gives you the ability to add Windows Azure Active Directory authentication to your application with just a few lines of additional code. Using our ADAL SDKs you can quickly and easily extend your existing application to all the employees that use Windows Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.'
+                )
+
+                // URL
+                asNode().appendNode('url', 'https://github.com/AzureAD/azure-activedirectory-library-for-android')
+
+                // Inception Year
+                asNode().appendNode('inceptionYear', '2014')
+
+                // Licenses
+                asNode().appendNode('licenses').appendNode('license').appendNode('name', 'MIT License')
+
+                // Developers
+                def developerNode = asNode().appendNode('developers').appendNode('developer')
+                developerNode.appendNode('id', 'microsoft')
+                developerNode.appendNode('name', 'Microsoft')
+
+                // SCM
+                asNode().appendNode('scm').appendNode('url', 'https://github.com/AzureAD/azure-activedirectory-library-for-android/tree/master')
+
+                // Properties
+                def propertiesNode = asNode().appendNode('properties')
+                propertiesNode.appendNode('branch', 'master')
+                propertiesNode.appendNode('version', project.version)
+
                 def dependenciesNode = asNode().appendNode('dependencies')
 
-                //Iterate over the compile dependencies (we don't want the test ones), adding a <dependency> node for each
-                configurations.compile.allDependencies.each {
+                def deps = configurations.implementation.allDependencies.asList()
+                deps.addAll(configurations.distImplementation.allDependencies.asList())
+
+                //Iterate over the implementation dependencies (we don't want the test ones), adding a <dependency> node for each
+                deps.each {
                     if (it.group != null && it.name != null) {
                         def dependencyNode = dependenciesNode.appendNode('dependency')
                         dependencyNode.appendNode('groupId', it.group)
@@ -222,12 +233,14 @@ publishing {
                         dependencyNode.appendNode('version', it.version)
                     }
                 }
+
             }
 
             artifact(sourcesJar)
             artifact(javadocJar)
             artifact("$buildDir/outputs/aar/adal-${project.version}.aar")
         }
+
     }
 
     // Repositories to which Gradle can publish artifacts
@@ -276,7 +289,7 @@ task findbugs(type: FindBugs) {
     description 'Run findbugs'
     group 'verification'
 
-    classes = fileTree("build/intermediates/classes/debug/")
+    classes = fileTree("$project.buildDir/intermediates/classes/local/debug/")
     source = fileTree('src/main/java')
     classpath = files()
     effort = 'max'
@@ -327,6 +340,7 @@ task checkstyle(type: Checkstyle) {
 
 tasks.whenTaskAdded { task ->
     if (task.name == 'assembleDebug' || task.name == 'assembleRelease') {
-        task.dependsOn 'checkstyle', 'pmd', 'findbugs', 'lint', 'createPom'
+        task.dependsOn 'checkstyle', 'pmd', 'lint'
+        task.finalizedBy 'findbugs'
     }
 }

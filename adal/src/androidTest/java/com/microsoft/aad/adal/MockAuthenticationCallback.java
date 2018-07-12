@@ -36,11 +36,11 @@ class MockAuthenticationCallback implements AuthenticationCallback<Authenticatio
 
     private CountDownLatch mSignal;
 
-    public MockAuthenticationCallback() {
+    MockAuthenticationCallback() {
         mSignal = null;
     }
 
-    public MockAuthenticationCallback(final CountDownLatch signal) {
+    MockAuthenticationCallback(final CountDownLatch signal) {
         mSignal = signal;
     }
 
