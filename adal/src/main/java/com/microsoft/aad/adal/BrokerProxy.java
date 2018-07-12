@@ -481,8 +481,7 @@ class BrokerProxy implements IBrokerProxy {
 
             throw new AuthenticationException(adalErrorCode, msg);
         } else if (!StringExtensions.isNullOrBlank(oauth2ErrorCode) && request.isSilent()) {
-            final AuthenticationException exception = new AuthenticationException(ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED,
-                    "Received error from broker, errorCode: " + oauth2ErrorCode + "; ErrorDescription: " + oauth2ErrorDescription);
+            final AuthenticationException exception = getAuthenticationExceptionForResult(oauth2ErrorCode, oauth2ErrorDescription, bundleResult);
             final Serializable responseBody = bundleResult.getSerializable(AuthenticationConstants.OAuth2.HTTP_RESPONSE_BODY);
             final Serializable responseHeaders = bundleResult.getSerializable(AuthenticationConstants.OAuth2.HTTP_RESPONSE_HEADER);
             if (null != responseBody && responseBody instanceof HashMap) {
@@ -540,6 +539,36 @@ class BrokerProxy implements IBrokerProxy {
 
             return result;
         }
+    }
+
+    private AuthenticationException getAuthenticationExceptionForResult(final String oauth2ErrorCode, final String oauth2ErrorDescription,
+                                                                        final Bundle bundleResult) {
+        final String message = String.format("Received error from broker, errorCode: %s; ErrorDescription: %s",
+                oauth2ErrorCode, oauth2ErrorDescription);
+
+        // check the response body for the "unauthorized_client" error and the "protection_policy_required" suberror
+        final Serializable responseBody = bundleResult.getSerializable(AuthenticationConstants.OAuth2.HTTP_RESPONSE_BODY);
+        if (null != responseBody && responseBody instanceof HashMap) {
+            final HashMap<String, String> responseMap = (HashMap<String, String>) responseBody;
+            final String error = responseMap.get(AuthenticationConstants.OAuth2.ERROR);
+            final String suberror = responseMap.get(AuthenticationConstants.OAuth2.SUBERROR);
+            if (!StringExtensions.isNullOrBlank(error) && !StringExtensions.isNullOrBlank(suberror) &&
+                    AuthenticationConstants.OAuth2ErrorCode.UNAUTHORIZED_CLIENT.compareTo(error) == 0 &&
+                    AuthenticationConstants.OAuth2ErrorCode.PROTECTION_POLICY_REQUIRED.compareTo(suberror) == 0) {
+
+                final String accountUpn = bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_NAME);
+                final String accountUserId = bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID);
+                final String tenantId = bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID);
+                final String authorityUrl = bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY);
+
+                AuthenticationException exception = new IntuneAppProtectionPolicyRequiredException(
+                        message, accountUpn, accountUserId, tenantId, authorityUrl);
+
+                return exception;
+            }
+        }
+
+        return new AuthenticationException(ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, message);
     }
 
     /**

@@ -27,7 +27,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-import java.util.HashMap;
+import java.util.Map;
 
 import org.json.JSONException;
 
@@ -55,7 +55,7 @@ public interface IJWSBuilder {
                              RSAPublicKey pubKey, X509Certificate x509Certificate) throws AuthenticationException;
 
 
-    String generateJWT(HashMap<String, String> header,
-			HashMap<String, String> body, int expTimeInSeconds) throws JSONException,
+    String generateJWT(Map<String, String> header,
+			Map<String, String> body, int expTimeInSeconds) throws JSONException,
 			UnsupportedEncodingException;
 }

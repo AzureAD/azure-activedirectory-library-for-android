@@ -43,7 +43,6 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -115,7 +114,7 @@ class JWSBuilder implements IJWSBuilder {
      * @throws JSONException
      * @throws UnsupportedEncodingException
      */
-    public String generateJWT(HashMap<String, String> header, HashMap<String, String> body,
+    public String generateJWT(Map<String, String> header, Map<String, String> body,
             int expTimeInSeconds) throws JSONException, UnsupportedEncodingException {
         Logger.v(TAG, "Generating JWT.");
         JSONObject headerJson = generateJson(header, expTimeInSeconds);
@@ -125,7 +124,7 @@ class JWSBuilder implements IJWSBuilder {
         return signingInput;
     }
 
-    private JSONObject generateJson(HashMap<String, String> values, int expireSeconds)
+    private JSONObject generateJson(Map<String, String> values, int expireSeconds)
             throws JSONException {
         JSONObject json = new JSONObject();
         long iat = (System.currentTimeMillis() / SECONDS_MS);

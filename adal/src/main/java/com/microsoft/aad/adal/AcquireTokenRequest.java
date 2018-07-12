@@ -794,8 +794,21 @@ class AcquireTokenRequest {
                             .getString(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE);
                     Logger.v(TAG + methodName, "Error info:" + errCode + " for requestId: "
                             + requestId + " " + correlationInfo, errMessage, null);
-                    waitingRequestOnError(waitingRequest, requestId, new AuthenticationException(
-                            ADALError.SERVER_INVALID_REQUEST, errCode + " " + errMessage + correlationInfo));
+
+                    final String message = String.format("%s %s %s", errCode, errMessage, correlationInfo);
+                    if (!StringExtensions.isNullOrBlank(errCode) &&
+                            ADALError.AUTH_FAILED_INTUNE_POLICY_REQUIRED.name().compareTo(errCode) == 0) {
+                        final String accountUpn = extras.getString(AuthenticationConstants.Broker.ACCOUNT_NAME);
+                        final String accountId = extras.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID);
+                        final String tenantId = extras.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID);
+                        final String authority = extras.getString(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY);
+
+                        AuthenticationException intuneException = new IntuneAppProtectionPolicyRequiredException(message, accountUpn, accountId, tenantId, authority);
+                        waitingRequestOnError(waitingRequest, requestId, intuneException);
+                    } else {
+                        waitingRequestOnError(waitingRequest, requestId, new AuthenticationException(
+                                ADALError.SERVER_INVALID_REQUEST, message));
+                    }
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE) {
                     final AuthenticationRequest authenticationRequest = (AuthenticationRequest) extras
                             .getSerializable(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO);
