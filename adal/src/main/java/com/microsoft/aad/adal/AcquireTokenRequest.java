@@ -872,8 +872,7 @@ class AcquireTokenRequest {
                                                     + ' ' + Log.getStackTraceString(authenticationException),
                                             ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
                                             null);
-                                    waitingRequestOnError(callbackHandle, waitingRequest, requestId,
-                                            null);
+                                    waitingRequestOnError(callbackHandle, waitingRequest, requestId, authenticationException);
                                 }
                             }
                         });
