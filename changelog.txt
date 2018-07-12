@@ -1,3 +1,7 @@
+Version 1.14.1
+--------------
+(Hotfix) Fix for crash on devices where PRNG fixes is used.
+
 Version 1.14.0
 -------------
 Add support for GDPR PII/OII Filtering.
