@@ -57,6 +57,8 @@ public class TokenRequest {
     private String mTenantId;
     @SerializedName("force_refresh")
     private Boolean mForceRefresh = false;
+    @SerializedName("foci")
+    private String mFamilyClientId = null;
 
     public String getClientId() {
         return mClientId;
@@ -160,5 +162,13 @@ public class TokenRequest {
 
     public void setForceRefresh(Boolean forceRefresh) {
         this.mForceRefresh = forceRefresh;
+    }
+
+    public void setFamilyClientId(String familyClientId){
+        mFamilyClientId = familyClientId;
+    }
+
+    public String getFamilyClientId(){
+        return mFamilyClientId;
     }
 }

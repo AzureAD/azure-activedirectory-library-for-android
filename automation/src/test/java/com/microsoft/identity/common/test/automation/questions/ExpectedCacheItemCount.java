@@ -1,7 +1,7 @@
 package com.microsoft.identity.common.test.automation.questions;
 
-import com.microsoft.identity.common.internal.net.ObjectMapper;
 import com.microsoft.identity.common.test.automation.model.ReadCacheResult;
+import com.microsoft.identity.common.test.automation.model.ResultsMapper;
 import com.microsoft.identity.common.test.automation.ui.Results;
 
 import net.serenitybdd.screenplay.Actor;
@@ -16,7 +16,7 @@ public class ExpectedCacheItemCount implements Question<Integer> {
     @Override
     public Integer answeredBy(Actor actor) {
         String results = Text.of(Results.RESULT_FIELD).viewedBy(actor).asString();
-        ReadCacheResult readCacheResult = (ReadCacheResult) ObjectMapper.deserializeJsonStringToObject(results, ReadCacheResult.class);
+        ReadCacheResult readCacheResult = ResultsMapper.GetReadCacheResultFromString(results);
         if(readCacheResult!=null) {
             return readCacheResult.isCommonCache ? COMMON_CACHE_COUNT : ADAL_LEGACY_CACHE_COUNT;
         }

@@ -81,4 +81,13 @@ public class Constants {
 
     public static final String AUTOMATION_TEST_APP_BROKER_REDIRECT_URI = "msauth://com.microsoft.aad.automation.testapp.adal/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D";
 
+
+    public static final String OUTLOOK_CLIENT_ID = "27922004-5251-4030-b22d-91ecd9a37ea4";
+
+    public static final String ONE_DRIVE_CLIENT_ID = "b26aadf8-566f-4478-926f-589f601d9c74";
+
+    public static final String OUTLOOK_REDIRECT_URI = "urn:ietf:wg:oauth:2.0:oob";
+
+    public static final String ONE_DRIVE_REDIRECT_URI = "urn:ietf:wg:oauth:2.0:oob";
+
 }
