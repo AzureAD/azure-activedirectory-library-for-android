@@ -23,8 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-
 import java.io.Serializable;
 import java.util.Locale;
 
@@ -37,7 +35,7 @@ public final class CacheKey implements Serializable {
      * Serial version id.
      */
     private static final long serialVersionUID = 8067972995583126404L;
-
+    
     static final String FRT_ENTRY_PREFIX = "foci-";
 
     private String mAuthority;
@@ -49,7 +47,7 @@ public final class CacheKey implements Serializable {
     private String mUserId;
 
     private String mFamilyClientId;
-
+    
     private boolean mIsMultipleResourceRefreshToken;
 
     private CacheKey() {
@@ -62,28 +60,28 @@ public final class CacheKey implements Serializable {
             return String.format(Locale.US, "%s$%s$%s$%s$%s", mAuthority, mResource, mClientId,
                     (mIsMultipleResourceRefreshToken ? "y" : "n"), mUserId);
         }
-
+        
         return String.format(Locale.US, "%s$%s$%s$%s$%s$%s", mAuthority, mResource, mClientId,
                 (mIsMultipleResourceRefreshToken ? "y" : "n"), mUserId, mFamilyClientId);
     }
 
     /**
-     * @param authority                   URL of the authenticating authority
-     * @param resource                    resource identifier
-     * @param clientId                    client identifier
+     * @param authority URL of the authenticating authority
+     * @param resource resource identifier
+     * @param clientId client identifier
      * @param isMultiResourceRefreshToken true/false for refresh token type
-     * @param userId                      userid provided from {@link UserInfo}
-     * @param familyClientId              Family client Id of the app. FoCI feature only applies to Microsoft
-     *                                    apps now, by default the id will be "1".
+     * @param userId userid provided from {@link UserInfo}
+     * @param familyClientId Family client Id of the app. FoCI feature only applies to Microsoft
+     *                       apps now, by default the id will be "1".
      * @return CacheKey to use in saving token
      */
     public static String createCacheKey(final String authority, final String resource, final String clientId,
-                                        final boolean isMultiResourceRefreshToken, final String userId, final String familyClientId) {
+            final boolean isMultiResourceRefreshToken, final String userId, final String familyClientId) {
 
         if (authority == null) {
             throw new IllegalArgumentException("authority");
         }
-
+        
         // For family token cache entry, client id will be foci-familyId
         // When we receive family token from server response, will use whatever
         // server returned as familyId; for caching look up, will hardcode "1"
@@ -92,9 +90,9 @@ public final class CacheKey implements Serializable {
         if (clientId == null && familyClientId == null) {
             throw new IllegalArgumentException("both clientId and familyClientId are null");
         }
-
+        
         final CacheKey key = new CacheKey();
-
+        
         if (!isMultiResourceRefreshToken) {
             if (resource == null) {
                 throw new IllegalArgumentException("resource");
@@ -103,7 +101,7 @@ public final class CacheKey implements Serializable {
             // MultiResource token items will be stored without resource
             key.mResource = resource;
         }
-
+        
         key.mAuthority = authority.toLowerCase(Locale.US);
         if (key.mAuthority.endsWith("/")) {
             key.mAuthority = (String) key.mAuthority.subSequence(0, key.mAuthority.length() - 1);
@@ -112,10 +110,10 @@ public final class CacheKey implements Serializable {
         if (clientId != null) {
             key.mClientId = clientId.toLowerCase(Locale.US);
         }
-
+        
         if (familyClientId != null) {
             final String prefixedFamilyClient = FRT_ENTRY_PREFIX + familyClientId;
-            key.mFamilyClientId = prefixedFamilyClient.toLowerCase(Locale.US);
+            key.mFamilyClientId =  prefixedFamilyClient.toLowerCase(Locale.US);
         }
 
         key.mIsMultipleResourceRefreshToken = isMultiResourceRefreshToken;
@@ -129,12 +127,11 @@ public final class CacheKey implements Serializable {
     }
 
     /**
-     * Create cachekey from {@link TokenCacheItem}. It will use {@link UserInfo#getUserId()}
-     * as the user for cachekey if present.
-     *
-     * @param item {@link TokenCacheItem} that is used to create the cache key.
-     * @return String value of the {@link CacheKey} to save token.
-     * @throws AuthenticationException
+     * Create cachekey from {@link TokenCacheItem}. It will use {@link UserInfo#getUserId()} 
+     * as the user for cachekey if present. 
+     * @param item {@link TokenCacheItem} that is used to create the cache key. 
+     * @return String value of the {@link CacheKey} to save token. 
+     * @throws AuthenticationException 
      */
     public static String createCacheKey(TokenCacheItem item) throws AuthenticationException {
         if (item == null) {
@@ -145,28 +142,27 @@ public final class CacheKey implements Serializable {
         if (item.getUserInfo() != null) {
             userid = item.getUserInfo().getUserId();
         }
-
+        
         final TokenEntryType tokenEntryType = item.getTokenEntryType();
         switch (tokenEntryType) {
-            case REGULAR_TOKEN_ENTRY:
-                return createCacheKeyForRTEntry(item.getAuthority(), item.getResource(),
-                        item.getClientId(), userid);
-            case MRRT_TOKEN_ENTRY:
-                return createCacheKeyForMRRT(item.getAuthority(), item.getClientId(), userid);
-            case FRT_TOKEN_ENTRY:
-                return createCacheKeyForFRT(item.getAuthority(), item.getFamilyClientId(), userid);
-            default:
-                throw new AuthenticationException(ADALError.INVALID_TOKEN_CACHE_ITEM, "Cannot create cachekey from given token item");
+        case REGULAR_TOKEN_ENTRY: 
+            return createCacheKeyForRTEntry(item.getAuthority(), item.getResource(), 
+                    item.getClientId(), userid);
+        case MRRT_TOKEN_ENTRY:
+            return createCacheKeyForMRRT(item.getAuthority(), item.getClientId(), userid);
+        case FRT_TOKEN_ENTRY:
+            return createCacheKeyForFRT(item.getAuthority(), item.getFamilyClientId(), userid);
+        default: 
+            throw new AuthenticationException(ADALError.INVALID_TOKEN_CACHE_ITEM, "Cannot create cachekey from given token item");
         }
     }
 
     /**
      * Create cache key for regular RT entry.
-     *
      * @param authority Authority for the key to store regular RT entry.
-     * @param resource  Resource for the key to store regular RT entry.
-     * @param clientId  Client id for the key to store regular RT entry.
-     * @param userId    User id for the key to store regular RT entry.
+     * @param resource Resource for the key to store regular RT entry.
+     * @param clientId Client id for the key to store regular RT entry.
+     * @param userId User id for the key to store regular RT entry.
      * @return The cache key for regular RT entry.
      */
     public static String createCacheKeyForRTEntry(final String authority, final String resource,
@@ -176,22 +172,20 @@ public final class CacheKey implements Serializable {
 
     /**
      * Create cache key for MRRT entry.
-     *
      * @param authority The authority used to create the cache key.
-     * @param clientId  The client id used to create the cache key.
-     * @param userId    The user id used to create the cache key.
+     * @param clientId The client id used to create the cache key.
+     * @param userId The user id used to create the cache key.
      * @return The cache key for MRRT entry.
      */
     public static String createCacheKeyForMRRT(final String authority, final String clientId, final String userId) {
         return createCacheKey(authority, null, clientId, true, userId, null);
     }
-
+    
     /**
      * Create cache key for FRT entry.
-     *
-     * @param authority      The authority of the cache key.
+     * @param authority The authority of the cache key.
      * @param familyClientId The family client id of the FRT entry cache key.
-     * @param userId         The user id of the cache key.
+     * @param userId The user id of the cache key.
      * @return The cache key for FRT entry.
      */
     public static String createCacheKeyForFRT(final String authority, final String familyClientId, final String userId) {
@@ -200,7 +194,6 @@ public final class CacheKey implements Serializable {
 
     /**
      * Gets Authority.
-     *
      * @return Authority
      */
     public String getAuthority() {
@@ -209,7 +202,6 @@ public final class CacheKey implements Serializable {
 
     /**
      * Gets Resource.
-     *
      * @return Resource
      */
     public String getResource() {
@@ -218,7 +210,6 @@ public final class CacheKey implements Serializable {
 
     /**
      * Gets ClientId.
-     *
      * @return ClientId
      */
     public String getClientId() {
@@ -227,7 +218,6 @@ public final class CacheKey implements Serializable {
 
     /**
      * Gets UserId.
-     *
      * @return UserId
      */
     public String getUserId() {
@@ -236,7 +226,6 @@ public final class CacheKey implements Serializable {
 
     /**
      * Gets status for multi resource refresh token.
-     *
      * @return status for multi resource refresh token
      */
     public boolean getIsMultipleResourceRefreshToken() {

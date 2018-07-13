@@ -25,8 +25,6 @@ package com.microsoft.aad.adal;
 
 import android.support.test.runner.AndroidJUnit4;
 
-
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -68,10 +66,10 @@ public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
     /**
      * test the usage of cache from different threads. It is expected to work
      * with multiThreads
-     *
+     * 
      * @throws NoSuchPaddingException
      * @throws NoSuchAlgorithmException
-     * @throws AuthenticationException
+     * @throws AuthenticationException 
      */
     @Test
     public void testSharedCacheGetItem() throws NoSuchAlgorithmException, NoSuchPaddingException, AuthenticationException {
@@ -146,10 +144,10 @@ public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
 
     /**
      * memory cache is shared between context
-     *
+     * 
      * @throws NoSuchPaddingException
      * @throws NoSuchAlgorithmException
-     * @throws AuthenticationException
+     * @throws AuthenticationException 
      */
     @Test
     public void testMemoryCacheMultipleContext() throws NoSuchAlgorithmException,

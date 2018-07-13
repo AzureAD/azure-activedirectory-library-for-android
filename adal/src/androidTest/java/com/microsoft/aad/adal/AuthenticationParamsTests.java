@@ -30,9 +30,6 @@ import com.microsoft.aad.adal.AuthenticationParameters.AuthenticationParamCallba
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
 
-import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
-import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
-
 import junit.framework.Assert;
 
 import org.json.JSONException;
@@ -288,7 +285,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
 
         private ADALError mCheckCode;
 
-        LogCallback(ADALError errorCode) {
+        public LogCallback(ADALError errorCode) {
             mCheckCode = errorCode;
             mCalled = false;
         }
@@ -309,7 +306,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
         Method m = null;
         try {
             m = AuthenticationParameters.class.getDeclaredMethod("parseResponse",
-                    Class.forName("com.microsoft.identity.common.adal.internal.net.HttpWebResponse"));
+                    Class.forName("com.microsoft.aad.adal.HttpWebResponse"));
         } catch (NoSuchMethodException e) {
             assertTrue("parseResponse is not found", false);
         }

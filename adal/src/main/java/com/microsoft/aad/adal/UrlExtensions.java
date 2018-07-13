@@ -23,8 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-
 import java.net.URL;
 import java.util.Locale;
 

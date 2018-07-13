@@ -39,17 +39,12 @@ import android.test.UiThreadTest;
 import android.util.Base64;
 
 import com.google.gson.Gson;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryCloud;
 
 import junit.framework.Assert;
 
 import org.json.JSONException;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -65,7 +60,6 @@ import java.net.HttpURLConnection;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -111,10 +105,6 @@ public final class AuthenticationContextTest {
      */
     private static final String VALID_AUTHORITY = "https://login.windows.net/test.onmicrosoft.com";
 
-    /**
-     * This value Controls the timeout for CloudDownLatches used in various tests
-     * You may want to increase this value when debugging a test
-     */
     protected static final int CONTEXT_REQUEST_TIME_OUT = 20000;
 
     protected static final int ACTIVITY_TIME_OUT = 1000;
@@ -154,14 +144,6 @@ public final class AuthenticationContextTest {
             SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
             AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
         }
-
-        final InstanceDiscoveryMetadata metadata = new InstanceDiscoveryMetadata("login.microsoftonline.com", "login.windows.net");
-        //final AzureActiveDirectoryCloud cloud = CoreAdapter.asAadCloud(metadata);
-
-        AuthorityValidationMetadataCache.updateInstanceDiscoveryMap("login.windows.net", metadata);
-        //AzureActiveDirectory.putCloud("login.windows.net", cloud);
-        addAzureADCloudForValidAuthority();
-
         AuthenticationSettings.INSTANCE.setUseBroker(false);
         // ADAL is set to this signature for now
         PackageInfo info = InstrumentationRegistry.getContext().getPackageManager()
@@ -949,8 +931,7 @@ public final class AuthenticationContextTest {
      * token response must match to result and cache.
      */
     @Test
-    public void
-    testRefreshTokenPositive() throws IOException, InterruptedException, AuthenticationException {
+    public void testRefreshTokenPositive() throws IOException, InterruptedException, AuthenticationException {
 
         FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
@@ -963,11 +944,11 @@ public final class AuthenticationContextTest {
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
         final String response = "{\"id_token\":\""
                 + TEST_IDTOKEN
-                + "\",\"access_token\":\"TokenFortestRefreshTokenPositive\",\"token_type\":\"Bearer\",\"expires_in\":\"-10\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\", \"client_info\":\"" + Util.TEST_CLIENT_INFO + "\"}";
+                + "\",\"access_token\":\"TokenFortestRefreshTokenPositive\",\"token_type\":\"Bearer\",\"expires_in\":\"-10\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\"}";
 
         final String response2 = "{\"id_token\":\""
                 + TEST_IDTOKEN
-                + "\",\"access_token\":\"TokenReturnsWithIdToken\",\"token_type\":\"Bearer\",\"expires_in\":\"3600\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshABC\",\"scope\":\"*\", \"client_info\":\"" + Util.TEST_CLIENT_INFO + "\"}";
+                + "\",\"access_token\":\"TokenReturnsWithIdToken\",\"token_type\":\"Bearer\",\"expires_in\":\"3600\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshABC\",\"scope\":\"*\"}";
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
@@ -1019,7 +1000,7 @@ public final class AuthenticationContextTest {
         final String response = "{\"id_token\":\""
                 + idtoken.getIdToken()
                 + "\",\"access_token\":\"TokenUserIdTest\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\","
-                + "\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\", \"client_info\":\"" + Util.TEST_CLIENT_INFO + "\"}";
+                + "\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\"}";
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
@@ -1080,7 +1061,7 @@ public final class AuthenticationContextTest {
         final String response = "{\"id_token\":\""
                 + idtoken.getIdToken()
                 + "\",\"access_token\":\"TokenUserIdTest\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\","
-                + "\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\", \"client_info\":\"" + Util.TEST_CLIENT_INFO + "\"}";
+                + "\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\"}";
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
@@ -1115,8 +1096,7 @@ public final class AuthenticationContextTest {
         clearCache(context);
     }
 
-
-    @Ignore
+    @Test
     public void testScenarioEmptyIdToken() throws InterruptedException, AuthenticationException, IOException, JSONException {
         FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
@@ -1176,7 +1156,7 @@ public final class AuthenticationContextTest {
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
         final String response = "{\"id_token\":\""
                 + TEST_IDTOKEN
-                + "\",\"access_token\":\"TokenFortestRefreshTokenPositive\",\"token_type\":\"Bearer\",\"expires_in\":\"-10\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\",\"foci\":\"1\", \"client_info\":\"" + Util.TEST_CLIENT_INFO + "\"}";
+                + "\",\"access_token\":\"TokenFortestRefreshTokenPositive\",\"token_type\":\"Bearer\",\"expires_in\":\"-10\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\",\"foci\":\"1\"}";
         // response2 has FoCI as "familyClientId"
         final String response2 = Util.getSuccessTokenResponse(true, true);
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
@@ -1209,14 +1189,6 @@ public final class AuthenticationContextTest {
         clearCache(context);
     }
 
-    private void addAzureADCloudForValidAuthority() {
-        List<String> aliases = new ArrayList<String>();
-        aliases.add("login.windows.net");
-        aliases.add("login.microsoftonline.com");
-        AzureActiveDirectoryCloud cloud = new AzureActiveDirectoryCloud("login.microsoftonline.com", "login.windows.net", aliases);
-        AzureActiveDirectory.putCloud("login.windows.net", cloud);
-    }
-
     /**
      * When an authority is invalid, but the validation is not required:
      * a. ADAL still behaves correctly using developer provided authority
@@ -1238,7 +1210,7 @@ public final class AuthenticationContextTest {
         // mock another silent request will only do token refresh
         Mockito.when(mockedConnection.getInputStream()).thenThrow(new IOException())
                 .thenReturn(Util.createInputStream(Util.getSuccessTokenResponse(true, true)),
-                        Util.createInputStream(Util.getSuccessTokenResponse(true, false)));
+                Util.createInputStream(Util.getSuccessTokenResponse(true, false)));
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_BAD_REQUEST, HttpURLConnection.HTTP_OK);
 
@@ -1373,8 +1345,8 @@ public final class AuthenticationContextTest {
     }
 
     /**
-     * If multiple simultaneous acquireToken calls with the same authority are made without any authority cache,
-     * only one authority validation network request is ever made.
+     *  If multiple simultaneous acquireToken calls with the same authority are made without any authority cache,
+     *  only one authority validation network request is ever made.
      */
     @Test
     public void testMultipleATCallsInDifferentThreadsOnlyOneAuthorityValidation() throws IOException, InterruptedException, ExecutionException {
@@ -1435,8 +1407,6 @@ public final class AuthenticationContextTest {
      * but differs from preferred_cache:
      * new tokens are written to cache using solely the preferred_cache authority
      */
-    //TODO: Fix Test
-    @Ignore
     @Test
     public void testNewTokenOnlyWrittenToPreferredCacheLocation() throws InterruptedException, IOException, JSONException {
         final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
@@ -1502,7 +1472,7 @@ public final class AuthenticationContextTest {
                 AuthenticationConstants.Browser.REQUEST_MESSAGE);
         assertTrue(requestMessage.getAuthority().contains("login.microsoftonline.com"));
 
-        final SharedPreferences sharedPreferences = mockContext.getSharedPreferences("com.microsoft.aad.adal.cache", Activity.MODE_PRIVATE);
+        final SharedPreferences sharedPreferences =  mockContext.getSharedPreferences("com.microsoft.aad.adal.cache", Activity.MODE_PRIVATE);
         final Map<String, String> allTokens = (Map<String, String>) sharedPreferences.getAll();
         final int expectedMapSize = 8;
         Assert.assertTrue(allTokens.size() == expectedMapSize);
@@ -1701,12 +1671,9 @@ public final class AuthenticationContextTest {
         final MockActivity testActivity = new MockActivity();
         final CountDownLatch signal = new CountDownLatch(1);
         testActivity.mSignal = signal;
-
-        final String response = "{\"id_token\":\""
-                + TEST_IDTOKEN
-                + "\",\"access_token\":\"TokenFortestRefreshTokenPositive\",\"token_type\":\"Bearer\","
+        final String response = "{\"access_token\":\"TokenFortestRefreshTokenPositive\",\"token_type\":\"Bearer\","
                 + "\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\","
-                + "\"scope\":\"*\", \"client_info\":\"" + Util.TEST_CLIENT_INFO + "\"}";
+                + "\"scope\":\"*\"}";
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
@@ -1812,6 +1779,11 @@ public final class AuthenticationContextTest {
                                             AuthenticationResult result) {
         assertNull("Error is null", resultException);
         assertEquals("Token is same", "TokenFortestRefreshTokenPositive", result.getAccessToken());
+        assertNotNull("Cache is NOT empty for this userid for regular token",
+                mockCache.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientId",
+                        TEST_IDTOKEN_USERID)));
+        assertNull("Cache is empty for multiresource token", mockCache.getItem(
+                CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, "clientId", TEST_IDTOKEN_USERID)));
         assertNotNull("Cache is NOT empty for this userid for regular token",
                 mockCache.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientId",
                         TEST_IDTOKEN_USERID)));
@@ -2286,9 +2258,8 @@ public final class AuthenticationContextTest {
 
         final String response = "{\"access_token\":\"accesstoken"
                 + "\",\"token_type\":\"Bearer\",\"expires_in\":\"29344\",\"expires_on\":\"1368768616\","
-                + "\"resource\":1,"
                 + "\"refresh_token\":\""
-                + "refreshToken" + "\",\"scope\":\"*\",\"id_token\":\"" + TEST_IDTOKEN + "\", \"client_info\":\"" + Util.TEST_CLIENT_INFO + "\"}";
+                + "refreshToken" + "\",\"scope\":\"*\",\"id_token\":\"" + TEST_IDTOKEN + "\"}";
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
@@ -2331,6 +2302,8 @@ public final class AuthenticationContextTest {
 
         assertEquals("Token is returned from refresh token request", expectedAT,
                 callback.getAuthenticationResult().getAccessToken());
+        assertFalse("Multiresource is not set in the mocked response",
+                callback.getAuthenticationResult().getIsMultiResourceRefreshToken());
 
         // Same call again to use it from cache
         signal = new CountDownLatch(1);
@@ -2344,206 +2317,20 @@ public final class AuthenticationContextTest {
         assertEquals("Same token in response as in cache for same call", expectedAT,
                 callback.getAuthenticationResult().getAccessToken());
 
-        clearCache(context);
-    }
-
-    /**
-     * forceRefresh should result in the following behavior:
-     * 1) When broker available (installed and user has refresh tokens in broker cache) for current user,
-     * bypass local access and refresh token and perform refresh using the broker
-     *
-     * 2) When the broker is not available (not installed or the user does not have refresh tokens in broker cache)
-     * bypass the local access token and use the local refresh token to refresh
-     *
-     * setup cache with userid for normal access token and AAD  refresh token (MRRT)
-     * bound to one userid. verify that the forceRefresh parameter bypasses the local access token
-     * and refreshes using the local refresh token
-     *
-     * @throws IOException
-     * @throws InterruptedException
-     */
-    @Test
-    public void testAcquireTokenSilentWithForceRefreshWithoutBroker() throws IOException, InterruptedException {
-        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
-
-        final String redirectUri = "redirectUri";
-        final String clientId = "clientId";
-
-        final String tokenToTest = "accessToken=" + UUID.randomUUID();
-        final String expectedAT = "accesstoken";
-        String resource = "Resource" + UUID.randomUUID();
-        ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
-        mockCache.removeAll();
-
-        TestCacheItem newItem = new TestCacheItem();
-        newItem.setToken(tokenToTest);
-        newItem.setRefreshToken("refreshTokenNormal");
-        newItem.setAuthority(VALID_AUTHORITY);
-        newItem.setResource(resource);
-        newItem.setClientId(clientId);
-        newItem.setUserId(TEST_IDTOKEN_USERID);
-        newItem.setName("name");
-        newItem.setFamilyName("familyName");
-        newItem.setDisplayId(TEST_IDTOKEN_UPN);
-        newItem.setTenantId("tenantId");
-        newItem.setMultiResource(false);
-
-        addItemToCache(mockCache, newItem);
-
-        newItem = new TestCacheItem();
-        newItem.setToken("");
-        newItem.setRefreshToken("refreshTokenMultiResource");
-        newItem.setAuthority(VALID_AUTHORITY);
-        newItem.setResource(resource);
-        newItem.setClientId(clientId);
-        newItem.setUserId(TEST_IDTOKEN_USERID);
-        newItem.setName("name");
-        newItem.setFamilyName("familyName");
-        newItem.setDisplayId(TEST_IDTOKEN_UPN);
-        newItem.setTenantId("tenantId");
-        newItem.setMultiResource(true);
-
-        addItemToCache(mockCache, newItem);
-        // only one MRRT for same user, client, authority
-        final AuthenticationContext context = new AuthenticationContext(mockContext,
-                VALID_AUTHORITY, false, mockCache);
-
-        final String response = "{\"access_token\":\"accesstoken"
-                + "\",\"token_type\":\"Bearer\",\"expires_in\":\"29344\",\"expires_on\":\"1368768616\","
-                + "\"resource\":\"" + resource + "\","
-                + "\"refresh_token\":\""
-                + "refreshToken" + "\",\"scope\":\"*\",\"id_token\":\"" + TEST_IDTOKEN + "\", \"client_info\":\"" + Util.TEST_CLIENT_INFO + "\"}";
-        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
-        Util.prepareMockedUrlConnection(mockedConnection);
-        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
-        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response),
-                Util.createInputStream(response));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
-
-        final int requestWaitMs = 200000;
-        CountDownLatch signal = new CountDownLatch(1);
-        MockActivity testActivity = new MockActivity(signal);
-        MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
-
-        // 1st token request, read from cache.
-        context.acquireTokenSilentAsync(resource, clientId, TEST_IDTOKEN_UPN, callback);
-        signal.await(requestWaitMs, TimeUnit.MILLISECONDS);
-        assertNull("Error is null", callback.getException());
-        assertEquals("Same token in response as in cache", tokenToTest,
-                callback.getAuthenticationResult().getAccessToken());
-
-        // 2st token request, forceRefresh false.
-        context.acquireTokenSilentAsync(resource, clientId, TEST_IDTOKEN_UPN, false, callback);
-        signal.await(requestWaitMs, TimeUnit.MILLISECONDS);
-        assertNull("Error is null", callback.getException());
-        assertEquals("Same token in response as in cache", tokenToTest,
-                callback.getAuthenticationResult().getAccessToken());
-
-        // 3nd token request with force refresh true.
+        // Empty userid will prompt.
+        // Items are linked to userid. If it is not there, it can't use for
+        // refresh or access token.
         signal = new CountDownLatch(1);
+        testActivity = new MockActivity(signal);
         callback = new MockAuthenticationCallback(signal);
-        context.acquireTokenSilentAsync(resource, clientId, TEST_IDTOKEN_UPN, true, callback);
-        signal.await(requestWaitMs, TimeUnit.MILLISECONDS);
+        context.acquireToken(testActivity.getTestActivity(), resource, "ClienTid", "redirectUri", "", callback);
+        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
-        assertNull("Error is null", callback.getException());
-        assertEquals("Same token as refresh token result", expectedAT,
-                callback.getAuthenticationResult().getAccessToken());
-
-        clearCache(context);
-    }
-
-    /**
-     * forceRefresh should result in the following behavior:
-     * 1) When broker available (installed and user has refresh tokens in broker cache) for current user,
-     * bypass local access and refresh token and perform refresh using the broker
-     *
-     * 2) When the broker is not available (not installed or the user does not have refresh tokens in broker cache)
-     * bypass the local access token and use the local refresh token to refresh
-     *
-     * setup cache with userid for normal access token and AAD  refresh token (MRRT)
-     * bound to one userid. verify that the forceRefresh parameter bypasses the local access token
-     * and refreshes using the local refresh token
-     *
-     * @throws IOException
-     * @throws InterruptedException
-     */
-    @Test
-    public void testAcquireTokenSilentSyncWithForceRefreshWithoutBroker() throws IOException, InterruptedException, AuthenticationException {
-        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
-
-        final String redirectUri = "redirectUri";
-        final String clientId = "clientId";
-
-        final String tokenToTest = "accessToken=" + UUID.randomUUID();
-        final String expectedAT = "accesstoken";
-        String resource = "Resource" + UUID.randomUUID();
-        ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
-        mockCache.removeAll();
-
-        TestCacheItem newItem = new TestCacheItem();
-        newItem.setToken(tokenToTest);
-        newItem.setRefreshToken("refreshTokenNormal");
-        newItem.setAuthority(VALID_AUTHORITY);
-        newItem.setResource(resource);
-        newItem.setClientId(clientId);
-        newItem.setUserId(TEST_IDTOKEN_USERID);
-        newItem.setName("name");
-        newItem.setFamilyName("familyName");
-        newItem.setDisplayId(TEST_IDTOKEN_UPN);
-        newItem.setTenantId("tenantId");
-        newItem.setMultiResource(false);
-
-        addItemToCache(mockCache, newItem);
-
-        newItem = new TestCacheItem();
-        newItem.setToken("");
-        newItem.setRefreshToken("refreshTokenMultiResource");
-        newItem.setAuthority(VALID_AUTHORITY);
-        newItem.setResource(resource);
-        newItem.setClientId(clientId);
-        newItem.setUserId(TEST_IDTOKEN_USERID);
-        newItem.setName("name");
-        newItem.setFamilyName("familyName");
-        newItem.setDisplayId(TEST_IDTOKEN_UPN);
-        newItem.setTenantId("tenantId");
-        newItem.setMultiResource(true);
-
-        addItemToCache(mockCache, newItem);
-        // only one MRRT for same user, client, authority
-        final AuthenticationContext context = new AuthenticationContext(mockContext,
-                VALID_AUTHORITY, false, mockCache);
-
-        final String response = "{\"access_token\":\"accesstoken"
-                + "\",\"token_type\":\"Bearer\",\"expires_in\":\"29344\",\"expires_on\":\"1368768616\","
-                + "\"resource\":\"" + resource + "\","
-                + "\"refresh_token\":\""
-                + "refreshToken" + "\",\"scope\":\"*\",\"id_token\":\"" + TEST_IDTOKEN + "\", \"client_info\":\"" + Util.TEST_CLIENT_INFO + "\"}";
-        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
-        Util.prepareMockedUrlConnection(mockedConnection);
-        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
-        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response),
-                Util.createInputStream(response));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
-
-        // 1st token request, read from cache.
-        AuthenticationResult result = context.acquireTokenSilentSync(resource, clientId, TEST_IDTOKEN_UPN);
-        assertNull("Error is null", result.getErrorCode());
-        assertEquals("Same token in response as in cache", tokenToTest,
-                result.getAccessToken());
-
-        // 2st token request, forceRefresh false.
-        result = context.acquireTokenSilentSync(resource, clientId, TEST_IDTOKEN_UPN, false);
-        assertNull("Error is null", result.getErrorCode());
-        assertEquals("Same token in response as in cache", tokenToTest,
-                result.getAccessToken());
-
-        // 3nd token request with force refresh true.
-        result = context.acquireTokenSilentSync(resource, clientId, TEST_IDTOKEN_UPN, true);
-        assertNull("Error is null", result.getErrorCode());
-        assertEquals("Same token as refresh token result", expectedAT,
-                result.getAccessToken());
+        assertNull("Result is null since it tries to start activity",
+                callback.getAuthenticationResult());
+        assertEquals("Activity was attempted to start.",
+                AuthenticationConstants.UIRequest.BROWSER_FLOW,
+                testActivity.mStartActivityRequestCode);
 
         clearCache(context);
     }
@@ -2811,42 +2598,34 @@ public final class AuthenticationContextTest {
      * Test the deserialize() function where the deserialize input is null. The
      * function is expected to throw IllegalArgumentException
      */
-    @Test(expected = IllegalArgumentException.class)
-    public void testDeserializeNullSerializedBlob() throws AuthenticationException {
+    @Test
+    public void testDeserializeNullSerializedBlob() {
         final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
         addFRTCacheItem(mockCache);
         final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
-        context.deserialize(null);
-    }
-
-    /**
-     * Test the deserialize() function where the deserialize input is a json
-     * token which has no tokencacheitems . The function is expected to
-     * throw AuthenticationException
-     *
-     * @throws AuthenticationException
-     */
-    @Test(expected = AuthenticationException.class)
-    public void testDeserializeNoTokenCacheItem() throws AuthenticationException {
-        final String additionalAttributeString = "{\"version\":1}";
-        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
-        final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
-        final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
-        context.deserialize(additionalAttributeString);
+        try {
+            context.deserialize(null);
+        } catch (final Exception exception) {
+            assertTrue("argument exception", exception instanceof IllegalArgumentException);
+        }
     }
 
     /**
      * Test the deserialize() function where the deserialize input is a random
      * string. The function is expected to throw AuthenticationException
      */
-    @Test(expected = DeserializationAuthenticationException.class)
-    public void testDeserializeRandomString() throws AuthenticationException {
+    @Test
+    public void testDeserializeRandomString() {
         final String ramdomString = "abc";
         final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
         final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
-        context.deserialize(ramdomString);
+        try {
+            context.deserialize(ramdomString);
+        } catch (final Exception exception) {
+            assertTrue("argument exception", exception instanceof DeserializationAuthenticationException);
+        }
     }
 
     /**
@@ -2855,43 +2634,17 @@ public final class AuthenticationContextTest {
      * the tokenCacheItem. The function is expected to throw
      * AuthenticationException
      */
-    @Test(expected = DeserializationAuthenticationException.class)
-    public void testDeserializeMissingAttribute() throws AuthenticationException {
+    @Test
+    public void testDeserializeMissingAttribute() {
         final String missingAttributeString = "{\"tokenCacheItems\":[{\"authority\":\"https://login.windows.net/ComMon/\",\"refresh_token\":\"FRT\",\"foci\":\"1\"}],\"version\":1}";
         final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
         final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
-        context.deserialize(missingAttributeString);
-    }
-
-    /**
-     * Test the deserialize() function where the deserialize input is a json
-     * token which missing authority which is needed in the deserialization of
-     * the tokenCacheItem. The function is expected to throw
-     * DeserializationAuthenticationException
-     */
-    @Test(expected = DeserializationAuthenticationException.class)
-    public void testDeserializeMissingAuthority() throws AuthenticationException {
-        final String missingAttributeString = "{\"tokenCacheItems\":[{\"refresh_token\":\"FRT\",\"foci\":\"1\"}],\"version\":1}";
-        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
-        final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
-        final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
-        context.deserialize(missingAttributeString);
-    }
-
-    /**
-     * Test the deserialize() function where the deserialize input is a json
-     * token which missing Client Id which is needed in the deserialization of
-     * the tokenCacheItem. The function is expected to throw
-     * DeserializationAuthenticationException
-     */
-    @Test(expected = DeserializationAuthenticationException.class)
-    public void testDeserializeMissingClientId() throws AuthenticationException {
-        final String missingAttributeString = "{\"tokenCacheItems\":[{\"authority\":\"https://login.windows.net/ComMon/\",\"refresh_token\":\"FRT\"}],\"version\":1}";
-        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
-        final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
-        final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
-        context.deserialize(missingAttributeString);
+        try {
+            context.deserialize(missingAttributeString);
+        } catch (final Exception exception) {
+            assertTrue("argument exception", exception instanceof DeserializationAuthenticationException);
+        }
     }
 
     /**
@@ -2916,13 +2669,17 @@ public final class AuthenticationContextTest {
      * with expected one. The calling should throw the
      * DeserializationAuthenticationException
      */
-    @Test(expected = DeserializationAuthenticationException.class)
-    public void testDeserializeDifferentVersion() throws AuthenticationException {
+    @Test
+    public void testDeserializeDifferentVersion() {
         final String differentVersionString = "{\"tokenCacheItems\":[{\"authority\":\"https://login.windows.net/ComMon/\",\"refresh_token\":\"FRT\",\"id_token\":\"eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiJlNzBiMTE1ZS1hYzBhLTQ4MjMtODVkYS04ZjRiN2I0ZjAwZTYiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8zMGJhYTY2Ni04ZGY4LTQ4ZTctOTdlNi03N2NmZDA5OTU5NjMvIiwibmJmIjoxMzc2NDI4MzEwLCJleHAiOjEzNzY0NTcxMTAsInZlciI6IjEuMCIsInRpZCI6IjMwYmFhNjY2LThkZjgtNDhlNy05N2U2LTc3Y2ZkMDk5NTk2MyIsIm9pZCI6IjRmODU5OTg5LWEyZmYtNDExZS05MDQ4LWMzMjIyNDdhYzYyYyIsInVwbiI6ImFkbWluQGFhbHRlc3RzLm9ubWljcm9zb2Z0LmNvbSIsInVuaXF1ZV9uYW1lIjoiYWRtaW5AYWFsdGVzdHMub25taWNyb3NvZnQuY29tIiwic3ViIjoiVDU0V2hGR1RnbEJMN1VWYWtlODc5UkdhZEVOaUh5LXNjenNYTmFxRF9jNCIsImZhbWlseV9uYW1lIjoiU2VwZWhyaSIsImdpdmVuX25hbWUiOiJBZnNoaW4ifQ.\",\"foci\":\"1\"}],\"version\":2}";
         final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
         final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
-        context.deserialize(differentVersionString);
+        try {
+            context.deserialize(differentVersionString);
+        } catch (final Exception exception) {
+            assertTrue("argument exception", exception instanceof DeserializationAuthenticationException);
+        }
     }
 
     private String getErrorResponseBody(final String errorCode) {
@@ -3169,13 +2926,13 @@ public final class AuthenticationContextTest {
 
         private Activity mActivity;
 
-        MockActivity(CountDownLatch signal) {
+        public MockActivity(CountDownLatch signal) {
             mSignal = signal;
             doMockActivity();
         }
 
         @SuppressLint("Registered")
-        MockActivity() {
+        public MockActivity() {
             doMockActivity();
         }
 
@@ -3186,8 +2943,8 @@ public final class AuthenticationContextTest {
             Mockito.doAnswer(new Answer() {
                 @Override
                 public Object answer(InvocationOnMock invocationOnMock) {
-                    mStartActivityIntent = invocationOnMock.getArgument(0);
-                    mStartActivityRequestCode = invocationOnMock.getArgument(1);
+                    mStartActivityIntent = invocationOnMock.getArgumentAt(0, Intent.class);
+                    mStartActivityRequestCode = invocationOnMock.getArgumentAt(1, Integer.class);
                     countDownLatch();
                     return null;
                 }
@@ -3196,9 +2953,9 @@ public final class AuthenticationContextTest {
             Mockito.doAnswer(new Answer() {
                 @Override
                 public Object answer(InvocationOnMock invocationOnMock) {
-                    mStartActivityIntent = invocationOnMock.getArgument(0);
-                    mStartActivityRequestCode = invocationOnMock.getArgument(1);
-                    mStartActivityOptions = invocationOnMock.getArgument(2);
+                    mStartActivityIntent = invocationOnMock.getArgumentAt(0, Intent.class);
+                    mStartActivityRequestCode = invocationOnMock.getArgumentAt(1, Integer.class);
+                    mStartActivityOptions = invocationOnMock.getArgumentAt(2, Bundle.class);
                     countDownLatch();
                     return null;
                 }

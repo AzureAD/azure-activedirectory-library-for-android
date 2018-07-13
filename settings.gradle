@@ -1,2 +1,1 @@
-include ':adal', ':userappwithbroker', ':keyvault', ':labapi', ':automation', ":automationtestapp", ':common'
-project(':common').projectDir = new File('common/common')
+include ':adal',':userappwithbroker', ":automationtestapp"

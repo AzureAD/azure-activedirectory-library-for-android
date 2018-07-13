@@ -59,7 +59,7 @@ class HttpAuthDialog {
     /**
      * Creates Credential dialog for http auth.
      */
-    HttpAuthDialog(Context context, String host, String realm) {
+    public HttpAuthDialog(Context context, String host, String realm) {
         mContext = context;
         mHost = host;
         mRealm = realm;
@@ -83,7 +83,7 @@ class HttpAuthDialog {
     @SuppressLint("InflateParams")
     private void createDialog() {
         LayoutInflater factory = LayoutInflater.from(mContext);
-        View v = factory.inflate(mContext.getResources().getLayout(R.layout.http_auth_dialog), null);
+        View v = factory.inflate(R.layout.http_auth_dialog, null);
         mUsernameView = (EditText) v.findViewById(R.id.editUserName);
         mPasswordView = (EditText) v.findViewById(R.id.editPassword);
         mPasswordView.setOnEditorActionListener(new OnEditorActionListener() {

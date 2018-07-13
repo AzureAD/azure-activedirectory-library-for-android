@@ -27,8 +27,6 @@ import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
-
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -151,7 +149,7 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         assertNotNull("Token cache item is expected to be NOT null", item);
         assertEquals("same item", mTestItem.getTenantId(), item.getTenantId());
         assertEquals("same item", mTestItem.getAccessToken(), item.getAccessToken());
-
+        
         item = store.getItem(CacheKey.createCacheKey("", "", "", true, "", null));
         assertNull("Token cache item is expected to be null", item);
 

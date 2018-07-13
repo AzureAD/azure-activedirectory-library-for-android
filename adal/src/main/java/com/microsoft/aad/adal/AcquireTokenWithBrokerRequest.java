@@ -26,9 +26,6 @@ package com.microsoft.aad.adal;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-
 /**
  * Internal class handling the logic for acquire token with Broker app(Either Company Portal or Azure Authenticator).
  * Including the logic for silent flow and interactive flow.

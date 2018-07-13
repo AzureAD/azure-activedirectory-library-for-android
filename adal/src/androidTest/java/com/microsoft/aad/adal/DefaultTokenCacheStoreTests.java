@@ -29,9 +29,6 @@ import android.content.SharedPreferences;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
-
-import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -125,7 +122,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         Context mockContext = mock(Context.class);
         SharedPreferences prefs = mock(SharedPreferences.class);
         when(prefs.contains("testkey")).thenReturn(true);
-        when(prefs.getString("testkey", null)).thenReturn("test_encrypted");
+        when(prefs.getString("testkey", "")).thenReturn("test_encrypted");
         when(mockSecure.decrypt("test_encrypted"))
                 .thenReturn("{\"mClientId\":\"clientId23\",\"mExpiresOn\":\"" + dateTimeString + "\"}");
         when(

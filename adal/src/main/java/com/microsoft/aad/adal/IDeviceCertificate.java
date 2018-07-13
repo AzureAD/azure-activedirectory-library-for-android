@@ -35,7 +35,7 @@ public interface IDeviceCertificate {
 
     /**
      * Checks valid issuer for cert authorities.
-     *
+     * 
      * @param certAuthorities list of cert authorities
      * @return status if valid issue
      */
@@ -43,28 +43,28 @@ public interface IDeviceCertificate {
 
     /**
      * Gets certificate.
-     *
+     * 
      * @return {@link X509Certificate}
      */
     X509Certificate getCertificate();
 
     /**
      * Gets RSA private key.
-     *
+     * 
      * @return RSA private key
      */
     RSAPrivateKey getRSAPrivateKey();
 
     /**
      * Gets thumbPrint for certificate.
-     *
+     * 
      * @return thumbPrint for certificate.
      */
     String getThumbPrint();
 
     /**
      * Gets RSA public key.
-     *
+     * 
      * @return RSA public key.
      */
     RSAPublicKey getRSAPublicKey();

@@ -37,16 +37,10 @@ import android.test.RenamingDelegatingContext;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-
-
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
@@ -372,7 +366,7 @@ public class AuthenticationActivityUnitTest {
                 Class.forName("com.microsoft.aad.adal.AuthenticationActivity$TokenTaskResult"));
         AccountManager mockAct = mock(AccountManager.class);
         when(mockAct.getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE))
-                .thenReturn(new Account[]{});
+                .thenReturn(new Account[] {});
         ReflectionUtils.setFieldValue(tokenTask, "mRequest", authRequest);
         ReflectionUtils.setFieldValue(tokenTask, "mPackageName", "testpackagename");
         ReflectionUtils.setFieldValue(tokenTask, "mAccountManager", mockAct);
@@ -414,21 +408,16 @@ public class AuthenticationActivityUnitTest {
                 Class.forName("com.microsoft.aad.adal.AuthenticationActivity$TokenTaskResult"));
         final int additionalCallerCacheKeys = 333;
         AccountManager mockAct = mock(AccountManager.class);
-
         when(
-                mockAct.getUserData(
-                        any(Account.class),
-                        eq(AuthenticationConstants.Broker.USERDATA_CALLER_CACHEKEYS + additionalCallerCacheKeys))
-        ).thenReturn("test");
-
+                mockAct.getUserData(any(Account.class),
+                        eq(AuthenticationConstants.Broker.USERDATA_CALLER_CACHEKEYS + additionalCallerCacheKeys)))
+                .thenReturn("test");
         Account userAccount = new Account(username,
                 AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-
-        when(
-                mockAct.getAccountsByType(
-                        AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE)
-        ).thenReturn(new Account[]{userAccount});
-
+        when(mockAct.getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE))
+                .thenReturn(new Account[]{
+                        userAccount
+                });
         ReflectionUtils.setFieldValue(tokenTask, "mRequest", authRequest);
         ReflectionUtils.setFieldValue(tokenTask, "mPackageName", "testpackagename");
         ReflectionUtils.setFieldValue(tokenTask, "mAccountManager", mockAct);
@@ -443,7 +432,7 @@ public class AuthenticationActivityUnitTest {
         // Verification from returned intent data
         Intent data = assertFinishCalledWithResult(AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE);
         final int numerOfCalls = 8;
-        verify(mockAct, times(numerOfCalls)).setUserData(any(Account.class), Mockito.nullable(String.class), Mockito.nullable(String.class));
+        verify(mockAct, times(numerOfCalls)).setUserData(any(Account.class), anyString(), anyString());
     }
 
     private MockWebRequestHandler setMockWebResponse() throws NoSuchFieldException,
@@ -654,7 +643,7 @@ public class AuthenticationActivityUnitTest {
          * @param context
          * @param filePrefix
          */
-        ActivityMockContext(Context context) {
+        public ActivityMockContext(Context context) {
             super(context, MOCK_FILE_PREFIX);
             makeExistingFilesAndDbsAccessible();
         }

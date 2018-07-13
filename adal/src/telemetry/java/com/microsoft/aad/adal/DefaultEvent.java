@@ -23,8 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -51,14 +49,14 @@ class DefaultEvent implements IEvents {
 
     private static String sDeviceId = "NA";
 
-    private static final int EVENT_LIST_SIZE = 30;
+    private static int sEventListSize = 30;
 
     private String mRequestId;
 
     private int mDefaultEventCount;
 
     DefaultEvent() {
-        mEventList = new ArrayList<>(EVENT_LIST_SIZE);
+        mEventList = new ArrayList<>(sEventListSize);
 
         // Keying off Application name not being null to decide if the defaults have been set
         if (sApplicationName != null) {

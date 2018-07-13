@@ -33,22 +33,20 @@ public interface ITokenCacheStore extends Serializable {
 
     /**
      * Get cache item.
-     *
+     * 
      * @param key {@link CacheKey}
      * @return Token cache item
      */
     TokenCacheItem getItem(String key);
-
+    
     /**
-     * Get all cached token items.
-     *
-     * @return {@link Iterator} of {@link TokenCacheItem}s in the cache.
+     * Get all cached token items. 
+     * @return {@link Iterator} of {@link TokenCacheItem}s in the cache. 
      */
     Iterator<TokenCacheItem> getAll();
 
     /**
      * Checks if cache key exists.
-     *
      * @param key {@link CacheKey}
      * @return true if it exists
      */
@@ -56,15 +54,13 @@ public interface ITokenCacheStore extends Serializable {
 
     /**
      * Sets item.
-     *
-     * @param key  {@link CacheKey}
+     * @param key {@link CacheKey}
      * @param item Cache item
      */
     void setItem(String key, TokenCacheItem item);
 
     /**
      * Removes item with key.
-     *
      * @param key {@link CacheKey}
      */
     void removeItem(String key);

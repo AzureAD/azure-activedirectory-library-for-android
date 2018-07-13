@@ -23,8 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -58,7 +56,7 @@ final class AuthorityValidationMetadataCache {
     private static ConcurrentMap<String, InstanceDiscoveryMetadata> sAadAuthorityHostMetadata = new ConcurrentHashMap<>();
 
     private AuthorityValidationMetadataCache() {
-        // DateExtensions class, no public constructor
+        // Utility class, no public constructor
     }
 
     static boolean containsAuthorityHost(final URL authorityUrl) {

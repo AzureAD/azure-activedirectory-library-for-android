@@ -24,7 +24,6 @@
 package com.microsoft.aad.adal;
 
 import com.google.gson.JsonSyntaxException;
-import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;

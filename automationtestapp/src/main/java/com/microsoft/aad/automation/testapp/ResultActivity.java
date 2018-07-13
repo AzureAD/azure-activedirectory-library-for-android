@@ -106,7 +106,7 @@ public class ResultActivity extends AppCompatActivity {
         } else if (intent.getStringArrayListExtra(Constants.READ_CACHE) != null) {
             final ArrayList<String> items = intent.getStringArrayListExtra(Constants.READ_CACHE);
             jsonObject.put(Constants.ITEM_COUNT, items.size());
-            jsonObject.put(Constants.COMMON_CACHE, intent.getBooleanExtra(Constants.COMMON_CACHE, false));
+
             final ArrayList<String> itemsWithCount = new ArrayList<>();
             itemsWithCount.addAll(items);
             final JSONArray arrayItems = new JSONArray(itemsWithCount);

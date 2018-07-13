@@ -31,10 +31,10 @@ class DeserializationAuthenticationException extends AuthenticationException {
 
     /**
      * Constructs a new DeserializationAuthenticationException with message.
-     *
+     * 
      * @param msg Message for cancel request
      */
-    DeserializationAuthenticationException(String msg) {
+    public DeserializationAuthenticationException(String msg) {
         super(ADALError.INCOMPATIBLE_BLOB_VERSION, msg);
     }
 

@@ -23,11 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.ClientInfo;
-
 import org.json.JSONException;
 
 import java.io.Serializable;
@@ -47,9 +42,6 @@ public class AuthenticationResult implements Serializable {
      * Serial version number for serialization.
      */
     private static final long serialVersionUID = 2243372613182536368L;
-
-    private ClientInfo mClientInfo;
-    private String mResource;
 
     /**
      * Status for authentication.
@@ -79,12 +71,6 @@ public class AuthenticationResult implements Serializable {
 
     private Date mExpiresOn;
 
-    //Number of seconds the token is valid
-    private Long mExpiresIn;
-
-    //Number of milliseconds since the unix epoch
-    private Long mResponseReceived;
-
     private String mErrorCode;
 
     private String mErrorDescription;
@@ -102,7 +88,7 @@ public class AuthenticationResult implements Serializable {
     private AuthenticationStatus mStatus = AuthenticationStatus.Failed;
 
     private boolean mInitialRequest;
-
+    
     private String mFamilyClientId;
 
     private boolean mIsExtendedLifeTimeToken = false;
@@ -119,29 +105,19 @@ public class AuthenticationResult implements Serializable {
 
     private HashMap<String, List<String>> mHttpResponseHeaders = null;
 
-    private String mClientId;
-
     AuthenticationResult() {
         mCode = null;
     }
 
-    AuthenticationResult(final String clientId, final String code) {
-        mClientId = clientId;
+    AuthenticationResult(String code) {
         mCode = code;
         mStatus = AuthenticationStatus.Succeeded;
         mAccessToken = null;
         mRefreshToken = null;
     }
 
-    AuthenticationResult(final String accessToken,
-                         final String refreshToken,
-                         final Date expires,
-                         final boolean isBroad,
-                         final UserInfo userInfo,
-                         final String tenantId,
-                         final String idToken,
-                         final Date extendedExpires,
-                         final String clientId) {
+    AuthenticationResult(String accessToken, String refreshToken, Date expires, boolean isBroad,
+                         UserInfo userInfo, String tenantId, String idToken, Date extendedExpires) {
         mCode = null;
         mAccessToken = accessToken;
         mRefreshToken = refreshToken;
@@ -152,7 +128,16 @@ public class AuthenticationResult implements Serializable {
         mTenantId = tenantId;
         mIdToken = idToken;
         mExtendedExpiresOn = extendedExpires;
-        mClientId = clientId;
+    }
+
+    AuthenticationResult(String accessToken, String refreshToken, Date expires, boolean isBroad, Date extendedExpires) {
+        mCode = null;
+        mAccessToken = accessToken;
+        mRefreshToken = refreshToken;
+        mExpiresOn = expires;
+        mIsMultiResourceRefreshToken = isBroad;
+        mStatus = AuthenticationStatus.Succeeded;
+        mExtendedExpiresOn = extendedExpires;
     }
 
     AuthenticationResult(String errorCode, String errDescription, String errorCodes) {
@@ -164,7 +149,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Creates result from {@link TokenCacheItem}.
-     *
+     * 
      * @param cacheItem TokenCacheItem to be converted.
      * @return AuthenticationResult
      */
@@ -177,28 +162,19 @@ public class AuthenticationResult implements Serializable {
         }
 
         final AuthenticationResult result =
-                new AuthenticationResult(
-                        cacheItem.getAccessToken(),
-                        cacheItem.getRefreshToken(),
-                        cacheItem.getExpiresOn(),
-                        cacheItem.getIsMultiResourceRefreshToken(),
-                        cacheItem.getUserInfo(),
-                        cacheItem.getTenantId(),
-                        cacheItem.getRawIdToken(),
-                        cacheItem.getExtendedExpiresOn(),
-                        cacheItem.getClientId()
-                );
+                new AuthenticationResult(cacheItem.getAccessToken(), cacheItem.getRefreshToken(),
+                        cacheItem.getExpiresOn(), cacheItem.getIsMultiResourceRefreshToken(),
+                        cacheItem.getUserInfo(), cacheItem.getTenantId(), cacheItem.getRawIdToken(), cacheItem.getExtendedExpiresOn());
 
         return result;
     }
 
-    static AuthenticationResult createResultForInitialRequest(final String clientId) {
+    static AuthenticationResult createResultForInitialRequest() {
         AuthenticationResult result = new AuthenticationResult();
         result.mInitialRequest = true;
-        result.mClientId = clientId;
         return result;
     }
-
+    
     static AuthenticationResult createExtendedLifeTimeResult(final TokenCacheItem accessTokenItem) {
         final AuthenticationResult retryResult = createResult(accessTokenItem);
         retryResult.setExpiresOn(retryResult.getExtendedExpiresOn());
@@ -208,7 +184,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Uses access token to create header for web requests.
-     *
+     * 
      * @return AuthorizationHeader
      */
     public String createAuthorizationHeader() {
@@ -217,7 +193,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Access token to send to the service in Authorization Header.
-     *
+     * 
      * @return Access token
      */
     public String getAccessToken() {
@@ -226,7 +202,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Refresh token to get new tokens.
-     *
+     * 
      * @return Refresh token
      */
     public String getRefreshToken() {
@@ -235,7 +211,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Token type.
-     *
+     * 
      * @return access token type
      */
     public String getAccessTokenType() {
@@ -244,33 +220,17 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Epoch time for expiresOn.
-     *
+     * 
      * @return expiresOn {@link Date}
      */
     public Date getExpiresOn() {
-        return DateExtensions.createCopy(mExpiresOn);
-    }
-
-    public Long getExpiresIn() {
-        return mExpiresIn;
-    }
-
-    public void setExpiresIn(final Long expiresIn) {
-        mExpiresIn = expiresIn;
-    }
-
-    public Long getResponseReceived() {
-        return mResponseReceived;
-    }
-
-    public void setResponseReceived(final Long responseReceived) {
-        mResponseReceived = responseReceived;
+        return Utility.getImmutableDateObject(mExpiresOn);
     }
 
     /**
      * Multi-resource refresh tokens can be used to request token for another
      * resource.
-     *
+     * 
      * @return multi resource refresh token status
      */
     public boolean getIsMultiResourceRefreshToken() {
@@ -279,7 +239,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * UserInfo returned from IdToken.
-     *
+     * 
      * @return {@link UserInfo}
      */
     public UserInfo getUserInfo() {
@@ -288,7 +248,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Set userinfo after refresh from previous idtoken.
-     *
+     * 
      * @param userinfo latest user info.
      */
     void setUserInfo(UserInfo userinfo) {
@@ -297,7 +257,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Gets tenantId.
-     *
+     * 
      * @return TenantId
      */
     public String getTenantId() {
@@ -306,7 +266,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Gets status.
-     *
+     * 
      * @return {@link AuthenticationStatus}
      */
     public AuthenticationStatus getStatus() {
@@ -323,7 +283,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Gets error code.
-     *
+     * 
      * @return Error code
      */
     public String getErrorCode() {
@@ -332,7 +292,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Gets error description.
-     *
+     * 
      * @return error description
      */
     public String getErrorDescription() {
@@ -341,7 +301,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Gets error log info.
-     *
+     * 
      * @return log info
      */
     public String getErrorLogInfo() {
@@ -350,7 +310,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Checks expiration time.
-     *
+     * 
      * @return true if expired
      */
     public boolean isExpired() {
@@ -361,13 +321,9 @@ public class AuthenticationResult implements Serializable {
         return TokenCacheItem.isTokenExpired(getExpiresOn());
     }
 
-    /**
-     * The token returned is cached with this authority as key.
-     * We expect the subsequent requests to AcquireToken will use this authority as the authority parameter else
-     * AcquireTokenSilent will fail
-     *
-     * @return Authority
-     */
+    // The token returned is cached with this authority as key.
+    // We expect the subsequent requests to AcquireToken will use this authority as the authority parameter else
+    // AcquireTokenSilent will fail
     public final String getAuthority() {
         return mAuthority;
     }
@@ -382,7 +338,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Get raw idtoken.
-     *
+     * 
      * @return IdToken
      */
     public String getIdToken() {
@@ -427,15 +383,15 @@ public class AuthenticationResult implements Serializable {
     void setTenantId(String tenantid) {
         mTenantId = tenantid;
     }
-
+    
     void setRefreshToken(String refreshToken) {
         mRefreshToken = refreshToken;
     }
-
+    
     final String getFamilyClientId() {
         return mFamilyClientId;
     }
-
+    
     final void setFamilyClientId(final String familyClientId) {
         mFamilyClientId = familyClientId;
     }
@@ -458,11 +414,6 @@ public class AuthenticationResult implements Serializable {
         mHttpResponseBody = body;
     }
 
-    /**
-     * Get Http response message.
-     *
-     * @return HttpResponseBody
-     */
     public HashMap<String, String> getHttpResponseBody() {
         return mHttpResponseBody;
     }
@@ -471,11 +422,6 @@ public class AuthenticationResult implements Serializable {
         mHttpResponseHeaders = headers;
     }
 
-    /**
-     * Get Http response headers.
-     *
-     * @return HttpResponseHeaders
-     */
     public HashMap<String, List<String>> getHttpResponseHeaders() {
         return mHttpResponseHeaders;
     }
@@ -484,11 +430,6 @@ public class AuthenticationResult implements Serializable {
         mServiceStatusCode = statusCode;
     }
 
-    /**
-     *  Get service status code.
-     *
-     * @return ServiceStatusCode
-     */
     public int getServiceStatusCode() {
         return mServiceStatusCode;
     }
@@ -512,49 +453,4 @@ public class AuthenticationResult implements Serializable {
             }
         }
     }
-
-    public String getClientId() {
-        return mClientId;
-    }
-
-    public void setClientId(final String clientId) {
-        mClientId = clientId;
-    }
-
-    /**
-     * Sets the ClientInfo.
-     *
-     * @param clientInfo The ClientInfo to set.
-     */
-    void setClientInfo(final ClientInfo clientInfo) {
-        mClientInfo = clientInfo;
-    }
-
-    /**
-     * Gets the {@link ClientInfo}.
-     *
-     * @return The ClientInfo to get or null (if the broker was used to acquire tokens).
-     */
-    public ClientInfo getClientInfo() {
-        return mClientInfo;
-    }
-
-    /**
-     * Sets the resource of this AuthenticationResult.
-     *
-     * @param resource The resource to set.
-     */
-    void setResource(String resource) {
-        mResource = resource;
-    }
-
-    /**
-     * Gets the resource of this AuthenticationResult.
-     *
-     * @return The resource to get.
-     */
-    public String getResource() {
-        return mResource;
-    }
-
 }

@@ -33,8 +33,8 @@ public interface IWindowComponent {
      * ADAL will send request in the intent data and request Code. When your
      * fragment, activity or dialog finishes after reaching to redirect, it
      * should call onActivityResult to complete the call.
-     *
-     * @param intent      with the request in it
+     * 
+     * @param intent with the request in it
      * @param requestCode for the intent data
      */
     void startActivityForResult(Intent intent, int requestCode);

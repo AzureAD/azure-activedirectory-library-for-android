@@ -27,11 +27,7 @@ import android.support.test.runner.AndroidJUnit4;
 
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants.AAD;
-import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
-import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
-import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;
+import com.microsoft.aad.adal.AuthenticationConstants.AAD;
 
 import org.junit.After;
 import org.junit.Before;
@@ -275,7 +271,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         private TestMessage() {
         }
 
-        TestMessage(String token, String name) {
+        public TestMessage(String token, String name) {
             mAccessToken = token;
             mUserName = name;
         }

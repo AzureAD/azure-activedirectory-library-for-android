@@ -30,7 +30,7 @@ class AuthenticationServerProtocolException extends AuthenticationException {
 
     static final long serialVersionUID = 1;
 
-    AuthenticationServerProtocolException(String detailMessage) {
+    public AuthenticationServerProtocolException(String detailMessage) {
         super(ADALError.DEVICE_CHALLENGE_FAILURE, detailMessage);
     }
 }

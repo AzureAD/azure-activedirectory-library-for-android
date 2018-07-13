@@ -170,13 +170,9 @@ final class EventStrings {
 
     static final String ACQUIRE_TOKEN_SILENT_SYNC = "1";
 
-    static final String ACQUIRE_TOKEN_SILENT_SYNC_FORCE_REFRESH = "13";
-
     static final String ACQUIRE_TOKEN_SILENT = "2";
 
     static final String ACQUIRE_TOKEN_SILENT_ASYNC = "3";
-
-    static final String ACQUIRE_TOKEN_SILENT_ASYNC_FORCE_REFRESH = "14";
 
     static final String ACQUIRE_TOKEN_WITH_REFRESH_TOKEN = "4";
 

@@ -27,8 +27,6 @@ import android.content.Intent;
 import android.text.TextUtils;
 
 import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -51,7 +49,7 @@ public class WebviewHelper {
     /**
      * Construct with incoming requestIntent that you receive at
      * startActivityForResult.
-     *
+     * 
      * @param requestIntent Intent that has request information.
      */
     public WebviewHelper(Intent requestIntent) {
@@ -89,7 +87,7 @@ public class WebviewHelper {
 
     /**
      * Gets startUrl to use as url to start webview.
-     *
+     * 
      * @return Url
      * @throws UnsupportedEncodingException if the url is malformed
      */
@@ -99,7 +97,7 @@ public class WebviewHelper {
 
     /**
      * Gets redirect url to tell the webview to stop before navigating.
-     *
+     * 
      * @return Url
      */
     public String getRedirectUrl() {
@@ -108,7 +106,7 @@ public class WebviewHelper {
 
     /**
      * Creates result intent to pass into onActivityResult method.
-     *
+     * 
      * @param finalUrl url to be passed to the intent
      * @return Intent
      */
@@ -143,10 +141,11 @@ public class WebviewHelper {
     }
 
     /**
+     *
      * @param challengeUrl URL from which challenge response is received
      * @return PreKeyAuth class filled in
      * @throws UnsupportedEncodingException on malformed exception
-     * @throws AuthenticationException      on parameter validation failure
+     * @throws AuthenticationException on parameter validation failure
      */
     public PreKeyAuthInfo getPreKeyAuthInfo(String challengeUrl)
             throws UnsupportedEncodingException, AuthenticationException {
@@ -181,10 +180,10 @@ public class WebviewHelper {
         private final String mLoadUrl;
 
         /**
-         * Construct the PreKeyAuthInfo.
+         *  Construct the PreKeyAuthInfo.
          *
          * @param httpHeaders the http headers
-         * @param loadUrl     load Url
+         * @param loadUrl load Url
          */
         public PreKeyAuthInfo(HashMap<String, String> httpHeaders, String loadUrl) {
             this.mHttpHeaders = httpHeaders;
@@ -193,7 +192,6 @@ public class WebviewHelper {
 
         /**
          * Get the HTTP headers.
-         *
          * @return HashMap containing http headers
          */
         public HashMap<String, String> getHttpHeaders() {

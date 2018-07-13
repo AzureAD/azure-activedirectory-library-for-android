@@ -30,8 +30,6 @@ import android.support.test.runner.AndroidJUnit4;
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
 
-
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -226,23 +224,22 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         ITokenCacheStore store = new FileTokenCacheStore(mTargetContex, file);
 
         final Iterator<TokenCacheItem> allItems = store.getAll();
-
+        
         assertTrue(allItems.hasNext());
         final TokenCacheItem tokenCacheItem1 = allItems.next();
         assertNotNull(tokenCacheItem1);
-
+        
         assertTrue(allItems.hasNext());
         final TokenCacheItem tokenCacheItem2 = allItems.next();
         assertNotNull(tokenCacheItem2);
-
+        
         assertFalse(allItems.hasNext());
     }
 
     /**
      * test the usage of cache from different threads. It is expected to work
      * with multiThreads
-     *
-     * @throws AuthenticationException
+     * @throws AuthenticationException 
      */
     @Test
     public void testSharedCacheGetItem() throws AuthenticationException {
@@ -284,8 +281,7 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
 
     /**
      * memory cache is shared between context
-     *
-     * @throws AuthenticationException
+     * @throws AuthenticationException 
      */
     @Test
     public void testMemoryCacheMultipleContext() throws AuthenticationException {
@@ -323,7 +319,7 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
 
         @Override
         public void Log(String tag, String message, String additionalMessage, LogLevel level,
-                        ADALError errorCode) {
+                ADALError errorCode) {
             mLogMessage = message;
             mLogErrorCode = errorCode;
         }

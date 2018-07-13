@@ -23,8 +23,9 @@
 
 /**
  * Provides the classes necessary to create a client for azure active directory to get tokens.
+ *  
  *
- * @see java.awt
  * @since 1.0
+ * @see java.awt
  */
 package com.microsoft.aad.adal;

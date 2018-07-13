@@ -34,7 +34,6 @@ final class ExceptionExtensions {
     private ExceptionExtensions() {
         // Intentionally left blank
     }
-
     static String getExceptionMessage(Exception ex) {
         String message = null;
 
@@ -47,7 +46,7 @@ final class ExceptionExtensions {
                 message = sw.toString();
             }
         }
-
+        
         return message;
     }
 }

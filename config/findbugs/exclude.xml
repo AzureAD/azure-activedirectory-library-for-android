@@ -27,7 +27,7 @@
         <Bug pattern="ME_ENUM_FIELD_SETTER" />
     </Match>
     <Match>
-        <Class name="com.microsoft.identity.common.adal.internal.net.HttpWebRequest" />
+        <Class name="com.microsoft.aad.adal.HttpWebRequest" />
         <Method name="convertStreamToString" />
         <Bug pattern="DM_DEFAULT_ENCODING" />
     </Match>

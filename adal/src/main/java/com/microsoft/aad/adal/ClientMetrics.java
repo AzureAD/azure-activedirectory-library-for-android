@@ -67,7 +67,7 @@ enum ClientMetrics {
     private URL mQueryUrl;
 
     public void beginClientMetricsRecord(URL queryUrl, UUID correlationId,
-                                         Map<String, String> headers) {
+            Map<String, String> headers) {
         if (UrlExtensions.isADFSAuthority(queryUrl)) {
             // Don't add for ADFS endpoint
             mLastCorrelationId = null;

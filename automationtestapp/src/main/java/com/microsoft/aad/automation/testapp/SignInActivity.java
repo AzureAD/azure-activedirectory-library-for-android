@@ -33,35 +33,28 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.microsoft.aad.adal.AuthenticationCallback;
+import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationException;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationSettings;
+import com.microsoft.aad.adal.CacheKey;
 import com.microsoft.aad.adal.ITokenCacheStore;
 import com.microsoft.aad.adal.PromptBehavior;
 import com.microsoft.aad.adal.TokenCacheItem;
 import com.microsoft.aad.adal.UserInfo;
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
-import static com.microsoft.aad.adal.CacheKey.createCacheKeyForFRT;
-import static com.microsoft.aad.adal.CacheKey.createCacheKeyForMRRT;
-import static com.microsoft.aad.adal.CacheKey.createCacheKeyForRTEntry;
 
 /**
  * Handle the coming request, will gather request info (JSON format of the data contains the authority, resource, clientId,
@@ -78,13 +71,8 @@ public class SignInActivity extends AppCompatActivity {
     public static final String EXTRA_QUERY_PARAM = "extra_qp";
     public static final String VALIDATE_AUTHORITY = "validate_authority";
     public static final String USER_IDENTIFIER = "user_identifier";
-    public static final String DISPLAYABLE_ID = "displayable_id";
-    public static final String UNIQUE_ID = "unique_id";
-    public static final String TENANT_ID = "tenant_id";
     public static final String USER_IDENTIFIER_TYPE = "user_identifier_type";
     public static final String CORRELATION_ID = "correlation_id";
-    public static final String FAMLIY_CLIENT_ID = "foci";
-    public static final String FORCE_REFRESH = "force_refresh";
 
     static final String INVALID_REFRESH_TOKEN = "some invalid refresh token";
 
@@ -101,10 +89,6 @@ public class SignInActivity extends AppCompatActivity {
     private AuthenticationContext mAuthenticationContext;
     private boolean mValidateAuthority;
     private UUID mCorrelationId;
-    private String mTenantId;
-    private String mFamilyClientId;
-    private boolean mForceRefresh;
-    private boolean mForceRefreshParameterProvided;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -148,10 +132,9 @@ public class SignInActivity extends AppCompatActivity {
         validateUserInput(inputItems, flowCode);
 
         setAuthenticationData(inputItems);
-        AuthenticationSettings.INSTANCE.setUseBroker(true);
+        AuthenticationSettings.INSTANCE.setUseBroker(mUseBroker);
 
         mAuthenticationContext = new AuthenticationContext(getApplicationContext(), mAuthority, mValidateAuthority);
-
         switch (flowCode) {
             case MainActivity.ACQUIRE_TOKEN:
                 acquireToken();
@@ -254,10 +237,8 @@ public class SignInActivity extends AppCompatActivity {
             throw new IllegalArgumentException("redirect_uri");
         }
 
-        if (flowCode == MainActivity.INVALIDATE_ACCESS_TOKEN &&
-                (TextUtils.isEmpty(inputItems.get(USER_IDENTIFIER))
-                        && TextUtils.isEmpty(inputItems.get(UNIQUE_ID)) && TextUtils.isEmpty(inputItems.get(DISPLAYABLE_ID)))) {
-            throw new IllegalArgumentException("user identifier, unique id or displayable id");
+        if (flowCode == MainActivity.INVALIDATE_ACCESS_TOKEN && TextUtils.isEmpty(inputItems.get(USER_IDENTIFIER))) {
+            throw new IllegalArgumentException("user identifier");
         }
     }
 
@@ -271,28 +252,18 @@ public class SignInActivity extends AppCompatActivity {
         mExtraQueryParam = inputItems.get(EXTRA_QUERY_PARAM);
         mValidateAuthority = inputItems.get(VALIDATE_AUTHORITY) == null ? true : Boolean.valueOf(
                 inputItems.get(VALIDATE_AUTHORITY));
-        mForceRefreshParameterProvided = inputItems.get(FORCE_REFRESH) == null ? false : true;
-        mForceRefresh = inputItems.get(FORCE_REFRESH) == null ? false : Boolean.valueOf(inputItems.get(FORCE_REFRESH));
         
-        if (!TextUtils.isEmpty(inputItems.get(UNIQUE_ID))) {
-            mUserId = inputItems.get(UNIQUE_ID);
+        if (!TextUtils.isEmpty(inputItems.get("unique_id"))) {
+            mUserId = inputItems.get("unique_id");
         }
         
-        if (!TextUtils.isEmpty(inputItems.get(DISPLAYABLE_ID)) || !TextUtils.isEmpty(inputItems.get("user_identifier"))) {
-            mLoginHint = inputItems.get(DISPLAYABLE_ID) == null ? inputItems.get("user_identifier") : inputItems.get("displayable_id");
+        if (!TextUtils.isEmpty(inputItems.get("displayable_id")) || !TextUtils.isEmpty(inputItems.get("user_identifier"))) {
+            mLoginHint = inputItems.get("displayable_id") == null ? inputItems.get("user_identifier") : inputItems.get("displayable_id");
         }
 
         final String correlationId = inputItems.get(CORRELATION_ID);
         if (!TextUtils.isEmpty(correlationId)) {
             mCorrelationId = UUID.fromString(correlationId);
-        }
-        final String tenantId = inputItems.get(TENANT_ID);
-        if(!TextUtils.isEmpty(tenantId)){
-            mTenantId = tenantId;
-        }
-        final String familyClientId = inputItems.get(FAMLIY_CLIENT_ID);
-        if(!TextUtils.isEmpty(familyClientId)){
-            mFamilyClientId = familyClientId;
         }
     }
 
@@ -320,54 +291,26 @@ public class SignInActivity extends AppCompatActivity {
     }
 
     private void acquireTokenSilent() {
-        Method m = getAcquireTokenSilentMethodWithForceRefresh();
-        if(mForceRefreshParameterProvided && m != null){
-            try {
-                m.invoke(mAuthenticationContext, mResource, mClientId, mUserId, mForceRefresh, getAdalCallback());
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
-            } catch (Exception e){
-                e.printStackTrace();
-            }
-
-        }else {
-            mAuthenticationContext.acquireTokenSilentAsync(mResource, mClientId, mUserId, getAdalCallback());
-        }
+        mAuthenticationContext.acquireTokenSilentAsync(mResource, mClientId, mUserId, getAdalCallback());
     }
-
-    private Method getAcquireTokenSilentMethodWithForceRefresh(){
-        try {
-            Method m = mAuthenticationContext.getClass().getMethod("acquireTokenSilentAsync", String.class, String.class, String.class, boolean.class, AuthenticationCallback.class);
-            return m;
-        } catch (NoSuchMethodException e) {
-            return null;
-        }
-    }
-
-
 
     private int expireAccessToken() {
         final ITokenCacheStore tokenCacheStore = mAuthenticationContext.getCache();
+
         int count = 0;
-        for (String userId : getCacheIdentifiers()) {
-            if(!TextUtils.isEmpty(mResource)) {
-                String cacheKeyRT = createCacheKeyForRTEntry(mAuthority, mResource, mClientId, userId);
-                final TokenCacheItem tokenCacheItemRT = tokenCacheStore.getItem(cacheKeyRT);
-                count += tokenExpired(tokenCacheItemRT, cacheKeyRT, tokenCacheStore);
-            }
+        final String cacheKeyWithUserId = CacheKey.createCacheKeyForRTEntry(mAuthority, mResource, mClientId, mUserId);
+        final TokenCacheItem itemWithUserId = tokenCacheStore.getItem(cacheKeyWithUserId);
+        count += tokenExpired(itemWithUserId, cacheKeyWithUserId, tokenCacheStore);
 
-            String cacheKeyMRRT = createCacheKeyForMRRT(mAuthority, mClientId, userId);
-            final TokenCacheItem tokenCacheItemMRRT = tokenCacheStore.getItem(cacheKeyMRRT);
-            count += tokenExpired(tokenCacheItemMRRT, cacheKeyMRRT, tokenCacheStore);
 
-            if (!TextUtils.isEmpty(mFamilyClientId)) {
-                String cacheKeyFRT = createCacheKeyForFRT(mAuthority, mFamilyClientId, userId);
-                final TokenCacheItem tokenCacheItemFRRT = tokenCacheStore.getItem(cacheKeyFRT);
-                count += tokenExpired(tokenCacheItemFRRT, cacheKeyFRT, tokenCacheStore);
-            }
-        }
+        final String cacheKeyWithDisplayableId = CacheKey.createCacheKeyForRTEntry(mAuthority, mResource, mClientId, mLoginHint);
+        final TokenCacheItem itemWithDisplayable = tokenCacheStore.getItem(cacheKeyWithDisplayableId);
+        count += tokenExpired(itemWithDisplayable, cacheKeyWithDisplayableId, tokenCacheStore);
+
+        final String cacheKeyWithNoUser = CacheKey.createCacheKeyForRTEntry(mAuthority, mResource, mClientId, "");
+        final TokenCacheItem itemWithNoUser = tokenCacheStore.getItem(cacheKeyWithNoUser);
+        count += tokenExpired(itemWithNoUser, cacheKeyWithNoUser, tokenCacheStore);
+
         return count;
     }
 
@@ -385,41 +328,20 @@ public class SignInActivity extends AppCompatActivity {
         return 0;
     }
 
-    private List<String> getCacheIdentifiers() {
-        List<String> cacheIdentifiers = new ArrayList<>();
-        if (!TextUtils.isEmpty(mUserId)) {
-            cacheIdentifiers.add(mUserId);
-        }
-
-        if (!TextUtils.isEmpty(mLoginHint)) {
-            cacheIdentifiers.add(mLoginHint);
-        }
-        if (!TextUtils.isEmpty(mUserId) && !TextUtils.isEmpty(mTenantId)) {
-            cacheIdentifiers.add(StringExtensions.base64UrlEncodeToString(mUserId) + "." + StringExtensions.base64UrlEncodeToString(mTenantId));
-        }
-        // For cache keys where cache identifier is empty
-        cacheIdentifiers.add("");
-        return cacheIdentifiers;
-    }
-
     private int invalidateRefreshToken() {
         expireAccessToken();
 
         int count = 0;
-        for (String userId : getCacheIdentifiers()) {
-            if(!TextUtils.isEmpty(mResource)) {
-                String cacheKeyRT = createCacheKeyForRTEntry(mAuthority, mResource, mClientId, userId);
-                count += invalidateRefreshToken(cacheKeyRT);
-            }
+        // invalidate RT
+        count += invalidateRefreshToken(CacheKey.createCacheKeyForRTEntry(mAuthority, mResource, mClientId, mUserId));
+        count += invalidateRefreshToken(CacheKey.createCacheKeyForRTEntry(mAuthority, mResource, mClientId, mLoginHint));
+        count += invalidateRefreshToken(CacheKey.createCacheKeyForRTEntry(mAuthority, mResource, mClientId, ""));
 
-            String cacheKeyMRRT = createCacheKeyForMRRT(mAuthority, mClientId, userId);
-            count += invalidateRefreshToken(cacheKeyMRRT);
+        // invalidate MRRT
+        count += invalidateRefreshToken(CacheKey.createCacheKeyForMRRT(mAuthority, mClientId, mUserId));
+        count += invalidateRefreshToken(CacheKey.createCacheKeyForMRRT(mAuthority, mClientId, mLoginHint));
+        count += invalidateRefreshToken(CacheKey.createCacheKeyForMRRT(mAuthority, mClientId, ""));
 
-            if (!TextUtils.isEmpty(mFamilyClientId)) {
-                String cacheKeyFRT = createCacheKeyForFRT(mAuthority, mFamilyClientId, userId);
-                count += invalidateRefreshToken(cacheKeyFRT);
-            }
-        }
         return count;
     }
     
@@ -428,8 +350,8 @@ public class SignInActivity extends AppCompatActivity {
 
         int count  = 0;
         // invalidate FRT
-        count += invalidateRefreshToken(createCacheKeyForFRT(mAuthority, "1", mUserId));
-        count += invalidateRefreshToken(createCacheKeyForFRT(mAuthority, "1", mLoginHint));
+        count += invalidateRefreshToken(CacheKey.createCacheKeyForFRT(mAuthority, AuthenticationConstants.MS_FAMILY_ID, mUserId));
+        count += invalidateRefreshToken(CacheKey.createCacheKeyForFRT(mAuthority, AuthenticationConstants.MS_FAMILY_ID, mLoginHint));
 
         return count;
     }

@@ -32,8 +32,6 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Base64;
 
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -108,7 +106,7 @@ public class TelemetryTest {
                 Util.ENCODED_SIGNATURE, Base64.NO_WRAP));
 
         final PackageInfo mockedPackageInfo = Mockito.mock(PackageInfo.class);
-        mockedPackageInfo.signatures = new Signature[]{mockedSignature};
+        mockedPackageInfo.signatures = new Signature[] {mockedSignature};
 
         final PackageManager mockedPackageManager = Mockito.mock(PackageManager.class);
         when(mockedPackageManager.getPackageInfo(Mockito.anyString(), anyInt())).thenReturn(mockedPackageInfo);

@@ -23,8 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-
 import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Date;
@@ -64,7 +62,7 @@ public class TokenCacheItem implements Serializable {
     private boolean mIsMultiResourceRefreshToken;
 
     private String mTenantId;
-
+    
     private String mFamilyClientId;
 
     private Date mExtendedExpiresOn;
@@ -77,7 +75,7 @@ public class TokenCacheItem implements Serializable {
     public TokenCacheItem() {
         // Intentionally left blank
     }
-
+    
     TokenCacheItem(final TokenCacheItem tokenCacheItem) {
         mAuthority = tokenCacheItem.getAuthority();
         mResource = tokenCacheItem.getResource();
@@ -93,19 +91,19 @@ public class TokenCacheItem implements Serializable {
         mExtendedExpiresOn = tokenCacheItem.getExtendedExpiresOn();
         mSpeRing = tokenCacheItem.getSpeRing();
     }
-
+    
     /**
-     * Construct cache item with given authority and returned auth result.
+     * Construct cache item with given authority and returned auth result. 
      */
     private TokenCacheItem(final String authority, final AuthenticationResult authenticationResult) {
         if (authenticationResult == null) {
             throw new IllegalArgumentException("authenticationResult");
         }
-
+        
         if (StringExtensions.isNullOrBlank(authority)) {
             throw new IllegalArgumentException("authority");
         }
-
+        
         mAuthority = authority;
         mExpiresOn = authenticationResult.getExpiresOn();
         // Multi-resource refresh token won't have resource recorded. To support back-compability
@@ -123,12 +121,13 @@ public class TokenCacheItem implements Serializable {
     }
 
     /**
-     * Create regular RT token cache item.
-     *
-     * @param authority  required authority identifier.
-     * @param resource   required resource identifier.
-     * @param clientId   required client identifier.
+     * Create regular RT token cache item. 
+     * 
+     * @param authority required authority identifier.
+     * @param resource required resource identifier.
+     * @param clientId required client identifier.
      * @param authResult required authentication result to create regular token cache item.
+     *                   
      * @return TokenCacheItem
      */
     public static TokenCacheItem createRegularTokenCacheItem(final String authority, final String resource, final String clientId, final AuthenticationResult authResult) {
@@ -140,12 +139,13 @@ public class TokenCacheItem implements Serializable {
     }
 
     /**
-     * Create MRRT token cache item.
+     * Create MRRT token cache item. 
      * Will not store AT and resource in the token cache.
-     *
-     * @param authority  required authority identifier.
-     * @param clientId   required client identifier.
+     * 
+     * @param authority required authority identifier.
+     * @param clientId required client identifier.
      * @param authResult required authentication result to create multi-resource refresh token cache item.
+     * 
      * @return TokenCacheItem
      */
     public static TokenCacheItem createMRRTTokenCacheItem(final String authority, final String clientId, final AuthenticationResult authResult) {
@@ -156,11 +156,12 @@ public class TokenCacheItem implements Serializable {
     }
 
     /**
-     * Create FRT token cache entry.
-     * Will not store clientId, resource and AT.
-     *
-     * @param authority  required authority identifier.
+     * Create FRT token cache entry. 
+     * Will not store clientId, resource and AT. 
+     * 
+     * @param authority required authority identifier.
      * @param authResult required authentication result to create FRRT refresh token cache item.
+     *                   
      * @return TokenCacheItem
      */
     public static TokenCacheItem createFRRTTokenCacheItem(final String authority, final AuthenticationResult authResult) {
@@ -169,7 +170,7 @@ public class TokenCacheItem implements Serializable {
 
     /**
      * Get the user information.
-     *
+     * 
      * @return UserInfo object.
      */
     public UserInfo getUserInfo() {
@@ -178,7 +179,7 @@ public class TokenCacheItem implements Serializable {
 
     /**
      * Set the user information.
-     *
+     * 
      * @param info UserInfo object which contains user information.
      */
     public void setUserInfo(UserInfo info) {
@@ -187,7 +188,7 @@ public class TokenCacheItem implements Serializable {
 
     /**
      * Get the resource.
-     *
+     * 
      * @return resource String.
      */
     public String getResource() {
@@ -196,7 +197,7 @@ public class TokenCacheItem implements Serializable {
 
     /**
      * Set the resource.
-     *
+     * 
      * @param resource resource identifier.
      */
     public void setResource(String resource) {
@@ -205,7 +206,7 @@ public class TokenCacheItem implements Serializable {
 
     /**
      * Get the authority.
-     *
+     * 
      * @return authority url string.
      */
     public String getAuthority() {
@@ -214,7 +215,7 @@ public class TokenCacheItem implements Serializable {
 
     /**
      * Set the authority.
-     *
+     * 
      * @param authority String authority url.
      */
     public void setAuthority(String authority) {
@@ -223,7 +224,7 @@ public class TokenCacheItem implements Serializable {
 
     /**
      * Get the client identifier.
-     *
+     * 
      * @return client identifier string.
      */
     public String getClientId() {
@@ -232,7 +233,7 @@ public class TokenCacheItem implements Serializable {
 
     /**
      * Set the client identifier.
-     *
+     * 
      * @param clientId client identifier string.
      */
     public void setClientId(String clientId) {
@@ -241,7 +242,7 @@ public class TokenCacheItem implements Serializable {
 
     /**
      * Get the access token.
-     *
+     * 
      * @return the access token string.
      */
     public String getAccessToken() {
@@ -250,7 +251,7 @@ public class TokenCacheItem implements Serializable {
 
     /**
      * Set the access token string.
-     *
+     * 
      * @param accessToken the access token string.
      */
     public void setAccessToken(String accessToken) {
@@ -259,7 +260,7 @@ public class TokenCacheItem implements Serializable {
 
     /**
      * Get the refresh token string.
-     *
+     * 
      * @return the refresh token string.
      */
     public String getRefreshToken() {
@@ -268,7 +269,7 @@ public class TokenCacheItem implements Serializable {
 
     /**
      * Set the fresh token string.
-     *
+     * 
      * @param refreshToken the refresh token string.
      */
     public void setRefreshToken(String refreshToken) {
@@ -277,25 +278,25 @@ public class TokenCacheItem implements Serializable {
 
     /**
      * Get the expire date.
-     *
+     * 
      * @return the time the token get expired.
      */
     public Date getExpiresOn() {
-        return DateExtensions.createCopy(mExpiresOn);
+        return Utility.getImmutableDateObject(mExpiresOn);
     }
 
     /**
      * Set the expire date.
-     *
+     * 
      * @param expiresOn the expire time.
      */
     public void setExpiresOn(final Date expiresOn) {
-        mExpiresOn = DateExtensions.createCopy(expiresOn);
+        mExpiresOn = Utility.getImmutableDateObject(expiresOn);
     }
 
     /**
      * Get the multi-resource refresh token flag.
-     *
+     * 
      * @return true if the token is a multi-resource refresh token, else return false.
      */
     public boolean getIsMultiResourceRefreshToken() {
@@ -304,7 +305,7 @@ public class TokenCacheItem implements Serializable {
 
     /**
      * Set the multi-resource refresh token flag.
-     *
+     * 
      * @param isMultiResourceRefreshToken true if the token is a multi-resource refresh token.
      */
     public void setIsMultiResourceRefreshToken(boolean isMultiResourceRefreshToken) {
@@ -313,7 +314,7 @@ public class TokenCacheItem implements Serializable {
 
     /**
      * Get tenant identifier.
-     *
+     * 
      * @return the tenant identifier string.
      */
     public String getTenantId() {
@@ -322,7 +323,7 @@ public class TokenCacheItem implements Serializable {
 
     /**
      * Set tenant identifier.
-     *
+     * 
      * @param tenantId the tenant identifier string.
      */
     public void setTenantId(String tenantId) {
@@ -331,7 +332,7 @@ public class TokenCacheItem implements Serializable {
 
     /**
      * Get raw ID token.
-     *
+     * 
      * @return raw ID token string.
      */
     public String getRawIdToken() {
@@ -340,7 +341,7 @@ public class TokenCacheItem implements Serializable {
 
     /**
      * Set raw ID token.
-     *
+     * 
      * @param rawIdToken raw ID token string.
      */
     public void setRawIdToken(String rawIdToken) {
@@ -349,7 +350,7 @@ public class TokenCacheItem implements Serializable {
 
     /**
      * Get family client identifier.
-     *
+     * 
      * @return the family client ID string.
      */
     public final String getFamilyClientId() {
@@ -358,7 +359,7 @@ public class TokenCacheItem implements Serializable {
 
     /**
      * Set family client identifier.
-     *
+     * 
      * @param familyClientId the family client ID string.
      */
     public final void setFamilyClientId(final String familyClientId) {
@@ -367,41 +368,42 @@ public class TokenCacheItem implements Serializable {
 
     /**
      * Set the extended expired time.
-     *
+     * 
      * @param extendedExpiresOn extended expired date.
      */
     public final void setExtendedExpiresOn(final Date extendedExpiresOn) {
-        mExtendedExpiresOn = DateExtensions.createCopy(extendedExpiresOn);
+        mExtendedExpiresOn = Utility.getImmutableDateObject(extendedExpiresOn);
     }
 
     /**
      * Get the extended expired time.
-     *
+     * 
      * @return the extended expired date.
      */
     public final Date getExtendedExpiresOn() {
-        return DateExtensions.createCopy(mExtendedExpiresOn);
+        return Utility.getImmutableDateObject(mExtendedExpiresOn);
     }
 
     /**
-     * Verify if the token cache token is valid for the extended expired time.
-     *
-     * @return true if the access token is not null and is not expired in the extended
-     * expired time, else return false.
+     * Verify if the token cache token is valid for the extended expired time. 
+     * 
+     * @return true if the access token is not null and is not expired in the extended 
+     *         expired time, else return false.
      */
     public final boolean isExtendedLifetimeValid() {
         //extended lifetime is only valid if it contains an access token
         if (mExtendedExpiresOn != null && !StringExtensions.isNullOrBlank(mAccessToken)) {
             return !isTokenExpired(mExtendedExpiresOn);
         }
-
+        
         return false;
     }
 
     /**
      * Checks expiration time.
-     *
+     * 
      * @param expiresOn the time in type Date to check if it is expired
+     * 
      * @return true if expired
      */
     public static boolean isTokenExpired(final Date expiresOn) {
@@ -414,12 +416,12 @@ public class TokenCacheItem implements Serializable {
 
         return expiresOn != null && expiresOn.before(validity);
     }
-
+    
     /**
-     * @return {@link TokenEntryType} based on the fields stored in the
-     * {@link TokenCacheItem}.
-     * 1) Only item stored for regular token entry has resource stored.
-     * 2) Item stored for FRT entry won't have client Id stored.
+     * @return {@link TokenEntryType} based on the fields stored in the 
+     * {@link TokenCacheItem}. 
+     * 1) Only item stored for regular token entry has resource stored. 
+     * 2) Item stored for FRT entry won't have client Id stored. 
      */
     TokenEntryType getTokenEntryType() {
         if (!StringExtensions.isNullOrBlank(this.getResource())) {
@@ -432,9 +434,9 @@ public class TokenCacheItem implements Serializable {
             return TokenEntryType.MRRT_TOKEN_ENTRY;
         }
     }
-
+    
     /**
-     * @return True if the {@link TokenCacheItem} has FoCI flag, false otherwise.
+     * @return True if the {@link TokenCacheItem} has FoCI flag, false otherwise. 
      */
     boolean isFamilyToken() {
         return !StringExtensions.isNullOrBlank(mFamilyClientId);
@@ -454,29 +456,29 @@ public class TokenCacheItem implements Serializable {
  */
 enum TokenEntryType {
     /**
-     * Represents the regular token entry.
-     * {@link TokenCacheItem} stored for regular token entry will have resource,
-     * access token, client id store.
-     * If it's also a MRRT item, MRRT flag will be marked as true.
-     * If it's also a FRT item, FoCI field will be populated with the family client Id
-     * server returned.
+     * Represents the regular token entry. 
+     * {@link TokenCacheItem} stored for regular token entry will have resource, 
+     * access token, client id store. 
+     * If it's also a MRRT item, MRRT flag will be marked as true. 
+     * If it's also a FRT item, FoCI field will be populated with the family client Id 
+     * server returned. 
      */
-    REGULAR_TOKEN_ENTRY,
-
+    REGULAR_TOKEN_ENTRY, 
+    
     /**
-     * Represents the MRRT token entry.
-     * {@link TokenCacheItem} stored for MRRT token entry will not have resource
-     * and access token store.
-     * MRRT flag will be set as true.
-     * If it's also a FRT item, FoCI field will be populated with the family client Id
-     * server returned.
+     * Represents the MRRT token entry. 
+     * {@link TokenCacheItem} stored for MRRT token entry will not have resource 
+     * and access token store. 
+     * MRRT flag will be set as true. 
+     * If it's also a FRT item, FoCI field will be populated with the family client Id 
+     * server returned. 
      */
-    MRRT_TOKEN_ENTRY,
-
+    MRRT_TOKEN_ENTRY, 
+    
     /**
-     * Represents the FRT token entry.
+     * Represents the FRT token entry. 
      * {@link TokenCacheItem} stored for FRT token entry will not have resource, access token
-     * and client id stored. FoCI field be will populated with the value server returned.
+     * and client id stored. FoCI field be will populated with the value server returned. 
      */
     FRT_TOKEN_ENTRY
 }

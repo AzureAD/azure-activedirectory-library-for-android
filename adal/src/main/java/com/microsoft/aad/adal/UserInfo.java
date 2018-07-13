@@ -26,9 +26,6 @@ package com.microsoft.aad.adal;
 import android.net.Uri;
 import android.os.Bundle;
 
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-
 import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Date;
@@ -67,7 +64,6 @@ public class UserInfo implements Serializable {
 
     /**
      * Constructor for {@link UserInfo}.
-     *
      * @param upn Upn that is used to construct the {@link UserInfo}.
      */
     public UserInfo(String upn) {
@@ -76,15 +72,14 @@ public class UserInfo implements Serializable {
 
     /**
      * Constructor for {@link UserInfo}.
-     *
-     * @param userid           Unique user id for the userInfo.
-     * @param givenName        Given name for the userInfo.
-     * @param familyName       Family name for the userInfo.
+     * @param userid Unique user id for the userInfo.
+     * @param givenName Given name for the userInfo.
+     * @param familyName Family name for the userInfo.
      * @param identityProvider IdentityProvider for the userInfo.
-     * @param displayableId    Displayable for the userInfo.
+     * @param displayableId Displayable for the userInfo.
      */
     public UserInfo(String userid, String givenName, String familyName, String identityProvider,
-                    String displayableId) {
+            String displayableId) {
         mUniqueId = userid;
         mGivenName = givenName;
         mFamilyName = familyName;
@@ -94,7 +89,6 @@ public class UserInfo implements Serializable {
 
     /**
      * Constructor for creating {@link UserInfo} from {@link IdToken}.
-     *
      * @param idToken The {@link IdToken} to create {@link UserInfo}.
      */
     public UserInfo(IdToken idToken) {
@@ -133,7 +127,6 @@ public class UserInfo implements Serializable {
 
     /**
      * Creates the {@link UserInfo} from the bundle returned from broker.
-     *
      * @param bundle The {@link Bundle} that broker returns.
      * @return {@link UserInfo} created from the bundle result.
      */
@@ -154,7 +147,7 @@ public class UserInfo implements Serializable {
 
     /**
      * Gets unique user id.
-     *
+     * 
      * @return the unique id representing an user
      */
     public String getUserId() {
@@ -170,7 +163,7 @@ public class UserInfo implements Serializable {
 
     /**
      * Gets given name.
-     *
+     * 
      * @return the given name of the user
      */
     public String getGivenName() {
@@ -179,7 +172,7 @@ public class UserInfo implements Serializable {
 
     /**
      * Gets family name.
-     *
+     * 
      * @return the family name of the user
      */
     public String getFamilyName() {
@@ -188,7 +181,7 @@ public class UserInfo implements Serializable {
 
     /**
      * Gets Identity provider.
-     *
+     * 
      * @return the identity provider
      */
     public String getIdentityProvider() {
@@ -197,7 +190,7 @@ public class UserInfo implements Serializable {
 
     /**
      * Gets displayable user name.
-     *
+     * 
      * @return the displayable user name
      */
     public String getDisplayableId() {
@@ -213,7 +206,7 @@ public class UserInfo implements Serializable {
 
     /**
      * Gets password change url.
-     *
+     * 
      * @return the password change uri
      */
     public Uri getPasswordChangeUrl() {
@@ -222,10 +215,10 @@ public class UserInfo implements Serializable {
 
     /**
      * Gets password expires on.
-     *
+     * 
      * @return the time when the password will expire
      */
     public Date getPasswordExpiresOn() {
-        return DateExtensions.createCopy(mPasswordExpiresOn);
+        return Utility.getImmutableDateObject(mPasswordExpiresOn);
     }
 }

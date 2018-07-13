@@ -34,12 +34,9 @@ import android.os.Looper;
 import android.os.NetworkOnMainThreadException;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.EventLog;
 import android.util.SparseArray;
 
 import com.microsoft.aad.adal.AuthenticationRequest.UserIdentifierType;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -92,7 +89,7 @@ public class AuthenticationContext {
      * default cache that stores encrypted tokens.
      *
      * @param appContext        It needs to have handle to the {@link Context} to use
-     *                          the SharedPreferencesFileManager as a Default cache storage. It does not
+     *                          the SharedPreferences as a Default cache storage. It does not
      *                          need to be activity.
      * @param authority         Authority url to send code and token requests
      * @param validateAuthority validate authority before sending token request
@@ -154,7 +151,7 @@ public class AuthenticationContext {
 
     /**
      * Returns referenced cache. You can use default cache, which uses
-     * SharedPreferencesFileManager and handles synchronization by itself.
+     * SharedPreferences and handles synchronization by itself.
      *
      * @return ITokenCacheStore Current cache used
      */
@@ -348,7 +345,7 @@ public class AuthenticationContext {
 
             final String requestId = Telemetry.registerNewRequest();
             final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_3);
-            apiEvent.setPromptBehavior(prompt);
+            apiEvent.setPromptBehavior(prompt.toString());
 
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                     clientId, redirectUri, null, prompt, null, getRequestCorrelationId(), getExtendedLifetimeEnabled(), null);
@@ -386,7 +383,7 @@ public class AuthenticationContext {
 
             final String requestId = Telemetry.registerNewRequest();
             final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_4);
-            apiEvent.setPromptBehavior(prompt);
+            apiEvent.setPromptBehavior(prompt.toString());
 
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                     clientId, redirectUri, null, prompt, extraQueryParameters,
@@ -427,7 +424,7 @@ public class AuthenticationContext {
             redirectUri = getRedirectUri(redirectUri);
             final String requestId = Telemetry.registerNewRequest();
             final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_5);
-            apiEvent.setPromptBehavior(prompt);
+            apiEvent.setPromptBehavior(prompt.toString());
             apiEvent.setLoginHint(loginHint);
 
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
@@ -440,8 +437,12 @@ public class AuthenticationContext {
     }
 
     /**
-     * acquireToken will start an interactive auth flow to acquire new tokens 
-     * with the requested claims. Bypasses token cache if promptbehavior is not AUTO or claims are passed. 
+     * acquireToken will start interactive flow if needed. It checks the cache
+     * to return existing result if not expired. It tries to use refresh token
+     * if available. If it fails to get token with refresh token, behavior will
+     * depend on options. If promptbehavior is AUTO, it will remove this refresh
+     * token from cache and fall back on the UI if activitycontext is not null.
+     * Default is AUTO.
      *
      * @param activity             Calling activity
      * @param resource             required resource identifier.
@@ -467,7 +468,7 @@ public class AuthenticationContext {
             redirectUri = getRedirectUri(redirectUri);
             final String requestId = Telemetry.registerNewRequest();
             final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_8);
-            apiEvent.setPromptBehavior(prompt);
+            apiEvent.setPromptBehavior(prompt.toString());
             apiEvent.setLoginHint(loginHint);
 
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
@@ -507,7 +508,7 @@ public class AuthenticationContext {
             redirectUri = getRedirectUri(redirectUri);
             final String requestId = Telemetry.registerNewRequest();
             final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_6);
-            apiEvent.setPromptBehavior(prompt);
+            apiEvent.setPromptBehavior(prompt.toString());
             apiEvent.setLoginHint(loginHint);
 
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
@@ -520,8 +521,11 @@ public class AuthenticationContext {
     }
 
     /**
-     * acquireToken will start an interactive auth flow to acquire new tokens 
-     * with the requested claims. Bypasses token cache if promptbehavior is not AUTO or claims are passed. 
+     * It will start interactive flow if needed. It checks the cache to return
+     * existing result if not expired. It tries to use refresh token if
+     * available. If it fails to get token with refresh token, behavior will
+     * depend on options. If promptbehavior is AUTO, it will remove this refresh
+     * token from cache and fall back on the UI. Default is AUTO.
      *
      * @param fragment             It accepts both type of fragments.
      * @param resource             required resource identifier.
@@ -547,7 +551,7 @@ public class AuthenticationContext {
             redirectUri = getRedirectUri(redirectUri);
             final String requestId = Telemetry.registerNewRequest();
             final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_9);
-            apiEvent.setPromptBehavior(prompt);
+            apiEvent.setPromptBehavior(prompt.toString());
             apiEvent.setLoginHint(loginHint);
 
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
@@ -588,7 +592,7 @@ public class AuthenticationContext {
             redirectUri = getRedirectUri(redirectUri);
             final String requestId = Telemetry.registerNewRequest();
             final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_7);
-            apiEvent.setPromptBehavior(prompt);
+            apiEvent.setPromptBehavior(prompt.toString());
             apiEvent.setLoginHint(loginHint);
 
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
@@ -602,9 +606,13 @@ public class AuthenticationContext {
     }
 
     /**
-     * acquireToken will start an interactive auth flow to acquire new tokens 
-     * with the requested claims. Bypasses token cache if promptbehavior is not AUTO or claims are passed. This overload uses new dialog based prompt. 
-     * It will create a handler to run the dialog related code. 
+     * This uses new dialog based prompt. It will create a handler to run the
+     * dialog related code. It will start interactive flow if needed. It checks
+     * the cache to return existing result if not expired. It tries to use
+     * refresh token if available. If it fails to get token with refresh token,
+     * behavior will depend on options. If promptbehavior is AUTO, it will
+     * remove this refresh token from cache and fall back on the UI. Default is
+     * AUTO.
      *
      * @param resource             required resource identifier.
      * @param clientId             required client identifier.
@@ -629,7 +637,7 @@ public class AuthenticationContext {
             redirectUri = getRedirectUri(redirectUri);
             final String requestId = Telemetry.registerNewRequest();
             final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_10);
-            apiEvent.setPromptBehavior(prompt);
+            apiEvent.setPromptBehavior(prompt.toString());
             apiEvent.setLoginHint(loginHint);
 
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
@@ -661,35 +669,6 @@ public class AuthenticationContext {
      */
     public AuthenticationResult acquireTokenSilentSync(String resource, String clientId, String userId)
             throws AuthenticationException, InterruptedException {
-        return acquireTokenSilentSync(resource, clientId, userId, false, EventStrings.ACQUIRE_TOKEN_SILENT_SYNC);
-    }
-
-    /**
-     * This is sync function. It will first look at the cache and automatically
-     * checks for the token expiration. Additionally, if no suitable access
-     * token is found in the cache, but refresh token is available, the function
-     * will use the refresh token automatically. This method will not show UI
-     * for the user. If prompt is needed, the method will return an exception
-     *
-     * @param resource required resource identifier.
-     * @param clientId required client identifier.
-     * @param userId   UserID obtained from
-     *                 {@link AuthenticationResult #getUserInfo()}
-     * @param forceRefresh when true, access token is renewed using broker if available; otherwise, uses local refresh token
-     * @return A {@link Future} object representing the
-     * {@link AuthenticationResult} of the call. It contains Access
-     * Token,the Access Token's expiration time, Refresh token, and
-     * {@link UserInfo}.
-     * @throws AuthenticationException If silent request fails to get the token back.
-     * @throws InterruptedException    If the main thread is interrupted before or during the activity.
-     */
-    public AuthenticationResult acquireTokenSilentSync(String resource, String clientId, String userId, boolean forceRefresh)
-            throws AuthenticationException, InterruptedException {
-        return acquireTokenSilentSync(resource, clientId, userId, forceRefresh, EventStrings.ACQUIRE_TOKEN_SILENT_SYNC_FORCE_REFRESH);
-    }
-
-    private AuthenticationResult acquireTokenSilentSync(final String resource, final String clientId, final String userId, final boolean forceRefresh, final String apiEventString)
-            throws AuthenticationException, InterruptedException {
 
         final String methodName = ":acquireTokenSilentSync";
         checkPreRequirements(resource, clientId);
@@ -699,11 +678,11 @@ public class AuthenticationContext {
         final CountDownLatch latch = new CountDownLatch(1);
 
         final String requestId = Telemetry.registerNewRequest();
-        final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, apiEventString);
+        final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_SILENT_SYNC);
         apiEvent.setPromptBehavior(PromptBehavior.Auto.toString());
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled(), forceRefresh);
+                clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled());
         request.setSilent(true);
         request.setPrompt(PromptBehavior.Auto);
         request.setUserIdentifierType(UserIdentifierType.UniqueId);
@@ -854,39 +833,6 @@ public class AuthenticationContext {
                                         String clientId,
                                         String userId,
                                         AuthenticationCallback<AuthenticationResult> callback) {
-        acquireTokenSilentAsync(resource, clientId, userId, false, EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC, callback);
-    }
-
-    /**
-     * The function will first look at the cache and automatically checks for
-     * the token expiration. Additionally, if no suitable access token is found
-     * in the cache, but refresh token is available, the function will use the
-     * refresh token automatically. This method will not show UI for the user.
-     * If prompt is needed, the method will return an exception
-     *
-     * @param resource required resource identifier.
-     * @param clientId required client identifier.
-     * @param userId   UserId obtained from {@link UserInfo} inside
-     *                 {@link AuthenticationResult}
-     * @param forceRefresh when true, access token is renewed using broker if available; otherwise, uses local refresh token
-     * @param callback required {@link AuthenticationCallback} object for async
-     *                 call.
-     */
-    public void acquireTokenSilentAsync(String resource,
-                                        String clientId,
-                                        String userId,
-                                        boolean forceRefresh,
-                                        AuthenticationCallback<AuthenticationResult> callback) {
-        acquireTokenSilentAsync(resource, clientId, userId, forceRefresh, EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC_FORCE_REFRESH, callback);
-    }
-
-    private void acquireTokenSilentAsync(final String resource,
-                                        final String clientId,
-                                        final String userId,
-                                        final boolean forceRefresh,
-                                        final String apiEventString,
-                                        final AuthenticationCallback<AuthenticationResult> callback) {
-
         if (!checkPreRequirements(resource, clientId, callback) || !checkADFSValidationRequirements(null, callback)) {
             // AD FS validation cannot be perfomed, stop executing
             return;
@@ -894,11 +840,11 @@ public class AuthenticationContext {
 
         final String requestId = Telemetry.registerNewRequest();
         final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId,
-                apiEventString);
+                EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC);
         apiEvent.setPromptBehavior(PromptBehavior.Auto.toString());
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled(), forceRefresh);
+                clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled());
         request.setSilent(true);
         request.setPrompt(PromptBehavior.Auto);
         request.setUserIdentifierType(UserIdentifierType.UniqueId);
@@ -906,10 +852,7 @@ public class AuthenticationContext {
         request.setTelemetryRequestId(requestId);
 
         createAcquireTokenRequest(apiEvent).acquireToken(null, false, request, callback);
-
     }
-
-
 
     /**
      * acquire token using refresh token if cache is not used. Otherwise, use
@@ -1290,7 +1233,7 @@ public class AuthenticationContext {
          * apps. So the client ID for the FoCI token cache item is hard coded
          * below.
          */
-        final TokenCacheAccessor tokenCacheAccessor = new TokenCacheAccessor(this.mContext.getApplicationContext(), mTokenCacheStore, this.getAuthority(),
+        final TokenCacheAccessor tokenCacheAccessor = new TokenCacheAccessor(mTokenCacheStore, this.getAuthority(),
                 Telemetry.registerNewRequest());
         final TokenCacheItem tokenItem;
         try {
@@ -1344,10 +1287,6 @@ public class AuthenticationContext {
         // first, we'll fall back to passed in authority host and all the aliased hosts if necessary; If app receives the blob has the old
         // version of adal, since all the apps using token share library are using login.windows.net, token lookup will keep working.
         final TokenCacheItem tokenCacheItem = SSOStateSerializer.deserialize(serializedBlob);
-        if (StringExtensions.isNullOrBlank(tokenCacheItem.getAuthority()) ||
-                (StringExtensions.isNullOrBlank(tokenCacheItem.getClientId()) && StringExtensions.isNullOrBlank(tokenCacheItem.getFamilyClientId()))) {
-            throw new DeserializationAuthenticationException("Failed to deserialize the blob because authority or client id is null/empty.");
-        }
         final String cacheKey = CacheKey.createCacheKey(tokenCacheItem);
         this.getCache().setItem(cacheKey, tokenCacheItem);
     }

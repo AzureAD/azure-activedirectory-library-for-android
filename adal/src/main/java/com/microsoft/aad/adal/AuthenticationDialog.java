@@ -36,8 +36,6 @@ import android.view.View;
 import android.webkit.WebView;
 import android.widget.ProgressBar;
 
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-
 import java.io.UnsupportedEncodingException;
 
 @SuppressLint({
@@ -58,7 +56,7 @@ class AuthenticationDialog {
 
     private WebView mWebView;
 
-    AuthenticationDialog(Handler handler, Context context, final AcquireTokenRequest acquireTokenRequest,
+    public AuthenticationDialog(Handler handler, Context context, final AcquireTokenRequest acquireTokenRequest,
             AuthenticationRequest request) {
         mHandlerInView = handler;
         mContext = context;
@@ -74,7 +72,7 @@ class AuthenticationDialog {
      * Create dialog using the context. Inflate the layout with inflater
      * service. This will run with the handler.
      */
-    void show() {
+    public void show() {
         final String methodName = ":show";
         mHandlerInView.post(new Runnable() {
 
@@ -195,7 +193,7 @@ class AuthenticationDialog {
 
     class DialogWebViewClient extends BasicWebViewClient {
 
-        DialogWebViewClient(Context ctx, String stopRedirect,
+        public DialogWebViewClient(Context ctx, String stopRedirect,
                 AuthenticationRequest request) {
             super(ctx, stopRedirect, request, null);
         }

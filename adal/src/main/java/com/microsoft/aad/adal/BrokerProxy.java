@@ -28,39 +28,57 @@ import android.accounts.AccountManagerFuture;
 import android.accounts.AuthenticatorDescription;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
+import android.content.pm.Signature;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
+import android.util.Base64;
 
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-import com.microsoft.identity.common.internal.broker.BrokerValidator;
-import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
+import org.json.JSONException;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.GeneralSecurityException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertPath;
+import java.security.cert.CertPathValidator;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.PKIXParameters;
+import java.security.cert.TrustAnchor;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.RT_AGE;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_ERROR;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_SUBERROR;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.SPE_RING;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT;
+import static com.microsoft.aad.adal.AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.RT_AGE;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_ERROR;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_SUBERROR;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.SPE_RING;
 
 /**
  * Handles interactions to authenticator inside the Account Manager.
@@ -76,7 +94,7 @@ class BrokerProxy implements IBrokerProxy {
 
     private Handler mHandler;
 
-    private BrokerValidator mBrokerValidator;
+    private final String mBrokerTag;
 
     private static final String KEY_ACCOUNT_LIST_DELIM = "|";
 
@@ -90,14 +108,15 @@ class BrokerProxy implements IBrokerProxy {
 
     private static final String AUTHENTICATOR_CANCELS_REQUEST = "Authenticator cancels the request";
 
-    BrokerProxy() {
+    public BrokerProxy() {
+        mBrokerTag = AuthenticationSettings.INSTANCE.getBrokerSignature();
     }
 
-    BrokerProxy(final Context ctx) {
+    public BrokerProxy(final Context ctx) {
         mContext = ctx;
         mAcctManager = AccountManager.get(mContext);
         mHandler = new Handler(mContext.getMainLooper());
-        mBrokerValidator = new BrokerValidator(ctx);
+        mBrokerTag = AuthenticationSettings.INSTANCE.getBrokerSignature();
     }
 
     enum SwitchToBroker {
@@ -169,21 +188,6 @@ class BrokerProxy implements IBrokerProxy {
         return true;
     }
 
-    public boolean verifyBrokerForSilentRequest(AuthenticationRequest request) throws AuthenticationException {
-        // If we cannot switch to broker, return the result from local flow.
-        final BrokerProxy.SwitchToBroker switchToBrokerFlag = canSwitchToBroker(request.getAuthority());
-        if (switchToBrokerFlag == SwitchToBroker.CAN_SWITCH_TO_BROKER) {
-            return verifyUser(request.getLoginHint(), request.getUserId());
-        } else if (switchToBrokerFlag == BrokerProxy.SwitchToBroker.NEED_PERMISSIONS_TO_SWITCH_TO_BROKER) {
-            //For android M and above
-            throw new UsageAuthenticationException(
-                    ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,
-                    "Broker related permissions are missing for GET_ACCOUNTS");
-        }
-
-        return false;
-    }
-
     @Override
     public boolean canUseLocalCache(final String authorityUrlStr) {
         final String methodName = ":canUseLocalCache";
@@ -193,7 +197,7 @@ class BrokerProxy implements IBrokerProxy {
         }
 
         String packageName = mContext.getPackageName();
-        if (mBrokerValidator.verifySignature(packageName)) {
+        if (verifySignature(packageName)) {
             Logger.v(TAG + methodName, "Broker installer can use local cache");
             return true;
         }
@@ -276,7 +280,7 @@ class BrokerProxy implements IBrokerProxy {
         if (looper != null && looper == mContext.getMainLooper()) {
             final IllegalStateException exception = new IllegalStateException(
                     "calling this from your main thread can lead to deadlock");
-            Logger.e(TAG, "calling this from your main thread can lead to deadlock and/or ANRs", "",
+            Logger.e(TAG , "calling this from your main thread can lead to deadlock and/or ANRs", "",
                     ADALError.DEVELOPER_CALLING_ON_MAIN_THREAD, exception);
             if (mContext.getApplicationInfo().targetSdkVersion >= Build.VERSION_CODES.FROYO) {
                 throw exception;
@@ -481,17 +485,18 @@ class BrokerProxy implements IBrokerProxy {
 
             throw new AuthenticationException(adalErrorCode, msg);
         } else if (!StringExtensions.isNullOrBlank(oauth2ErrorCode) && request.isSilent()) {
-            final AuthenticationException exception = getAuthenticationExceptionForResult(oauth2ErrorCode, oauth2ErrorDescription, bundleResult);
+            final AuthenticationException exception = new AuthenticationException(ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED,
+                    "Received error from broker, errorCode: " + oauth2ErrorCode + "; ErrorDescription: " + oauth2ErrorDescription);
             final Serializable responseBody = bundleResult.getSerializable(AuthenticationConstants.OAuth2.HTTP_RESPONSE_BODY);
             final Serializable responseHeaders = bundleResult.getSerializable(AuthenticationConstants.OAuth2.HTTP_RESPONSE_HEADER);
             if (null != responseBody && responseBody instanceof HashMap) {
-                exception.setHttpResponseBody((HashMap) responseBody);
+                exception.setHttpResponseBody((HashMap)responseBody);
             }
 
             if (null != responseHeaders && responseHeaders instanceof HashMap) {
-                exception.setHttpResponseHeaders((HashMap) responseHeaders);
+                exception.setHttpResponseHeaders((HashMap)responseHeaders);
             }
-
+            
             exception.setServiceStatusCode(bundleResult.getInt(AuthenticationConstants.OAuth2.HTTP_STATUS_CODE));
             throw exception;
         } else {
@@ -499,7 +504,7 @@ class BrokerProxy implements IBrokerProxy {
             if (initialRequest) {
                 // Initial request from app to Authenticator needs to launch
                 // prompt
-                return AuthenticationResult.createResultForInitialRequest(request.getClientId());
+                return AuthenticationResult.createResultForInitialRequest();
             }
 
             // IDtoken is not present in the current broker user model
@@ -517,17 +522,8 @@ class BrokerProxy implements IBrokerProxy {
                 expires = new Date(bundleResult.getLong(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE));
             }
 
-            final AuthenticationResult result = new AuthenticationResult(
-                    bundleResult.getString(AccountManager.KEY_AUTHTOKEN),
-                    "",
-                    expires,
-                    false,
-                    userinfo,
-                    tenantId,
-                    "",
-                    null,
-                    request.getClientId()
-            );
+            final AuthenticationResult result = new AuthenticationResult(bundleResult.getString(AccountManager.KEY_AUTHTOKEN),
+                    "", expires, false, userinfo, tenantId, "", null);
 
             // set the x-ms-clitelem data
             final TelemetryUtils.CliTelemInfo cliTelemInfo = new TelemetryUtils.CliTelemInfo();
@@ -541,36 +537,6 @@ class BrokerProxy implements IBrokerProxy {
         }
     }
 
-    private AuthenticationException getAuthenticationExceptionForResult(final String oauth2ErrorCode, final String oauth2ErrorDescription,
-                                                                        final Bundle bundleResult) {
-        final String message = String.format("Received error from broker, errorCode: %s; ErrorDescription: %s",
-                oauth2ErrorCode, oauth2ErrorDescription);
-
-        // check the response body for the "unauthorized_client" error and the "protection_policy_required" suberror
-        final Serializable responseBody = bundleResult.getSerializable(AuthenticationConstants.OAuth2.HTTP_RESPONSE_BODY);
-        if (null != responseBody && responseBody instanceof HashMap) {
-            final HashMap<String, String> responseMap = (HashMap<String, String>) responseBody;
-            final String error = responseMap.get(AuthenticationConstants.OAuth2.ERROR);
-            final String suberror = responseMap.get(AuthenticationConstants.OAuth2.SUBERROR);
-            if (!StringExtensions.isNullOrBlank(error) && !StringExtensions.isNullOrBlank(suberror) &&
-                    AuthenticationConstants.OAuth2ErrorCode.UNAUTHORIZED_CLIENT.compareTo(error) == 0 &&
-                    AuthenticationConstants.OAuth2ErrorCode.PROTECTION_POLICY_REQUIRED.compareTo(suberror) == 0) {
-
-                final String accountUpn = bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_NAME);
-                final String accountUserId = bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID);
-                final String tenantId = bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID);
-                final String authorityUrl = bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY);
-
-                AuthenticationException exception = new IntuneAppProtectionPolicyRequiredException(
-                        message, accountUpn, accountUserId, tenantId, authorityUrl);
-
-                return exception;
-            }
-        }
-
-        return new AuthenticationException(ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, message);
-    }
-
     /**
      * Tracks accounts that user of the ADAL accessed from AccountManager. It
      * uses this list, when app calls remove accounts. It limits the account
@@ -582,12 +548,15 @@ class BrokerProxy implements IBrokerProxy {
             return;
         }
 
-        SharedPreferencesFileManager prefs = new SharedPreferencesFileManager(mContext, KEY_SHARED_PREF_ACCOUNT_LIST);
-        String accountList = prefs.getString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL);
-        accountList = null != accountList ? accountList : "";
+        SharedPreferences prefs = mContext.getSharedPreferences(KEY_SHARED_PREF_ACCOUNT_LIST, Activity.MODE_PRIVATE);
+        String accountList = prefs.getString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL, "");
         if (!accountList.contains(KEY_ACCOUNT_LIST_DELIM + accountName)) {
             accountList += KEY_ACCOUNT_LIST_DELIM + accountName;
-            prefs.putString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL, accountList);
+            Editor prefsEditor = prefs.edit();
+            prefsEditor.putString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL, accountList);
+
+            // apply will do Async disk write operation.
+            prefsEditor.apply();
         }
     }
 
@@ -682,16 +651,9 @@ class BrokerProxy implements IBrokerProxy {
             // Callback is not passed since it is making a blocking call to get
             // intent. Activity needs to be launched from calling app
             // to get the calling app's metadata if needed at BrokerActivity.
-            final AccountManagerFuture<Bundle> result =
-                    mAcctManager.addAccount(
-                            AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
-                            AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
-                            null,
-                            addAccountOptions,
-                            null,
-                            null,
-                            mHandler
-                    );
+            final AccountManagerFuture<Bundle> result = mAcctManager.addAccount(
+                    AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
+                    AuthenticationConstants.Broker.AUTHTOKEN_TYPE, null, addAccountOptions, null, null, mHandler);
 
             // Making blocking request here
             Bundle bundleResult = result.getResult();
@@ -770,13 +732,9 @@ class BrokerProxy implements IBrokerProxy {
             brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_PROMPT, request.getPrompt().name());
         }
 
-        if (request.isClaimsChallengePresent()) {
+        if (Utility.isClaimsChallengePresent(request)) {
             brokerOptions.putString(AuthenticationConstants.Broker.BROKER_SKIP_CACHE, Boolean.toString(true));
             brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CLAIMS, request.getClaimsChallenge());
-        }
-
-        if (request.getForceRefresh()){
-            brokerOptions.putString(AuthenticationConstants.Broker.BROKER_FORCE_REFRESH, Boolean.toString(true));
         }
 
         return brokerOptions;
@@ -899,6 +857,125 @@ class BrokerProxy implements IBrokerProxy {
         return infos.size() > 0;
     }
 
+    private boolean verifySignature(final String brokerPackageName) {
+        final String methodName = ":verifySignature";
+        try {
+            // Read all the certificates associated with the package name. In higher version of
+            // android sdk, package manager will only returned the cert that is used to sign the
+            // APK. Even a cert is claimed to be issued by another certificates, sdk will return
+            // the signing cert. However, for the lower version of android, it will return all the
+            // certs in the chain. We need to verify that the cert chain is correctly chained up.
+            final List<X509Certificate> certs = readCertDataForBrokerApp(brokerPackageName);
+
+            // Verify the cert list contains the cert we trust.
+            verifySignatureHash(certs);
+
+            // Perform the certificate chain validation. If there is only one cert returned,
+            // no need to perform certificate chain validation.
+            if (certs.size() > 1) {
+                verifyCertificateChain(certs);
+            }
+
+            return true;
+        } catch (NameNotFoundException e) {
+            Logger.e(TAG + methodName, "Broker related package does not exist", "", ADALError.BROKER_PACKAGE_NAME_NOT_FOUND);
+        } catch (NoSuchAlgorithmException e) {
+            Logger.e(TAG + methodName, "Digest SHA algorithm does not exists", "", ADALError.DEVICE_NO_SUCH_ALGORITHM);
+        } catch (final AuthenticationException | IOException | GeneralSecurityException e) {
+            Logger.e(TAG + methodName, ADALError.BROKER_VERIFICATION_FAILED.getDescription(), e.getMessage(), ADALError.BROKER_VERIFICATION_FAILED, e);
+        }
+
+        return false;
+    }
+
+    private void verifySignatureHash(final List<X509Certificate> certs) throws NoSuchAlgorithmException,
+            CertificateEncodingException, AuthenticationException {
+        for (final X509Certificate x509Certificate : certs) {
+            final MessageDigest messageDigest = MessageDigest.getInstance("SHA");
+            messageDigest.update(x509Certificate.getEncoded());
+
+            // Check the hash for signer cert is the same as what we hardcoded.
+            final String signatureHash = Base64.encodeToString(messageDigest.digest(), Base64.NO_WRAP);
+            if (mBrokerTag.equals(signatureHash)
+                    || AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_SIGNATURE.equals(signatureHash)) {
+                return;
+            }
+        }
+
+        throw new AuthenticationException(ADALError.BROKER_APP_VERIFICATION_FAILED);
+    }
+
+    @SuppressLint("PackageManagerGetSignatures")
+    private List<X509Certificate> readCertDataForBrokerApp(final String brokerPackageName)
+            throws NameNotFoundException, AuthenticationException, IOException,
+            GeneralSecurityException {
+        final PackageInfo packageInfo = mContext.getPackageManager().getPackageInfo(brokerPackageName,
+                PackageManager.GET_SIGNATURES);
+        if (packageInfo == null) {
+            throw new AuthenticationException(ADALError.APP_PACKAGE_NAME_NOT_FOUND,
+                    "No broker package existed.");
+        }
+
+        if (packageInfo.signatures == null || packageInfo.signatures.length == 0) {
+            throw new AuthenticationException(ADALError.BROKER_APP_VERIFICATION_FAILED,
+                    "No signature associated with the broker package.");
+        }
+
+        final List<X509Certificate> certificates = new ArrayList<>(packageInfo.signatures.length);
+        for (final Signature signature : packageInfo.signatures) {
+            final byte[] rawCert = signature.toByteArray();
+            final InputStream certStream = new ByteArrayInputStream(rawCert);
+
+            final CertificateFactory certificateFactory;
+            final X509Certificate x509Certificate;
+            try {
+                certificateFactory = CertificateFactory.getInstance("X509");
+                x509Certificate = (X509Certificate) certificateFactory.generateCertificate(
+                        certStream);
+                certificates.add(x509Certificate);
+            } catch (final CertificateException e) {
+                throw new AuthenticationException(ADALError.BROKER_APP_VERIFICATION_FAILED);
+            }
+        }
+
+        return certificates;
+    }
+
+    private void verifyCertificateChain(final List<X509Certificate> certificates)
+            throws GeneralSecurityException, AuthenticationException {
+        // create certificate chain, find the self signed cert first and chain all the way back
+        // to the signer cert. Also perform certificate signing validation when chaining them back.
+        final X509Certificate issuerCert = getSelfSignedCert(certificates);
+        final TrustAnchor trustAnchor = new TrustAnchor(issuerCert, null);
+        final PKIXParameters pkixParameters = new PKIXParameters(Collections.singleton(trustAnchor));
+        pkixParameters.setRevocationEnabled(false);
+        final CertPath certPath = CertificateFactory.getInstance("X.509")
+                .generateCertPath(certificates);
+
+        final CertPathValidator certPathValidator = CertPathValidator.getInstance("PKIX");
+        certPathValidator.validate(certPath, pkixParameters);
+    }
+
+    // Will throw if there is more than one self-signed cert found.
+    private X509Certificate getSelfSignedCert(final List<X509Certificate> certs)
+            throws AuthenticationException {
+        int count = 0;
+        X509Certificate selfSignedCert = null;
+        for (final X509Certificate x509Certificate : certs) {
+            if (x509Certificate.getSubjectDN().equals(x509Certificate.getIssuerDN())) {
+                selfSignedCert = x509Certificate;
+                count++;
+            }
+        }
+
+        if (count > 1 || selfSignedCert == null) {
+            throw new AuthenticationException(ADALError.BROKER_APP_VERIFICATION_FAILED,
+                    "Multiple self signed certs found or no self signed cert existed.");
+        }
+
+        return selfSignedCert;
+    }
+
     private boolean verifyAuthenticator(final AccountManager am) {
         // there may be multiple authenticators from same package
         // , but there is only one entry for an authenticator type in
@@ -908,7 +985,7 @@ class BrokerProxy implements IBrokerProxy {
         AuthenticatorDescription[] authenticators = am.getAuthenticatorTypes();
         for (AuthenticatorDescription authenticator : authenticators) {
             if (authenticator.type.equals(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE)
-                    && mBrokerValidator.verifySignature(authenticator.packageName)) {
+                    && verifySignature(authenticator.packageName)) {
                 return true;
             }
         }
