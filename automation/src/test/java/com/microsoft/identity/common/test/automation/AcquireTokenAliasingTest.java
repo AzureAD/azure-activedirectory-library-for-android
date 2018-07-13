@@ -37,19 +37,16 @@ import io.appium.java_client.service.local.AppiumDriverLocalService;
 import static net.serenitybdd.screenplay.GivenWhenThen.givenThat;
 import static net.serenitybdd.screenplay.GivenWhenThen.seeThat;
 import static net.serenitybdd.screenplay.GivenWhenThen.then;
+import static net.serenitybdd.screenplay.GivenWhenThen.when;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
-/**
- * Test case : https://identitydivision.visualstudio.com/IDDP/_workitems/edit/98555
- */
-
 @RunWith(SerenityParameterizedRunner.class)
 @WithTag("requires:none")
-public class AcquireTokenAfterExpireAT {
+public class AcquireTokenAliasingTest {
 
     @TestData
-    public static Collection<Object[]> FederationProviders(){
+    public static Collection<Object[]> FederationProviders() {
 
 
         return Arrays.asList(new Object[][]{
@@ -80,7 +77,7 @@ public class AcquireTokenAfterExpireAT {
 
     static AppiumDriverLocalService appiumService = null;
 
-    @Managed(driver="Appium")
+    @Managed(driver = "Appium")
     WebDriver hisMobileDevice;
 
     @BeforeClass
@@ -97,12 +94,12 @@ public class AcquireTokenAfterExpireAT {
     private User james;
     private String federationProvider;
 
-    public AcquireTokenAfterExpireAT(String federationProvider){
+    public AcquireTokenAliasingTest(String federationProvider) {
         this.federationProvider = federationProvider;
     }
 
     @Before
-    public void jamesCanUseAMobileDevice(){
+    public void jamesCanUseAMobileDevice() {
         TestConfigurationQuery query = new TestConfigurationQuery();
         query.federationProvider = this.federationProvider;
         query.isFederated = true;
@@ -111,7 +108,7 @@ public class AcquireTokenAfterExpireAT {
         james.can(BrowseTheWeb.with(hisMobileDevice));
     }
 
-    private static User getUser(TestConfigurationQuery query){
+    private static User getUser(TestConfigurationQuery query) {
 
         Scenario scenario = Scenario.GetScenario(query);
 
@@ -126,8 +123,9 @@ public class AcquireTokenAfterExpireAT {
 
 
     @Test
-    public void should_be_able_to_new_access_token_after_expiry_on_silent() {
+    public void should_be_able_to_new_access_token_after_authority_aliasing() {
 
+        // acquire token with authority login.microsoftonline.com
         givenThat(james).wasAbleTo(
                 acquireToken,
                 clickDone,
@@ -141,10 +139,13 @@ public class AcquireTokenAfterExpireAT {
         givenThat(james).wasAbleTo(
                 clickDone,
                 expireAccessToken.withTokenCacheItem(cacheItem),
-                clickDone,
-                acquireToken
-                        .tokenExists(true)
-                        .withUserIdentifier(cacheItem.displayableId),
+                clickDone);
+
+        // acquire token silent with authority login.windows.net
+        when(james).attemptsTo(
+                acquireTokenSilent
+                        .withUserIdentifier(cacheItem.displayableId)
+                        .withAuthority(cacheItem.authority),
                 clickDone,
                 readCache);
 
