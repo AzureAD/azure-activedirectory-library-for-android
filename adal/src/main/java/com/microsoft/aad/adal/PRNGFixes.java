@@ -224,9 +224,11 @@ final class PRNGFixes {
 
         @Override
         protected void engineSetSeed(byte[] bytes) {
-            OutputStream out = null;
             try {
-                out = getUrandomOutputStream();
+                OutputStream out;
+                synchronized (SLOCK) {
+                    out = getUrandomOutputStream();
+                }
                 out.write(bytes);
                 out.flush();
             } catch (IOException e) {
@@ -235,13 +237,6 @@ final class PRNGFixes {
                 Logger.w(PRNGFixes.class.getSimpleName(), "Failed to mix seed into " + URANDOM_FILE);
             } finally {
                 mSeeded = true;
-                if (out != null) {
-                    try {
-                        out.close();
-                    } catch (IOException e) {
-                        Logger.v(TAG + "engineSetSeed", "Failed to close the output stream to \"/dev/urandom\" . Exception: " + e.toString());
-                    }
-                }
             }
         }
 
@@ -251,22 +246,17 @@ final class PRNGFixes {
                 // Mix in the device- and invocation-specific seed.
                 engineSetSeed(generateSeed());
             }
-            DataInputStream in = null;
+
             try {
-                in = getUrandomInputStream();
+                DataInputStream in;
                 synchronized (SLOCK) {
+                    in = getUrandomInputStream();
+                }
+                synchronized (in) {
                     in.readFully(bytes);
                 }
             } catch (IOException e) {
                 throw new SecurityException("Failed to read from " + URANDOM_FILE, e);
-            } finally {
-                if (in != null) {
-                    try {
-                        in.close();
-                    } catch (IOException e) {
-                        Logger.v(TAG + "engineNextBytes", "Failed to close the input stream to \"/dev/urandom\" . Exception: " + e.toString());
-                    }
-                }
             }
         }
 
