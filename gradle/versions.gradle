@@ -17,6 +17,6 @@ ext {
     runnerVersion = "1.0.1"
     gsonVersion = "2.8.4"
     rulesVersion = "1.0.0"
-    adalLegacy = "1.14.0"
+    adalLegacy = "1.15.0-RC"
     msal = "0.1.1"
 }

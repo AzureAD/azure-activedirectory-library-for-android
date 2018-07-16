@@ -33,7 +33,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
-        versionName "1.14.0"
+        versionName "1.15.0-RC"
         project.archivesBaseName = "adal"
         project.version = android.defaultConfig.versionName
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -125,12 +125,9 @@ dependencies {
     }
 
     // 'dist' flavor dependencies
-    // Once common is deployed to maven, uncomment the below line...
-    // distImplementation "com.microsoft.identity:common:0.0.1"
-    // and delete the 3 following lines....
-    distImplementation(project(":common")) {
-        transitive = false
-    }
+     distImplementation ("com.microsoft.identity:common:0.0.2"){
+         transitive = false
+     }
 
     // Android Instrumented Test Dependencies
     androidTestImplementation "com.android.support.test:runner:$rootProject.ext.runnerVersion"
