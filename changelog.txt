@@ -10,6 +10,7 @@ Added build variants : local and dist.
 Refactor broker validation out of the BrokerProxy.
 Changes to delete all tokens with all authority combinations for legacy and common.
 Resiliency fix to not crash the app.
+Fixed a NullPointerException when PromptBehavior is passed as null.
 Fixed NoClassDefFoundException for a dialog layout.
 Updates to README instructions for submodule/common use.
 Remove option for download-as-zip.
