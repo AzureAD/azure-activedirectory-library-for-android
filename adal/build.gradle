@@ -125,7 +125,9 @@ dependencies {
     }
 
     // 'dist' flavor dependencies
-     distImplementation "com.microsoft.identity:common:0.0.2"
+     distImplementation ("com.microsoft.identity:common:0.0.2"){
+         transitive = false
+     }
 
     // Android Instrumented Test Dependencies
     androidTestImplementation "com.android.support.test:runner:$rootProject.ext.runnerVersion"
