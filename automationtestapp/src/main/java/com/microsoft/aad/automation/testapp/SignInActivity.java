@@ -148,7 +148,7 @@ public class SignInActivity extends AppCompatActivity {
         validateUserInput(inputItems, flowCode);
 
         setAuthenticationData(inputItems);
-        AuthenticationSettings.INSTANCE.setUseBroker(true);
+        AuthenticationSettings.INSTANCE.setUseBroker(mUseBroker);
 
         mAuthenticationContext = new AuthenticationContext(getApplicationContext(), mAuthority, mValidateAuthority);
 

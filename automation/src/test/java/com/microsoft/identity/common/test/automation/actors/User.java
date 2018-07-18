@@ -37,7 +37,7 @@ public class User extends Actor {
     private String federationProvider;
     private Credential credential;
     private TokenCacheItemReadResult cacheResult;
-    private Boolean workplaceJoined = false;
+    private boolean workplaceJoined = false;
 
     public void setTokenRequest(TokenRequest tokenRequest) {
         this.tokenRequest = tokenRequest;
@@ -84,11 +84,11 @@ public class User extends Actor {
         this.federationProvider = federationProvider;
     }
 
-    public Boolean getWorkplaceJoined() {
-        return this.workplaceJoined;
+    public boolean getWorkplaceJoined() {
+        return workplaceJoined;
     }
 
-    public void setWorkplaceJoined(Boolean workplaceJoined) {
+    public void setWorkplaceJoined(boolean workplaceJoined) {
         this.workplaceJoined = workplaceJoined;
     }
 

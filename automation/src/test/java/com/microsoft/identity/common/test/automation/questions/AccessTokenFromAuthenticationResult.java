@@ -30,13 +30,20 @@ import com.microsoft.identity.common.test.automation.ui.Results;
 import net.serenitybdd.screenplay.Actor;
 import net.serenitybdd.screenplay.Question;
 import net.serenitybdd.screenplay.questions.Text;
+import net.serenitybdd.screenplay.waits.WaitUntil;
+
+import static net.serenitybdd.screenplay.matchers.WebElementStateMatchers.isVisible;
 
 public class AccessTokenFromAuthenticationResult implements Question<String> {
     @Override
     public String answeredBy(Actor actor) {
+        WaitUntil.the(Results.RESULT_FIELD, isVisible()).forNoMoreThan(10).seconds();
         String results = Text.of(Results.RESULT_FIELD).viewedBy(actor).asString();
         AuthenticationResult readCacheResult = ResultsMapper.GetAuthenticationResultFromString(results);
-        return readCacheResult.accessToken;
+        if(readCacheResult!=null){
+            return readCacheResult.accessToken;
+        }
+        return null;
     }
 
     public static Question<String> displayed() {

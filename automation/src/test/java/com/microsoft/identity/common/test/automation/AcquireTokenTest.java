@@ -25,9 +25,11 @@ package com.microsoft.identity.common.test.automation;
 
 import com.microsoft.identity.common.test.automation.actors.User;
 import com.microsoft.identity.common.test.automation.interactions.ClickDone;
+import com.microsoft.identity.common.test.automation.questions.AccessToken;
 import com.microsoft.identity.common.test.automation.questions.ExpectedCacheItemCount;
 import com.microsoft.identity.common.test.automation.questions.TokenCacheItemCount;
 import com.microsoft.identity.common.test.automation.tasks.AcquireToken;
+import com.microsoft.identity.common.test.automation.tasks.ClearCache;
 import com.microsoft.identity.common.test.automation.tasks.ReadCache;
 import com.microsoft.identity.common.test.automation.utility.Scenario;
 import com.microsoft.identity.common.test.automation.utility.TestConfigurationQuery;
@@ -36,6 +38,7 @@ import net.serenitybdd.junit.runners.SerenityParameterizedRunner;
 import net.serenitybdd.screenplay.abilities.BrowseTheWeb;
 import net.thucydides.core.annotations.Managed;
 import net.thucydides.core.annotations.Steps;
+import net.thucydides.core.annotations.WithTag;
 import net.thucydides.junit.annotations.TestData;
 
 import org.junit.AfterClass;
@@ -51,12 +54,17 @@ import java.util.Collection;
 
 import io.appium.java_client.service.local.AppiumDriverLocalService;
 
+import static net.serenitybdd.screenplay.GivenWhenThen.and;
+import static net.serenitybdd.screenplay.GivenWhenThen.givenThat;
 import static net.serenitybdd.screenplay.GivenWhenThen.seeThat;
 import static net.serenitybdd.screenplay.GivenWhenThen.then;
+import static net.serenitybdd.screenplay.GivenWhenThen.when;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 
 @RunWith(SerenityParameterizedRunner.class)
-public class AcquireTokenBasicTest {
+@WithTag("requires:none")
+public class AcquireTokenTest {
 
     @TestData
     public static Collection<Object[]> FederationProviders() {
@@ -101,7 +109,10 @@ public class AcquireTokenBasicTest {
     @Steps
     ClickDone clickDone;
 
-    public AcquireTokenBasicTest(String federationProvider) {
+    @Steps
+    ClearCache clearCache;
+
+    public AcquireTokenTest(String federationProvider) {
         this.federationProvider = federationProvider;
     }
 
@@ -132,11 +143,99 @@ public class AcquireTokenBasicTest {
     public void should_be_able_to_acquire_token() {
 
         james.attemptsTo(
+                clearCache,
+                clickDone,
                 acquireToken,
                 clickDone,
                 readCache);
         int expectedCacheCount = james.asksFor(ExpectedCacheItemCount.displayed());
         then(james).should(seeThat(TokenCacheItemCount.displayed(), is(expectedCacheCount)));
+    }
+
+    @Test
+    public void should_be_able_to_acquire_token_prompt_always() {
+
+        james.attemptsTo(
+                clearCache,
+                clickDone,
+                acquireToken.withPrompt("Always"),
+                clickDone,
+                readCache);
+
+        int expectedCacheCount = james.asksFor(ExpectedCacheItemCount.displayed());
+        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(expectedCacheCount)));
+
+    }
+
+    @Test
+    public void should_be_able_to_acquire_token_with_login_hint() {
+
+        james.attemptsTo(
+                clearCache,
+                clickDone,
+                acquireToken.withUserIdentifier(james.getCredential().userName),
+                clickDone,
+                readCache);
+        int expectedCacheCount = james.asksFor(ExpectedCacheItemCount.displayed());
+        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(expectedCacheCount)));
+    }
+
+    @Test
+    public void should_be_able_to_acquire_token_prompt_null() {
+
+        james.attemptsTo(
+                clearCache,
+                clickDone,
+                acquireToken.withPrompt(null),
+                clickDone,
+                readCache);
+
+        int expectedCacheCount = james.asksFor(ExpectedCacheItemCount.displayed());
+        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(expectedCacheCount)));
+
+    }
+
+    @Test
+    public void should_be_able_to_acquire_token_prompt_auto() {
+
+        james.attemptsTo(
+                clearCache,
+                clickDone,
+                acquireToken.withPrompt("Auto"),
+                clickDone,
+                readCache);
+
+        int expectedCacheCount = james.asksFor(ExpectedCacheItemCount.displayed());
+        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(expectedCacheCount)));
+
+    }
+
+    @Test
+    public void should_be_able_to_acquire_token_refresh_auto() {
+
+        //clear cache
+        givenThat(james).wasAbleTo(clearCache, clickDone, readCache);
+        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(0)));
+
+        givenThat(james).wasAbleTo(
+                clickDone,
+                acquireToken.withPrompt("Auto").withUserIdentifier(james.getTokenRequest().getUserIdentitfier()),
+                clickDone,
+                readCache);
+        int expectedCacheCount = james.asksFor(ExpectedCacheItemCount.displayed());
+        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(expectedCacheCount)));
+
+        //Store the access token temporarily to compare later
+        String accessToken1 = james.asksFor(AccessToken.displayed());
+        james.attemptsTo(clickDone);
+
+        when(james).attemptsTo(
+                acquireToken.withPrompt("Always").withUserIdentifier(null),
+                clickDone,
+                readCache);
+        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(expectedCacheCount)));
+        and(james).should(seeThat(AccessToken.displayed(), not(accessToken1)));
+
     }
 
 }
