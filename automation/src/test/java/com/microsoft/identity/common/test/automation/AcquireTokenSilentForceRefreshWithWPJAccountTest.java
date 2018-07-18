@@ -62,10 +62,6 @@ import static net.serenitybdd.screenplay.GivenWhenThen.then;
 import static net.serenitybdd.screenplay.GivenWhenThen.when;
 import static org.hamcrest.Matchers.not;
 
-/**
- * Test case : https://identitydivision.visualstudio.com/IDDP/_workitems/edit/98555
- */
-
 @RunWith(SerenityParameterizedRunner.class)
 public class AcquireTokenSilentForceRefreshWithWPJAccountTest {
 

@@ -49,8 +49,8 @@ public class ResultsMapper {
         return adalErrorResult;
     }
 
-    public static AuthenticationResult GetAuthenticationResultFromString(String result) {
-        return (AuthenticationResult) ObjectMapper.deserializeJsonStringToObject(result, AuthenticationResult.class);
+    public static AuthenticationResult GetAuthenticationResultFromString(String results) {
+        return (AuthenticationResult) ObjectMapper.deserializeJsonStringToObject(results, AuthenticationResult.class);
     }
 
     public static TokenCacheItemReadResult GetTokenCacheItemReadResult(String results){

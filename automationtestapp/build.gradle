@@ -61,9 +61,9 @@ android {
 
     productFlavors {
         local {
-            applicationIdSuffix ".local"
-            versionNameSuffix "-local"
-            resValue("string", "application_name", "adal-local")
+            applicationIdSuffix ".adal"
+            versionNameSuffix "-adal"
+            resValue("string", "application_name", "adal")
         }
         /*
         //Leaving out MSAL support until i look into dynamically linking
@@ -74,8 +74,8 @@ android {
         }
         */
         dist {
-            applicationIdSuffix ".dist"
-            versionNameSuffix "-dist"
+            applicationIdSuffix "adal.dist"
+            versionNameSuffix "adal-dist"
             resValue("string", "application_name", "adal-dist")
         }
     }

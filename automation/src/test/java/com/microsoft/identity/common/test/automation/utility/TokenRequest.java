@@ -41,7 +41,7 @@ public class TokenRequest {
     private String mAuthority = null;
     @SerializedName("validate_authority")
     private Boolean mValidateAuthority = true;
-    @SerializedName("user_broker")
+    @SerializedName("use_broker")
     private Boolean mUseBroker = false;
     @SerializedName("prompt_behavior")
     private String mPromptBehavior = null;

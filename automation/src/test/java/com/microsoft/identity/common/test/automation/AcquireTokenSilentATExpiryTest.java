@@ -4,7 +4,7 @@ import com.microsoft.identity.common.test.automation.actors.User;
 import com.microsoft.identity.common.test.automation.interactions.ClickDone;
 import com.microsoft.identity.common.test.automation.model.Constants;
 import com.microsoft.identity.common.test.automation.model.TokenCacheItemReadResult;
-import com.microsoft.identity.common.test.automation.questions.ADALError;
+import com.microsoft.identity.common.test.automation.questions.AccessToken;
 import com.microsoft.identity.common.test.automation.questions.ExpectedCacheItemCount;
 import com.microsoft.identity.common.test.automation.questions.ExpectedCacheItemCountWithFoci;
 import com.microsoft.identity.common.test.automation.questions.TokenCacheItemCount;
@@ -12,15 +12,13 @@ import com.microsoft.identity.common.test.automation.questions.TokenCacheItemFro
 import com.microsoft.identity.common.test.automation.tasks.AcquireToken;
 import com.microsoft.identity.common.test.automation.tasks.AcquireTokenSilent;
 import com.microsoft.identity.common.test.automation.tasks.ClearCache;
-import com.microsoft.identity.common.test.automation.tasks.ExpireATAndInvalidateRT;
+import com.microsoft.identity.common.test.automation.tasks.ExpireAccessToken;
 import com.microsoft.identity.common.test.automation.tasks.ReadCache;
-import com.microsoft.identity.common.test.automation.ui.Results;
 import com.microsoft.identity.common.test.automation.utility.Scenario;
 import com.microsoft.identity.common.test.automation.utility.TestConfigurationQuery;
 
 import net.serenitybdd.junit.runners.SerenityParameterizedRunner;
 import net.serenitybdd.screenplay.abilities.BrowseTheWeb;
-import net.serenitybdd.screenplay.waits.WaitUntil;
 import net.thucydides.core.annotations.Managed;
 import net.thucydides.core.annotations.Steps;
 import net.thucydides.core.annotations.WithTag;
@@ -44,15 +42,15 @@ import static net.serenitybdd.screenplay.GivenWhenThen.givenThat;
 import static net.serenitybdd.screenplay.GivenWhenThen.seeThat;
 import static net.serenitybdd.screenplay.GivenWhenThen.then;
 import static net.serenitybdd.screenplay.GivenWhenThen.when;
-import static net.serenitybdd.screenplay.matchers.WebElementStateMatchers.isVisible;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 
 @RunWith(SerenityParameterizedRunner.class)
 @WithTag("requires:none")
-public class AcquireTokenSilentAfterExpireATAndRT {
+public class AcquireTokenSilentATExpiryTest {
 
     @TestData
-    public static Collection<Object[]> FederationProviders(){
+    public static Collection<Object[]> FederationProviders() {
 
 
         return Arrays.asList(new Object[][]{
@@ -61,7 +59,6 @@ public class AcquireTokenSilentAfterExpireATAndRT {
                 {"ADFSv4"},
                 {"PingFederate"},
                 {"Shibboleth"}
-
         });
 
     }
@@ -73,20 +70,20 @@ public class AcquireTokenSilentAfterExpireATAndRT {
     AcquireToken acquireToken;
 
     @Steps
-    ExpireATAndInvalidateRT expireATAndInvalidateRT;
+    ExpireAccessToken expireAccessToken;
 
     @Steps
     ReadCache readCache;
 
     @Steps
-    ClickDone clickDone;
+    ClearCache clearCache;
 
     @Steps
-    ClearCache clearCache;
+    ClickDone clickDone;
 
     static AppiumDriverLocalService appiumService = null;
 
-    @Managed(driver="Appium")
+    @Managed(driver = "Appium")
     WebDriver hisMobileDevice;
 
     @BeforeClass
@@ -103,12 +100,12 @@ public class AcquireTokenSilentAfterExpireATAndRT {
     private User james;
     private String federationProvider;
 
-    public AcquireTokenSilentAfterExpireATAndRT(String federationProvider){
+    public AcquireTokenSilentATExpiryTest(String federationProvider) {
         this.federationProvider = federationProvider;
     }
 
     @Before
-    public void jamesCanUseAMobileDevice(){
+    public void jamesCanUseAMobileDevice() {
         TestConfigurationQuery query = new TestConfigurationQuery();
         query.federationProvider = this.federationProvider;
         query.isFederated = true;
@@ -117,7 +114,7 @@ public class AcquireTokenSilentAfterExpireATAndRT {
         james.can(BrowseTheWeb.with(hisMobileDevice));
     }
 
-    private static User getUser(TestConfigurationQuery query){
+    private static User getUser(TestConfigurationQuery query) {
 
         Scenario scenario = Scenario.GetScenario(query);
 
@@ -132,7 +129,7 @@ public class AcquireTokenSilentAfterExpireATAndRT {
 
 
     @Test
-    public void should_not_be_able_access_token_after_at_rt_expiry_on_silent_unique_id() {
+    public void should_be_able_to_new_access_token_after_expiry_on_silent() {
 
         //clear cache
         givenThat(james).wasAbleTo(clearCache, clickDone, readCache);
@@ -146,55 +143,76 @@ public class AcquireTokenSilentAfterExpireATAndRT {
         int expectedCacheCount = james.asksFor(ExpectedCacheItemCount.displayed());
         then(james).should(seeThat(TokenCacheItemCount.displayed(), is(expectedCacheCount)));
 
-        TokenCacheItemReadResult cacheItem = james.asksFor(TokenCacheItemFromResult.displayed());
+        String accessToken1 = james.asksFor(AccessToken.displayed());
+        TokenCacheItemReadResult result = james.asksFor(TokenCacheItemFromResult.displayed());
 
         givenThat(james).wasAbleTo(
                 clickDone,
-                expireATAndInvalidateRT.withTokenCacheItem(cacheItem),
+                expireAccessToken.withTokenCacheItem(result),
                 clickDone,
-                acquireTokenSilent.withUniqueId(cacheItem.uniqueUserId),
-                WaitUntil.the(Results.RESULT_FIELD, isVisible()).forNoMoreThan(10).seconds());
+                acquireTokenSilent.withUniqueId(result.uniqueUserId),
+                clickDone,
+                readCache);
 
-        then(james).should(seeThat(ADALError.displayed(), is(com.microsoft.identity.common.adal.error.ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED.name())));
-
-        when(james).attemptsTo(clickDone, readCache);
-        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(0)));
+        then(james).should(seeThat(AccessToken.displayed(), not(accessToken1)));
 
     }
 
     @Test
-    public void should_not_be_able_access_token_after_at_rt_expiry_on_silent_displayable_id() {
+    public void should_be_able_to_new_access_token_after_expiry_on_silent_frt() {
 
         //clear cache
         givenThat(james).wasAbleTo(clearCache, clickDone, readCache);
         then(james).should(seeThat(TokenCacheItemCount.displayed(), is(0)));
 
-
-        givenThat(james).wasAbleTo(
+        givenThat(james).attemptsTo(
                 clickDone,
-                acquireToken,
+                acquireToken
+                        .withClientId(Constants.OUTLOOK_CLIENT_ID)
+                        .withRedirectUri(Constants.OUTLOOK_REDIRECT_URI),
                 clickDone,
                 readCache);
-        int expectedCacheCount = james.asksFor(ExpectedCacheItemCount.displayed());
-        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(expectedCacheCount)));
 
-        TokenCacheItemReadResult cacheItem = james.asksFor(TokenCacheItemFromResult.displayed());
+        int expectedCacheCountToken = james.asksFor(ExpectedCacheItemCountWithFoci.displayed());
+        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(expectedCacheCountToken)));
+
+        String accessToken1 = james.asksFor(AccessToken.displayed());
+        TokenCacheItemReadResult result = james.asksFor(TokenCacheItemFromResult.displayed());
+
         givenThat(james).wasAbleTo(
                 clickDone,
-                expireATAndInvalidateRT.withTokenCacheItem(cacheItem),
+                acquireTokenSilent
+                        .withUniqueId(result.uniqueUserId)
+                        .withClientId(Constants.ONE_DRIVE_CLIENT_ID)
+                        .withRedirectUri(Constants.ONE_DRIVE_REDIRECT_URI),
                 clickDone,
-                acquireTokenSilent.withUniqueId(cacheItem.displayableId),
-                WaitUntil.the(Results.RESULT_FIELD, isVisible()).forNoMoreThan(10).seconds());
+                readCache);
 
-        then(james).should(seeThat(ADALError.displayed(), is(com.microsoft.identity.common.adal.error.ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED.name())));
+        int expectedFinalCacheCountCount = james.asksFor(ExpectedCacheItemCount.displayed()) + expectedCacheCountToken;
+        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(expectedFinalCacheCountCount)));
 
-        when(james).attemptsTo(clickDone, readCache);
-        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(0)));
+        givenThat(james).wasAbleTo(
+                clickDone,
+                expireAccessToken
+                        .withTokenCacheItem(result)
+                        .withClientId(Constants.OUTLOOK_CLIENT_ID),
+                clickDone);
+
+        andThat(james).wasAbleTo(
+                acquireTokenSilent
+                        .withUniqueId(result.uniqueUserId)
+                        .withClientId(Constants.OUTLOOK_CLIENT_ID)
+                        .withRedirectUri(Constants.OUTLOOK_REDIRECT_URI),
+                clickDone,
+                readCache);
+
+        then(james).should(seeThat(AccessToken.displayed(Constants.OUTLOOK_CLIENT_ID), not(accessToken1)));
 
     }
 
+
     @Test
-    public void should_not_be_able_access_token_after_at_frt_expiry_on_silent() {
+    public void should_be_able_to_new_access_token_after_both_frt_tokens_expiry_on_silent() {
 
         //clear cache
         givenThat(james).wasAbleTo(clearCache, clickDone, readCache);
@@ -211,42 +229,61 @@ public class AcquireTokenSilentAfterExpireATAndRT {
         int expectedCacheCountToken = james.asksFor(ExpectedCacheItemCountWithFoci.displayed());
         then(james).should(seeThat(TokenCacheItemCount.displayed(), is(expectedCacheCountToken)));
 
+        String accessToken1 = james.asksFor(AccessToken.displayed(Constants.OUTLOOK_CLIENT_ID));
+        TokenCacheItemReadResult result = james.asksFor(TokenCacheItemFromResult.displayed());
+
         givenThat(james).wasAbleTo(
                 clickDone,
                 acquireTokenSilent
                         .withClientId(Constants.ONE_DRIVE_CLIENT_ID)
                         .withRedirectUri(Constants.ONE_DRIVE_REDIRECT_URI),
                 clickDone,
-                readCache);
+                readCache
+        );
 
         int expectedFinalCacheCountCount = james.asksFor(ExpectedCacheItemCount.displayed()) + expectedCacheCountToken;
         then(james).should(seeThat(TokenCacheItemCount.displayed(), is(expectedFinalCacheCountCount)));
 
-        TokenCacheItemReadResult cacheItem = james.asksFor(TokenCacheItemFromResult.displayed());
+        String accessToken2 = james.asksFor(AccessToken.displayed(Constants.ONE_DRIVE_CLIENT_ID));
 
+        //Expire all access tokens
         givenThat(james).wasAbleTo(
                 clickDone,
-                expireATAndInvalidateRT
-                        .withTokenCacheItem(cacheItem)
+                expireAccessToken
+                        .withTokenCacheItem(result)
                         .withClientId(Constants.OUTLOOK_CLIENT_ID),
                 clickDone);
 
         andThat(james).wasAbleTo(
-                expireATAndInvalidateRT
-                        .withTokenCacheItem(cacheItem)
+                expireAccessToken
+                        .withTokenCacheItem(result)
                         .withClientId(Constants.ONE_DRIVE_CLIENT_ID),
                 clickDone);
 
+
+        // Acquire token silent and verify a new access token is returned
         when(james).attemptsTo(
-                acquireTokenSilent.withUniqueId(cacheItem.uniqueUserId),
-                WaitUntil.the(Results.RESULT_FIELD, isVisible()).forNoMoreThan(10).seconds());
+                acquireTokenSilent
+                        .withUniqueId(result.uniqueUserId)
+                        .withClientId(Constants.OUTLOOK_CLIENT_ID)
+                        .withRedirectUri(Constants.OUTLOOK_REDIRECT_URI),
+                clickDone,
+                readCache);
 
-        then(james).should(seeThat(ADALError.displayed(), is(com.microsoft.identity.common.adal.error.ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED.name())));
+        then(james).should(seeThat(AccessToken.displayed(Constants.OUTLOOK_CLIENT_ID), not(accessToken1)));
 
-        when(james).attemptsTo(clickDone, readCache);
-        then(james).should(seeThat(TokenCacheItemCount.displayed(), is((expectedCacheCountToken == 20) ? 12 : 8)));
+        // Acquire token silent and verify a new access token is returned
+        when(james).attemptsTo(
+                clickDone,
+                acquireTokenSilent
+                        .withUniqueId(result.uniqueUserId)
+                        .withClientId(Constants.ONE_DRIVE_CLIENT_ID)
+                        .withRedirectUri(Constants.ONE_DRIVE_CLIENT_ID),
+                clickDone,
+                readCache);
+
+        then(james).should(seeThat(AccessToken.displayed(Constants.ONE_DRIVE_CLIENT_ID), not(accessToken2)));
 
     }
-
 
 }
