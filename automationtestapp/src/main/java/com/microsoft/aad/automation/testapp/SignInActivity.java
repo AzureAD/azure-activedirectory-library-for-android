@@ -27,6 +27,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Base64;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -41,13 +42,13 @@ import com.microsoft.aad.adal.ITokenCacheStore;
 import com.microsoft.aad.adal.PromptBehavior;
 import com.microsoft.aad.adal.TokenCacheItem;
 import com.microsoft.aad.adal.UserInfo;
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -395,11 +396,16 @@ public class SignInActivity extends AppCompatActivity {
             cacheIdentifiers.add(mLoginHint);
         }
         if (!TextUtils.isEmpty(mUserId) && !TextUtils.isEmpty(mTenantId)) {
-            cacheIdentifiers.add(StringExtensions.base64UrlEncodeToString(mUserId) + "." + StringExtensions.base64UrlEncodeToString(mTenantId));
+            cacheIdentifiers.add(base64UrlEncodeToString(mUserId) + "." + base64UrlEncodeToString(mTenantId));
         }
         // For cache keys where cache identifier is empty
         cacheIdentifiers.add("");
         return cacheIdentifiers;
+
+    }
+
+    private String base64UrlEncodeToString(final String message) {
+        return Base64.encodeToString(message.getBytes(Charset.forName("UTF_8")), Base64.URL_SAFE | Base64.NO_WRAP);
     }
 
     private int invalidateRefreshToken() {

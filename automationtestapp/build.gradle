@@ -89,7 +89,6 @@ android {
 dependencies {
     implementation "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
-    implementation project(":common")
 
     // Flavored dependencies
     localImplementation project(':adal')
