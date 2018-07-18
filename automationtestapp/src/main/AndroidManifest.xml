@@ -53,6 +53,14 @@
         <activity android:name=".ResultActivity"
                   android:configChanges="orientation|keyboardHidden|screenSize">
         </activity>
+        <activity
+            android:name=".WebViewActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize">
+        </activity>
+        <activity
+            android:name="com.microsoft.aad.adal.AuthenticationActivity"
+            android:label="@string/auth_dialog_title" >
+        </activity>
     </application>
 
 </manifest>
