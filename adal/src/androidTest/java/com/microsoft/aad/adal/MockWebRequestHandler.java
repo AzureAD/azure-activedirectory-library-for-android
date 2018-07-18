@@ -50,6 +50,8 @@ class MockWebRequestHandler implements IWebRequestHandler {
 
     private String mReturnException;
 
+    private String mClientVersion;
+
     @Override
     public HttpWebResponse sendGet(URL url, Map<String, String> headers) throws IOException {
         mRequestUrl = url;
@@ -105,4 +107,7 @@ class MockWebRequestHandler implements IWebRequestHandler {
     public void setRequestCorrelationId(UUID correlationId) {
         mCorrelationId = correlationId;
     }
+
+    @Override
+    public void setClientVersion(String version) { mClientVersion = version; }
 }
