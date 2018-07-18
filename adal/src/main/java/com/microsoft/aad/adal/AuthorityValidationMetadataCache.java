@@ -58,7 +58,7 @@ final class AuthorityValidationMetadataCache {
     private static ConcurrentMap<String, InstanceDiscoveryMetadata> sAadAuthorityHostMetadata = new ConcurrentHashMap<>();
 
     private AuthorityValidationMetadataCache() {
-        // DateExtensions class, no public constructor
+        // Utility class, no public constructor
     }
 
     static boolean containsAuthorityHost(final URL authorityUrl) {

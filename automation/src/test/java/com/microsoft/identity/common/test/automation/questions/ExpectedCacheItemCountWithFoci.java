@@ -20,7 +20,6 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-
 package com.microsoft.identity.common.test.automation.questions;
 
 import com.microsoft.identity.common.test.automation.model.ReadCacheResult;
@@ -31,16 +30,22 @@ import net.serenitybdd.screenplay.Actor;
 import net.serenitybdd.screenplay.Question;
 import net.serenitybdd.screenplay.questions.Text;
 
-public class TokenCacheItemCount implements Question<Integer> {
+public class ExpectedCacheItemCountWithFoci implements Question<Integer> {
+
+    private static final int COMMON_CACHE_COUNT_WITH_FOCI = 12;
+    private static final int ADAL_LEGACY_CACHE_COUNT_WITH_FOCI = 8;
 
     @Override
     public Integer answeredBy(Actor actor) {
         String results = Text.of(Results.RESULT_FIELD).viewedBy(actor).asString();
         ReadCacheResult readCacheResult = ResultsMapper.GetReadCacheResultFromString(results);
-        return readCacheResult.itemCount;
+        if (readCacheResult != null) {
+            return readCacheResult.isCommonCache ? COMMON_CACHE_COUNT_WITH_FOCI : ADAL_LEGACY_CACHE_COUNT_WITH_FOCI;
+        }
+        return COMMON_CACHE_COUNT_WITH_FOCI;
     }
 
     public static Question<Integer> displayed() {
-        return new TokenCacheItemCount();
+        return new ExpectedCacheItemCountWithFoci();
     }
 }

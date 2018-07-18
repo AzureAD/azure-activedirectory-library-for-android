@@ -42,22 +42,38 @@ import static net.serenitybdd.screenplay.matchers.WebElementStateMatchers.isVisi
 
 public class AcquireTokenSilent implements Task {
 
-    private String userIdentifier="";
-    private String uniqueId;
+    private String userIdentifier = "";
+    private String uniqueId = "";
     private Boolean forceRefresh = false;
+    private String authority = "";
+    private String clientId = "";
+    private String redirectUri = "";
+    private String resourceId = "";
 
     @Steps
     CloseKeyboard closeKeyboard;
 
     @Override
     public <T extends Actor> void performAs(T actor) {
-        User user = (User)actor;
+        User user = (User) actor;
         TokenRequest tokenRequest = user.getSilentTokenRequest();
-        if(!TextUtils.isEmpty(userIdentifier)) {
+        if (!TextUtils.isEmpty(userIdentifier)) {
             tokenRequest.setUserIdentitfier(userIdentifier);
         }
-        if(!TextUtils.isEmpty(uniqueId)) {
+        if (!TextUtils.isEmpty(uniqueId)) {
             tokenRequest.setUniqueUserId(uniqueId);
+        }
+        if (!TextUtils.isEmpty(authority)) {
+            tokenRequest.setAuthority(authority);
+        }
+        if (!TextUtils.isEmpty(clientId)) {
+            tokenRequest.setClientId(clientId);
+        }
+        if (!TextUtils.isEmpty(redirectUri)) {
+            tokenRequest.setRedirectUri(redirectUri);
+        }
+        if (!TextUtils.isEmpty(resourceId)) {
+            tokenRequest.setResourceId(resourceId);
         }
         tokenRequest.setForceRefresh(forceRefresh);
         actor.attemptsTo(
@@ -70,7 +86,7 @@ public class AcquireTokenSilent implements Task {
         );
     }
 
-    public AcquireTokenSilent withUniqueId(String uniqueId){
+    public AcquireTokenSilent withUniqueId(String uniqueId) {
         this.uniqueId = uniqueId;
         return this;
     }
@@ -82,6 +98,26 @@ public class AcquireTokenSilent implements Task {
 
     public AcquireTokenSilent withForceRefresh() {
         this.forceRefresh = true;
+        return this;
+    }
+
+    public AcquireTokenSilent withAuthority(String authority) {
+        this.authority = authority;
+        return this;
+    }
+
+    public AcquireTokenSilent withClientId(String clientId) {
+        this.clientId = clientId;
+        return this;
+    }
+
+    public AcquireTokenSilent withRedirectUri(String redirectUri) {
+        this.redirectUri = redirectUri;
+        return this;
+    }
+
+    public AcquireTokenSilent withResourceId(String resourceId) {
+        this.resourceId = resourceId;
         return this;
     }
 

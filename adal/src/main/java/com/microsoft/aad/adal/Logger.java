@@ -433,6 +433,16 @@ public class Logger {
     }
 
     /**
+     * Logs error message.
+     *
+     * @param tag Tag for the log
+     * @param message Message to add to the log
+     */
+    public static void e(String tag, String message) {
+        Logger.getInstance().commonCoreWrapper(tag, message, null, LogLevel.Error, null, null);
+    }
+
+    /**
      * Sets the correlation id for the logger.
      *
      * @param correlation Correlation ID to be used

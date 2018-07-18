@@ -23,7 +23,6 @@
 
 package com.microsoft.identity.common.test.automation.questions;
 
-import com.microsoft.identity.common.test.automation.actors.User;
 import com.microsoft.identity.common.test.automation.model.ReadCacheResult;
 import com.microsoft.identity.common.test.automation.model.ResultsMapper;
 import com.microsoft.identity.common.test.automation.model.TokenCacheItemReadResult;
@@ -33,19 +32,27 @@ import net.serenitybdd.screenplay.Actor;
 import net.serenitybdd.screenplay.Question;
 import net.serenitybdd.screenplay.questions.Text;
 
+import org.apache.http.util.TextUtils;
+
 public class AccessToken implements Question<String> {
+
+    private String clientId;
+    public AccessToken(String clientId){
+        this.clientId = clientId;
+    }
+
     @Override
     public String answeredBy(Actor actor) {
         String results = Text.of(Results.RESULT_FIELD).viewedBy(actor).asString();
         ReadCacheResult readCacheResult = ResultsMapper.GetReadCacheResultFromString(results);
         String accessToken = null;
         if (readCacheResult != null) {
-            User user = (User) actor;
-            user.setCacheResult(readCacheResult.tokenCacheItems.get(0));
             for (TokenCacheItemReadResult readResult : readCacheResult.tokenCacheItems) {
                 if (readResult.accessToken != null) {
-                    accessToken = readResult.accessToken;
-                    break;
+                    if (TextUtils.isEmpty(clientId) || (!TextUtils.isEmpty(clientId) && clientId.equals(readResult.clientId))) {
+                        accessToken = readResult.accessToken;
+                        break;
+                    }
                 }
             }
         }
@@ -53,6 +60,10 @@ public class AccessToken implements Question<String> {
     }
 
     public static Question<String> displayed() {
-        return new AccessToken();
+        return new AccessToken(null);
+    }
+
+    public static Question<String> displayed(String clientId) {
+        return new AccessToken(clientId);
     }
 }

@@ -26,6 +26,8 @@ package com.microsoft.identity.common.test.automation.model;
 
 import com.microsoft.identity.common.internal.net.ObjectMapper;
 
+import org.apache.http.util.TextUtils;
+
 public class ResultsMapper {
 
     public static ReadCacheResult GetReadCacheResultFromString(String results) {
@@ -49,5 +51,19 @@ public class ResultsMapper {
 
     public static AuthenticationResult GetAuthenticationResultFromString(String result) {
         return (AuthenticationResult) ObjectMapper.deserializeJsonStringToObject(result, AuthenticationResult.class);
+    }
+
+    public static TokenCacheItemReadResult GetTokenCacheItemReadResult(String results){
+        ReadCacheResult readCacheResult = (ReadCacheResult) ObjectMapper.deserializeJsonStringToObject(results, ReadCacheResult.class);
+        TokenCacheItemReadResult tokenCacheItemReadResult = null;
+        if(readCacheResult!=null) {
+            for (String result : readCacheResult.items) {
+               tokenCacheItemReadResult = (TokenCacheItemReadResult) ObjectMapper.deserializeJsonStringToObject(result, TokenCacheItemReadResult.class);
+                if(!TextUtils.isEmpty(tokenCacheItemReadResult.accessToken)){
+                    return tokenCacheItemReadResult;
+                }
+            }
+        }
+        return tokenCacheItemReadResult;
     }
 }

@@ -23,9 +23,13 @@
 
 package com.microsoft.aad.adal;
 
+import java.io.UnsupportedEncodingException;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.Map;
+
+import org.json.JSONException;
 
 /**
  * Interface to construct jws message for responding certificate challenge.
@@ -49,4 +53,9 @@ public interface IJWSBuilder {
      */
     String generateSignedJWT(String nonce, String submitUrl, RSAPrivateKey privateKey,
                              RSAPublicKey pubKey, X509Certificate x509Certificate) throws AuthenticationException;
+
+
+    String generateJWT(Map<String, String> header,
+			Map<String, String> body, int expTimeInSeconds) throws JSONException,
+			UnsupportedEncodingException;
 }

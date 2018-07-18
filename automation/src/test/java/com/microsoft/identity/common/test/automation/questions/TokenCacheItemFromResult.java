@@ -23,24 +23,26 @@
 
 package com.microsoft.identity.common.test.automation.questions;
 
-import com.microsoft.identity.common.test.automation.model.ReadCacheResult;
 import com.microsoft.identity.common.test.automation.model.ResultsMapper;
+import com.microsoft.identity.common.test.automation.model.TokenCacheItemReadResult;
 import com.microsoft.identity.common.test.automation.ui.Results;
 
 import net.serenitybdd.screenplay.Actor;
 import net.serenitybdd.screenplay.Question;
 import net.serenitybdd.screenplay.questions.Text;
 
-public class TokenCacheItemCount implements Question<Integer> {
+public class TokenCacheItemFromResult implements Question<TokenCacheItemReadResult> {
+
 
     @Override
-    public Integer answeredBy(Actor actor) {
+    public TokenCacheItemReadResult answeredBy(Actor actor) {
         String results = Text.of(Results.RESULT_FIELD).viewedBy(actor).asString();
-        ReadCacheResult readCacheResult = ResultsMapper.GetReadCacheResultFromString(results);
-        return readCacheResult.itemCount;
+        TokenCacheItemReadResult tokenCacheItemReadResult = ResultsMapper.GetTokenCacheItemReadResult(results);
+        return tokenCacheItemReadResult;
     }
 
-    public static Question<Integer> displayed() {
-        return new TokenCacheItemCount();
+    public static Question<TokenCacheItemReadResult> displayed() {
+        return new TokenCacheItemFromResult();
     }
+
 }
