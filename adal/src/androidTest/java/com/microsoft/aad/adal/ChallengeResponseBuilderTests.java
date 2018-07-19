@@ -27,7 +27,7 @@ import android.support.test.runner.AndroidJUnit4;
 
 
 
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.aad.adal.AuthenticationConstants;
 
 import junit.framework.Assert;
 

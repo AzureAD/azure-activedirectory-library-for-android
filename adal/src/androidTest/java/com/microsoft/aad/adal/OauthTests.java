@@ -30,8 +30,7 @@ import android.util.Base64;
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
 
 
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants.AAD;
+import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
@@ -319,9 +318,9 @@ public class OauthTests {
         final Oauth2 oauth2 = createOAuthInstance(request);
 
         final String actualCodeRequestUrl = oauth2.getCodeRequestUrl();
-        assertTrue("Matching message", actualCodeRequestUrl.contains(AAD.ADAL_ID_PLATFORM + "=Android"));
+        assertTrue("Matching message", actualCodeRequestUrl.contains(AuthenticationConstants.AAD.ADAL_ID_PLATFORM + "=Android"));
         assertTrue("Matching message",
-                actualCodeRequestUrl.contains(AAD.ADAL_ID_VERSION + "=" + AuthenticationContext.getVersionName()));
+                actualCodeRequestUrl.contains(AuthenticationConstants.AAD.ADAL_ID_VERSION + "=" + AuthenticationContext.getVersionName()));
     }
 
     @Test

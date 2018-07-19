@@ -38,7 +38,7 @@ import android.util.EventLog;
 import android.util.SparseArray;
 
 import com.microsoft.aad.adal.AuthenticationRequest.UserIdentifierType;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.io.IOException;

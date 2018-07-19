@@ -41,7 +41,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
@@ -56,11 +56,7 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.RT_AGE;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_ERROR;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_SUBERROR;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.SPE_RING;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT;
+import com.microsoft.aad.adal.AuthenticationConstants;
 
 /**
  * Handles interactions to authenticator inside the Account Manager.
@@ -366,7 +362,7 @@ class BrokerProxy implements IBrokerProxy {
             } catch (final AuthenticatorException e) {
                 // Error code BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN will be thrown if there was an error
                 // communicating with the authenticator or if the authenticator returned an invalid response.
-                if (!StringExtensions.isNullOrBlank(e.getMessage()) && e.getMessage().contains(INVALID_GRANT)) {
+                if (!StringExtensions.isNullOrBlank(e.getMessage()) && e.getMessage().contains(AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT)) {
                     Logger.e(TAG + methodName, AUTHENTICATOR_CANCELS_REQUEST,
                             "Acquire token failed with 'invalid grant' error, cannot proceed with silent request.",
                             ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
@@ -531,10 +527,10 @@ class BrokerProxy implements IBrokerProxy {
 
             // set the x-ms-clitelem data
             final TelemetryUtils.CliTelemInfo cliTelemInfo = new TelemetryUtils.CliTelemInfo();
-            cliTelemInfo.setServerErrorCode(bundleResult.getString(SERVER_ERROR));
-            cliTelemInfo.setServerSubErrorCode(bundleResult.getString(SERVER_SUBERROR));
-            cliTelemInfo.setRefreshTokenAge(bundleResult.getString(RT_AGE));
-            cliTelemInfo.setSpeRing(bundleResult.getString(SPE_RING));
+            cliTelemInfo.setServerErrorCode(bundleResult.getString(AuthenticationConstants.Broker.CliTelemInfo.SERVER_ERROR));
+            cliTelemInfo.setServerSubErrorCode(bundleResult.getString(AuthenticationConstants.Broker.CliTelemInfo.SERVER_SUBERROR));
+            cliTelemInfo.setRefreshTokenAge(bundleResult.getString(AuthenticationConstants.Broker.CliTelemInfo.RT_AGE));
+            cliTelemInfo.setSpeRing(bundleResult.getString(AuthenticationConstants.Broker.CliTelemInfo.SPE_RING));
             result.setCliTelemInfo(cliTelemInfo);
 
             return result;

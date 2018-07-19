@@ -28,7 +28,7 @@ import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Base64;
 
 
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.aad.adal.AuthenticationConstants;
 
 import junit.framework.TestCase;
 

@@ -32,7 +32,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.RemoteException;
 
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.aad.adal.AuthenticationConstants;
 
 import java.io.IOException;
 import java.util.ArrayList;
