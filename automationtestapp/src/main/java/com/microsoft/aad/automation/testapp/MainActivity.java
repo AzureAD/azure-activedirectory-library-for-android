@@ -133,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
         openWebView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                openWevViewActivity();
+                openWebViewActivity();
             }
         });
     }
@@ -145,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
         this.startActivity(intent);
     }
 
-    private void openWevViewActivity(){
+    private void openWebViewActivity(){
         final Intent intent = new Intent();
         intent.setClass(mContext, WebViewActivity.class);
         this.startActivity(intent);
