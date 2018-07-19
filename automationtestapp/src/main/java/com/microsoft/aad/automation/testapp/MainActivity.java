@@ -146,8 +146,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void openWebViewActivity(){
-        final Intent intent = new Intent();
-        intent.setClass(mContext, WebViewActivity.class);
+        final Intent intent = new Intent(mContext, WebViewActivity.class);
         this.startActivity(intent);
     }
 
