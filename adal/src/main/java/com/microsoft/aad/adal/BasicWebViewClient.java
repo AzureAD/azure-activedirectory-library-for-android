@@ -52,9 +52,9 @@ abstract class BasicWebViewClient extends WebViewClient {
 
     public static final String BLANK_PAGE = "about:blank";
 
-    protected String mRedirect;
-    protected final AuthenticationRequest mRequest;
-    protected final Context mCallingContext;
+    private final String mRedirect;
+    private final AuthenticationRequest mRequest;
+    private final Context mCallingContext;
     private final UIEvent mUIEvent;
 
     BasicWebViewClient(final Context appContext, final String redirect,
@@ -83,9 +83,7 @@ abstract class BasicWebViewClient extends WebViewClient {
         final String methodName = ":onReceivedHttpAuthRequest";
         // Create a dialog to ask for creds and post it to the handler.
         Logger.i(TAG + methodName, "Start. ", "Host:" + host);
-        if (mUIEvent != null) {
-            mUIEvent.setNTLM(true);
-        }
+        mUIEvent.setNTLM(true);
 
         HttpAuthDialog authDialog = new HttpAuthDialog(mCallingContext, host, realm);
 
@@ -311,7 +309,7 @@ abstract class BasicWebViewClient extends WebViewClient {
         mCallingContext.startActivity(intent);
     }
 
-    protected boolean hasCancelError(String redirectUrl) {
+    private boolean hasCancelError(String redirectUrl) {
         Map<String, String> parameters = StringExtensions.getUrlParameters(redirectUrl);
         String error = parameters.get("error");
         String errorDescription = parameters.get("error_description");

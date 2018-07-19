@@ -71,13 +71,13 @@ public class AuthenticationResult implements Serializable {
 
     private String mCode;
 
-    protected String mAccessToken;
+    private String mAccessToken;
 
-    protected String mRefreshToken;
+    private String mRefreshToken;
 
     private String mTokenType;
 
-    protected Date mExpiresOn;
+    private Date mExpiresOn;
 
     //Number of seconds the token is valid
     private Long mExpiresIn;
@@ -85,39 +85,39 @@ public class AuthenticationResult implements Serializable {
     //Number of milliseconds since the unix epoch
     private Long mResponseReceived;
 
-    protected String mErrorCode;
+    private String mErrorCode;
 
-    protected String mErrorDescription;
+    private String mErrorDescription;
 
-    protected String mErrorCodes;
+    private String mErrorCodes;
 
-    protected boolean mIsMultiResourceRefreshToken;
+    private boolean mIsMultiResourceRefreshToken;
 
-    protected UserInfo mUserInfo;
+    private UserInfo mUserInfo;
 
-    protected String mTenantId;
+    private String mTenantId;
 
-    protected String mIdToken;
+    private String mIdToken;
 
-    protected AuthenticationStatus mStatus = AuthenticationStatus.Failed;
+    private AuthenticationStatus mStatus = AuthenticationStatus.Failed;
 
-    protected boolean mInitialRequest;
-    
-    protected String mFamilyClientId;
+    private boolean mInitialRequest;
 
-    protected boolean mIsExtendedLifeTimeToken = false;
+    private String mFamilyClientId;
 
-    protected Date mExtendedExpiresOn;
+    private boolean mIsExtendedLifeTimeToken = false;
 
-    protected String mAuthority;
+    private Date mExtendedExpiresOn;
 
-    protected CliTelemInfo mCliTelemInfo;
+    private String mAuthority;
 
-    protected HashMap<String, String> mHttpResponseBody = null;
+    private CliTelemInfo mCliTelemInfo;
 
-    protected int mServiceStatusCode = -1;
+    private HashMap<String, String> mHttpResponseBody = null;
 
-    protected HashMap<String, List<String>> mHttpResponseHeaders = null;
+    private int mServiceStatusCode = -1;
+
+    private HashMap<String, List<String>> mHttpResponseHeaders = null;
 
     private String mClientId;
 
@@ -188,10 +188,6 @@ public class AuthenticationResult implements Serializable {
                         cacheItem.getExtendedExpiresOn(),
                         cacheItem.getClientId()
                 );
-
-        final CliTelemInfo cliTelemInfo = new CliTelemInfo();
-        cliTelemInfo.setSpeRing(cacheItem.getSpeRing());
-        result.setCliTelemInfo(cliTelemInfo);
 
         return result;
     }
@@ -444,13 +440,13 @@ public class AuthenticationResult implements Serializable {
         mFamilyClientId = familyClientId;
     }
 
-    public final void setAuthority(final String authority) {
+    final void setAuthority(final String authority) {
         if (!StringExtensions.isNullOrBlank(authority)) {
             mAuthority = authority;
         }
     }
 
-    public final CliTelemInfo getCliTelemInfo() {
+    final CliTelemInfo getCliTelemInfo() {
         return mCliTelemInfo;
     }
 

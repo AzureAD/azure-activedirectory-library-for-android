@@ -93,8 +93,6 @@ public class AuthenticationActivityUnitTest {
 
     private static final int TEST_CALLING_UID = 333;
 
-    private static final String TEST_AUTHORITY = "https://login.microsoftonline.com/common";
-
     private Intent mIntentToStartActivity;
 
     @SuppressWarnings("checkstyle:visibilitymodifier")
@@ -134,7 +132,7 @@ public class AuthenticationActivityUnitTest {
         Constructor<?> constructor = c.getDeclaredConstructor(String.class, String.class,
                 String.class, String.class, String.class, boolean.class);
         constructor.setAccessible(true);
-        Object o = constructor.newInstance(TEST_AUTHORITY, "client", "resource", "redirect",
+        Object o = constructor.newInstance("authority", "client", "resource", "redirect",
                 "loginhint", false);
         ReflectionUtils.setFieldValue(o, "mRequestId", TEST_REQUEST_ID);
         ReflectionUtils.setFieldValue(o, "mCorrelationId", UUID.randomUUID());

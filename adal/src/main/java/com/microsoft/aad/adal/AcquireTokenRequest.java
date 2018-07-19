@@ -665,7 +665,7 @@ class AcquireTokenRequest {
         if (requestCode == AuthenticationConstants.UIRequest.BROWSER_FLOW) {
             getHandler();
 
-            if (data == null || data.getExtras() == null) {
+            if (data == null) {
                 // If data is null, RequestId is unknown. It could not find
                 // callback to respond to this request.
                 Logger.e(TAG + methodName, "BROWSER_FLOW data is null.", "",
