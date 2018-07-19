@@ -58,6 +58,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static com.microsoft.aad.adal.CacheKey.createCacheKeyForFRT;
 import static com.microsoft.aad.adal.CacheKey.createCacheKeyForMRRT;
@@ -85,6 +91,7 @@ public class SignInActivity extends AppCompatActivity {
     public static final String CORRELATION_ID = "correlation_id";
     public static final String FAMLIY_CLIENT_ID = "foci";
     public static final String FORCE_REFRESH = "force_refresh";
+    public static final String USE_DIALOG = "use_dialog";
 
     static final String INVALID_REFRESH_TOKEN = "some invalid refresh token";
 
@@ -105,6 +112,7 @@ public class SignInActivity extends AppCompatActivity {
     private String mFamilyClientId;
     private boolean mForceRefresh;
     private boolean mForceRefreshParameterProvided;
+    private boolean mUseDialogForAcquireToken;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -150,7 +158,18 @@ public class SignInActivity extends AppCompatActivity {
         setAuthenticationData(inputItems);
         AuthenticationSettings.INSTANCE.setUseBroker(mUseBroker);
 
-        mAuthenticationContext = new AuthenticationContext(getApplicationContext(), mAuthority, mValidateAuthority);
+
+        if(mUseDialogForAcquireToken) {
+            //Note: Dialog is not compatible with Broker
+            if(mUseBroker){
+                throw new IllegalArgumentException("Cannot use dialog when broker is enabled");
+            }
+            //Note: Dialog expects the context provided to the AuthenticationContext to be an activity rather than the app context
+            mAuthenticationContext = new AuthenticationContext(this, mAuthority, mValidateAuthority);
+        }else{
+            mAuthenticationContext = new AuthenticationContext(getApplicationContext(), mAuthority, mValidateAuthority);
+        }
+
 
         switch (flowCode) {
             case MainActivity.ACQUIRE_TOKEN:
@@ -168,6 +187,13 @@ public class SignInActivity extends AppCompatActivity {
             case MainActivity.INVALIDATE_FAMILY_REFRESH_TOKEN:
                 processInvalidateFamilyRefreshTokenRequest();
                 break;
+            case MainActivity.RUN_STRESS_TEST:
+                try {
+                    runStressTest();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                break;
             default:
                 sendErrorToResultActivity("unknown_request", "Unknown request is received");
                 break;
@@ -180,6 +206,41 @@ public class SignInActivity extends AppCompatActivity {
         intent.putExtra(Constants.ERROR_DESCRIPTION, errorDescription);
 
         return intent;
+    }
+
+    private void runStressTest() throws InterruptedException {
+        final int MAX_AVAILABLE = 10;
+        final int TIME_LIMIT = 5 * 60 * 1000;
+        final long startTime = System.currentTimeMillis();
+
+
+        mAuthenticationContext.getCache().removeAll();
+        BlockingQueue<Runnable> blockingQueue = new ArrayBlockingQueue<Runnable>(10);
+        ExecutorService executor = new ThreadPoolExecutor(MAX_AVAILABLE, MAX_AVAILABLE, 0L, TimeUnit.MILLISECONDS, blockingQueue);
+
+        while(System.currentTimeMillis() - startTime < TIME_LIMIT) {
+            executor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    mAuthenticationContext.acquireTokenSilentAsync(mResource, mClientId, mUserId, new AuthenticationCallback<AuthenticationResult>() {
+                        @Override
+                        public void onSuccess(AuthenticationResult authenticationResult) {
+                            System.err.println( "Stress test success result");
+                        }
+                        @Override
+                        public void onError(Exception exc) {
+                            System.err.println( "Stress test error result");
+                        }
+                    });
+                }
+            });
+            Thread.sleep(50);
+        }
+        executor.shutdownNow();
+
+        final Intent intent = new Intent();
+        intent.putExtra(Constants.INVALIDATED_FAMILY_REFRESH_TOKEN_COUNT, String.valueOf("1"));
+        launchResultActivity(intent);
     }
 
     private void sendErrorToResultActivity(final String error, final String errorDescription) {
@@ -273,6 +334,7 @@ public class SignInActivity extends AppCompatActivity {
                 inputItems.get(VALIDATE_AUTHORITY));
         mForceRefreshParameterProvided = inputItems.get(FORCE_REFRESH) == null ? false : true;
         mForceRefresh = inputItems.get(FORCE_REFRESH) == null ? false : Boolean.valueOf(inputItems.get(FORCE_REFRESH));
+        mUseDialogForAcquireToken = inputItems.get(USE_DIALOG) == null ? false : Boolean.valueOf(inputItems.get(USE_DIALOG));
         
         if (!TextUtils.isEmpty(inputItems.get(UNIQUE_ID))) {
             mUserId = inputItems.get(UNIQUE_ID);
@@ -315,8 +377,17 @@ public class SignInActivity extends AppCompatActivity {
     }
 
     private void acquireToken() {
-        mAuthenticationContext.acquireToken(SignInActivity.this, mResource, mClientId,
-                mRedirectUri, mLoginHint, mPromptBehavior, mExtraQueryParam, getAdalCallback());
+        try {
+            if(mUseDialogForAcquireToken){
+                mAuthenticationContext.acquireToken( mResource, mClientId,
+                        mRedirectUri, mLoginHint, PromptBehavior.Auto, mExtraQueryParam, getAdalCallback());
+            }else {
+                mAuthenticationContext.acquireToken(SignInActivity.this, mResource, mClientId,
+                        mRedirectUri, mLoginHint, PromptBehavior.Auto, mExtraQueryParam, getAdalCallback());
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }
     }
 
     private void acquireTokenSilent() {

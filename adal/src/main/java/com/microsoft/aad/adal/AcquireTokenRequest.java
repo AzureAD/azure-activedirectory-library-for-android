@@ -29,6 +29,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -542,7 +543,7 @@ class AcquireTokenRequest {
         if (activity == null && !useDialog) {
             throw new AuthenticationException(
                     ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, authenticationRequest.getLogInfo()
-                    + " Cannot launch webview, acitivity is null.");
+                    + " Cannot launch webview, activity is null.");
         }
 
         HttpWebRequest.throwIfNetworkNotAvailable(mContext);
@@ -888,9 +889,7 @@ class AcquireTokenRequest {
 
     private synchronized Handler getHandler() {
         if (sHandler == null) {
-            HandlerThread acquireTokenHandlerThread = new HandlerThread("AcquireTokenRequestHandlerThread");
-            acquireTokenHandlerThread.start();
-            sHandler = new Handler(acquireTokenHandlerThread.getLooper());
+            sHandler = new Handler(Looper.getMainLooper());
         }
 
         return sHandler;

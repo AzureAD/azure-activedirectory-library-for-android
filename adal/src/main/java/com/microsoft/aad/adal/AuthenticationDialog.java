@@ -30,6 +30,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Handler;
+import android.util.Log;
+import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -84,11 +86,25 @@ class AuthenticationDialog {
                         .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
 
+                //Need to be sure that the resource id is actually found
+                int dialogAuthenticationResourceId = getResourceId("dialog_authentication", "layout");
+
+
+                View webviewInDialog = null;
                 // using static layout
-                View webviewInDialog = inflater.inflate(
-                        getResourceId("dialog_authentication", "layout"), null);
-                mWebView = (WebView) webviewInDialog.findViewById(getResourceId(
-                        "com_microsoft_aad_adal_webView1", "id"));
+                try {
+                    webviewInDialog = inflater.inflate(dialogAuthenticationResourceId, null);
+                }catch(InflateException e){
+                    //This code was added to debug a threading issue; however there could be other cases when this would occur... so leaving in.
+                    //NOTE: With the threading issue even though the exception was caught the test app still interrupted (looks like a crash)... presumably because of
+                    //The Android System Webview (Chromium) crashed; however the app does continue after Android restarts the system web view
+                    Logger.e(TAG, "Failed to inflate authentication dialog", "", ADALError.DEVELOPER_DIALOG_INFLATION_ERROR, e);
+                }
+
+                if(webviewInDialog != null) {
+                    mWebView = (WebView) webviewInDialog.findViewById(getResourceId(
+                            "com_microsoft_aad_adal_webView1", "id"));
+                }
                 if (mWebView == null) {
                     Logger.e(
                             TAG + methodName,
