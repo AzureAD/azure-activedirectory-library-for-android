@@ -67,8 +67,6 @@ public class TokenCacheItem implements Serializable {
 
     private String mFamilyClientId;
 
-    private Date mTokenUpdatedTime;
-
     private Date mExtendedExpiresOn;
 
     private String mSpeRing;
@@ -400,19 +398,6 @@ public class TokenCacheItem implements Serializable {
         return false;
     }
 
-    protected final Date getTokenUpdateTime() {
-        return this.mTokenUpdatedTime;
-    }
-
-    final void setTokenUpdateTime(final Date tokenUpateTime) {
-        if (null == tokenUpateTime) {
-            this.mTokenUpdatedTime = null;
-        } else {
-            this.mTokenUpdatedTime = new Date(tokenUpateTime.getTime());
-        }
-    }
-
-
     /**
      * Checks expiration time.
      *
@@ -455,7 +440,7 @@ public class TokenCacheItem implements Serializable {
         return !StringExtensions.isNullOrBlank(mFamilyClientId);
     }
 
-    public String getSpeRing() {
+    String getSpeRing() {
         return mSpeRing;
     }
 

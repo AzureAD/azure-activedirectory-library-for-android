@@ -359,7 +359,10 @@ public class OauthTests {
                 "client 1234567890-+=;'", "redirect 1234567890-+=;'", "loginhint@ggg.com", null,
                 null, null, false);
         final Oauth2 oauth2 = createOAuthInstance(request);
-        assertTrue(oauth2.buildRefreshTokenRequestMessage("refreshToken23434=").startsWith("grant_type=refresh_token&refresh_token=refreshToken23434%3D&client_id=client+1234567890-%2B%3D%3B%27&client_info=1&resource=resource%2520+"));
+        assertEquals(
+                "Token request",
+                "grant_type=refresh_token&refresh_token=refreshToken23434%3D&client_id=client+1234567890-%2B%3D%3B%27&client_info=1&resource=resource%2520+",
+                oauth2.buildRefreshTokenRequestMessage("refreshToken23434="));
 
         // without resource
         final AuthenticationRequest requestWithoutResource = createAuthenticationRequest(
@@ -367,7 +370,10 @@ public class OauthTests {
                 "redirect 1234567890-+=;'", "loginhint@ggg.com", null, null, null, false);
 
         final Oauth2 oauthWithoutResource = createOAuthInstance(requestWithoutResource);
-        assertTrue(oauthWithoutResource.buildRefreshTokenRequestMessage("refreshToken234343455=").startsWith("grant_type=refresh_token&refresh_token=refreshToken234343455%3D&client_id=client+1234567890-%2B%3D%3B%27&client_info=1"));
+        assertEquals(
+                "Token request",
+                "grant_type=refresh_token&refresh_token=refreshToken234343455%3D&client_id=client+1234567890-%2B%3D%3B%27&client_info=1",
+                oauthWithoutResource.buildRefreshTokenRequestMessage("refreshToken234343455="));
     }
 
     /**

@@ -109,11 +109,11 @@ final class HashMapExtensions {
      * get key value pairs from response.
      *
      * @param webResponse HttpWebResponse to convert to a map
-     * @return HashMap
+     * @return Map
      * @throws JSONException
      */
-    static HashMap<String, String> getJsonResponse(HttpWebResponse webResponse) throws JSONException {
-        final HashMap<String, String> response = new HashMap<>();
+    static Map<String, String> getJsonResponse(HttpWebResponse webResponse) throws JSONException {
+        final Map<String, String> response = new HashMap<>();
         if (webResponse != null && !TextUtils.isEmpty(webResponse.getBody())) {
             JSONObject jsonObject = new JSONObject(webResponse.getBody());
             Iterator<?> i = jsonObject.keys();

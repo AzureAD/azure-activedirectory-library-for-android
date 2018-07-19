@@ -36,7 +36,7 @@ import static com.microsoft.aad.adal.EventStrings.LOGIN_HINT;
 import static com.microsoft.aad.adal.EventStrings.TENANT_ID;
 import static com.microsoft.aad.adal.EventStrings.USER_ID;
 
-public final class TelemetryUtils {
+final class TelemetryUtils {
 
     static final Set<String> GDPR_FILTERED_FIELDS = new HashSet<>();
 
@@ -60,7 +60,7 @@ public final class TelemetryUtils {
         );
     }
 
-    public static class CliTelemInfo implements Serializable {
+    static class CliTelemInfo implements Serializable {
 
         private String mVersion;
         private String mServerErrorCode;
@@ -68,7 +68,7 @@ public final class TelemetryUtils {
         private String mRefreshTokenAge;
         private String mSpeRing;
 
-        public String getVersion() {
+        String getVersion() {
             return mVersion;
         }
 
@@ -76,7 +76,7 @@ public final class TelemetryUtils {
             this.mVersion = version;
         }
 
-        public String getServerErrorCode() {
+        String getServerErrorCode() {
             return mServerErrorCode;
         }
 
@@ -84,7 +84,7 @@ public final class TelemetryUtils {
             this.mServerErrorCode = serverErrorCode;
         }
 
-        public String getServerSubErrorCode() {
+        String getServerSubErrorCode() {
             return mServerSubErrorCode;
         }
 
@@ -92,7 +92,7 @@ public final class TelemetryUtils {
             this.mServerSubErrorCode = serverSubErrorCode;
         }
 
-        public String getRefreshTokenAge() {
+        String getRefreshTokenAge() {
             return mRefreshTokenAge;
         }
 
@@ -100,7 +100,7 @@ public final class TelemetryUtils {
             this.mRefreshTokenAge = refreshTokenAge;
         }
 
-        public String getSpeRing() {
+        String getSpeRing() {
             return mSpeRing;
         }
 
@@ -109,7 +109,7 @@ public final class TelemetryUtils {
         }
     }
 
-    public static CliTelemInfo parseXMsCliTelemHeader(final String headerValue) {
+    static CliTelemInfo parseXMsCliTelemHeader(final String headerValue) {
         // if the header isn't present, do nothing
         if (StringExtensions.isNullOrBlank(headerValue)) {
             return null;
