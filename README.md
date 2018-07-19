@@ -71,6 +71,8 @@ To build with Gradle,
 * You should see app 'Fancy ADAL Test App' installed on the test device
 * Select an authority, [optionally] enter a login hint and/or query parameters, and click `Acquire Token` to enter credentials with AAD
 
+> Note: The `authority`, `clientId`, `redirectUri` and `resource` of the test app can be found in [`Constants.java`](https://github.com/AzureAD/azure-activedirectory-library-for-android/blob/dev/userappwithbroker/src/main/java/com/microsoft/aad/adal/example/userappwithbroker/Constants.java). These values can be updated as necessary to test different tenants and configurations.
+
 To build with Maven, you can use the pom.xml at top level
 
 * Clone this repo in to a directory of your choice
