@@ -32,7 +32,7 @@ import android.test.UiThreadTest;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
 
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.aad.adal.AuthenticationConstants;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -50,8 +50,7 @@ import java.security.cert.X509Certificate;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Browser.RESPONSE_ERROR_CODE;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE;
+import com.microsoft.aad.adal.AuthenticationConstants;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -348,8 +347,8 @@ public class BasicWebViewClientTests {
             @Override
             public void sendResponse(int returnCode, Intent responseIntent) {
                 assertEquals(returnCode, AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR);
-                final String errString = responseIntent.getStringExtra(RESPONSE_ERROR_CODE);
-                final String intentErrMsg = responseIntent.getStringExtra(RESPONSE_ERROR_MESSAGE);
+                final String errString = responseIntent.getStringExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE);
+                final String intentErrMsg = responseIntent.getStringExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE);
                 assertTrue(errString.contains(String.valueOf(errCode)));
                 assertEquals(errMsg, intentErrMsg);
                 latch.countDown();
@@ -429,8 +428,8 @@ public class BasicWebViewClientTests {
             @Override
             public void sendResponse(int returnCode, Intent responseIntent) {
                 assertEquals(returnCode, AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR);
-                final String errString = responseIntent.getStringExtra(RESPONSE_ERROR_CODE);
-                final String intentErrMsg = responseIntent.getStringExtra(RESPONSE_ERROR_MESSAGE);
+                final String errString = responseIntent.getStringExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE);
+                final String intentErrMsg = responseIntent.getStringExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE);
                 assertTrue(errString.contains(String.valueOf(ERROR_FAILED_SSL_HANDSHAKE)));
                 assertEquals(sslError.toString(), intentErrMsg);
                 latch.countDown();

@@ -31,7 +31,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants.OAuth2;
+import com.microsoft.aad.adal.AuthenticationConstants;
 
 import java.lang.reflect.Type;
 
@@ -49,10 +49,10 @@ public final class TokenCacheItemSerializationAdapater
     @Override
     public JsonElement serialize(TokenCacheItem tokenCacheItem, Type type, JsonSerializationContext context) {
         JsonObject jsonObj = new JsonObject();
-        jsonObj.add(OAuth2.AUTHORITY, new JsonPrimitive(tokenCacheItem.getAuthority()));
-        jsonObj.add(OAuth2.REFRESH_TOKEN, new JsonPrimitive(tokenCacheItem.getRefreshToken()));
-        jsonObj.add(OAuth2.ID_TOKEN, new JsonPrimitive(tokenCacheItem.getRawIdToken()));
-        jsonObj.add(OAuth2.ADAL_CLIENT_FAMILY_ID, new JsonPrimitive(tokenCacheItem.getFamilyClientId()));
+        jsonObj.add(AuthenticationConstants.OAuth2.AUTHORITY, new JsonPrimitive(tokenCacheItem.getAuthority()));
+        jsonObj.add(AuthenticationConstants.OAuth2.REFRESH_TOKEN, new JsonPrimitive(tokenCacheItem.getRefreshToken()));
+        jsonObj.add(AuthenticationConstants.OAuth2.ID_TOKEN, new JsonPrimitive(tokenCacheItem.getRawIdToken()));
+        jsonObj.add(AuthenticationConstants.OAuth2.ADAL_CLIENT_FAMILY_ID, new JsonPrimitive(tokenCacheItem.getFamilyClientId()));
         return jsonObj;
     }
 
@@ -60,12 +60,12 @@ public final class TokenCacheItemSerializationAdapater
     public TokenCacheItem deserialize(JsonElement json, Type type, JsonDeserializationContext context)
             throws JsonParseException {
         final JsonObject srcJsonObj = json.getAsJsonObject();
-        throwIfParameterMissing(srcJsonObj, OAuth2.AUTHORITY);
-        throwIfParameterMissing(srcJsonObj, OAuth2.ID_TOKEN);
-        throwIfParameterMissing(srcJsonObj, OAuth2.ADAL_CLIENT_FAMILY_ID);
-        throwIfParameterMissing(srcJsonObj, OAuth2.REFRESH_TOKEN);
+        throwIfParameterMissing(srcJsonObj, AuthenticationConstants.OAuth2.AUTHORITY);
+        throwIfParameterMissing(srcJsonObj, AuthenticationConstants.OAuth2.ID_TOKEN);
+        throwIfParameterMissing(srcJsonObj, AuthenticationConstants.OAuth2.ADAL_CLIENT_FAMILY_ID);
+        throwIfParameterMissing(srcJsonObj, AuthenticationConstants.OAuth2.REFRESH_TOKEN);
 
-        final String rawIdToken = srcJsonObj.get(OAuth2.ID_TOKEN).getAsString();
+        final String rawIdToken = srcJsonObj.get(AuthenticationConstants.OAuth2.ID_TOKEN).getAsString();
         final TokenCacheItem tokenCacheItem = new TokenCacheItem();
         final IdToken idToken;
         try {
@@ -76,11 +76,11 @@ public final class TokenCacheItemSerializationAdapater
         final UserInfo userInfo = new UserInfo(idToken);
         tokenCacheItem.setUserInfo(userInfo);
         tokenCacheItem.setTenantId(idToken.getTenantId());
-        tokenCacheItem.setAuthority(srcJsonObj.get(OAuth2.AUTHORITY).getAsString());
+        tokenCacheItem.setAuthority(srcJsonObj.get(AuthenticationConstants.OAuth2.AUTHORITY).getAsString());
         tokenCacheItem.setIsMultiResourceRefreshToken(true);
         tokenCacheItem.setRawIdToken(rawIdToken);
-        tokenCacheItem.setFamilyClientId(srcJsonObj.get(OAuth2.ADAL_CLIENT_FAMILY_ID).getAsString());
-        tokenCacheItem.setRefreshToken(srcJsonObj.get(OAuth2.REFRESH_TOKEN).getAsString());
+        tokenCacheItem.setFamilyClientId(srcJsonObj.get(AuthenticationConstants.OAuth2.ADAL_CLIENT_FAMILY_ID).getAsString());
+        tokenCacheItem.setRefreshToken(srcJsonObj.get(AuthenticationConstants.OAuth2.REFRESH_TOKEN).getAsString());
         return tokenCacheItem;
     }
 

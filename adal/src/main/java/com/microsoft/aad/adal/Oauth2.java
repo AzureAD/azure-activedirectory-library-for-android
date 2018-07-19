@@ -29,7 +29,7 @@ import android.text.TextUtils;
 import android.util.Base64;
 
 import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
@@ -54,7 +54,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static com.microsoft.aad.adal.TelemetryUtils.CliTelemInfo;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.HeaderField.X_MS_CLITELEM;
+import com.microsoft.aad.adal.AuthenticationConstants;
 
 /**
  * Base Oauth class.
@@ -782,11 +782,11 @@ class Oauth2 {
                 }
             }
 
-            if (null != webResponse.getResponseHeaders().get(X_MS_CLITELEM) && !webResponse.getResponseHeaders().get(X_MS_CLITELEM).isEmpty()) {
+            if (null != webResponse.getResponseHeaders().get(AuthenticationConstants.HeaderField.X_MS_CLITELEM) && !webResponse.getResponseHeaders().get(AuthenticationConstants.HeaderField.X_MS_CLITELEM).isEmpty()) {
                 final CliTelemInfo cliTelemInfo =
                         TelemetryUtils.parseXMsCliTelemHeader(
                                 webResponse.getResponseHeaders()
-                                        .get(X_MS_CLITELEM).get(0)
+                                        .get(AuthenticationConstants.HeaderField.X_MS_CLITELEM).get(0)
                         );
 
                 if (null != cliTelemInfo) {
@@ -844,7 +844,7 @@ class Oauth2 {
         }
 
         if (null != webResponse.getResponseHeaders()) {
-            final List<String> xMsCliTelemValues = webResponse.getResponseHeaders().get(X_MS_CLITELEM);
+            final List<String> xMsCliTelemValues = webResponse.getResponseHeaders().get(AuthenticationConstants.HeaderField.X_MS_CLITELEM);
             if (null != xMsCliTelemValues && !xMsCliTelemValues.isEmpty()) {
                 // Only one value is expected to be present, so we'll grab the first element...
                 final String speValue = xMsCliTelemValues.get(0);

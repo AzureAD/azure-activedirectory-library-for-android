@@ -31,7 +31,7 @@ import android.content.pm.Signature;
 import android.support.test.InstrumentationRegistry;
 import android.util.Base64;
 
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.aad.adal.AuthenticationConstants;
 
 import org.junit.Before;
 

@@ -24,7 +24,7 @@ package com.microsoft.aad.adal;
 
 import android.util.Base64;
 
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 

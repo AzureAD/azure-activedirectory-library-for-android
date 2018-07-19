@@ -27,8 +27,7 @@ import android.support.test.runner.AndroidJUnit4;
 
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants.AAD;
+import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;
@@ -94,7 +93,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         final List<String> headerValues = new ArrayList<>();
         headerValues.add(testCorrelationId.toString());
         final Map<String, List<String>> headerFields = new HashMap<>();
-        headerFields.put(AAD.CLIENT_REQUEST_ID, headerValues);
+        headerFields.put(AuthenticationConstants.AAD.CLIENT_REQUEST_ID, headerValues);
         Mockito.when(mockedConnection.getHeaderFields()).thenReturn(headerFields);
 
         Mockito.when(mockedConnection.getInputStream())
@@ -184,8 +183,8 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getInputStream())
-                .thenReturn(Util.createInputStream(AAD.ADAL_ID_PLATFORM + "-Android" + "dummy string"
-                        + AAD.ADAL_ID_VERSION + "-"
+                .thenReturn(Util.createInputStream(AuthenticationConstants.AAD.ADAL_ID_PLATFORM + "-Android" + "dummy string"
+                        + AuthenticationConstants.AAD.ADAL_ID_VERSION + "-"
                         + AuthenticationContext.getVersionName()));
         Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
 
@@ -196,10 +195,10 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         assertNotNull(httpResponse != null);
         assertTrue("status is 200", httpResponse.getStatusCode() == HttpURLConnection.HTTP_OK);
         String responseMsg = httpResponse.getBody();
-        assertTrue("request header check", responseMsg.contains(AAD.ADAL_ID_PLATFORM + "-Android"));
+        assertTrue("request header check", responseMsg.contains(AuthenticationConstants.AAD.ADAL_ID_PLATFORM + "-Android"));
         assertTrue(
                 "request header check",
-                responseMsg.contains(AAD.ADAL_ID_VERSION + "-"
+                responseMsg.contains(AuthenticationConstants.AAD.ADAL_ID_VERSION + "-"
                         + AuthenticationContext.getVersionName()));
     }
 

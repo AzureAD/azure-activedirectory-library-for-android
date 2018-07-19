@@ -29,7 +29,7 @@ import android.content.res.Configuration;
 import android.os.Build;
 import android.support.test.runner.AndroidJUnit4;
 
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.aad.adal.AuthenticationConstants;
 
 import org.junit.Before;
 import org.junit.Test;

@@ -24,7 +24,7 @@
 package com.microsoft.aad.adal;
 
 import com.google.gson.JsonSyntaxException;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 
 import java.io.IOException;
@@ -37,8 +37,7 @@ import java.util.Map;
 
 import static com.microsoft.aad.adal.DRSMetadataRequestor.Type.CLOUD;
 import static com.microsoft.aad.adal.DRSMetadataRequestor.Type.ON_PREM;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.HeaderField.ACCEPT;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.MediaType.APPLICATION_JSON;
+import com.microsoft.aad.adal.AuthenticationConstants;
 
 /**
  * Delegate class capable of fetching DRS discovery metadata documents.
@@ -124,7 +123,7 @@ final class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, 
 
         // init the headers to use in the request
         final Map<String, String> headers = new HashMap<>();
-        headers.put(ACCEPT, APPLICATION_JSON);
+        headers.put(AuthenticationConstants.HeaderField.ACCEPT, AuthenticationConstants.MediaType.APPLICATION_JSON);
         if (null != getCorrelationId()) {
             headers.put(AuthenticationConstants.AAD.CLIENT_REQUEST_ID, getCorrelationId().toString());
         }

@@ -26,7 +26,7 @@ package com.microsoft.aad.adal;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 /**

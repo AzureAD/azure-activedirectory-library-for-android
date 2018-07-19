@@ -36,7 +36,7 @@ import android.content.pm.Signature;
 import android.os.Bundle;
 import android.util.Base64;
 
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.io.UnsupportedEncodingException;

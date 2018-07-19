@@ -39,7 +39,7 @@ import android.webkit.WebViewClient;
 
 
 
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 
 import org.junit.Before;

@@ -44,7 +44,7 @@ import android.util.Pair;
 
 
 
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.aad.adal.AuthenticationConstants;
 
 import junit.framework.Assert;
 
