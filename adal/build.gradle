@@ -120,12 +120,12 @@ dependencies {
     implementation "com.android.support:support-v4:$rootProject.ext.supportLibraryVersion"
 
     // 'local' flavor dependencies
-    localImplementation(project(":common")) {
+    localApi(project(":common")) {
         transitive = false
     }
 
     // 'dist' flavor dependencies
-     distImplementation ("com.microsoft.identity:common:0.0.2"){
+     distApi ("com.microsoft.identity:common:0.0.2"){
          transitive = false
      }
 
@@ -220,6 +220,7 @@ publishing {
 
                 def deps = configurations.implementation.allDependencies.asList()
                 deps.addAll(configurations.distImplementation.allDependencies.asList())
+                deps.addAll(configurations.distApi.allDependencies.asList())
 
                 //Iterate over the implementation dependencies (we don't want the test ones), adding a <dependency> node for each
                 deps.each {
