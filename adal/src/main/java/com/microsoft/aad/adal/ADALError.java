@@ -118,6 +118,13 @@ public enum ADALError {
     DEVELOPER_DIALOG_LAYOUT_INVALID("dialog_authentication.xml file has invalid elements"),
 
     /**
+     * An exception occurred attempting to inflate the authentication dialog.  This exception
+     * can occur for a number of different reasons
+     * https://developer.android.com/reference/android/view/InflateException
+     */
+    DEVELOPER_DIALOG_INFLATION_ERROR("An error occur when attempting to inflate the authentication dialog"),
+
+    /**
      * Invalid request to server.
      */
     SERVER_INVALID_REQUEST("Invalid request to server"),
