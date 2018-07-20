@@ -65,7 +65,7 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 
 @RunWith(SerenityParameterizedRunner.class)
-public class AcquireTokenSilentTestWithBroker {
+public class AcquireTokenSilentTestWithAuthenticator {
 
     @TestData
     public static Collection<Object[]> FederationProviders() {
@@ -109,7 +109,7 @@ public class AcquireTokenSilentTestWithBroker {
     @Steps
     WorkplaceLeave workplaceLeave;
 
-    public AcquireTokenSilentTestWithBroker(String federationProvider) {
+    public AcquireTokenSilentTestWithAuthenticator(String federationProvider) {
         this.federationProvider = federationProvider;
     }
 
