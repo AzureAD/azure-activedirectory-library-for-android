@@ -222,7 +222,6 @@ publishing {
                 def dependenciesNode = asNode().appendNode('dependencies')
 
                 def deps = configurations.implementation.allDependencies.asList()
-                deps.addAll(configurations.distImplementation.allDependencies.asList())
                 deps.addAll(configurations.distApi.allDependencies.asList())
 
                 //Iterate over the implementation dependencies (we don't want the test ones), adding a <dependency> node for each
