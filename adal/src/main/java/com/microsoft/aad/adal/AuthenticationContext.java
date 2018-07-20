@@ -560,14 +560,16 @@ public class AuthenticationContext {
     }
 
     /**
-     * This uses new dialog based prompt. It will create a handler to run the
-     * dialog related code. It will start interactive flow if needed. It checks
-     * the cache to return existing result if not expired. It tries to use
-     * refresh token if available. If it fails to get token with refresh token,
-     * behavior will depend on options. If promptbehavior is AUTO, it will
-     * remove this refresh token from cache and fall back on the UI. Default is
-     * AUTO.
-     *
+     * acquireToken will authorize an end user to call the specified resource. 
+     * The minted access token will be sent to the {@link AuthenticationCallback}
+     * and can be used to call the specified protected resource. 
+     * By default, acquireToken will attempt to fulfill the request silently, and 
+     * perform an interactive login if needed or explicitly specified in 
+     * the request.  This overload uses an 
+     * [AlertDialog](https://developer.android.com/guide/topics/ui/dialogs)
+     * in cases UI is required. This overload does not support any flow
+     * requiring a 
+     * [token broker](https://github.com/AzureAD/azure-activedirectory-library-for-android/wiki/Broker).
      * @param resource             required resource identifier.
      * @param clientId             required client identifier.
      * @param redirectUri          Optional. It will use packagename and provided suffix
@@ -602,9 +604,15 @@ public class AuthenticationContext {
     }
 
     /**
-     * acquireToken will start an interactive auth flow to acquire new tokens 
-     * with the requested claims. Bypasses token cache if promptbehavior is not AUTO or claims are passed. This overload uses new dialog based prompt. 
-     * It will create a handler to run the dialog related code. 
+     * acquireToken will authorize an end user to call the specified resource. 
+     * The minted access token will be sent to the {@link AuthenticationCallback}
+     * and can be used to call the specified protected resource. 
+     * Bypasses token cache if @param prompt is not AUTO or claims are passed.  
+     * This overload uses an 
+     * [AlertDialog](https://developer.android.com/guide/topics/ui/dialogs)
+     * in cases UI is required. This overload does not support any flow
+     * requiring a 
+     * [token broker](https://github.com/AzureAD/azure-activedirectory-library-for-android/wiki/Broker).
      *
      * @param resource             required resource identifier.
      * @param clientId             required client identifier.
