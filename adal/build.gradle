@@ -125,9 +125,9 @@ dependencies {
     }
 
     // 'dist' flavor dependencies
-     distApi ("com.microsoft.identity:common:0.0.2"){
-         transitive = false
-     }
+    distApi("com.microsoft.identity:common:0.0.2") {
+        transitive = false
+    }
 
     // Android Instrumented Test Dependencies
     androidTestImplementation "com.android.support.test:runner:$rootProject.ext.runnerVersion"
@@ -219,7 +219,6 @@ publishing {
                 def dependenciesNode = asNode().appendNode('dependencies')
 
                 def deps = configurations.implementation.allDependencies.asList()
-                deps.addAll(configurations.distImplementation.allDependencies.asList())
                 deps.addAll(configurations.distApi.allDependencies.asList())
 
                 //Iterate over the implementation dependencies (we don't want the test ones), adding a <dependency> node for each
