@@ -275,7 +275,7 @@ public class Logger {
      * Logs debug message.
      */
     @Deprecated
-    static void d(String tag, String message) {
+    public static void d(String tag, String message) {
         if (StringExtensions.isNullOrBlank(message)) {
             return;
         }
@@ -295,7 +295,7 @@ public class Logger {
      * Logs informational message.
      */
     @Deprecated
-    static void i(String tag, String message, String additionalMessage) {
+    public static void i(String tag, String message, String additionalMessage) {
         Logger.getInstance().commonCoreWrapper(tag, message, additionalMessage, LogLevel.Info, null, null);
     }
 
@@ -312,7 +312,7 @@ public class Logger {
      * Logs informational messages with error codes.
      */
     @Deprecated
-    static void i(String tag, String message, String additionalMessage, ADALError errorCode) {
+    public static void i(String tag, String message, String additionalMessage, ADALError errorCode) {
         Logger.getInstance().commonCoreWrapper(tag, message, additionalMessage, LogLevel.Info, errorCode, null);
     }
 
@@ -327,7 +327,7 @@ public class Logger {
      * Logs verbose message.
      */
     @Deprecated
-    static void v(String tag, String message) {
+    public static void v(String tag, String message) {
         Logger.getInstance().commonCoreWrapper(tag, message, null, LogLevel.Verbose, null, null);
     }
 
@@ -344,7 +344,7 @@ public class Logger {
      * Logs verbose message with error code.
      */
     @Deprecated
-    static void v(String tag, String message, String additionalMessage, ADALError errorCode) {
+    public static void v(String tag, String message, String additionalMessage, ADALError errorCode) {
         Logger.getInstance().commonCoreWrapper(tag, message, additionalMessage, LogLevel.Verbose, errorCode, null);
     }
 
@@ -361,7 +361,7 @@ public class Logger {
      * Logs warning message.
      */
     @Deprecated
-    static void w(String tag, String message, String additionalMessage, ADALError errorCode) {
+    public static void w(String tag, String message, String additionalMessage, ADALError errorCode) {
         Logger.getInstance().commonCoreWrapper(tag, message, additionalMessage, LogLevel.Warn, errorCode, null);
     }
 
@@ -376,7 +376,7 @@ public class Logger {
      * Logs warning message.
      */
     @Deprecated
-    static void w(String tag, String message) {
+    public static void w(String tag, String message) {
         Logger.getInstance().commonCoreWrapper(tag, message, null, LogLevel.Warn, null, null);
     }
 
@@ -393,7 +393,7 @@ public class Logger {
      * Logs error message.
      */
     @Deprecated
-    static void e(String tag, String message, String additionalMessage, ADALError errorCode) {
+    public static void e(String tag, String message, String additionalMessage, ADALError errorCode) {
         Logger.getInstance().commonCoreWrapper(tag, message, additionalMessage, LogLevel.Error, errorCode, null);
     }
 
@@ -411,7 +411,7 @@ public class Logger {
      * Logs error message.
      */
     @Deprecated
-    static void e(String tag, String message, String additionalMessage, ADALError errorCode,
+    public static void e(String tag, String message, String additionalMessage, ADALError errorCode,
                   Throwable throwable) {
         Logger.getInstance().commonCoreWrapper(tag, message, additionalMessage, LogLevel.Error, errorCode, throwable);
     }
@@ -428,7 +428,7 @@ public class Logger {
      * Logs error message.
      */
     @Deprecated
-    static void e(String tag, String message, Throwable throwable) {
+    public static void e(String tag, String message, Throwable throwable) {
         Logger.getInstance().commonCoreWrapper(tag, message, null, LogLevel.Error, null, throwable);
     }
 
