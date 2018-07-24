@@ -3,6 +3,7 @@ apply plugin: 'findbugs'
 apply plugin: 'pmd'
 apply plugin: 'checkstyle'
 apply plugin: 'maven-publish'
+apply from: 'versioning/app_version.gradle'
 
 group = 'com.microsoft.aad'
 
@@ -32,8 +33,8 @@ android {
     defaultConfig {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.14.0"
+        versionCode getAppVersionCode()
+        versionName getAppVersionName()
         project.archivesBaseName = "adal"
         project.version = android.defaultConfig.versionName
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -344,3 +345,4 @@ tasks.whenTaskAdded { task ->
         task.finalizedBy 'findbugs'
     }
 }
+

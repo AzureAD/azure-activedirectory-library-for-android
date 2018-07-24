@@ -1,0 +1,77 @@
+def getVersionFile() {
+    return file('versioning/version.properties')
+}
+
+def getVersionProps() {
+    def versionPropsFile = getVersionFile()
+    def versionProps = new Properties()
+    versionProps.load(new FileInputStream(versionPropsFile))
+    return versionProps
+}
+
+private Integer getVersionNamePatch() {
+    return (getVersionProps()['versionName'] =~ /\d+/)[2].toInteger()
+}
+
+private Integer getVersionNameMinor() {
+    return (getVersionProps()['versionName'] =~ /\d+/)[1].toInteger()
+}
+
+private Integer getVersionNameMajor() {
+    return (getVersionProps()['versionName'] =~ /\d+/)[0].toInteger()
+}
+
+private void commitAndSetTag(String versionName) {
+    Process addChanges = ['git', 'add', 'adal/versioning/version.properties'].execute(null, project.rootDir)
+    addChanges.waitForProcessOutput(System.out, System.err)
+
+    Process createCommit = ['git', 'commit', "-m Release ${versionName}"].execute(null,  project.rootDir)
+    createCommit.waitForProcessOutput(System.out, System.err)
+}
+
+ext.getAppVersionCode = {
+    getVersionProps()['versionCode'].toInteger()
+}
+
+ext.getAppVersionName = {
+    getVersionProps()['versionName'].toString()
+}
+
+private void saveChanges(String versionName) {
+    def versionProps = getVersionProps()
+    versionProps['versionName'] = versionName
+    versionProps.store(getVersionFile().newWriter(), null)
+}
+
+task versionPatch {
+    doLast {
+        def versionNameMajor = getVersionNameMajor()
+        def versionNameMinor = getVersionNameMinor()
+        def versionNamePatch = getVersionNamePatch() + 1
+        def versionName = "${versionNameMajor}.${versionNameMinor}.${versionNamePatch}".toString()
+        saveChanges(versionName)
+        commitAndSetTag(versionName)
+    }
+}
+
+task versionMinor {
+    doLast {
+        def versionNameMajor = getVersionNameMajor()
+        def versionNameMinor = getVersionNameMinor() + 1
+        def versionNamePatch = getVersionNamePatch()
+        def versionName = "${versionNameMajor}.${versionNameMinor}.${versionNamePatch}".toString()
+        saveChanges(versionName)
+        commitAndSetTag(versionName)
+    }
+}
+
+task versionMajor {
+    doLast {
+        def versionNameMajor = getVersionNameMajor() + 1
+        def versionNameMinor = getVersionNameMinor()
+        def versionNamePatch = getVersionNamePatch()
+        def versionName = "${versionNameMajor}.${versionNameMinor}.${versionNamePatch}".toString()
+        saveChanges(versionName)
+        commitAndSetTag(versionName)
+    }
+}
