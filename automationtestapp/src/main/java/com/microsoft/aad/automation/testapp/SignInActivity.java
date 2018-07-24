@@ -380,10 +380,10 @@ public class SignInActivity extends AppCompatActivity {
         try {
             if(mUseDialogForAcquireToken){
                 mAuthenticationContext.acquireToken( mResource, mClientId,
-                        mRedirectUri, mLoginHint, PromptBehavior.Auto, mExtraQueryParam, getAdalCallback());
+                        mRedirectUri, mLoginHint, mPromptBehavior, mExtraQueryParam, getAdalCallback());
             }else {
                 mAuthenticationContext.acquireToken(SignInActivity.this, mResource, mClientId,
-                        mRedirectUri, mLoginHint, PromptBehavior.Auto, mExtraQueryParam, getAdalCallback());
+                        mRedirectUri, mLoginHint, mPromptBehavior, mExtraQueryParam, getAdalCallback());
             }
         }catch(Exception e){
             e.printStackTrace();
