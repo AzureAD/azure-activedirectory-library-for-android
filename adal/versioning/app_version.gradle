@@ -21,11 +21,11 @@ private Integer getVersionNameMajor() {
     return (getVersionProps()['versionName'] =~ /\d+/)[0].toInteger()
 }
 
-private void commitAndSetTag(String versionName) {
+private void commit(String versionName) {
     Process addChanges = ['git', 'add', 'adal/versioning/version.properties'].execute(null, project.rootDir)
     addChanges.waitForProcessOutput(System.out, System.err)
 
-    Process createCommit = ['git', 'commit', "-m Release ${versionName}"].execute(null,  project.rootDir)
+    Process createCommit = ['git', 'commit', "-m Nightly Release ${versionName}"].execute(null,  project.rootDir)
     createCommit.waitForProcessOutput(System.out, System.err)
 }
 
@@ -50,7 +50,7 @@ task versionPatch {
         def versionNamePatch = getVersionNamePatch() + 1
         def versionName = "${versionNameMajor}.${versionNameMinor}.${versionNamePatch}".toString()
         saveChanges(versionName)
-        commitAndSetTag(versionName)
+        commit(versionName)
     }
 }
 
@@ -61,7 +61,7 @@ task versionMinor {
         def versionNamePatch = getVersionNamePatch()
         def versionName = "${versionNameMajor}.${versionNameMinor}.${versionNamePatch}".toString()
         saveChanges(versionName)
-        commitAndSetTag(versionName)
+        commit(versionName)
     }
 }
 
@@ -72,6 +72,6 @@ task versionMajor {
         def versionNamePatch = getVersionNamePatch()
         def versionName = "${versionNameMajor}.${versionNameMinor}.${versionNamePatch}".toString()
         saveChanges(versionName)
-        commitAndSetTag(versionName)
+        commit(versionName)
     }
 }
