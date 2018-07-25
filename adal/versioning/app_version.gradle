@@ -21,11 +21,19 @@ private Integer getVersionNameMajor() {
     return (getVersionProps()['versionName'] =~ /\d+/)[0].toInteger()
 }
 
-private void commit(String versionName) {
+private Integer getVersionNightly(){
+    return getVersionProps()['versionNightly'].toInteger()
+}
+
+private Integer getVersionRC(){
+    return getVersionProps()['versionRC'].toInteger()
+}
+
+private void commit(String versionName, String task) {
     Process addChanges = ['git', 'add', 'adal/versioning/version.properties'].execute(null, project.rootDir)
     addChanges.waitForProcessOutput(System.out, System.err)
 
-    Process createCommit = ['git', 'commit', "-m Nightly Release ${versionName}"].execute(null,  project.rootDir)
+    Process createCommit = ['git', 'commit', "-m ${task} Release ${versionName}"].execute(null,  project.rootDir)
     createCommit.waitForProcessOutput(System.out, System.err)
 }
 
@@ -43,6 +51,44 @@ private void saveChanges(String versionName) {
     versionProps.store(getVersionFile().newWriter(), null)
 }
 
+private void saveNightlyChanges(String versionName, String versionNameNightly) {
+    def versionProps = getVersionProps()
+    versionProps['versionName'] = versionName
+    versionProps['versionNightly'] = versionNameNightly
+    versionProps.store(getVersionFile().newWriter(), null)
+}
+
+private void saveRCChanges(String versionName, String versionNameRC) {
+    def versionProps = getVersionProps()
+    versionProps['versionName'] = versionName
+    versionProps['versionRC'] = versionNameRC
+    versionProps.store(getVersionFile().newWriter(), null)
+}
+
+task versionNightly {
+    doLast {
+        def versionNameMajor = getVersionNameMajor()
+        def versionNameMinor = getVersionNameMinor()
+        def versionNamePatch = getVersionNamePatch()
+        def versionNameNightly = getVersionNightly() + 1
+        def versionName = "${versionNameMajor}.${versionNameMinor}.${versionNamePatch}-NIGHTLY-${versionNameNightly}".toString()
+        saveNightlyChanges(versionName, "${versionNameNightly}".toString())
+        commit(versionName, "Nightly")
+    }
+}
+
+task versionRC {
+    doLast {
+        def versionNameMajor = getVersionNameMajor()
+        def versionNameMinor = getVersionNameMinor()
+        def versionNamePatch = getVersionNamePatch()
+        def versionNameRC = getVersionRC() + 1
+        def versionName = "${versionNameMajor}.${versionNameMinor}.${versionNamePatch}-RC-${versionNameRC}".toString()
+        saveRCChanges(versionName, "${versionNameRC}".toString())
+        commit(versionName, "RC")
+    }
+}
+
 task versionPatch {
     doLast {
         def versionNameMajor = getVersionNameMajor()
@@ -50,7 +96,7 @@ task versionPatch {
         def versionNamePatch = getVersionNamePatch() + 1
         def versionName = "${versionNameMajor}.${versionNameMinor}.${versionNamePatch}".toString()
         saveChanges(versionName)
-        commit(versionName)
+        commit(versionName, "Patch")
     }
 }
 
@@ -61,7 +107,7 @@ task versionMinor {
         def versionNamePatch = getVersionNamePatch()
         def versionName = "${versionNameMajor}.${versionNameMinor}.${versionNamePatch}".toString()
         saveChanges(versionName)
-        commit(versionName)
+        commit(versionName, "Minor")
     }
 }
 
@@ -72,6 +118,6 @@ task versionMajor {
         def versionNamePatch = getVersionNamePatch()
         def versionName = "${versionNameMajor}.${versionNameMinor}.${versionNamePatch}".toString()
         saveChanges(versionName)
-        commit(versionName)
+        commit(versionName, "Major")
     }
 }
