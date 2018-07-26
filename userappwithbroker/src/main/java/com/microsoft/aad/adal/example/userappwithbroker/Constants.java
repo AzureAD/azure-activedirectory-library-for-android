@@ -62,8 +62,9 @@ public class Constants {
         OFFICE("d3590ed6-52b3-4102-aeff-aad2292ab01c"),
         APPCHECK2_BF("f5d01c1c-abe6-4207-ae2d-5bc9af251724"),
         GUESTCLIENT("ea5c8087-2476-489c-ae03-ad44a2ac399d"),
-        ADFSV4("1b345377-6ae2-4a23-9c3d-efc35ef04eb9"),
-        ADFSV3("a43f9949-a199-40e9-b342-2ac5596c84f2"),
+        ADFSV4("4b0db8c2-9f26-4417-8bde-3f0e3656f8e0"),
+        ADFSV3("68a10fc3-ead9-41b8-ac5e-5b78af044736"),
+        ADFSV2("55311830-5dd0-4808-847b-77fdd1034b8c"),
         PING("6b748729-d940-4482-8724-5eb87a817a10"),
         SHIBBOLETH("d518483c-c15b-4a00-9f59-cff3ffc1077b");
 
