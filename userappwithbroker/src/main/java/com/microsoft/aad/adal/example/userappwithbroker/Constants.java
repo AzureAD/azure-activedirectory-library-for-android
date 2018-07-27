@@ -43,7 +43,7 @@ public class Constants {
         GRAPH("https://graph.windows.net"),
         SHAREPOINT_MS_DEV("https://msdevex-my.sharepoint.com"),
         SHAREPOINT("00000003-0000-0ff1-ce00-000000000000"),
-        OFFICE_ONEDRIVE("00000002-0000-0ff1-ce00-000000000000"),
+        OFFICE_ONEDRIVE("6a9b9266-8161-4a7b-913a-a9eda19da220"),
         SIMPLE("00000002-0000-0000-c000-000000000000");
 
 
