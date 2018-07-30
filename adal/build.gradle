@@ -3,7 +3,7 @@ apply plugin: 'findbugs'
 apply plugin: 'pmd'
 apply plugin: 'checkstyle'
 apply plugin: 'maven-publish'
-apply from: 'versioning/app_version.gradle'
+apply from: 'versioning/version_tasks.gradle'
 
 group = 'com.microsoft.aad'
 

@@ -9,6 +9,10 @@ def getVersionProps() {
     return versionProps
 }
 
+def getDate() {
+    return new Date().format('yyyy-MM-dd')
+}
+
 private Integer getVersionNamePatch() {
     return (getVersionProps()['versionName'] =~ /\d+/)[2].toInteger()
 }
@@ -65,15 +69,20 @@ private void saveRCChanges(String versionName, String versionNameRC) {
     versionProps.store(getVersionFile().newWriter(), null)
 }
 
+task commitNightly {
+    doLast {
+        commit(getAppVersionName(), "Nightly")
+    }
+}
+
 task versionNightly {
     doLast {
         def versionNameMajor = getVersionNameMajor()
         def versionNameMinor = getVersionNameMinor()
         def versionNamePatch = getVersionNamePatch()
-        def versionNameNightly = getVersionNightly() + 1
+        def versionNameNightly = getDate()
         def versionName = "${versionNameMajor}.${versionNameMinor}.${versionNamePatch}-NIGHTLY-${versionNameNightly}".toString()
         saveNightlyChanges(versionName, "${versionNameNightly}".toString())
-        commit(versionName, "Nightly")
     }
 }
 
