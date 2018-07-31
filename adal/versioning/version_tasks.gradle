@@ -10,7 +10,7 @@ def getVersionProps() {
 }
 
 def getDate() {
-    return new Date().format('yyyy-MM-dd')
+    return new Date().format('yyyy-MM-dd.HHmm')
 }
 
 private Integer getVersionNamePatch() {
