@@ -28,13 +28,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
+import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryCloud;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -239,6 +240,7 @@ class AcquireTokenRequest {
                 } catch (final AuthenticationException authenticationException) {
                     // Ignore the failure, save in the map as a failed instance discovery to avoid it being looked up another times in the same process
                     AuthorityValidationMetadataCache.updateInstanceDiscoveryMap(authorityUrl.getHost(), new InstanceDiscoveryMetadata(false));
+                    AzureActiveDirectory.putCloud(authorityUrl.getHost(), new AzureActiveDirectoryCloud(false));
                     Logger.v(TAG + methodName, "Fail to get authority validation metadata back. Ignore the failure since authority validation is turned off.");
                 }
             }
