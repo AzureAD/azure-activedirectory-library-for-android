@@ -33,7 +33,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
-        versionName "1.15.0-RC2"
+        versionName "1.15.0-RC3"
         project.archivesBaseName = "adal"
         project.version = android.defaultConfig.versionName
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -125,7 +125,7 @@ dependencies {
     }
 
     // 'dist' flavor dependencies
-    distApi("com.microsoft.identity:common:0.0.2") {
+    distApi("com.microsoft.identity:common:0.0.3-RC1") {
         transitive = false
     }
 
