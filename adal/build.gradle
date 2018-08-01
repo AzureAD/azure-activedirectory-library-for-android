@@ -250,8 +250,8 @@ publishing {
             name "vsts-maven-adal-android"
             url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
             credentials {
-                username project.findProperty("vstsUsername")
-                password project.findProperty("vstsMavenAccessToken")
+                username "VSTS"
+                password System.getenv("VSTS_ENV_ACCESS_TOKEN") != null ? System.getenv("VSTS_ENV_ACCESS_TOKEN") : project.findProperty("vstsMavenAccessToken")
             }
         }
     }
@@ -263,8 +263,8 @@ repositories {
         name "vsts-maven-adal-android"
         url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
         credentials {
-            username project.findProperty("vstsUsername")
-            password project.findProperty("vstsMavenAccessToken")
+            username "VSTS"
+            password System.getenv("VSTS_ENV_ACCESS_TOKEN") != null ? System.getenv("VSTS_ENV_ACCESS_TOKEN") :  project.findProperty("vstsMavenAccessToken")
         }
     }
 }
