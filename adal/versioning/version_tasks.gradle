@@ -9,10 +9,6 @@ def getVersionProps() {
     return versionProps
 }
 
-def getDate() {
-    return new Date().format('yyyy-MM-dd.HHmm')
-}
-
 private Integer getVersionNamePatch() {
     return (getVersionProps()['versionName'] =~ /\d+/)[2].toInteger()
 }
@@ -39,13 +35,12 @@ private void saveChanges(String versionName) {
     versionProps.store(getVersionFile().newWriter(), null)
 }
 
-task versionNightly {
+task versionSnapshot {
     doLast {
         def versionNameMajor = getVersionNameMajor()
         def versionNameMinor = getVersionNameMinor()
         def versionNamePatch = getVersionNamePatch()
-        def date = getDate()
-        def versionName = "${versionNameMajor}.${versionNameMinor}.${versionNamePatch}-NIGHTLY-${date}".toString()
+        def versionName = "${versionNameMajor}.${versionNameMinor}.${versionNamePatch}-SNAPSHOT".toString()
         saveChanges(versionName)
     }
 }
