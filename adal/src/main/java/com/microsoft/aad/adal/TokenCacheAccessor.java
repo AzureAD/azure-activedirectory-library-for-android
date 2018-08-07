@@ -332,7 +332,8 @@ class TokenCacheAccessor {
         setItemToCacheForUser(resource, clientId, result, null);
     }
 
-
+    /*TODO : Authorization Endpoint  value(mAuthority + "/oauth2/authorize") is currently hardcoded and passed in due to NonNull restriction
+     on AzureActiveDirectoryAuthorizationRequest constructor. It needs to be refactored to make sure validation logic is removed from the constructor */
     void updateTokenCacheUsingCommonCache(final String resource, final String clientId, final AuthenticationResult result) throws MalformedURLException {
 
         AzureActiveDirectory ad = new AzureActiveDirectory();
