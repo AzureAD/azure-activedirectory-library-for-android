@@ -47,8 +47,10 @@ import com.microsoft.identity.common.internal.providers.microsoft.azureactivedir
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import static com.microsoft.aad.adal.TokenEntryType.FRT_TOKEN_ENTRY;
 import static com.microsoft.aad.adal.TokenEntryType.MRRT_TOKEN_ENTRY;
@@ -338,10 +340,14 @@ class TokenCacheAccessor {
         AzureActiveDirectoryOAuth2Configuration config = new AzureActiveDirectoryOAuth2Configuration();
         config.setAuthorityHostValidationEnabled(this.isValidateAuthorityHost());
         AzureActiveDirectoryOAuth2Strategy strategy = ad.createOAuth2Strategy(config);
-        AzureActiveDirectoryAuthorizationRequest request = new AzureActiveDirectoryAuthorizationRequest();
-        request.setClientId(clientId);
-        request.setScope(resource);
-        request.setAuthority(new URL(mAuthority));
+        Set<String> scopeSet = new HashSet<>();
+        scopeSet.add(resource);
+
+        AzureActiveDirectoryAuthorizationRequest request = new AzureActiveDirectoryAuthorizationRequest(
+                null, clientId, null, null, scopeSet,
+                new URL(mAuthority), mAuthority + "/oauth2/authorize", null,
+                null, null, null, null,
+                resource, null, null);
 
         mCommonCache.saveTokens(strategy, request, tokenResponse);
     }
