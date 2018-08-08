@@ -342,7 +342,7 @@ class AcquireTokenSilentHandler {
         final AuthenticationResult result = acquireTokenWithRefreshToken(cachedItem.getRefreshToken());
 
         if (result != null && !result.isExtendedLifeTimeToken()) {
-            mTokenCacheAccessor.updateCachedItemWithResult(mAuthRequest.getResource(), mAuthRequest.getClientId(),
+            mTokenCacheAccessor.updateCachedItemWithResult(mAuthRequest,
                     result, cachedItem);
         }
 
