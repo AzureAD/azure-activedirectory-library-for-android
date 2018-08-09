@@ -258,8 +258,8 @@ final class Discovery {
             }
             result = AuthorityValidationMetadataCache.isAuthorityValidated(authorityUrl);
         } catch (JSONException e) {
-            Logger.e(TAG + methodName, "Error when validating authority. ", "", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e);
-            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e.getMessage(), e);
+            Logger.e(TAG + methodName, "Error when validating authority. ", "", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE, e);
+            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE, e.getMessage(), e);
         } catch (IOException e){
             Logger.e(TAG + methodName, "Error when validating authority. ", "", ADALError.IO_EXCEPTION, e);
             throw new AuthenticationException(ADALError.IO_EXCEPTION, e.getMessage(), e);
