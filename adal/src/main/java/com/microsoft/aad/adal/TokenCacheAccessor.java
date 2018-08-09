@@ -47,8 +47,10 @@ import com.microsoft.identity.common.internal.providers.microsoft.azureactivedir
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import static com.microsoft.aad.adal.TokenEntryType.FRT_TOKEN_ENTRY;
 import static com.microsoft.aad.adal.TokenEntryType.MRRT_TOKEN_ENTRY;
@@ -264,7 +266,7 @@ class TokenCacheAccessor {
      * @throws AuthenticationException
      * @throws IllegalArgumentException If {@link AuthenticationResult} is null.
      */
-    void updateCachedItemWithResult(final String resource, final String clientId, final AuthenticationResult result,
+    void updateCachedItemWithResult(final AuthenticationRequest request, final AuthenticationResult result,
                                     final TokenCacheItem cachedItem) throws AuthenticationException {
         final String methodName = ":updateCachedItemWithResult";
         if (result == null) {
@@ -287,9 +289,9 @@ class TokenCacheAccessor {
 
             try {
                 if (mUseCommonCache && !UrlExtensions.isADFSAuthority(new URL(mAuthority))) {
-                    updateTokenCacheUsingCommonCache(resource, clientId, result);
+                    updateTokenCacheUsingCommonCache(request, result);
                 } else {
-                    updateTokenCache(resource, clientId, result);
+                    updateTokenCache(request, result);
                 }
             } catch (MalformedURLException e) {
                 throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e.getMessage(), e);
@@ -297,53 +299,56 @@ class TokenCacheAccessor {
         } else if (AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT.equalsIgnoreCase(result.getErrorCode())) {
             // remove Item if oauth2_error is invalid_grant
             Logger.v(TAG + methodName, "Received INVALID_GRANT error code, remove existing cache entry.");
-            removeTokenCacheItem(cachedItem, resource);
+            removeTokenCacheItem(cachedItem, request.getResource());
         }
     }
 
     /**
      * Update token cache with returned auth result.
      */
-    void updateTokenCache(final String resource, final String clientId, final AuthenticationResult result) throws MalformedURLException {
+    void updateTokenCache(final AuthenticationRequest request,  final AuthenticationResult result) throws MalformedURLException {
         if (result == null || StringExtensions.isNullOrBlank(result.getAccessToken())) {
             return;
         }
 
         if (mUseCommonCache && !UrlExtensions.isADFSAuthority(new URL(mAuthority))) {
-            updateTokenCacheUsingCommonCache(resource, clientId, result);
+            updateTokenCacheUsingCommonCache(request, result);
             return;
         }
 
         if (result.getUserInfo() != null) {
             // update cache entry with displayableId
             if (!StringExtensions.isNullOrBlank(result.getUserInfo().getDisplayableId())) {
-                setItemToCacheForUser(resource, clientId, result, result.getUserInfo().getDisplayableId());
+                setItemToCacheForUser(request.getResource(), request.getClientId(), result, result.getUserInfo().getDisplayableId());
             }
 
             // update cache entry with userId
             if (!StringExtensions.isNullOrBlank(result.getUserInfo().getUserId())) {
-                setItemToCacheForUser(resource, clientId, result, result.getUserInfo().getUserId());
+                setItemToCacheForUser(request.getResource(), request.getClientId(), result, result.getUserInfo().getUserId());
             }
         }
 
         // update for empty userid
-        setItemToCacheForUser(resource, clientId, result, null);
+        setItemToCacheForUser(request.getResource(), request.getClientId(), result, null);
     }
 
-
-    void updateTokenCacheUsingCommonCache(final String resource, final String clientId, final AuthenticationResult result) throws MalformedURLException {
+    void updateTokenCacheUsingCommonCache(final AuthenticationRequest request, final AuthenticationResult result) throws MalformedURLException {
 
         AzureActiveDirectory ad = new AzureActiveDirectory();
         AzureActiveDirectoryTokenResponse tokenResponse = CoreAdapter.asAadTokenResponse(result);
         AzureActiveDirectoryOAuth2Configuration config = new AzureActiveDirectoryOAuth2Configuration();
         config.setAuthorityHostValidationEnabled(this.isValidateAuthorityHost());
         AzureActiveDirectoryOAuth2Strategy strategy = ad.createOAuth2Strategy(config);
-        AzureActiveDirectoryAuthorizationRequest request = new AzureActiveDirectoryAuthorizationRequest();
-        request.setClientId(clientId);
-        request.setScope(resource);
-        request.setAuthority(new URL(mAuthority));
+        Set<String> scopeSet = new HashSet<>();
+        scopeSet.add(request.getResource());
 
-        mCommonCache.saveTokens(strategy, request, tokenResponse);
+        AzureActiveDirectoryAuthorizationRequest aadAuthRequest = new AzureActiveDirectoryAuthorizationRequest(
+                null, request.getClientId(), request.getRedirectUri(), null, scopeSet,
+                new URL(mAuthority), mAuthority + "/oauth2/authorize", request.getLoginHint(),
+                request.getCorrelationId(), null, request.getExtraQueryParamsAuthentication(), null,
+                request.getResource(), null, request.getClaimsChallenge());
+
+        mCommonCache.saveTokens(strategy, aadAuthRequest, tokenResponse);
     }
 
 
