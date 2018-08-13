@@ -2,7 +2,6 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
 
     defaultConfig {
         applicationId "com.microsoft.aad.adal.userappwithbroker"
@@ -10,16 +9,31 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
     }
 
+    flavorDimensions 'main'
+
+    productFlavors {
+        main {
+            matchingFallbacks = ['local', 'dist']
+        }
+    }
+
     buildTypes {
+        debug {
+
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt')
         }
     }
+
+    lintOptions {
+        abortOnError false
+    }
 }
 
 dependencies {
     // Compile Dependencies
-    compile "com.android.support:design:$rootProject.ext.supportLibraryVersion"
-    compile project(':adal')
+    implementation "com.android.support:design:$rootProject.ext.supportLibraryVersion"
+    implementation project(':adal')
 }

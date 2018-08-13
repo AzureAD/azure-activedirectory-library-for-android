@@ -34,6 +34,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.DateTimeAdapter;
+import com.microsoft.aad.adal.DefaultTokenCacheStore;
 import com.microsoft.aad.adal.TokenCacheItem;
 
 import org.json.JSONException;
@@ -52,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     public static final int INVALIDATE_REFRESH_TOKEN = 1004;
     public static final int INVALIDATE_FAMILY_REFRESH_TOKEN = 1006;
     public static final int READ_CACHE = 1005;
+    public static final int RUN_STRESS_TEST = 1007;
     
     private Context mContext;    
 
@@ -118,12 +120,33 @@ public class MainActivity extends AppCompatActivity {
                 processEmptyCacheRequest();
             }
         });
+
+        final Button runStressTest = (Button) findViewById(R.id.runStressTest);
+        runStressTest.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                launchAuthenticationInfoActivity(RUN_STRESS_TEST);
+            }
+        });
+
+        final Button openWebView = (Button) findViewById(R.id.openWebView);
+        openWebView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openWebViewActivity();
+            }
+        });
     }
 
     private void launchAuthenticationInfoActivity(int flowCode) {
         final Intent intent = new Intent();
         intent.setClass(mContext, SignInActivity.class);
         intent.putExtra(FLOW_CODE, flowCode);
+        this.startActivity(intent);
+    }
+
+    private void openWebViewActivity(){
+        final Intent intent = new Intent(mContext, WebViewActivity.class);
         this.startActivity(intent);
     }
 
@@ -149,6 +172,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             final ArrayList<String> allItems = getAllSerializedCacheItem(authenticationContext);
             intent.putStringArrayListExtra(Constants.READ_CACHE, allItems);
+            intent.putExtra(Constants.COMMON_CACHE, isCommonCacheUsed());
         } catch (JSONException e) {
             intent = SignInActivity.getErrorIntentForResultActivity(Constants.JSON_ERROR, "Unable to convert to Json "
                     + e.getMessage());
@@ -190,6 +214,21 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return allItems;
+    }
+
+    private boolean isCommonCacheUsed() {
+        boolean isCommonAvailable = false;
+        try {
+            Class.forName("com.microsoft.identity.common.internal.cache.ADALOAuth2TokenCache");
+            isCommonAvailable = true;
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        if(isCommonAvailable) {
+            AuthenticationContext authenticationContext = createAuthenticationContext();
+            return authenticationContext.getCache() instanceof DefaultTokenCacheStore;
+        }
+        return false;
     }
 
     private AuthenticationContext createAuthenticationContext() {

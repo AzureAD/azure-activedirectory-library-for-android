@@ -29,12 +29,14 @@ package com.microsoft.aad.adal;
 interface Callback<T> {
     /**
      * Will be invoked if event triggered is correctly processed.
+     *
      * @param result The success result.
      */
     void onSuccess(T result);
 
     /**
      * Will be invoked for the error case.
+     *
      * @param throwable The {@link Throwable} for the error case.
      */
     void onError(Throwable throwable);

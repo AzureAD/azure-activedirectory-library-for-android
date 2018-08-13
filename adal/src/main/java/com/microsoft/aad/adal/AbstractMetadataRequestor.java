@@ -24,6 +24,9 @@
 package com.microsoft.aad.adal;
 
 import com.google.gson.Gson;
+import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
+import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
+import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;
 
 import java.util.UUID;
 

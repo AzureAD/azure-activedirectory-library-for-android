@@ -26,6 +26,11 @@ package com.microsoft.aad.adal;
 import android.content.Context;
 import android.os.Handler;
 
+import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
+import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
+import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -263,7 +268,7 @@ public class AuthenticationParameters {
      * @see <a href-"https://tools.ietf.org/html/rfc7617">RFC-7617</a>
      * @see <a href="https://tools.ietf.org/html/rfc6750">RFC-6750</a>
      */
-    private static class Challenge {
+    private static final class Challenge {
 
         /**
          * Regex sequence intended to be prefixed with another value. Whichever value precedes it

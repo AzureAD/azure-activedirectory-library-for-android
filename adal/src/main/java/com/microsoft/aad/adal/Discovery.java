@@ -26,6 +26,14 @@ package com.microsoft.aad.adal;
 import android.content.Context;
 import android.net.Uri;
 
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
+import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
+import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;
+import com.microsoft.identity.common.adal.internal.util.HashMapExtensions;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
+
 import org.json.JSONException;
 
 import java.io.IOException;
@@ -195,6 +203,12 @@ final class Discovery {
         mCorrelationId = requestCorrelationId;
     }
 
+    static URL constructAuthorityUrl(final URL originalAuthority, final String host) throws MalformedURLException {
+        final String path = originalAuthority.getPath().replaceFirst("/", "");
+        final Uri.Builder builder = new Uri.Builder().scheme(originalAuthority.getProtocol()).authority(host).appendPath(path);
+        return new URL(builder.build().toString());
+    }
+
     /**
      * initialize initial valid host list with known instances.
      */
@@ -228,6 +242,13 @@ final class Discovery {
         try {
             queryUrl = buildQueryString(trustedHost, getAuthorizationCommonEndpoint(authorityUrl));
             final Map<String, String> discoveryResponse = sendRequest(queryUrl);
+
+            // Set the Cloud instance discovery metadata on the AAD IdentityProvider
+            AzureActiveDirectory.initializeCloudMetadata(
+                    authorityUrl.getHost().toLowerCase(Locale.US),
+                    discoveryResponse
+            );
+
             AuthorityValidationMetadataCache.processInstanceDiscoveryMetadata(authorityUrl, discoveryResponse);
             if (!AuthorityValidationMetadataCache.containsAuthorityHost(authorityUrl)) {
                 ArrayList<String> aliases = new ArrayList<String>();
@@ -236,9 +257,12 @@ final class Discovery {
                         new InstanceDiscoveryMetadata(authorityUrl.getHost(), authorityUrl.getHost(), aliases));
             }
             result = AuthorityValidationMetadataCache.isAuthorityValidated(authorityUrl);
-        } catch (final IOException | JSONException e) {
-            Logger.e(TAG + methodName, "Error when validating authority. ", "", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e);
+        } catch (JSONException e) {
+            Logger.e(TAG + methodName, "Error when validating authority. ", "", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE, e);
             throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE, e.getMessage(), e);
+        } catch (IOException e){
+            Logger.e(TAG + methodName, "Error when validating authority. ", "", ADALError.IO_EXCEPTION, e);
+            throw new AuthenticationException(ADALError.IO_EXCEPTION, e.getMessage(), e);
         }
 
         if (!result) {

@@ -1,0 +1,27 @@
+apply plugin: 'java-library'
+apply plugin: 'net.serenity-bdd.aggregator'
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    testImplementation 'net.serenity-bdd:serenity-core:1.9.6'
+    testImplementation 'net.serenity-bdd:serenity-junit:1.9.6'
+    testImplementation 'net.serenity-bdd:serenity-screenplay:1.9.6'
+    testImplementation 'net.serenity-bdd:serenity-screenplay-webdriver:1.9.6'
+    testImplementation 'org.slf4j:slf4j-simple:1.7.7'
+    testImplementation 'org.assertj:assertj-core:1.7.0'
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'io.appium:java-client:5.0.4'
+    testImplementation project(':keyvault')
+    testImplementation project(':labapi')
+    testImplementation files('libs/common/classes.jar')
+    testImplementation group: 'com.nimbusds', name: 'nimbus-jose-jwt', version: '5.7'
+}
+
+test {
+    exclude 'com/microsoft/identity/common/test/automation/**'
+}
+
+gradle.startParameter.continueOnFailure = true
+
+sourceCompatibility = "1.7"
+targetCompatibility = "1.7"
