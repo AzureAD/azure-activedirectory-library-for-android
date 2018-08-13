@@ -25,6 +25,8 @@ package com.microsoft.aad.adal;
 
 import android.support.annotation.Nullable;
 
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+
 import java.io.Serializable;
 import java.util.UUID;
 
@@ -75,6 +77,8 @@ class AuthenticationRequest implements Serializable {
 
     private transient InstanceDiscoveryMetadata mInstanceDiscoveryMetadata;
 
+    private boolean mForceRefresh = false;
+
     /**
      * Developer can use acquireToken(with loginhint) or acquireTokenSilent(with
      * userid), so this sets the type of the request.
@@ -83,11 +87,11 @@ class AuthenticationRequest implements Serializable {
         UniqueId, LoginHint, NoUser
     }
 
-    public AuthenticationRequest() {
+    AuthenticationRequest() {
         mIdentifierType = UserIdentifierType.NoUser;
     }
 
-    public AuthenticationRequest(String authority, String resource, String client, String redirect,
+    AuthenticationRequest(String authority, String resource, String client, String redirect,
                                  String loginhint, PromptBehavior prompt, String extraQueryParams, UUID correlationId,
                                  boolean isExtendedLifetimeEnabled, final String claimsChallenge) {
         mAuthority = authority;
@@ -104,7 +108,7 @@ class AuthenticationRequest implements Serializable {
         mClaimsChallenge = claimsChallenge;
     }
 
-    public AuthenticationRequest(String authority, String resource, String client, String redirect,
+    AuthenticationRequest(String authority, String resource, String client, String redirect,
                                  String loginhint, UUID requestCorrelationId, boolean isExtendedLifetimeEnabled) {
         mAuthority = authority;
         mResource = resource;
@@ -116,7 +120,7 @@ class AuthenticationRequest implements Serializable {
         mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
     }
 
-    public AuthenticationRequest(String authority, String resource, String client, String redirect,
+    AuthenticationRequest(String authority, String resource, String client, String redirect,
                                  String loginhint, boolean isExtendedLifetimeEnabled) {
         mAuthority = authority;
         mResource = resource;
@@ -127,7 +131,7 @@ class AuthenticationRequest implements Serializable {
         mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
     }
 
-    public AuthenticationRequest(String authority, String resource, String clientid, boolean isExtendedLifetimeEnabled) {
+    AuthenticationRequest(String authority, String resource, String clientid, boolean isExtendedLifetimeEnabled) {
         mAuthority = authority;
         mResource = resource;
         mClientId = clientid;
@@ -143,7 +147,7 @@ class AuthenticationRequest implements Serializable {
      * @param userid        user id
      * @param correlationId for logging
      */
-    public AuthenticationRequest(String authority, String resource, String clientid, String userid,
+    AuthenticationRequest(String authority, String resource, String clientid, String userid,
                                  UUID correlationId, boolean isExtendedLifetimeEnabled) {
         mAuthority = authority;
         mResource = resource;
@@ -153,13 +157,29 @@ class AuthenticationRequest implements Serializable {
         mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
     }
 
-    public AuthenticationRequest(String authority, String resource, String clientId,
+    AuthenticationRequest(String authority, String resource, String clientid, String userid,
+                          UUID correlationId, boolean isExtendedLifetimeEnabled, boolean forceRefresh) {
+        mAuthority = authority;
+        mResource = resource;
+        mClientId = clientid;
+        mUserId = userid;
+        mCorrelationId = correlationId;
+        mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
+        mForceRefresh = forceRefresh;
+    }
+
+    AuthenticationRequest(String authority, String resource, String clientId,
                                  UUID correlationId, boolean isExtendedLifetimeEnabled) {
         mAuthority = authority;
         mClientId = clientId;
         mResource = resource;
         mCorrelationId = correlationId;
         mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
+    }
+
+    public boolean isClaimsChallengePresent() {
+        // if developer pass claims down through extra qp, we should also skip cache.
+        return !StringExtensions.isNullOrBlank(this.getClaimsChallenge());
     }
 
     public String getAuthority() {
@@ -319,5 +339,13 @@ class AuthenticationRequest implements Serializable {
 
     InstanceDiscoveryMetadata getInstanceDiscoveryMetadata() {
         return mInstanceDiscoveryMetadata;
+    }
+
+    public boolean getForceRefresh(){
+        return mForceRefresh;
+    }
+
+    public void setForceRefresh(boolean forceRefresh){
+        mForceRefresh = forceRefresh;
     }
 }

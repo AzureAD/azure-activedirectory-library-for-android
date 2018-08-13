@@ -28,6 +28,10 @@ import android.os.Build;
 import android.os.Debug;
 import android.os.Process;
 
+import com.microsoft.identity.common.adal.internal.net.DefaultConnectionService;
+import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
+import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
+
 import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.IOException;
@@ -39,6 +43,9 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 
 /**
  * Webrequest are called in background thread from API level. HttpWebRequest
@@ -58,11 +65,11 @@ class HttpWebRequest {
     private final String mRequestContentType;
     private final Map<String, String> mRequestHeaders;
 
-    public HttpWebRequest(URL requestURL, String requestMethod, Map<String, String> headers) {
+    HttpWebRequest(URL requestURL, String requestMethod, Map<String, String> headers) {
         this(requestURL, requestMethod, headers, null, null);
     }
 
-    public HttpWebRequest(
+    HttpWebRequest(
             URL requestURL,
             String requestMethod,
             Map<String, String> headers,
@@ -112,7 +119,7 @@ class HttpWebRequest {
         connection.setUseCaches(false);
         connection.setRequestMethod(mRequestMethod);
         connection.setDoInput(true); // it will at least read status
-                                     // code. Default is true.
+        // code. Default is true.
         setRequestBody(connection, mRequestContent, mRequestContentType);
 
         return connection;
@@ -169,7 +176,7 @@ class HttpWebRequest {
 
         return response;
     }
-    
+
     static void throwIfNetworkNotAvailable(final Context context) throws AuthenticationException {
         final DefaultConnectionService connectionService = new DefaultConnectionService(context);
         if (!connectionService.isConnectionAvailable()) {
@@ -194,7 +201,7 @@ class HttpWebRequest {
                 throw authenticationException;
             }
         }
-    } 
+    }
 
     /**
      * Convert stream into the string.
@@ -203,6 +210,7 @@ class HttpWebRequest {
      * @return The converted string
      * @throws IOException Thrown when failing to access inputStream stream.
      */
+    @SuppressFBWarnings("DM_DEFAULT_ENCODING")
     private static String convertStreamToString(InputStream inputStream) throws IOException {
         BufferedReader reader = null;
         try {

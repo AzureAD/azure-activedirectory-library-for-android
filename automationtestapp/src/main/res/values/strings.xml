@@ -32,6 +32,9 @@
     <string name="invalidate_token">Invalidate Refresh Token</string>
     <string name="empty_cache">Clear Cache</string>
     <string name="read_cache">Read Cache</string>
+    <string name="run_stress">Run Stress</string>
+    <string name="open_webview">Open WebView</string>
+    <string name="auth_dialog_title">Test Title</string>
     <string name="signin_info">Enter the sign-in info</string>
     <string name="go">Go</string>
     <string name="enter_signin_info">Please enter the sign in info here...</string>

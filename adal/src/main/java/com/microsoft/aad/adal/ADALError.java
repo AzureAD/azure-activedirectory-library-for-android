@@ -27,6 +27,14 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 
+import com.microsoft.identity.common.exception.BaseException;
+import com.microsoft.identity.common.exception.ErrorStrings;
+import com.microsoft.identity.common.exception.ClientException;
+import com.microsoft.identity.common.exception.ServiceException;
+
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * ADAL Error codes.
  */
@@ -108,7 +116,14 @@ public enum ADALError {
      * Layout file does not have correct elements such as different webview id.
      */
     DEVELOPER_DIALOG_LAYOUT_INVALID("dialog_authentication.xml file has invalid elements"),
-    
+
+    /**
+     * An exception occurred attempting to inflate the authentication dialog.  This exception
+     * can occur for a number of different reasons
+     * https://developer.android.com/reference/android/view/InflateException
+     */
+    DEVELOPER_DIALOG_INFLATION_ERROR("An error occur when attempting to inflate the authentication dialog"),
+
     /**
      * Invalid request to server.
      */
@@ -200,6 +215,11 @@ public enum ADALError {
     AUTH_FAILED_USER_MISMATCH("User returned by service does not match the one in the request"),
 
     /**
+     * Intune App Protection Policy required.
+     */
+    AUTH_FAILED_INTUNE_POLICY_REQUIRED("Intune App Protection Policy required"),
+
+    /**
      * Internet permissions are not set for the app.
      */
     DEVICE_INTERNET_IS_NOT_AVAILABLE("Internet permissions are not set for the app"),
@@ -260,7 +280,7 @@ public enum ADALError {
      * IdToken is normally returned from token endpoint.
      */
     IDTOKEN_PARSING_FAILURE("Cannot parse IdToken"),
-    
+
     /**
      * Dateformat is invalid.
      */
@@ -309,7 +329,7 @@ public enum ADALError {
      * Encryption failed.
      */
     ENCRYPTION_FAILED("Encryption failed"),
-    
+
     /**
      * Decryption failed.
      */
@@ -319,7 +339,7 @@ public enum ADALError {
      * Failed to use AndroidKeyStore.
      */
     ANDROIDKEYSTORE_FAILED("Failed to use AndroidKeyStore"),
-    
+
     /**
      * Failed to use KeyPairGeneratorSpec.
      */
@@ -365,7 +385,7 @@ public enum ADALError {
      * Authenticator has IO Exception.
      */
     BROKER_AUTHENTICATOR_IO_EXCEPTION("Authenticator has IO Exception"),
-    
+
     /**
      * Authenticator returned exception.
      */
@@ -481,7 +501,7 @@ public enum ADALError {
      * WebView returned empty redirect url.
      */
     WEBVIEW_RETURNED_EMPTY_REDIRECT_URL("Webview returned empty redirect url"),
-    
+
     /**
      * WebView  redirect url is not SSL protected.
      */
@@ -525,10 +545,10 @@ public enum ADALError {
     /**
      * Resource authentication challenge failure.
      */
-    RESOURCE_AUTHENTICATION_CHALLENGE_FAILURE("Resource authentication challenge failure"), 
-    
+    RESOURCE_AUTHENTICATION_CHALLENGE_FAILURE("Resource authentication challenge failure"),
+
     /**
-     * The token cache item is invalid, cannot use it to create cachekey. 
+     * The token cache item is invalid, cannot use it to create cachekey.
      */
     INVALID_TOKEN_CACHE_ITEM("Invalid token cache item"),
 
@@ -536,22 +556,22 @@ public enum ADALError {
      * Export of FID failure.
      */
     FAIL_TO_EXPORT("Fail to export"),
-    
+
     /**
      * Import of FID failure.
      */
     FAIL_TO_IMPORT("Fail to import"),
-        
+
     /**
      * Incompatible blob version.
      */
-    INCOMPATIBLE_BLOB_VERSION("Fail to deserialize because the blob version is incompatible"), 
-    
+    INCOMPATIBLE_BLOB_VERSION("Fail to deserialize because the blob version is incompatible"),
+
     /**
      * Fail to get the token cache item from the cache item.
      */
     TOKEN_CACHE_ITEM_NOT_FOUND("Token cache item is not found"),
-    
+
     /**
      * Fail to parse JSON because of the problem with the JSON API.
      */
@@ -590,26 +610,32 @@ public enum ADALError {
     /**
      * Failed to bind the service in broker app.
      */
-    BROKER_BIND_SERVICE_FAILED("Failed to bind the service in broker app");
+    BROKER_BIND_SERVICE_FAILED("Failed to bind the service in broker app"),
+
+    /**
+     * Common core to ADAL mapping failed
+     */
+    MAPPING_FAILURE("Common core returned an exception code that ADAL cannot parse");
 
     private String mDescription;
 
-    ADALError(String message) {
+    ADALError(final String message) {
         mDescription = message;
     }
 
     /**
      * Gets error description.
-     * 
+     *
      * @return Error description
      */
     public String getDescription() {
         return mDescription;
     }
 
+
     /**
      * Gets localized description if provided with context.
-     * 
+     *
      * @param context {@link Context}
      * @return Error description
      */
@@ -627,5 +653,49 @@ public enum ADALError {
                     context.getPackageName()));
         }
         return mDescription;
+    }
+
+    private static final Map<String, ADALError> exceptionMap = new HashMap<String,ADALError>();
+
+    static {
+        exceptionMap.put(ErrorStrings.ANDROIDKEYSTORE_FAILED, ADALError.ANDROIDKEYSTORE_FAILED);
+        exceptionMap.put(ErrorStrings.AUTHORITY_URL_NOT_VALID, ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE);
+        exceptionMap.put(ErrorStrings.AUTHORITY_VALIDATION_NOT_SUPPORTED, ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED);
+        exceptionMap.put(ErrorStrings.DECRYPTION_ERROR, ADALError.DECRYPTION_FAILED);
+        exceptionMap.put(ErrorStrings.DEVICE_NETWORK_NOT_AVAILABLE, ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
+        exceptionMap.put(ErrorStrings.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION, ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION);
+        exceptionMap.put(ErrorStrings.ENCRYPTION_ERROR, ADALError.ENCRYPTION_ERROR);
+        exceptionMap.put(ErrorStrings.INVALID_JWT, ADALError.JSON_PARSE_ERROR);
+        exceptionMap.put(ErrorStrings.IO_ERROR, ADALError.IO_EXCEPTION);
+        exceptionMap.put(ErrorStrings.JSON_PARSE_FAILURE, ADALError.JSON_PARSE_ERROR);
+        // TODO: :O
+        exceptionMap.put(ErrorStrings.MALFORMED_URL, ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL);
+        exceptionMap.put(ErrorStrings.MULTIPLE_MATCHING_TOKENS_DETECTED, ADALError.AUTH_FAILED_USER_MISMATCH);
+        exceptionMap.put(ErrorStrings.USER_MISMATCH, ADALError.AUTH_FAILED_USER_MISMATCH);
+        exceptionMap.put(ErrorStrings.NO_SUCH_ALGORITHM, ADALError.DEVICE_NO_SUCH_ALGORITHM);
+        exceptionMap.put(ErrorStrings.UNSUPPORTED_ENCODING, ADALError.ENCODING_IS_NOT_SUPPORTED);
+
+        // The following mapping need a lot more brushing up
+        exceptionMap.put(ErrorStrings.ACCESS_DENIED, ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
+        exceptionMap.put(ErrorStrings.INVALID_INSTANCE, ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
+        exceptionMap.put(ErrorStrings.INVALID_REQUEST, ADALError.SERVER_INVALID_REQUEST);
+        exceptionMap.put(ErrorStrings.REQUEST_TIMEOUT, ADALError.SERVER_ERROR);
+        exceptionMap.put(ErrorStrings.SERVICE_NOT_AVAILABLE, ADALError.SERVER_ERROR);
+        exceptionMap.put(ErrorStrings.UNKNOWN_ERROR, ADALError.SERVER_ERROR);
+
+        // broker validation errors
+        exceptionMap.put(ErrorStrings.PACKAGE_NAME_NOT_FOUND, ADALError.PACKAGE_NAME_NOT_FOUND);
+        exceptionMap.put(ErrorStrings.BROKER_APP_VERIFICATION_FAILED, ADALError.BROKER_APP_VERIFICATION_FAILED);
+        exceptionMap.put(ErrorStrings.APP_PACKAGE_NAME_NOT_FOUND, ADALError.APP_PACKAGE_NAME_NOT_FOUND);
+
+    }
+
+    public static AuthenticationException fromCommon(final BaseException exception) {
+        // What do we do if errorCode is null?
+        final ADALError adalError =  exceptionMap.get(exception.getErrorCode());
+        if (adalError == null) {
+            return new AuthenticationException(ADALError.MAPPING_FAILURE, exception.getMessage(), exception);
+        }
+        return new AuthenticationException(adalError, exception.getMessage(), exception);
     }
 }

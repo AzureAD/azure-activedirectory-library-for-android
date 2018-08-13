@@ -23,13 +23,19 @@
 
 package com.microsoft.aad.adal;
 
+
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.HandlerThread;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.util.Log;
+
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
+import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryCloud;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -80,8 +86,9 @@ class AcquireTokenRequest {
         mDiscovery = new Discovery(mContext);
 
         if (authContext.getCache() != null && apiEvent != null) {
-            mTokenCacheAccessor = new TokenCacheAccessor(authContext.getCache(),
+            mTokenCacheAccessor = new TokenCacheAccessor(appContext.getApplicationContext(), authContext.getCache(),
                     authContext.getAuthority(), apiEvent.getTelemetryRequestId());
+            mTokenCacheAccessor.setValidateAuthorityHost(mAuthContext.getValidateAuthority());
         }
         mBrokerProxy = new BrokerProxy(appContext);
 
@@ -104,6 +111,11 @@ class AcquireTokenRequest {
         THREAD_EXECUTOR.execute(new Runnable() {
             @Override
             public void run() {
+                // With the introduction of DiagnosticContext, correlationIds are now tracked
+                // per-thread. To support passing the correlationId to the worker thread, we need
+                // to call setCorrelationId() again.
+                Logger.setCorrelationId(authRequest.getCorrelationId());
+
                 Logger.v(TAG + methodName, "Running task in thread:" + android.os.Process.myTid());
                 try {
                     // Validate acquire token call first.
@@ -228,6 +240,7 @@ class AcquireTokenRequest {
                 } catch (final AuthenticationException authenticationException) {
                     // Ignore the failure, save in the map as a failed instance discovery to avoid it being looked up another times in the same process
                     AuthorityValidationMetadataCache.updateInstanceDiscoveryMap(authorityUrl.getHost(), new InstanceDiscoveryMetadata(false));
+                    AzureActiveDirectory.putCloud(authorityUrl.getHost(), new AzureActiveDirectoryCloud(false));
                     Logger.v(TAG + methodName, "Fail to get authority validation metadata back. Ignore the failure since authority validation is turned off.");
                 }
             }
@@ -254,7 +267,7 @@ class AcquireTokenRequest {
         // replace the authority if host is not the same as the original one.
         if (metadata.getPreferredNetwork() != null && !authorityUrl.getHost().equalsIgnoreCase(metadata.getPreferredNetwork())) {
             try {
-                final URL replacedAuthority = Utility.constructAuthorityUrl(authorityUrl, metadata.getPreferredNetwork());
+                final URL replacedAuthority = Discovery.constructAuthorityUrl(authorityUrl, metadata.getPreferredNetwork());
                 request.setAuthority(replacedAuthority.toString());
             } catch (final MalformedURLException ex) {
                 //Intentionally empty.
@@ -299,13 +312,13 @@ class AcquireTokenRequest {
 
     /**
      * 1. For Silent flow, we should always try to look local cache first.
-     *    i> If valid AT is returned from cache, use it.
-     *    ii> If no valid AT is returned, but RT is returned, use the RT.
-     *    iii> If RT request fails, and if we can talk to broker, go to broker and check if there is a valid token.
+     * i> If valid AT is returned from cache, use it.
+     * ii> If no valid AT is returned, but RT is returned, use the RT.
+     * iii> If RT request fails, and if we can talk to broker, go to broker and check if there is a valid token.
      * 2. For Non-Silent flow.
-     *    i> Do silent cache lookup first, same as 1.
-     *       a) If we can talk to broker, go to broker for auth.
-     *       b) If not, launch webview with embedded flow.
+     * i> Do silent cache lookup first, same as 1.
+     * a) If we can talk to broker, go to broker for auth.
+     * b) If not, launch webview with embedded flow.
      * If silent request succeeds, we'll return the token back via callback.
      * If silent request fails and no prompt is allowed, we'll return the exception back via callback.
      * If silent request fails and prompt is allowed, we'll prompt the user and launch webview.
@@ -370,7 +383,9 @@ class AcquireTokenRequest {
                 final AuthenticationException authenticationException = new AuthenticationException(
                         ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, authenticationRequest.getLogInfo()
                         + " " + errorInfo);
-                authenticationException.setHttpResponse(authenticationResult);
+
+                addHttpInfoToException(authenticationResult, authenticationException);
+
                 throw authenticationException;
             }
 
@@ -382,9 +397,21 @@ class AcquireTokenRequest {
         return authenticationResult;
     }
 
+    private void addHttpInfoToException(AuthenticationResult result, AuthenticationException exception) {
+        if (result != null && exception != null) {
+            if (result.getHttpResponseHeaders() != null) {
+                exception.setHttpResponseHeaders(result.getHttpResponseHeaders());
+            }
+
+            if (result.getHttpResponseBody() != null) {
+                exception.setHttpResponseBody(result.getHttpResponseBody());
+            }
+            exception.setServiceStatusCode(result.getServiceStatusCode());
+        }
+    }
 
     private boolean shouldTrySilentFlow(final AuthenticationRequest authenticationRequest) {
-        return !Utility.isClaimsChallengePresent(authenticationRequest)
+        return !authenticationRequest.isClaimsChallengePresent()
                 && authenticationRequest.getPrompt() == PromptBehavior.Auto
                 || authenticationRequest.isSilent();
     }
@@ -396,33 +423,27 @@ class AcquireTokenRequest {
      */
     private AuthenticationResult acquireTokenSilentFlow(final AuthenticationRequest authenticationRequest)
             throws AuthenticationException {
-        final String methodName = ":acquireTokenSilentFlow";
-        // Always try with local cache first.
+
+        final boolean requestEligibleForBroker = mBrokerProxy.verifyBrokerForSilentRequest(authenticationRequest);
+
+        //1. if forceRefresh == true AND the request is eligible for the broker
+        if(authenticationRequest.getForceRefresh() && requestEligibleForBroker){
+            return tryAcquireTokenSilentWithBroker(authenticationRequest);
+        }
+
+        //2. Try to acquire silent locally
         final AuthenticationResult authResult = tryAcquireTokenSilentLocally(authenticationRequest);
         if (isAccessTokenReturned(authResult)) {
             return authResult;
         }
 
-        // If we cannot switch to broker, return the result from local flow.
-        final BrokerProxy.SwitchToBroker switchToBrokerFlag = mBrokerProxy.canSwitchToBroker(authenticationRequest.getAuthority());
-        if (switchToBrokerFlag == BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER
-                || !mBrokerProxy.verifyUser(authenticationRequest.getLoginHint(), authenticationRequest.getUserId())) {
+        //3. We couldn't get locally...If eligible return via broker... otherwise return local result
+        if(requestEligibleForBroker){
+            return tryAcquireTokenSilentWithBroker(authenticationRequest);
+        }else{
             return authResult;
-        } else if (switchToBrokerFlag == BrokerProxy.SwitchToBroker.NEED_PERMISSIONS_TO_SWITCH_TO_BROKER) {
-            //For android M and above
-            throw new UsageAuthenticationException(
-                        ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,
-                        "Broker related permissions are missing for GET_ACCOUNTS");
         }
 
-        // If we can try with broker for silent flow, it indicates ADAL can switch to broker for auth. Even broker does
-        // not return the token back silently, and we go to interactive flow, we'll still go to broker. The token in
-        // app local cache is no longer useful, when user uninstalls broker, we should prompt user in the next sign-in.
-        Logger.d(TAG + methodName, "Cannot get AT from local cache, switch to Broker for auth, "
-                + "clear tokens from local cache for the user.");
-        removeTokensForUser(authenticationRequest);
-
-        return tryAcquireTokenSilentWithBroker(authenticationRequest);
     }
 
     /**
@@ -443,6 +464,15 @@ class AcquireTokenRequest {
      */
     private AuthenticationResult tryAcquireTokenSilentWithBroker(final AuthenticationRequest authenticationRequest)
             throws AuthenticationException {
+
+        final String methodName = ":tryAcquireTokenSilentWithBroker";
+
+        // If we can try with broker for silent flow, it indicates ADAL can switch to broker for auth. Even broker does
+        // not return the token back silently, and we go to interactive flow, we'll still go to broker. The token in
+        // app local cache is no longer useful, when user uninstalls broker, we should prompt user in the next sign-in.
+        Logger.d(TAG + methodName, "Either could not get tokens from local cache or is force refresh request, switch to Broker for auth, "
+                + "clear tokens from local cache for the user.");
+        removeTokensForUser(authenticationRequest);
 
         final AuthenticationResult authResult;
 
@@ -515,7 +545,7 @@ class AcquireTokenRequest {
         if (activity == null && !useDialog) {
             throw new AuthenticationException(
                     ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, authenticationRequest.getLogInfo()
-                    + " Cannot launch webview, acitivity is null.");
+                    + " Cannot launch webview, activity is null.");
         }
 
         HttpWebRequest.throwIfNetworkNotAvailable(mContext);
@@ -536,15 +566,15 @@ class AcquireTokenRequest {
             }
 
             // Always go to broker if the sdk can talk to broker for interactive flow
-            Logger.v(TAG + methodName, "Launch activity for interactive authentication via broker with callback. "
-                    , "" + callbackHandle.getCallback().hashCode(), null);
+            Logger.v(TAG + methodName, "Launch activity for interactive authentication via broker with callback. ",
+                    "" + callbackHandle.getCallback().hashCode(), null);
             final AcquireTokenWithBrokerRequest acquireTokenWithBrokerRequest
                     = new AcquireTokenWithBrokerRequest(authenticationRequest, mBrokerProxy);
 
             acquireTokenWithBrokerRequest.acquireTokenWithBrokerInteractively(activity);
         } else {
-            Logger.v(TAG + methodName, "Starting Authentication Activity for embedded flow. "
-                    , " Callback is: " + callbackHandle.getCallback().hashCode(), null);
+            Logger.v(TAG + methodName, "Starting Authentication Activity for embedded flow. ",
+                    " Callback is: " + callbackHandle.getCallback().hashCode(), null);
             final AcquireTokenInteractiveRequest acquireTokenInteractiveRequest
                     = new AcquireTokenInteractiveRequest(mContext, authenticationRequest, mTokenCacheAccessor);
             acquireTokenInteractiveRequest.acquireToken(activity,
@@ -682,9 +712,27 @@ class AcquireTokenRequest {
                     final String refreshTokenAge = data.getStringExtra(AuthenticationConstants.Broker.CliTelemInfo.RT_AGE);
                     final String speRingInfo = data.getStringExtra(AuthenticationConstants.Broker.CliTelemInfo.SPE_RING);
 
+                    // Use the waitingRequest to get the original request to get the clientId
+                    final AuthenticationRequest originalRequest = waitingRequest.getRequest();
+                    String clientId = null;
+
+                    if (null != originalRequest) {
+                        clientId = originalRequest.getClientId();
+                    }
+
                     // create the broker AuthenticationResult
-                    final AuthenticationResult brokerResult = new AuthenticationResult(accessToken, null,
-                            expire, false, userinfo, tenantId, idtoken, null);
+                    final AuthenticationResult brokerResult =
+                            new AuthenticationResult(
+                                    accessToken,
+                                    null,
+                                    expire,
+                                    false,
+                                    userinfo,
+                                    tenantId,
+                                    idtoken,
+                                    null,
+                                    clientId
+                            );
                     final String authority = data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY);
                     brokerResult.setAuthority(authority);
 
@@ -749,8 +797,21 @@ class AcquireTokenRequest {
                             .getString(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE);
                     Logger.v(TAG + methodName, "Error info:" + errCode + " for requestId: "
                             + requestId + " " + correlationInfo, errMessage, null);
-                    waitingRequestOnError(waitingRequest, requestId, new AuthenticationException(
-                            ADALError.SERVER_INVALID_REQUEST, errCode + " " + errMessage + correlationInfo));
+
+                    final String message = String.format("%s %s %s", errCode, errMessage, correlationInfo);
+                    if (!StringExtensions.isNullOrBlank(errCode) &&
+                            ADALError.AUTH_FAILED_INTUNE_POLICY_REQUIRED.name().compareTo(errCode) == 0) {
+                        final String accountUpn = extras.getString(AuthenticationConstants.Broker.ACCOUNT_NAME);
+                        final String accountId = extras.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID);
+                        final String tenantId = extras.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID);
+                        final String authority = extras.getString(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY);
+
+                        AuthenticationException intuneException = new IntuneAppProtectionPolicyRequiredException(message, accountUpn, accountId, tenantId, authority);
+                        waitingRequestOnError(waitingRequest, requestId, intuneException);
+                    } else {
+                        waitingRequestOnError(waitingRequest, requestId, new AuthenticationException(
+                                ADALError.SERVER_INVALID_REQUEST, message));
+                    }
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE) {
                     final AuthenticationRequest authenticationRequest = (AuthenticationRequest) extras
                             .getSerializable(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO);
@@ -814,8 +875,7 @@ class AcquireTokenRequest {
                                                     + ' ' + Log.getStackTraceString(authenticationException),
                                             ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
                                             null);
-                                    waitingRequestOnError(callbackHandle, waitingRequest, requestId,
-                                            null);
+                                    waitingRequestOnError(callbackHandle, waitingRequest, requestId, authenticationException);
                                 }
                             }
                         });
@@ -831,9 +891,7 @@ class AcquireTokenRequest {
 
     private synchronized Handler getHandler() {
         if (sHandler == null) {
-            HandlerThread acquireTokenHandlerThread = new HandlerThread("AcquireTokenRequestHandlerThread");
-            acquireTokenHandlerThread.start();
-            sHandler = new Handler(acquireTokenHandlerThread.getLooper());
+            sHandler = new Handler(Looper.getMainLooper());
         }
 
         return sHandler;
@@ -875,7 +933,7 @@ class AcquireTokenRequest {
 
         private AuthenticationCallback<AuthenticationResult> mCallback;
 
-        public CallbackHandler(Handler ref, AuthenticationCallback<AuthenticationResult> callbackExt) {
+        CallbackHandler(Handler ref, AuthenticationCallback<AuthenticationResult> callbackExt) {
             mRefHandler = ref;
             mCallback = callbackExt;
         }

@@ -33,13 +33,15 @@ import java.io.IOException;
 interface IBrokerProxy {
     /**
      * Checks if broker package correct and authenticator valid.
-     * 
+     *
      * @return True package is available and authenticator is installed at
-     *         Account manager
+     * Account manager
      */
     BrokerProxy.SwitchToBroker canSwitchToBroker(final String authorityUrlStr);
-    
-    boolean verifyUser(String username, String uniqueid);
+
+    boolean verifyUser(String username, String uniqueid) throws AuthenticationException;
+
+    boolean verifyBrokerForSilentRequest(AuthenticationRequest authenticationRequest) throws AuthenticationException;
 
     boolean canUseLocalCache(final String authorityUrlStr);
 
@@ -49,14 +51,14 @@ interface IBrokerProxy {
 
     /**
      * Gets current broker user(Single User model).
-     * 
+     *
      * @return Current user from AccountManager
      */
     String getCurrentUser();
 
     /**
      * gets token using authenticator service.
-     * 
+     *
      * @param request AuthenticationRequest object
      * @return AuthenticationResult
      */
@@ -65,7 +67,7 @@ interface IBrokerProxy {
 
     /**
      * only gets intent to start from calling app's activity.
-     * 
+     *
      * @param request AuthenticationRequest
      * @return Intent
      */
@@ -78,10 +80,10 @@ interface IBrokerProxy {
      */
     UserInfo[] getBrokerUsers() throws OperationCanceledException, AuthenticatorException,
             IOException;
-    
+
     /**
-     * @return The package name for the active broker. Should be either Azure Authenticator 
-     * or Company Portal. 
+     * @return The package name for the active broker. Should be either Azure Authenticator
+     * or Company Portal.
      */
     String getCurrentActiveBrokerPackageName();
 

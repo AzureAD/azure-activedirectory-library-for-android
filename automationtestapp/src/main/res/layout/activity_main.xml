@@ -103,4 +103,22 @@
         android:layout_below="@+id/readCache"
         android:layout_centerHorizontal="true"
         android:text="@string/empty_cache" />
+
+    <!-- Run Stress Test Button -->
+    <Button
+        android:id="@+id/runStressTest"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/clearCache"
+        android:layout_centerHorizontal="true"
+        android:text="Run Stress" />
+
+    <!-- Open WebView Button -->
+    <Button
+        android:id="@+id/openWebView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/runStressTest"
+        android:layout_centerHorizontal="true"
+        android:text="Open WebView" />
 </RelativeLayout>

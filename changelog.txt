@@ -1,3 +1,24 @@
+Version 1.15.0
+--------------
+Update Android target and build tools to 27.
+Added support for forceRefresh.
+Support to handle Intune Policy Required errors.
+Added UI Automation Test framework and tests for ADAL.
+Introduced a new submodule 'common' for new unified cache schema and logging.
+Updates to only support AAD w/ unified cache.
+Added build variants : local and dist.
+Refactor broker validation out of the BrokerProxy.
+Changes to delete all tokens with all authority combinations for legacy and common.
+Resiliency fix to not crash the app.
+Fixed a NullPointerException when PromptBehavior is passed as null.
+Fixed NoClassDefFoundException for a dialog layout.
+Updates to README instructions for submodule/common use.
+Remove option for download-as-zip.
+Updated travis.yml for updated build tools.
+Fixed test and duplicated check additional ADFS check where required.
+Updates to reference docs.
+Fix unit test errors. Update checkstyle suppressions.xml.
+
 Version 1.14.1
 --------------
 (Hotfix) Fix for crash on devices where PRNG fixes is used.

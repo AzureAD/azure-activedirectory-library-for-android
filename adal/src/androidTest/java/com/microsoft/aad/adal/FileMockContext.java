@@ -42,6 +42,9 @@ import android.test.mock.MockContentResolver;
 import android.test.mock.MockContext;
 import android.test.mock.MockPackageManager;
 
+import com.microsoft.identity.common.adal.internal.PowerManagerWrapper;
+import com.microsoft.identity.common.adal.internal.UsageStatsManagerWrapper;
+
 import org.mockito.Mockito;
 
 import java.io.File;
@@ -64,14 +67,14 @@ class FileMockContext extends MockContext {
     private int mFileWriteMode;
 
     private Map<String, Integer> mPermissionMap = new HashMap<String, Integer>();
-    
+
     private boolean mIsConnectionAvailable = true;
-    
+
     private AccountManager mMockedAccountManager = null;
 
     private PackageManager mMockedPackageManager = null;
 
-    public FileMockContext(Context context) {
+    FileMockContext(Context context) {
         mContext = context;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -116,7 +119,7 @@ class FileMockContext extends MockContext {
             if (mMockedAccountManager == null) {
                 return mock(AccountManager.class);
             }
-            
+
             return mMockedAccountManager;
         } else if (name.equalsIgnoreCase("connectivity")) {
             final ConnectivityManager mockedConnectivityManager = mock(ConnectivityManager.class);
@@ -170,7 +173,7 @@ class FileMockContext extends MockContext {
     public void addPermission(String permissionName) {
         mPermissionMap.put(permissionName, PackageManager.PERMISSION_GRANTED);
     }
-    
+
     public void removePermission(String permissionName) {
         mPermissionMap.remove(permissionName);
     }
@@ -243,7 +246,7 @@ class FileMockContext extends MockContext {
             if (mPermissionMap.containsKey(permName)) {
                 return PackageManager.PERMISSION_GRANTED;
             }
-            
+
             return PackageManager.PERMISSION_DENIED;
         }
 
