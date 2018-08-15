@@ -157,8 +157,6 @@ public class SignInActivity extends AppCompatActivity {
 
         setAuthenticationData(inputItems);
         AuthenticationSettings.INSTANCE.setUseBroker(mUseBroker);
-
-
         if(mUseDialogForAcquireToken) {
             //Note: Dialog is not compatible with Broker
             if(mUseBroker){

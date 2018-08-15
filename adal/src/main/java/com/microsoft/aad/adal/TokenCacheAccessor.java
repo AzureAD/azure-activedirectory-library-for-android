@@ -339,13 +339,10 @@ class TokenCacheAccessor {
         AzureActiveDirectoryOAuth2Configuration config = new AzureActiveDirectoryOAuth2Configuration();
         config.setAuthorityHostValidationEnabled(this.isValidateAuthorityHost());
         AzureActiveDirectoryOAuth2Strategy strategy = ad.createOAuth2Strategy(config);
-        Set<String> scopeSet = new HashSet<>();
-        scopeSet.add(request.getResource());
-
         AzureActiveDirectoryAuthorizationRequest aadAuthRequest = new AzureActiveDirectoryAuthorizationRequest(
-                null, request.getClientId(), request.getRedirectUri(), null, scopeSet,
-                new URL(mAuthority), mAuthority + "/oauth2/authorize", request.getLoginHint(),
-                request.getCorrelationId(), null, request.getExtraQueryParamsAuthentication(), null,
+                null, request.getClientId(), request.getRedirectUri(), null, request.getResource(),
+                new URL(mAuthority), request.getLoginHint(), request.getCorrelationId(), null,
+                request.getExtraQueryParamsAuthentication(), null,
                 request.getResource(), null, request.getClaimsChallenge());
 
         mCommonCache.saveTokens(strategy, aadAuthRequest, tokenResponse);

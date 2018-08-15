@@ -146,10 +146,7 @@ dependencies {
     snapshotApi (group: 'com.microsoft.identity', name: 'common', version: '0.0.2-SNAPSHOT', changing:true)
 
     // 'dist' flavor dependencies
-    // Once common is deployed to maven, uncomment the below line...
-    // distApi "com.microsoft.identity:common:0.0.1"
-    // and delete the 3 following lines....
-    distApi(project(":common")) {
+    distApi("com.microsoft.identity:common:0.0.3") {
         transitive = false
     }
 
