@@ -8,10 +8,13 @@
 // including commercial applications, and to alter it and redistribute it
 // freely, as long as the origin is not misrepresented.
 
-package com.microsoft.aad.adal;
+package com.googleblog.android_developers;
 
 import android.os.Build;
 import android.os.Process;
+
+import com.microsoft.aad.adal.ADALError;
+import com.microsoft.aad.adal.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -34,7 +37,7 @@ import java.security.Security;
  * applied before any use of Java Cryptography Architecture primitives. A good
  * place to invoke them is in the application's {@code onCreate}.
  */
-final class PRNGFixes {
+public final class PRNGFixes {
 
     private static final int VERSION_CODE_JELLY_BEAN = 16;
 
