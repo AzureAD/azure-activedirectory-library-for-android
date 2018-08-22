@@ -36,6 +36,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.SparseArray;
 
+import com.googleblog.android_developers.PRNGFixes;
 import com.microsoft.aad.adal.AuthenticationRequest.UserIdentifierType;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;

@@ -1,28 +1,6 @@
-// Copyright (c) Microsoft Corporation.
-// All rights reserved.
-//
-// This code is licensed under the MIT License.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files(the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions :
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-
 // This code is from Google developer site. It may be altered from original
 // Google Licence info from http://android-developers.blogspot.com/2013/08/some-securerandom-thoughts.html
+
 // This software is provided 'as-is', without any express or implied
 // warranty.  In no event will Google be held liable for any damages
 // arising from the use of this software.
@@ -30,10 +8,13 @@
 // including commercial applications, and to alter it and redistribute it
 // freely, as long as the origin is not misrepresented.
 
-package com.microsoft.aad.adal;
+package com.googleblog.android_developers;
 
 import android.os.Build;
 import android.os.Process;
+
+import com.microsoft.aad.adal.ADALError;
+import com.microsoft.aad.adal.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -56,7 +37,7 @@ import java.security.Security;
  * applied before any use of Java Cryptography Architecture primitives. A good
  * place to invoke them is in the application's {@code onCreate}.
  */
-final class PRNGFixes {
+public final class PRNGFixes {
 
     private static final int VERSION_CODE_JELLY_BEAN = 16;
 
