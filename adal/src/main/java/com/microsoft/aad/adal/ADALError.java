@@ -140,6 +140,11 @@ public enum ADALError {
     IO_EXCEPTION("I/O exception"),
 
     /**
+     * I/O exception.
+     */
+    SOCKET_TIMEOUT_EXCEPTION("Socket timeout exception"),
+
+    /**
      * Invalid argument.
      */
     ARGUMENT_EXCEPTION("Invalid argument"),
@@ -697,6 +702,7 @@ public enum ADALError {
         exceptionMap.put(ErrorStrings.ENCRYPTION_ERROR, ADALError.ENCRYPTION_ERROR);
         exceptionMap.put(ErrorStrings.INVALID_JWT, ADALError.JSON_PARSE_ERROR);
         exceptionMap.put(ErrorStrings.IO_ERROR, ADALError.IO_EXCEPTION);
+        exceptionMap.put(ErrorStrings.SOCKET_TIMEOUT, ADALError.SOCKET_TIMEOUT_EXCEPTION);
         exceptionMap.put(ErrorStrings.JSON_PARSE_FAILURE, ADALError.JSON_PARSE_ERROR);
         // TODO: :O
         exceptionMap.put(ErrorStrings.MALFORMED_URL, ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL);

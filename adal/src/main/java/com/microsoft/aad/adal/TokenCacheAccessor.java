@@ -345,7 +345,7 @@ class TokenCacheAccessor {
                 request.getExtraQueryParamsAuthentication(), null,
                 request.getResource(), null, request.getClaimsChallenge());
 
-        mCommonCache.saveTokens(strategy, aadAuthRequest, tokenResponse);
+        mCommonCache.save(strategy, aadAuthRequest, tokenResponse);
     }
 
 
