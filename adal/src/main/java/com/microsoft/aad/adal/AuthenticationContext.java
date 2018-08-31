@@ -567,7 +567,7 @@ public class AuthenticationContext {
      * perform an interactive login if needed or explicitly specified in 
      * the request. This overload uses an 
      * [AlertDialog](https://developer.android.com/guide/topics/ui/dialogs)
-     * in cases user interaction is required. This overload does not support any flow
+     * when user interaction is required. This overload does not support any flow
      * requiring a 
      * [token broker](https://github.com/AzureAD/azure-activedirectory-library-for-android/wiki/Broker).
      * @param resource             required resource identifier.
@@ -610,7 +610,7 @@ public class AuthenticationContext {
      * Bypasses token cache if @param prompt is not AUTO or claims are passed.  
      * This overload uses an 
      * [AlertDialog](https://developer.android.com/guide/topics/ui/dialogs)
-     * in cases user interaction is required. This overload does not support any flow
+     * when user interaction is required. This overload does not support any flow
      * requiring a 
      * [token broker](https://github.com/AzureAD/azure-activedirectory-library-for-android/wiki/Broker).
      *
