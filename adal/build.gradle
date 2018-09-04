@@ -89,18 +89,10 @@ android {
     sourceSets {
         main {
             manifest.srcFile 'src/main/AndroidManifest.xml'
-            java.srcDirs = ['src/main/java', 'src/main/aidl']
+            java.srcDirs = ['src/main/java', 'src/main/aidl', 'src/telemetry/java', 'src/third_party/java']
         }
 
         androidTest.setRoot('src/androidTest')
-    }
-
-    sourceSets {
-        main {
-            java {
-                srcDir 'src/telemetry/java'
-            }
-        }
     }
 
     lintOptions {
@@ -142,8 +134,7 @@ dependencies {
         transitive = false
     }
 
-    //TODO : Change to the latest common dev snapshot once common dev is fixed with adal
-    snapshotApi (group: 'com.microsoft.identity', name: 'common', version: '0.0.2-SNAPSHOT', changing:true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '0.0.3-SNAPSHOT', changing: true)
 
     // 'dist' flavor dependencies
     distApi("com.microsoft.identity:common:0.0.3") {
@@ -240,9 +231,9 @@ publishing {
                 def dependenciesNode = asNode().appendNode('dependencies')
 
                 def deps = configurations.implementation.allDependencies.asList()
-                if(project.version.toString().endsWith("SNAPSHOT")) {
+                if (project.version.toString().endsWith("SNAPSHOT")) {
                     deps.addAll(configurations.snapshotApi.allDependencies.asList())
-                }else{
+                } else {
                     deps.addAll(configurations.distApi.allDependencies.asList())
                 }
 
