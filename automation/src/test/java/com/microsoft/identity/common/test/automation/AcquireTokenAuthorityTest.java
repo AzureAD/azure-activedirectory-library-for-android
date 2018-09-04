@@ -9,6 +9,7 @@ import com.microsoft.identity.common.test.automation.questions.TokenCacheItemCou
 import com.microsoft.identity.common.test.automation.questions.TokenCacheItemFromResult;
 import com.microsoft.identity.common.test.automation.tasks.AcquireToken;
 import com.microsoft.identity.common.test.automation.tasks.AcquireTokenSilent;
+import com.microsoft.identity.common.test.automation.tasks.ClearCache;
 import com.microsoft.identity.common.test.automation.tasks.ExpireAccessToken;
 import com.microsoft.identity.common.test.automation.tasks.ReadCache;
 import com.microsoft.identity.common.test.automation.utility.Scenario;
@@ -43,7 +44,7 @@ import static org.hamcrest.Matchers.not;
 
 @RunWith(SerenityParameterizedRunner.class)
 @WithTag("requires:none")
-public class AcquireTokenAliasingTest {
+public class AcquireTokenAuthorityTest {
 
     @TestData
     public static Collection<Object[]> FederationProviders() {
@@ -75,6 +76,9 @@ public class AcquireTokenAliasingTest {
     @Steps
     ClickDone clickDone;
 
+    @Steps
+    ClearCache clearCache;
+
     static AppiumDriverLocalService appiumService = null;
 
     @Managed(driver = "Appium")
@@ -94,7 +98,7 @@ public class AcquireTokenAliasingTest {
     private User james;
     private String federationProvider;
 
-    public AcquireTokenAliasingTest(String federationProvider) {
+    public AcquireTokenAuthorityTest(String federationProvider) {
         this.federationProvider = federationProvider;
     }
 
@@ -121,12 +125,37 @@ public class AcquireTokenAliasingTest {
         return newUser;
     }
 
+    @Test
+    public void should_be_able_to_acquire_access_token_with_validate_authority_false_for_valid_authority(){
+        givenThat(james).wasAbleTo(
+                clearCache,
+                clickDone,
+                acquireToken.validateAuthority(false),
+                clickDone,
+                readCache);
+        int expectedCacheCount = james.asksFor(ExpectedCacheItemCount.displayed());
+        then(james).should(seeThat(TokenCacheItemCount.displayed(), is(expectedCacheCount)));
+    }
+
+    // invalid authority test, no validation but should exit gracefully
+    @Test
+    public void should_be_able_to_exit_silently_on_validate_authority_false_for_invalid_authority(){
+        james.attemptsTo(
+                clearCache,
+                clickDone,
+                acquireToken
+                        .validateAuthority(false)
+                        .withAuthority("https://www.cnn.com/world/"));
+    }
+
 
     @Test
     public void should_be_able_to_new_access_token_after_authority_aliasing() {
 
         // acquire token with authority login.microsoftonline.com
         givenThat(james).wasAbleTo(
+                clearCache,
+                clickDone,
                 acquireToken,
                 clickDone,
                 readCache);
@@ -150,7 +179,6 @@ public class AcquireTokenAliasingTest {
                 readCache);
 
         then(james).should(seeThat(AccessToken.displayed(), not(accessToken1)));
-
 
     }
 

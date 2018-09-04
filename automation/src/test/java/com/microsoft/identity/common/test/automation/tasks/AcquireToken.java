@@ -47,12 +47,14 @@ public class AcquireToken implements Task {
     @Steps
     CloseKeyboard closeKeyboard;
 
-    String prompt ="";
-    String userIdentifier = "";
-    boolean tokenExists = false;
-    Boolean withBroker = false;
+    private String prompt ="";
+    private String userIdentifier = "";
+    private boolean tokenExists = false;
+    private Boolean withBroker = false;
     private String clientId = "";
     private String redirectUri = "";
+    private boolean validateAuthority = true;
+    private String authority = "";
 
     @Override
     public <T extends Actor> void performAs(T actor) {
@@ -70,7 +72,11 @@ public class AcquireToken implements Task {
         if(!TextUtils.isEmpty(redirectUri)){
             tokenRequest.setRedirectUri(redirectUri);
         }
+        if(!TextUtils.isEmpty(authority)){
+            tokenRequest.setAuthority(authority);
+        }
         tokenRequest.setUseBroker(withBroker);
+        tokenRequest.setValidateAuthority(validateAuthority);
 
         SignInUser signInUser = SignInUser.GetSignInUserByFederationProvider(user.getFederationProvider());
 
@@ -136,6 +142,16 @@ public class AcquireToken implements Task {
 
     public AcquireToken withRedirectUri(String redirectUri) {
         this.redirectUri = redirectUri;
+        return this;
+    }
+
+    public AcquireToken withAuthority(String authority){
+        this.authority = authority;
+        return this;
+    }
+
+    public AcquireToken validateAuthority(boolean validateAuthority){
+        this.validateAuthority = validateAuthority;
         return this;
     }
 
