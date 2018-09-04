@@ -880,6 +880,30 @@ public class AuthenticationContext {
         acquireTokenSilentAsync(resource, clientId, userId, forceRefresh, EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC_FORCE_REFRESH, callback);
     }
 
+    /**
+     * The function will first look at the cache and automatically checks for
+     * the token expiration. Additionally, if no suitable access token is found
+     * in the cache, but refresh token is available, the function will use the
+     * refresh token automatically. This method will not show UI for the user.
+     * If prompt is needed, the method will return an exception
+     *
+     * @param resource required resource identifier.
+     * @param clientId required client identifier.
+     * @param userId   UserId obtained from {@link UserInfo} inside
+     *                 {@link AuthenticationResult}
+     * @param claims   Optional. The claims challenge returned from middle tier service, will be added as query string
+     *                           to authorize endpoint.
+     * @param callback required {@link AuthenticationCallback} object for async
+     *                 call.
+     */
+    public void acquireTokenSilentAsync(String resource,
+                                        String clientId,
+                                        String userId,
+                                        String claims,
+                                        AuthenticationCallback<AuthenticationResult> callback) {
+        acquireTokenSilentAsync(resource, clientId, userId, false, EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC, callback);
+    }
+
     private void acquireTokenSilentAsync(final String resource,
                                         final String clientId,
                                         final String userId,
