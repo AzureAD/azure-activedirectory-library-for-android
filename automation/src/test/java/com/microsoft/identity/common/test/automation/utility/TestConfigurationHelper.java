@@ -40,6 +40,11 @@ public class TestConfigurationHelper {
         DefaultApi api = new DefaultApi();
         TestConfiguration config;
 
+        //Since we cannot pass simply pass "Cloud" to the API, a white space will do.
+        if(query.federationProvider.contains("loud")){
+            query.federationProvider = "";
+        }
+
         try {
             config = api.getTestConfiguration(query.appName, query.appId, query.federationProvider, query.mfa, query.mam, query.mdm, query.ca, query.mamca, query.mdmca, query.license, query.federated, query.isFederated, query.userType, query.role, query.external, query.upn);
         } catch (com.microsoft.identity.internal.test.labapi.ApiException ex) {

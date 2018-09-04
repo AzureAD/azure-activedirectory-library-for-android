@@ -108,7 +108,9 @@ public class Scenario {
         Scenario scenario = new Scenario();
         scenario.setTestConfiguration(tc);
         scenario.setCredential(credential);
-
+        if(credential.userName.contains("#")){
+            credential.userName = tc.getUsers().getHomeUPN();
+        }
         return scenario;
     }
 }
