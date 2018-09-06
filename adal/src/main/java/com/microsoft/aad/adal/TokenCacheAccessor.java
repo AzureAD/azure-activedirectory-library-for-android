@@ -337,7 +337,9 @@ class TokenCacheAccessor {
         AzureActiveDirectoryTokenResponse tokenResponse = CoreAdapter.asAadTokenResponse(result);
         AzureActiveDirectoryOAuth2Configuration config = new AzureActiveDirectoryOAuth2Configuration();
         config.setAuthorityHostValidationEnabled(this.isValidateAuthorityHost());
-        config.setAuthority(this.mAuthority);
+        if (null != this.mAuthority) {
+            config.setAuthorityUrl(new URL(this.mAuthority));
+        }
         AzureActiveDirectoryOAuth2Strategy strategy = ad.createOAuth2Strategy(config);
         AzureActiveDirectoryAuthorizationRequest request = new AzureActiveDirectoryAuthorizationRequest();
         request.setClientId(clientId);
