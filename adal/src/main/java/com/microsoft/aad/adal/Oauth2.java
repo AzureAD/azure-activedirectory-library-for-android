@@ -224,7 +224,7 @@ class Oauth2 {
     public String buildTokenRequestMessage(String code) throws UnsupportedEncodingException {
         Logger.v(TAG, "Building request message for redeeming token with auth code.");
 
-        return String.format("%s=%s&%s=%s&%s=%s&%s=%s&%s=%s",
+        String message =  String.format("%s=%s&%s=%s&%s=%s&%s=%s&%s=%s",
                 AuthenticationConstants.OAuth2.GRANT_TYPE,
                 StringExtensions.urlFormEncode(AuthenticationConstants.OAuth2.AUTHORIZATION_CODE),
 
@@ -241,6 +241,14 @@ class Oauth2 {
                 AuthenticationConstants.OAuth2.CLIENT_INFO,
                 AuthenticationConstants.OAuth2.CLIENT_INFO_TRUE
         );
+
+        if (!StringExtensions.isNullOrBlank(mRequest.getClaimsChallenge())) {
+            message = String.format("%s&%s=%s", message, AuthenticationConstants.OAuth2.CLAIMS,
+                    StringExtensions.urlFormEncode(mRequest.getClaimsChallenge()));
+        }
+
+        return message;
+
     }
 
     public String buildRefreshTokenRequestMessage(String refreshToken)
@@ -270,6 +278,11 @@ class Oauth2 {
                 && !mRequest.getClientId().equalsIgnoreCase(AuthenticationConstants.Broker.BROKER_CLIENT_ID)) {
             message = String.format("%s&%s=%s", message, AuthenticationConstants.OAuth2.REDIRECT_URI,
                     StringExtensions.urlFormEncode(mRequest.getRedirectUri()));
+        }
+
+        if (!StringExtensions.isNullOrBlank(mRequest.getClaimsChallenge())) {
+            message = String.format("%s&%s=%s", message, AuthenticationConstants.OAuth2.CLAIMS,
+                    StringExtensions.urlFormEncode(mRequest.getClaimsChallenge()));
         }
 
         return message;

@@ -694,7 +694,7 @@ public class AuthenticationContext {
      */
     public AuthenticationResult acquireTokenSilentSync(String resource, String clientId, String userId, String claims)
             throws AuthenticationException, InterruptedException {
-        return acquireTokenSilentSync(resource, clientId, userId, false, claims, EventStrings.ACQUIRE_TOKEN_SILENT_SYNC);
+        return acquireTokenSilentSync(resource, clientId, userId, false, claims, EventStrings.ACQUIRE_TOKEN_SILENT_SYNC_CLAIMS_CHALLENGE);
     }
 
     /**
@@ -939,7 +939,7 @@ public class AuthenticationContext {
                                         String userId,
                                         String claims,
                                         AuthenticationCallback<AuthenticationResult> callback) {
-        acquireTokenSilentAsync(resource, clientId, userId, false, claims, EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC, callback);
+        acquireTokenSilentAsync(resource, clientId, userId, false, claims, EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC_CLAIMS_CHALLENGE, callback);
     }
 
     private void acquireTokenSilentAsync(final String resource,

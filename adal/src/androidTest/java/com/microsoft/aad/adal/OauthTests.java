@@ -346,6 +346,14 @@ public class OauthTests {
                 "Token request",
                 "grant_type=authorization_code&code=authorizationcodevalue%3D&client_id=client+1234567890-%2B%3D%3B%27&redirect_uri=redirect+1234567890-%2B%3D%3B%27&client_info=1",
                 oauthWithoutLoginHint.buildTokenRequestMessage("authorizationcodevalue="));
+
+        // with claims challenge
+        request.setClaimsChallenge("testClaims");
+        assertEquals(
+                "Token request",
+                "grant_type=authorization_code&code=authorizationcodevalue%3D&client_id=client+1234567890-%2B%3D%3B%27&redirect_uri=redirect+1234567890-%2B%3D%3B%27&client_info=1&claims=testClaims",
+                oauthWithoutLoginHint.buildTokenRequestMessage("authorizationcodevalue="));
+
     }
 
     /**
@@ -368,6 +376,11 @@ public class OauthTests {
 
         final Oauth2 oauthWithoutResource = createOAuthInstance(requestWithoutResource);
         assertTrue(oauthWithoutResource.buildRefreshTokenRequestMessage("refreshToken234343455=").startsWith("grant_type=refresh_token&refresh_token=refreshToken234343455%3D&client_id=client+1234567890-%2B%3D%3B%27&client_info=1"));
+
+        // with claims challenge
+        request.setClaimsChallenge("testClaims");
+        assertTrue(oauth2.buildRefreshTokenRequestMessage("refreshToken23434=").startsWith("grant_type=refresh_token&refresh_token=refreshToken23434%3D&client_id=client+1234567890-%2B%3D%3B%27&client_info=1&resource=resource%2520+&claims=testClaims"));
+
     }
 
     /**
