@@ -426,7 +426,7 @@ class AcquireTokenRequest {
         final boolean requestEligibleForBroker = mBrokerProxy.verifyBrokerForSilentRequest(authenticationRequest);
 
         //1. if forceRefresh == true OR claimsChallenge is not null AND the request is eligible for the broker
-        if((authenticationRequest.getForceRefresh() || authenticationRequest.isClaimsChallengePresent() && requestEligibleForBroker)){
+        if((authenticationRequest.getForceRefresh() || authenticationRequest.isClaimsChallengePresent()) && requestEligibleForBroker){
             return tryAcquireTokenSilentWithBroker(authenticationRequest);
         }
 
