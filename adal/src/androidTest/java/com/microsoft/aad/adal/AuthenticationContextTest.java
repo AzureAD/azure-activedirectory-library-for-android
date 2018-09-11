@@ -47,6 +47,7 @@ import com.microsoft.identity.common.internal.providers.microsoft.azureactivedir
 import junit.framework.Assert;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -2541,6 +2542,88 @@ public final class AuthenticationContextTest {
 
         // 3nd token request with force refresh true.
         result = context.acquireTokenSilentSync(resource, clientId, TEST_IDTOKEN_UPN, true);
+        assertNull("Error is null", result.getErrorCode());
+        assertEquals("Same token as refresh token result", expectedAT,
+                result.getAccessToken());
+
+        clearCache(context);
+    }
+
+    @Test
+    public void testAcquireTokenSilentSyncClaimsChallengeWithoutBroker() throws IOException, AuthenticationException, InterruptedException {
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+
+        final String clientId = "clientId";
+
+        final String tokenToTest = "accessToken=" + UUID.randomUUID();
+        final String expectedAT = "accesstoken";
+        String resource = "Resource" + UUID.randomUUID();
+        ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
+        mockCache.removeAll();
+
+        TestCacheItem newItem = new TestCacheItem();
+        newItem.setToken(tokenToTest);
+        newItem.setRefreshToken("refreshTokenNormal");
+        newItem.setAuthority(VALID_AUTHORITY);
+        newItem.setResource(resource);
+        newItem.setClientId(clientId);
+        newItem.setUserId(TEST_IDTOKEN_USERID);
+        newItem.setName("name");
+        newItem.setFamilyName("familyName");
+        newItem.setDisplayId(TEST_IDTOKEN_UPN);
+        newItem.setTenantId("tenantId");
+        newItem.setMultiResource(false);
+
+        addItemToCache(mockCache, newItem);
+
+        newItem = new TestCacheItem();
+        newItem.setToken("");
+        newItem.setRefreshToken("refreshTokenMultiResource");
+        newItem.setAuthority(VALID_AUTHORITY);
+        newItem.setResource(resource);
+        newItem.setClientId(clientId);
+        newItem.setUserId(TEST_IDTOKEN_USERID);
+        newItem.setName("name");
+        newItem.setFamilyName("familyName");
+        newItem.setDisplayId(TEST_IDTOKEN_UPN);
+        newItem.setTenantId("tenantId");
+        newItem.setMultiResource(true);
+
+        addItemToCache(mockCache, newItem);
+        // only one MRRT for same user, client, authority
+        final AuthenticationContext context = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, mockCache);
+
+        final String response = "{\"access_token\":\"accesstoken"
+                + "\",\"token_type\":\"Bearer\",\"expires_in\":\"29344\",\"expires_on\":\"1368768616\","
+                + "\"resource\":\"" + resource + "\","
+                + "\"refresh_token\":\""
+                + "refreshToken" + "\",\"scope\":\"*\",\"id_token\":\"" + TEST_IDTOKEN + "\", \"client_info\":\"" + Util.TEST_CLIENT_INFO + "\"}";
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
+        Util.prepareMockedUrlConnection(mockedConnection);
+        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response),
+                Util.createInputStream(response));
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
+
+        // 1st token request, read from cache.
+        AuthenticationResult result = context.acquireTokenSilentSync(resource, clientId, TEST_IDTOKEN_UPN);
+        assertNull("Error is null", result.getErrorCode());
+        assertEquals("Same token in response as in cache", tokenToTest,
+                result.getAccessToken());
+
+        JSONObject email = new JSONObject();
+        JSONObject claims = new JSONObject();
+        try {
+            email.put("email", null);
+            claims.put("id_token", email);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        // 2nd token request with claims with correct claims
+        result = context.acquireTokenSilentSync(resource, clientId, TEST_IDTOKEN_UPN, claims.toString());
         assertNull("Error is null", result.getErrorCode());
         assertEquals("Same token as refresh token result", expectedAT,
                 result.getAccessToken());
