@@ -669,7 +669,32 @@ public class AuthenticationContext {
      */
     public AuthenticationResult acquireTokenSilentSync(String resource, String clientId, String userId)
             throws AuthenticationException, InterruptedException {
-        return acquireTokenSilentSync(resource, clientId, userId, false, EventStrings.ACQUIRE_TOKEN_SILENT_SYNC);
+        return acquireTokenSilentSync(resource, clientId, userId, false, null, EventStrings.ACQUIRE_TOKEN_SILENT_SYNC);
+    }
+
+    /**
+     * This is sync function. It will first look at the cache and automatically
+     * checks for the token expiration. Additionally, if no suitable access
+     * token is found in the cache, but refresh token is available, the function
+     * will use the refresh token automatically. This method will not show UI
+     * for the user. If prompt is needed, the method will return an exception
+     *
+     * @param resource required resource identifier.
+     * @param clientId required client identifier.
+     * @param userId   UserID obtained from
+     *                 {@link AuthenticationResult #getUserInfo()}
+     * @param claims   Optional. The claims challenge returned from middle tier service, will be added as query string
+     *                 to authorize endpoint.
+     * @return A {@link Future} object representing the
+     * {@link AuthenticationResult} of the call. It contains Access
+     * Token,the Access Token's expiration time, Refresh token, and
+     * {@link UserInfo}.
+     * @throws AuthenticationException If silent request fails to get the token back.
+     * @throws InterruptedException    If the main thread is interrupted before or during the activity.
+     */
+    public AuthenticationResult acquireTokenSilentSync(String resource, String clientId, String userId, @Nullable String claims)
+            throws AuthenticationException, InterruptedException {
+        return acquireTokenSilentSync(resource, clientId, userId, false, claims, EventStrings.ACQUIRE_TOKEN_SILENT_SYNC_CLAIMS_CHALLENGE);
     }
 
     /**
@@ -693,10 +718,15 @@ public class AuthenticationContext {
      */
     public AuthenticationResult acquireTokenSilentSync(String resource, String clientId, String userId, boolean forceRefresh)
             throws AuthenticationException, InterruptedException {
-        return acquireTokenSilentSync(resource, clientId, userId, forceRefresh, EventStrings.ACQUIRE_TOKEN_SILENT_SYNC_FORCE_REFRESH);
+        return acquireTokenSilentSync(resource, clientId, userId, forceRefresh, null, EventStrings.ACQUIRE_TOKEN_SILENT_SYNC_FORCE_REFRESH);
     }
 
-    private AuthenticationResult acquireTokenSilentSync(final String resource, final String clientId, final String userId, final boolean forceRefresh, final String apiEventString)
+    private AuthenticationResult acquireTokenSilentSync(final String resource,
+                                                        final String clientId,
+                                                        final String userId,
+                                                        final boolean forceRefresh,
+                                                        final String claims,
+                                                        final String apiEventString)
             throws AuthenticationException, InterruptedException {
 
         final String methodName = ":acquireTokenSilentSync";
@@ -711,7 +741,7 @@ public class AuthenticationContext {
         apiEvent.setPromptBehavior(PromptBehavior.Auto.toString());
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled(), forceRefresh);
+                clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled(), forceRefresh, claims);
         request.setSilent(true);
         request.setPrompt(PromptBehavior.Auto);
         request.setUserIdentifierType(UserIdentifierType.UniqueId);
@@ -862,7 +892,7 @@ public class AuthenticationContext {
                                         String clientId,
                                         String userId,
                                         AuthenticationCallback<AuthenticationResult> callback) {
-        acquireTokenSilentAsync(resource, clientId, userId, false, EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC, callback);
+        acquireTokenSilentAsync(resource, clientId, userId, false, null, EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC, callback);
     }
 
     /**
@@ -885,13 +915,38 @@ public class AuthenticationContext {
                                         String userId,
                                         boolean forceRefresh,
                                         AuthenticationCallback<AuthenticationResult> callback) {
-        acquireTokenSilentAsync(resource, clientId, userId, forceRefresh, EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC_FORCE_REFRESH, callback);
+        acquireTokenSilentAsync(resource, clientId, userId, forceRefresh, null, EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC_FORCE_REFRESH, callback);
+    }
+
+    /**
+     * The function will first look at the cache and automatically checks for
+     * the token expiration. Additionally, if no suitable access token is found
+     * in the cache, but refresh token is available, the function will use the
+     * refresh token automatically. This method will not show UI for the user.
+     * If prompt is needed, the method will return an exception
+     *
+     * @param resource required resource identifier.
+     * @param clientId required client identifier.
+     * @param userId   UserId obtained from {@link UserInfo} inside
+     *                 {@link AuthenticationResult}
+     * @param claims   Optional. The claims challenge returned from middle tier service, will be added as query string
+     *                 to authorize endpoint.
+     * @param callback required {@link AuthenticationCallback} object for async
+     *                 call.
+     */
+    public void acquireTokenSilentAsync(String resource,
+                                        String clientId,
+                                        String userId,
+                                        @Nullable String claims,
+                                        AuthenticationCallback<AuthenticationResult> callback) {
+        acquireTokenSilentAsync(resource, clientId, userId, false, claims, EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC_CLAIMS_CHALLENGE, callback);
     }
 
     private void acquireTokenSilentAsync(final String resource,
                                         final String clientId,
                                         final String userId,
                                         final boolean forceRefresh,
+                                        final String claims,
                                         final String apiEventString,
                                         final AuthenticationCallback<AuthenticationResult> callback) {
 
@@ -906,7 +961,7 @@ public class AuthenticationContext {
         apiEvent.setPromptBehavior(PromptBehavior.Auto.toString());
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled(), forceRefresh);
+                clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled(), forceRefresh, claims);
         request.setSilent(true);
         request.setPrompt(PromptBehavior.Auto);
         request.setUserIdentifierType(UserIdentifierType.UniqueId);

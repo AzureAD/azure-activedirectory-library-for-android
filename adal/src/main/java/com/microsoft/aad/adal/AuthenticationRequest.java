@@ -160,7 +160,7 @@ class AuthenticationRequest implements Serializable {
     }
 
     AuthenticationRequest(String authority, String resource, String clientid, String userid,
-                          UUID correlationId, boolean isExtendedLifetimeEnabled, boolean forceRefresh) {
+                          UUID correlationId, boolean isExtendedLifetimeEnabled, boolean forceRefresh, String claimsChallenge) {
         mAuthority = authority;
         mResource = resource;
         mClientId = clientid;
@@ -168,6 +168,7 @@ class AuthenticationRequest implements Serializable {
         mCorrelationId = correlationId;
         mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
         mForceRefresh = forceRefresh;
+        mClaimsChallenge = claimsChallenge;
     }
 
     AuthenticationRequest(String authority, String resource, String clientId,
