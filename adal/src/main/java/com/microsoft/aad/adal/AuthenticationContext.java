@@ -683,7 +683,7 @@ public class AuthenticationContext {
      * @param clientId required client identifier.
      * @param userId   UserID obtained from
      *                 {@link AuthenticationResult #getUserInfo()}
-     * @param claims   The claims challenge returned from middle tier service, will be added as query string
+     * @param claims   Optional. The claims challenge returned from middle tier service, will be added as query string
      *                 to authorize endpoint.
      * @return A {@link Future} object representing the
      * {@link AuthenticationResult} of the call. It contains Access
@@ -692,7 +692,7 @@ public class AuthenticationContext {
      * @throws AuthenticationException If silent request fails to get the token back.
      * @throws InterruptedException    If the main thread is interrupted before or during the activity.
      */
-    public AuthenticationResult acquireTokenSilentSync(String resource, String clientId, String userId, String claims)
+    public AuthenticationResult acquireTokenSilentSync(String resource, String clientId, String userId, @Nullable String claims)
             throws AuthenticationException, InterruptedException {
         return acquireTokenSilentSync(resource, clientId, userId, false, claims, EventStrings.ACQUIRE_TOKEN_SILENT_SYNC_CLAIMS_CHALLENGE);
     }
@@ -929,7 +929,7 @@ public class AuthenticationContext {
      * @param clientId required client identifier.
      * @param userId   UserId obtained from {@link UserInfo} inside
      *                 {@link AuthenticationResult}
-     * @param claims   The claims challenge returned from middle tier service, will be added as query string
+     * @param claims   Optional. The claims challenge returned from middle tier service, will be added as query string
      *                 to authorize endpoint.
      * @param callback required {@link AuthenticationCallback} object for async
      *                 call.
@@ -937,7 +937,7 @@ public class AuthenticationContext {
     public void acquireTokenSilentAsync(String resource,
                                         String clientId,
                                         String userId,
-                                        String claims,
+                                        @Nullable String claims,
                                         AuthenticationCallback<AuthenticationResult> callback) {
         acquireTokenSilentAsync(resource, clientId, userId, false, claims, EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC_CLAIMS_CHALLENGE, callback);
     }
