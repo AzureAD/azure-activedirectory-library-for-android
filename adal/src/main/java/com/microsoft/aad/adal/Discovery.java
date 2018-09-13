@@ -38,6 +38,7 @@ import org.json.JSONException;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -257,9 +258,15 @@ class Discovery {
                         new InstanceDiscoveryMetadata(authorityUrl.getHost(), authorityUrl.getHost(), aliases));
             }
             result = AuthorityValidationMetadataCache.isAuthorityValidated(authorityUrl);
-        } catch (final IOException | JSONException e) {
-            Logger.e(TAG + methodName, "Error when validating authority. ", "", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e);
+        } catch (JSONException e) {
+            Logger.e(TAG + methodName, "Error when validating authority. ", "", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE, e);
             throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE, e.getMessage(), e);
+        } catch (SocketTimeoutException e){
+            Logger.e(TAG + methodName, "Error when validating authority. ", "", ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE, e);
+            throw new AuthenticationException(ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE, e.getMessage(), e);
+        } catch (IOException e){
+            Logger.e(TAG + methodName, "Error when validating authority. ", "", ADALError.IO_EXCEPTION, e);
+            throw new AuthenticationException(ADALError.IO_EXCEPTION, e.getMessage(), e);
         }
 
         if (!result) {
