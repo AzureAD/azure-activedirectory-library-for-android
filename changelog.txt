@@ -1,3 +1,7 @@
+Version 1.15.1
+--------------
+Support Sovereign and PPE authority setting in Common.
+
 Version 1.15.0
 --------------
 Update Android target and build tools to 27.
