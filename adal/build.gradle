@@ -125,7 +125,7 @@ dependencies {
     }
 
     // 'dist' flavor dependencies
-    distApi("com.microsoft.identity:common:0.0.4-RC") {
+    distApi("com.microsoft.identity:common:0.0.4") {
         transitive = false
     }
 
