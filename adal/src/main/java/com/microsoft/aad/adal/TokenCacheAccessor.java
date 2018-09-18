@@ -344,7 +344,9 @@ class TokenCacheAccessor {
         AzureActiveDirectoryAuthorizationRequest request = new AzureActiveDirectoryAuthorizationRequest();
         request.setClientId(clientId);
         request.setScope(resource);
-        request.setAuthority(new URL(mAuthority));
+        if (null != this.mAuthority) {
+            request.setAuthority(new URL(mAuthority));
+        }
 
         mCommonCache.saveTokens(strategy, request, tokenResponse);
     }
