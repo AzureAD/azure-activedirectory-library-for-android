@@ -83,6 +83,8 @@ class Oauth2 {
 
     private static final String HTTPS_PROTOCOL_STRING = "https";
 
+    private static final String STRING_FORMAT_QUERY_PARAM = "%s&%s=%s";
+
     private String mBrokerClientVersion = "";
 
     private String mClientVersion = "";
@@ -243,7 +245,7 @@ class Oauth2 {
         );
 
         if (!StringExtensions.isNullOrBlank(mRequest.getClaimsChallenge())) {
-            message = String.format("%s&%s=%s", message, AuthenticationConstants.OAuth2.CLAIMS,
+            message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.OAuth2.CLAIMS,
                     StringExtensions.urlFormEncode(mRequest.getClaimsChallenge()));
         }
 
@@ -269,19 +271,19 @@ class Oauth2 {
         );
 
         if (!StringExtensions.isNullOrBlank(mRequest.getResource())) {
-            message = String.format("%s&%s=%s", message, AuthenticationConstants.AAD.RESOURCE,
+            message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.AAD.RESOURCE,
                     StringExtensions.urlFormEncode(mRequest.getResource()));
         }
 
         // sending redirect uri for the refresh token request if it's provided
         if (!StringExtensions.isNullOrBlank(mRequest.getRedirectUri())
                 && !mRequest.getClientId().equalsIgnoreCase(AuthenticationConstants.Broker.BROKER_CLIENT_ID)) {
-            message = String.format("%s&%s=%s", message, AuthenticationConstants.OAuth2.REDIRECT_URI,
+            message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.OAuth2.REDIRECT_URI,
                     StringExtensions.urlFormEncode(mRequest.getRedirectUri()));
         }
 
         if (!StringExtensions.isNullOrBlank(mRequest.getClaimsChallenge())) {
-            message = String.format("%s&%s=%s", message, AuthenticationConstants.OAuth2.CLAIMS,
+            message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.OAuth2.CLAIMS,
                     StringExtensions.urlFormEncode(mRequest.getClaimsChallenge()));
         }
 
