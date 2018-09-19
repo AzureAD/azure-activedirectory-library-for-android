@@ -342,16 +342,21 @@ class TokenCacheAccessor {
             config.setAuthorityUrl(new URL(this.mAuthority));
         }
         AzureActiveDirectoryOAuth2Strategy strategy = ad.createOAuth2Strategy(config);
-        AzureActiveDirectoryAuthorizationRequest aadAuthRequest = new AzureActiveDirectoryAuthorizationRequest.Builder()
+
+        AzureActiveDirectoryAuthorizationRequest.Builder aadAuthRequestBuilder = new AzureActiveDirectoryAuthorizationRequest.Builder();
+        aadAuthRequestBuilder
                 .setClientId(request.getClientId())
                 .setResource(request.getResource())
                 .setScope(request.getResource())
-                .setAuthority(new URL(mAuthority))
                 .setRedirectUri(request.getRedirectUri())
                 .setLoginHint(request.getLoginHint())
-                .setCorrelationId(request.getCorrelationId())
-                .build();
-        mCommonCache.save(strategy, aadAuthRequest, tokenResponse);
+                .setCorrelationId(request.getCorrelationId());
+
+        if (null != this.mAuthority) {
+            aadAuthRequestBuilder.setAuthority(new URL(this.mAuthority));
+        }
+
+        mCommonCache.save(strategy, aadAuthRequestBuilder.build(), tokenResponse);
     }
 
 
