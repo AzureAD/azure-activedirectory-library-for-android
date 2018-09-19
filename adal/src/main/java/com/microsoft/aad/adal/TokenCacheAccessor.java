@@ -338,8 +338,8 @@ class TokenCacheAccessor {
         AzureActiveDirectoryTokenResponse tokenResponse = CoreAdapter.asAadTokenResponse(result);
         AzureActiveDirectoryOAuth2Configuration config = new AzureActiveDirectoryOAuth2Configuration();
         config.setAuthorityHostValidationEnabled(this.isValidateAuthorityHost());
-        if (null != this.mAuthority) {
-            config.setAuthorityUrl(new URL(this.mAuthority));
+        if (null != mAuthority) {
+            config.setAuthorityUrl(new URL(mAuthority));
         }
         AzureActiveDirectoryOAuth2Strategy strategy = ad.createOAuth2Strategy(config);
 
@@ -352,8 +352,8 @@ class TokenCacheAccessor {
                 .setLoginHint(request.getLoginHint())
                 .setCorrelationId(request.getCorrelationId());
 
-        if (null != this.mAuthority) {
-            aadAuthRequestBuilder.setAuthority(new URL(this.mAuthority));
+        if (null != mAuthority) {
+            aadAuthRequestBuilder.setAuthority(new URL(mAuthority));
         }
 
         mCommonCache.save(strategy, aadAuthRequestBuilder.build(), tokenResponse);
