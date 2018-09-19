@@ -338,20 +338,25 @@ class TokenCacheAccessor {
         AzureActiveDirectoryTokenResponse tokenResponse = CoreAdapter.asAadTokenResponse(result);
         AzureActiveDirectoryOAuth2Configuration config = new AzureActiveDirectoryOAuth2Configuration();
         config.setAuthorityHostValidationEnabled(this.isValidateAuthorityHost());
-        if (null != this.mAuthority) {
-            config.setAuthorityUrl(new URL(this.mAuthority));
+        if (null != mAuthority) {
+            config.setAuthorityUrl(new URL(mAuthority));
         }
         AzureActiveDirectoryOAuth2Strategy strategy = ad.createOAuth2Strategy(config);
-        AzureActiveDirectoryAuthorizationRequest aadAuthRequest = new AzureActiveDirectoryAuthorizationRequest.Builder()
+
+        AzureActiveDirectoryAuthorizationRequest.Builder aadAuthRequestBuilder = new AzureActiveDirectoryAuthorizationRequest.Builder();
+        aadAuthRequestBuilder
                 .setClientId(request.getClientId())
                 .setResource(request.getResource())
                 .setScope(request.getResource())
-                .setAuthority(new URL(mAuthority))
                 .setRedirectUri(request.getRedirectUri())
                 .setLoginHint(request.getLoginHint())
-                .setCorrelationId(request.getCorrelationId())
-                .build();
-        mCommonCache.save(strategy, aadAuthRequest, tokenResponse);
+                .setCorrelationId(request.getCorrelationId());
+
+        if (null != mAuthority) {
+            aadAuthRequestBuilder.setAuthority(new URL(mAuthority));
+        }
+
+        mCommonCache.save(strategy, aadAuthRequestBuilder.build(), tokenResponse);
     }
 
 
