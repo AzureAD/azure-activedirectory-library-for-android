@@ -1,11 +1,7 @@
 Version 1.15.2
 --------------
-Changes to accommodate Long live token feature
 Added new acquireTokenSilent overloads to supports adding claims parameter
-Changes to send claims parameter to token endpoint
-Changed AcquireToken behavior when claims is present, now uses Refresh token if available to fetch Access token
-Unit tests and java docs for new api changes
-Update common dependency to 0.0.5
+Updated common dependency to 0.0.5
 
 Version 1.15.1
 --------------
