@@ -21,8 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
-
-import com.microsoft.identity.common.Account;
+import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryAccount;
@@ -39,7 +38,7 @@ final class CoreAdapter {
     }
 
     /**
-     * Gets the supplied {@link UserInfo} as an {@link Account}.
+     * Gets the supplied {@link UserInfo} as an {@link AccountRecord}.
      *
      * @param userInfo The UserInfo to transform.
      * @return The newly created Account.
@@ -55,7 +54,7 @@ final class CoreAdapter {
     }
 
     /**
-     * Gets the supplied {@link Account} as a {@link UserInfo}.
+     * Gets the supplied {@link AccountRecord} as a {@link UserInfo}.
      *
      * @param account The Account to transform.
      * @return The newly created UserInfo.
