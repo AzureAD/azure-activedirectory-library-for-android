@@ -1,3 +1,8 @@
+Version 1.15.1-hf1
+--------------
+Picks up changes in common/0.0.4-hf1.
+Removes duplicated HashMapExtensions class and associated test class.
+
 Version 1.15.1
 --------------
 Support Sovereign and PPE authority setting in Common.
