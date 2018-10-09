@@ -23,9 +23,9 @@
 
 package com.microsoft.aad.adal;
 
-
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
+import com.microsoft.identity.common.adal.internal.util.HashMapExtensions;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.ClientInfo;
 
 import org.json.JSONException;
@@ -485,7 +485,7 @@ public class AuthenticationResult implements Serializable {
     }
 
     /**
-     *  Get service status code.
+     * Get service status code.
      *
      * @return ServiceStatusCode
      */

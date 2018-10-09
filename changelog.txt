@@ -1,3 +1,9 @@
+Version 1.15.1-hf1
+--------------
+Picks up changes in common/0.0.4-hf1
+    * Bugfix: Corrects an issue parsing query parameters with null or "" values (ex. CertAuthorities="")
+Removes duplicated HashMapExtensions class and associated test class.
+
 Version 1.15.1
 --------------
 Support Sovereign and PPE authority setting in Common.

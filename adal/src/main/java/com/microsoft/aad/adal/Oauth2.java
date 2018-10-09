@@ -98,7 +98,7 @@ class Oauth2 {
     }
 
     Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler,
-            IJWSBuilder jwsMessageBuilder) {
+           IJWSBuilder jwsMessageBuilder) {
         mRequest = request;
         mWebRequestHandler = webRequestHandler;
         mJWSBuilder = jwsMessageBuilder;
