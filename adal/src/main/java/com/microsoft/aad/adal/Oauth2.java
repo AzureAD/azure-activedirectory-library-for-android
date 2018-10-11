@@ -207,6 +207,14 @@ class Oauth2 {
             queryParameter.appendQueryParameter(AuthenticationConstants.OAuth2.CLAIMS, mRequest.getClaimsChallenge());
         }
 
+        if(!StringExtensions.isNullOrBlank(mRequest.getAppName())){
+            queryParameter.appendQueryParameter(AuthenticationConstants.AAD.APP_PACKAGE_NAME, mRequest.getAppName());
+        }
+
+        if(!StringExtensions.isNullOrBlank(mRequest.getAppVersion())){
+            queryParameter.appendQueryParameter(AuthenticationConstants.AAD.APP_VERSION, mRequest.getAppVersion());
+        }
+
         String requestUrl = queryParameter.build().getQuery();
         if (!StringExtensions.isNullOrBlank(extraQP)) {
             String parsedQP = extraQP;
@@ -250,6 +258,15 @@ class Oauth2 {
                     StringExtensions.urlFormEncode(mRequest.getClaimsChallenge()));
         }
 
+        if (!StringExtensions.isNullOrBlank(mRequest.getAppName())) {
+            message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.AAD.APP_PACKAGE_NAME,
+                    StringExtensions.urlFormEncode(mRequest.getAppName()));
+        }
+
+        if (!StringExtensions.isNullOrBlank(mRequest.getAppVersion())) {
+            message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.AAD.APP_VERSION,
+                    StringExtensions.urlFormEncode(mRequest.getAppVersion()));
+        }
         return message;
 
     }
@@ -288,6 +305,15 @@ class Oauth2 {
                     StringExtensions.urlFormEncode(mRequest.getClaimsChallenge()));
         }
 
+        if (!StringExtensions.isNullOrBlank(mRequest.getAppName())) {
+            message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.AAD.APP_PACKAGE_NAME,
+                    StringExtensions.urlFormEncode(mRequest.getAppName()));
+        }
+
+        if (!StringExtensions.isNullOrBlank(mRequest.getAppVersion())) {
+            message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.AAD.APP_VERSION,
+                    StringExtensions.urlFormEncode(mRequest.getAppVersion()));
+        }
         return message;
     }
 

@@ -162,12 +162,16 @@ final class Util {
 
     static byte[] getPoseMessage(final String refreshToken, final String clientId, final String resource)
             throws UnsupportedEncodingException {
-        return String.format("%s=%s&%s=%s&%s=%s&%s=%s&%s=%s",
+        String string = String.format("%s=%s&%s=%s&%s=%s&%s=%s&%s=%s&%s=%s&%s=%s",
                 AuthenticationConstants.OAuth2.GRANT_TYPE, urlFormEncode(AuthenticationConstants.OAuth2.REFRESH_TOKEN),
                 AuthenticationConstants.OAuth2.REFRESH_TOKEN, urlFormEncode(refreshToken),
                 AuthenticationConstants.OAuth2.CLIENT_ID, urlFormEncode(clientId),
                 AuthenticationConstants.OAuth2.CLIENT_INFO, urlFormEncode(AuthenticationConstants.OAuth2.CLIENT_INFO_TRUE),
-                AuthenticationConstants.AAD.RESOURCE, urlFormEncode(resource)).getBytes();
+                AuthenticationConstants.AAD.RESOURCE, urlFormEncode(resource),
+                AuthenticationConstants.AAD.APP_PACKAGE_NAME, urlFormEncode("test.mock."),
+                AuthenticationConstants.AAD.APP_VERSION, urlFormEncode("test"));
+
+        return string.getBytes();
     }
 
     static String urlFormEncode(String source) throws UnsupportedEncodingException {

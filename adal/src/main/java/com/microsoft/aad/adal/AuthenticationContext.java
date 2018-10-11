@@ -28,12 +28,14 @@ import android.accounts.OperationCanceledException;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Looper;
 import android.os.NetworkOnMainThreadException;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
+import android.text.TextUtils;
 import android.util.SparseArray;
 
 import com.googleblog.android_developers.PRNGFixes;
@@ -264,20 +266,8 @@ public class AuthenticationContext {
                              @Nullable String redirectUri, @Nullable String loginHint,
                              AuthenticationCallback<AuthenticationResult> callback) {
 
-        if (checkPreRequirements(resource, clientId, callback)
-                && checkADFSValidationRequirements(loginHint, callback)) {
-            final String requestId = Telemetry.registerNewRequest();
-            final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_1);
-            apiEvent.setLoginHint(loginHint);
-            redirectUri = getRedirectUri(redirectUri);
-
-            final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                    clientId, redirectUri, loginHint, PromptBehavior.Auto, null,
-                    getRequestCorrelationId(), getExtendedLifetimeEnabled(), null);
-            request.setUserIdentifierType(UserIdentifierType.LoginHint);
-            request.setTelemetryRequestId(requestId);
-            createAcquireTokenRequest(apiEvent).acquireToken(wrapActivity(activity), false, request, callback);
-        }
+        acquireToken(resource, clientId, redirectUri, loginHint, PromptBehavior.Auto, null,
+                null , callback, EventStrings.ACQUIRE_TOKEN_1, wrapActivity(activity));
     }
 
     /**
@@ -305,20 +295,8 @@ public class AuthenticationContext {
                              @Nullable String redirectUri, @Nullable String loginHint, @Nullable String extraQueryParameters,
                              AuthenticationCallback<AuthenticationResult> callback) {
 
-        if (checkPreRequirements(resource, clientId, callback)
-                && checkADFSValidationRequirements(loginHint, callback)) {
-            final String requestId = Telemetry.registerNewRequest();
-            final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_2);
-            apiEvent.setLoginHint(loginHint);
-            redirectUri = getRedirectUri(redirectUri);
-
-            final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                    clientId, redirectUri, loginHint, PromptBehavior.Auto, extraQueryParameters,
-                    getRequestCorrelationId(), getExtendedLifetimeEnabled(), null);
-            request.setUserIdentifierType(UserIdentifierType.LoginHint);
-            request.setTelemetryRequestId(requestId);
-            createAcquireTokenRequest(apiEvent).acquireToken(wrapActivity(activity), false, request, callback);
-        }
+        acquireToken(resource, clientId, redirectUri, loginHint, PromptBehavior.Auto, extraQueryParameters,
+                null, callback,  EventStrings.ACQUIRE_TOKEN_2, wrapActivity(activity));
     }
 
     /**
@@ -342,21 +320,9 @@ public class AuthenticationContext {
     public void acquireToken(Activity activity, String resource, String clientId,
                              @Nullable String redirectUri, @Nullable PromptBehavior prompt,
                              AuthenticationCallback<AuthenticationResult> callback) {
-        if (checkPreRequirements(resource, clientId, callback)
-                && checkADFSValidationRequirements(null, callback)) {
-            redirectUri = getRedirectUri(redirectUri);
 
-            final String requestId = Telemetry.registerNewRequest();
-            final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_3);
-            apiEvent.setPromptBehavior(prompt);
-
-            final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                    clientId, redirectUri, null, prompt, null, getRequestCorrelationId(), getExtendedLifetimeEnabled(), null);
-
-            request.setTelemetryRequestId(requestId);
-
-            createAcquireTokenRequest(apiEvent).acquireToken(wrapActivity(activity), false, request, callback);
-        }
+        acquireToken(resource, clientId, redirectUri, null, prompt, null,
+                null, callback, EventStrings.ACQUIRE_TOKEN_3, wrapActivity(activity));
     }
 
     /**
@@ -380,22 +346,8 @@ public class AuthenticationContext {
     public void acquireToken(Activity activity, String resource, String clientId,
                              @Nullable String redirectUri, @Nullable PromptBehavior prompt, @Nullable String extraQueryParameters,
                              AuthenticationCallback<AuthenticationResult> callback) {
-        if (checkPreRequirements(resource, clientId, callback)
-                && checkADFSValidationRequirements(null, callback)) {
-            redirectUri = getRedirectUri(redirectUri);
-
-            final String requestId = Telemetry.registerNewRequest();
-            final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_4);
-            apiEvent.setPromptBehavior(prompt);
-
-            final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                    clientId, redirectUri, null, prompt, extraQueryParameters,
-                    getRequestCorrelationId(), getExtendedLifetimeEnabled(), null);
-
-            request.setTelemetryRequestId(requestId);
-
-            createAcquireTokenRequest(apiEvent).acquireToken(wrapActivity(activity), false, request, callback);
-        }
+        acquireToken(resource, clientId, redirectUri, null, prompt, extraQueryParameters,
+                null, callback, EventStrings.ACQUIRE_TOKEN_4, wrapActivity(activity));
     }
 
     /**
@@ -422,21 +374,8 @@ public class AuthenticationContext {
                              @Nullable String redirectUri, @Nullable String loginHint, @Nullable PromptBehavior prompt,
                              @Nullable String extraQueryParameters, AuthenticationCallback<AuthenticationResult> callback) {
 
-        if (checkPreRequirements(resource, clientId, callback)
-                && checkADFSValidationRequirements(loginHint, callback)) {
-            redirectUri = getRedirectUri(redirectUri);
-            final String requestId = Telemetry.registerNewRequest();
-            final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_5);
-            apiEvent.setPromptBehavior(prompt);
-            apiEvent.setLoginHint(loginHint);
-
-            final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                    clientId, redirectUri, loginHint, prompt, extraQueryParameters,
-                    getRequestCorrelationId(), getExtendedLifetimeEnabled(), null);
-            request.setUserIdentifierType(UserIdentifierType.LoginHint);
-            request.setTelemetryRequestId(requestId);
-            createAcquireTokenRequest(apiEvent).acquireToken(wrapActivity(activity), false, request, callback);
-        }
+        acquireToken(resource, clientId, redirectUri, loginHint, prompt, extraQueryParameters,
+                null, callback, EventStrings.ACQUIRE_TOKEN_5, wrapActivity(activity));
     }
 
     /**
@@ -460,23 +399,9 @@ public class AuthenticationContext {
     public void acquireToken(final Activity activity, final String resource, final String clientId, @Nullable String redirectUri,
                              @Nullable final String loginHint, @Nullable final PromptBehavior prompt, @Nullable String extraQueryParameters,
                              @Nullable final String claims, final AuthenticationCallback<AuthenticationResult> callback) {
-        throwIfClaimsInBothExtraQpAndClaimsParameter(claims, extraQueryParameters);
 
-        if (checkPreRequirements(resource, clientId, callback)
-                && checkADFSValidationRequirements(loginHint, callback)) {
-            redirectUri = getRedirectUri(redirectUri);
-            final String requestId = Telemetry.registerNewRequest();
-            final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_8);
-            apiEvent.setPromptBehavior(prompt);
-            apiEvent.setLoginHint(loginHint);
-
-            final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                    clientId, redirectUri, loginHint, prompt, extraQueryParameters,
-                    getRequestCorrelationId(), getExtendedLifetimeEnabled(), claims);
-            request.setUserIdentifierType(UserIdentifierType.LoginHint);
-            request.setTelemetryRequestId(requestId);
-            createAcquireTokenRequest(apiEvent).acquireToken(wrapActivity(activity), false, request, callback);
-        }
+        acquireToken(resource, clientId, redirectUri, loginHint, prompt, extraQueryParameters,
+                claims, callback, EventStrings.ACQUIRE_TOKEN_8, wrapActivity(activity));
     }
 
     /**
@@ -502,21 +427,9 @@ public class AuthenticationContext {
                              @Nullable String redirectUri, @Nullable String loginHint, @Nullable PromptBehavior prompt,
                              @Nullable String extraQueryParameters, AuthenticationCallback<AuthenticationResult> callback) {
 
-        if (checkPreRequirements(resource, clientId, callback)
-                && checkADFSValidationRequirements(loginHint, callback)) {
-            redirectUri = getRedirectUri(redirectUri);
-            final String requestId = Telemetry.registerNewRequest();
-            final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_6);
-            apiEvent.setPromptBehavior(prompt);
-            apiEvent.setLoginHint(loginHint);
+        acquireToken(resource, clientId, redirectUri, loginHint, prompt, extraQueryParameters,
+                null, callback, EventStrings.ACQUIRE_TOKEN_6, fragment);
 
-            final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                    clientId, redirectUri, loginHint, prompt, extraQueryParameters,
-                    getRequestCorrelationId(), getExtendedLifetimeEnabled(), null);
-            request.setUserIdentifierType(UserIdentifierType.LoginHint);
-            request.setTelemetryRequestId(requestId);
-            createAcquireTokenRequest(apiEvent).acquireToken(fragment, false, request, callback);
-        }
     }
 
     /**
@@ -540,23 +453,9 @@ public class AuthenticationContext {
     public void acquireToken(final IWindowComponent fragment, final String resource, final String clientId, @Nullable String redirectUri,
                              @Nullable final String loginHint, @Nullable final PromptBehavior prompt, @Nullable String extraQueryParameters,
                              @Nullable final String claims, final AuthenticationCallback<AuthenticationResult> callback) {
-        throwIfClaimsInBothExtraQpAndClaimsParameter(claims, extraQueryParameters);
 
-        if (checkPreRequirements(resource, clientId, callback)
-                && checkADFSValidationRequirements(loginHint, callback)) {
-            redirectUri = getRedirectUri(redirectUri);
-            final String requestId = Telemetry.registerNewRequest();
-            final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_9);
-            apiEvent.setPromptBehavior(prompt);
-            apiEvent.setLoginHint(loginHint);
-
-            final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                    clientId, redirectUri, loginHint, prompt, extraQueryParameters,
-                    getRequestCorrelationId(), getExtendedLifetimeEnabled(), claims);
-            request.setUserIdentifierType(UserIdentifierType.LoginHint);
-            request.setTelemetryRequestId(requestId);
-            createAcquireTokenRequest(apiEvent).acquireToken(fragment, false, request, callback);
-        }
+        acquireToken(resource, clientId, redirectUri, loginHint, prompt, extraQueryParameters,
+                claims, callback, EventStrings.ACQUIRE_TOKEN_9, fragment);
     }
 
     /**
@@ -585,22 +484,8 @@ public class AuthenticationContext {
                              @Nullable String loginHint, @Nullable PromptBehavior prompt, @Nullable String extraQueryParameters,
                              AuthenticationCallback<AuthenticationResult> callback) {
 
-        if (checkPreRequirements(resource, clientId, callback)
-                && checkADFSValidationRequirements(loginHint, callback)) {
-            redirectUri = getRedirectUri(redirectUri);
-            final String requestId = Telemetry.registerNewRequest();
-            final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_7);
-            apiEvent.setPromptBehavior(prompt);
-            apiEvent.setLoginHint(loginHint);
-
-            final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                    clientId, redirectUri, loginHint, prompt, extraQueryParameters,
-                    getRequestCorrelationId(), getExtendedLifetimeEnabled(), null);
-            request.setUserIdentifierType(UserIdentifierType.LoginHint);
-            request.setTelemetryRequestId(requestId);
-
-            createAcquireTokenRequest(apiEvent).acquireToken(null, true, request, callback);
-        }
+        acquireToken(resource, clientId, redirectUri, loginHint, prompt, extraQueryParameters,
+                null, callback, EventStrings.ACQUIRE_TOKEN_7, null);
     }
 
     /**
@@ -630,23 +515,40 @@ public class AuthenticationContext {
     public void acquireToken(final String resource, final String clientId, @Nullable String redirectUri,
                              @Nullable final String loginHint, @Nullable final PromptBehavior prompt, @Nullable String extraQueryParameters,
                              @Nullable final String claims, final AuthenticationCallback<AuthenticationResult> callback) {
+
+        acquireToken(resource, clientId, redirectUri, loginHint, prompt, extraQueryParameters,
+                claims, callback, EventStrings.ACQUIRE_TOKEN_10, null);
+
+    }
+
+    private void acquireToken(final String resource, final String clientId, @Nullable String redirectUri,
+                              @Nullable final String loginHint, @Nullable final PromptBehavior prompt,
+                              @Nullable String extraQueryParameters, @Nullable final String claims,
+                              final AuthenticationCallback<AuthenticationResult> callback, String apiEventString,
+                              final IWindowComponent fragment){
+
         throwIfClaimsInBothExtraQpAndClaimsParameter(claims, extraQueryParameters);
 
-        if (checkPreRequirements(resource, clientId, callback)
-                && checkADFSValidationRequirements(loginHint, callback)) {
+        if (checkPreRequirements(resource, clientId, callback) && checkADFSValidationRequirements(loginHint, callback)) {
             redirectUri = getRedirectUri(redirectUri);
             final String requestId = Telemetry.registerNewRequest();
-            final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_10);
+            final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, apiEventString);
             apiEvent.setPromptBehavior(prompt);
-            apiEvent.setLoginHint(loginHint);
 
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                     clientId, redirectUri, loginHint, prompt, extraQueryParameters,
                     getRequestCorrelationId(), getExtendedLifetimeEnabled(), claims);
-            request.setUserIdentifierType(UserIdentifierType.LoginHint);
             request.setTelemetryRequestId(requestId);
-            createAcquireTokenRequest(apiEvent).acquireToken(null, false, request, callback);
+            setAppInfoToRequest(request);
+
+            if(!TextUtils.isEmpty(loginHint)) {
+                apiEvent.setLoginHint(loginHint);
+                request.setUserIdentifierType(UserIdentifierType.LoginHint);
+            }
+
+            createAcquireTokenRequest(apiEvent).acquireToken(fragment, false, request, callback);
         }
+
     }
 
     /**
@@ -746,6 +648,7 @@ public class AuthenticationContext {
         request.setPrompt(PromptBehavior.Auto);
         request.setUserIdentifierType(UserIdentifierType.UniqueId);
         request.setTelemetryRequestId(requestId);
+        setAppInfoToRequest(request);
 
         final Looper currentLooper = Looper.myLooper();
         if (currentLooper != null && currentLooper == mContext.getMainLooper()) {
@@ -839,6 +742,7 @@ public class AuthenticationContext {
         request.setUserIdentifierType(UserIdentifierType.UniqueId);
 
         request.setTelemetryRequestId(requestId);
+        setAppInfoToRequest(request);
 
 
         createAcquireTokenRequest(apiEvent).acquireToken(null, false, request,
@@ -965,6 +869,7 @@ public class AuthenticationContext {
         request.setSilent(true);
         request.setPrompt(PromptBehavior.Auto);
         request.setUserIdentifierType(UserIdentifierType.UniqueId);
+        setAppInfoToRequest(request);
 
         request.setTelemetryRequestId(requestId);
 
@@ -1193,6 +1098,17 @@ public class AuthenticationContext {
     public void setRequestCorrelationId(final UUID requestCorrelationId) {
         this.mRequestCorrelationId = requestCorrelationId;
         Logger.setCorrelationId(requestCorrelationId);
+    }
+
+    private void setAppInfoToRequest(AuthenticationRequest request){
+        String packageName = mContext.getPackageName();
+        request.setAppName(packageName);
+        try {
+            PackageInfo packageInfo = mContext.getPackageManager().getPackageInfo(packageName, 0);
+            request.setAppVersion(packageInfo.versionName);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     private IWindowComponent wrapActivity(final Activity activity) {

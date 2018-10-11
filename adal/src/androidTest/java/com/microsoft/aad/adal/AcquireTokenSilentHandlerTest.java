@@ -1318,6 +1318,8 @@ public final class AcquireTokenSilentHandlerTest {
                                                            final String clientId, final boolean isExtendedLifetimeEnabled) {
         AuthenticationRequest request = new AuthenticationRequest(authority, resource, clientId, UUID.randomUUID(),
                 isExtendedLifetimeEnabled);
+        request.setAppVersion("test");
+        request.setAppName("test.mock.");
 
         request.setTelemetryRequestId(UUID.randomUUID().toString());
         return request;
