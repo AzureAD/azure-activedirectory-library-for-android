@@ -43,9 +43,14 @@ import com.microsoft.aad.adal.AuthenticationRequest.UserIdentifierType;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -78,6 +83,7 @@ public class AuthenticationContext {
 
     private boolean mExtendedLifetimeEnabled = false;
 
+    private List<String> mClientCapabilites = null;
     /**
      * Delegate map is needed to handle activity recreate without asking
      * developer to handle context instance for config changes.
@@ -535,9 +541,16 @@ public class AuthenticationContext {
             final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, apiEventString);
             apiEvent.setPromptBehavior(prompt);
 
+            String mergedClaims = null;
+            try {
+                mergedClaims = mergeClaimsWithClientCapabilities(claims);
+            } catch (JSONException e) {
+                callback.onError(new AuthenticationException(ADALError.JSON_PARSE_ERROR, e.getMessage(), e));
+            }
+
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                     clientId, redirectUri, loginHint, prompt, extraQueryParameters,
-                    getRequestCorrelationId(), getExtendedLifetimeEnabled(), claims);
+                    getRequestCorrelationId(), getExtendedLifetimeEnabled(), mergedClaims);
             request.setTelemetryRequestId(requestId);
             setAppInfoToRequest(request);
 
@@ -642,8 +655,15 @@ public class AuthenticationContext {
         final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, apiEventString);
         apiEvent.setPromptBehavior(PromptBehavior.Auto.toString());
 
+        String mergedClaims;
+        try {
+            mergedClaims = mergeClaimsWithClientCapabilities(claims);
+        } catch (JSONException e) {
+            throw new AuthenticationException(ADALError.JSON_PARSE_ERROR, e.getMessage(), e);
+        }
+
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled(), forceRefresh, claims);
+                clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled(), forceRefresh, mergedClaims);
         request.setSilent(true);
         request.setPrompt(PromptBehavior.Auto);
         request.setUserIdentifierType(UserIdentifierType.UniqueId);
@@ -864,8 +884,15 @@ public class AuthenticationContext {
                 apiEventString);
         apiEvent.setPromptBehavior(PromptBehavior.Auto.toString());
 
+        String mergedClaims = null;
+        try {
+            mergedClaims = mergeClaimsWithClientCapabilities(claims);
+        } catch (JSONException e) {
+            callback.onError(new AuthenticationException(ADALError.JSON_PARSE_ERROR, e.getMessage(), e));
+        }
+
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled(), forceRefresh, claims);
+                clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled(), forceRefresh, mergedClaims);
         request.setSilent(true);
         request.setPrompt(PromptBehavior.Auto);
         request.setUserIdentifierType(UserIdentifierType.UniqueId);
@@ -1128,6 +1155,30 @@ public class AuthenticationContext {
                 }
             }
         };
+    }
+
+    private String mergeClaimsWithClientCapabilities(String claims) throws JSONException {
+        if (mClientCapabilites == null || mClientCapabilites.isEmpty()) {
+            return claims;
+        }
+        String claimsResult = null;
+        JSONArray capabilitiesArray = new JSONArray();
+
+        for (String capability : mClientCapabilites) {
+            capabilitiesArray.put(capability);
+        }
+
+        JSONObject capabilities = new JSONObject();
+        capabilities.put(AuthenticationConstants.OAuth2.CLIENT_CAPABILITIES_CLAIMS_LIST, capabilitiesArray);
+
+        if (!TextUtils.isEmpty(claims)) {
+            claimsResult = new JSONObject(claims).put(AuthenticationConstants.OAuth2.CLIENT_CAPABILITY_ACCESS_TOKEN, capabilities).toString();
+        } else {
+            JSONObject claimsObject = new JSONObject();
+            claimsObject.put(AuthenticationConstants.OAuth2.CLIENT_CAPABILITY_ACCESS_TOKEN, capabilities);
+            claimsResult = claimsObject.toString();
+        }
+        return claimsResult;
     }
 
     private boolean checkPreRequirements(final String resource, final String clientId) throws AuthenticationException {
@@ -1403,6 +1454,14 @@ public class AuthenticationContext {
         // AndroidManifest files are not merged, so it is returning hard coded
         // value
         return BuildConfig.VERSION_NAME;
+    }
+
+    public List<String> getClientCapabilites() {
+        return mClientCapabilites;
+    }
+
+    public void setClientCapabilites(List<String> clientCapabilites){
+        this.mClientCapabilites = clientCapabilites;
     }
 
     /**
