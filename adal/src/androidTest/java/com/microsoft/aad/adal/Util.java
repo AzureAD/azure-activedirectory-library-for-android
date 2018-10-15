@@ -160,7 +160,7 @@ final class Util {
         return jsonObject.toString();
     }
 
-    static byte[] getPoseMessage(final String refreshToken, final String clientId, final String resource)
+    static byte[] getPostMessage(final String refreshToken, final String clientId, final String resource)
             throws UnsupportedEncodingException {
         String string = String.format("%s=%s&%s=%s&%s=%s&%s=%s&%s=%s&%s=%s&%s=%s",
                 AuthenticationConstants.OAuth2.GRANT_TYPE, urlFormEncode(AuthenticationConstants.OAuth2.REFRESH_TOKEN),

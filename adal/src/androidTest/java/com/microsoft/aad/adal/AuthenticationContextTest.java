@@ -1645,7 +1645,7 @@ public final class AuthenticationContextTest {
 
         latch.await();
 
-        verify(outputStream).write(Util.getPoseMessage(refreshTokenForPassedInAuthority, clientId, resource));
+        verify(outputStream).write(Util.getPostMessage(refreshTokenForPassedInAuthority, clientId, resource));
         assertTrue(HttpUrlConnectionFactory.getMockedConnectionOpenUrl().getHost().equals("login.microsoftonline.com"));
 
         // verify cache
@@ -3249,6 +3249,106 @@ public final class AuthenticationContextTest {
         final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
         context.deserialize(differentVersionString);
     }
+
+    @Test
+    public void testMergeClaimsWithValidInput() throws JSONException {
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
+        final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
+        final List<String> capabilities = new ArrayList<>();
+        capabilities.add("CP1");
+        capabilities.add("CP2");
+        context.setClientCapabilites(capabilities);
+
+        String inputClaims = "{\"userinfo\":{\"given_name\":{\"essential\":true},\"email\":{\"essential\":true}},\"id_token\":{\"auth_time\":{\"essential\":true}}}";
+
+        String expectedJson = "{\"userinfo\":{\"given_name\":{\"essential\":true},\"email\":{\"essential\":true}},\"id_token\":" +
+                "{\"auth_time\":{\"essential\":true}},\"access_token\":{\"xms_cc\":{\"values\":[\"CP1\",\"CP2\"]}}}";
+
+        String mergedClaims  = context.mergeClaimsWithClientCapabilities(inputClaims);
+
+        JSONObject mergedClaimsJson = new JSONObject(mergedClaims);
+
+        assertNotNull(mergedClaimsJson);
+        assertEquals("Valid merged claims Json", expectedJson, mergedClaimsJson.toString());
+    }
+
+    @Test
+    public void testMergeClaimsWithNoClientCapabilities() throws JSONException {
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
+        final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
+
+        String inputClaims = "{\"userinfo\":{\"given_name\":{\"essential\":true},\"email\":{\"essential\":true}},\"id_token\":{\"auth_time\":{\"essential\":true}}}";
+        String mergedClaims  = context.mergeClaimsWithClientCapabilities(inputClaims);
+
+        JSONObject mergedClaimsJson = new JSONObject(mergedClaims);
+
+        assertNotNull(mergedClaimsJson);
+        assertEquals("Valid merged claims Json", inputClaims, mergedClaimsJson.toString());
+    }
+
+    @Test
+    public void testMergeClaimsWithNoInputClaims() throws JSONException {
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
+        final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
+
+        final List<String> capabilities = new ArrayList<>();
+        capabilities.add("CP1");
+        capabilities.add("CP2");
+        context.setClientCapabilites(capabilities);
+
+        String expectedClaims = "{\"access_token\":{\"xms_cc\":{\"values\":[\"CP1\",\"CP2\"]}}}";
+        String mergedClaims  = context.mergeClaimsWithClientCapabilities(null);
+
+        JSONObject mergedClaimsJson = new JSONObject(mergedClaims);
+
+        assertNotNull(mergedClaimsJson);
+        assertEquals("Valid merged claims Json", expectedClaims, mergedClaimsJson.toString());
+    }
+
+    @Test(expected = JSONException.class)
+    public void testMergeClaimsWithInvalidInputClaims() throws JSONException {
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
+        final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
+        final List<String> capabilities = new ArrayList<>();
+        capabilities.add("CP1");
+        capabilities.add("CP2");
+        context.setClientCapabilites(capabilities);
+
+        String invalidClaims = "{\"userinfo\"";
+        context.mergeClaimsWithClientCapabilities(invalidClaims);
+    }
+
+    @Test
+    public void testMergeClaimsWithValidInputAccessTokenClaim() throws JSONException {
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
+        final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
+        final List<String> capabilities = new ArrayList<>();
+        capabilities.add("CP1");
+        capabilities.add("CP2");
+        context.setClientCapabilites(capabilities);
+
+        String inputClaims = "{\"userinfo\":{\"given_name\":{\"essential\":true},\"email\":{\"essential\":true}}," +
+                "\"access_token\":{\"auth_time\":{\"essential\":true}}}";
+
+        String expectedJson = "{\"userinfo\":{\"given_name\":{\"essential\":true},\"email\":{\"essential\":true}}," +
+                "\"access_token\":{\"auth_time\":{\"essential\":true},\"xms_cc\":{\"values\":[\"CP1\",\"CP2\"]}}}";
+
+        String mergedClaims  = context.mergeClaimsWithClientCapabilities(inputClaims);
+
+        JSONObject mergedClaimsJson = new JSONObject(mergedClaims);
+
+        assertNotNull(mergedClaimsJson);
+        assertEquals("Valid merged claims Json", expectedJson, mergedClaimsJson.toString());
+    }
+
+
+
+
 
     private String getErrorResponseBody(final String errorCode) {
         final String errorDescription = "\"error_description\":\"AADSTS70000: Authentication failed. Refresh Token is not valid.\r\nTrace ID: bb27293d-74e4-4390-882b-037a63429026\r\nCorrelation ID: b73106d5-419b-4163-8bc6-d2c18f1b1a13\r\nTimestamp: 2014-11-06 18:39:47Z\",\"error_codes\":[70000],\"timestamp\":\"2014-11-06 18:39:47Z\",\"trace_id\":\"bb27293d-74e4-4390-882b-037a63429026\",\"correlation_id\":\"b73106d5-419b-4163-8bc6-d2c18f1b1a13\",\"submit_url\":null,\"context\":null";

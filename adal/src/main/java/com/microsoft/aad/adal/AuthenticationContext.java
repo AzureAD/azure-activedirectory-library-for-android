@@ -273,7 +273,7 @@ public class AuthenticationContext {
                              AuthenticationCallback<AuthenticationResult> callback) {
 
         acquireToken(resource, clientId, redirectUri, loginHint, PromptBehavior.Auto, null,
-                null , callback, EventStrings.ACQUIRE_TOKEN_1, wrapActivity(activity));
+                null , callback, EventStrings.ACQUIRE_TOKEN_1, wrapActivity(activity), false);
     }
 
     /**
@@ -302,7 +302,7 @@ public class AuthenticationContext {
                              AuthenticationCallback<AuthenticationResult> callback) {
 
         acquireToken(resource, clientId, redirectUri, loginHint, PromptBehavior.Auto, extraQueryParameters,
-                null, callback,  EventStrings.ACQUIRE_TOKEN_2, wrapActivity(activity));
+                null, callback,  EventStrings.ACQUIRE_TOKEN_2, wrapActivity(activity), false);
     }
 
     /**
@@ -328,7 +328,7 @@ public class AuthenticationContext {
                              AuthenticationCallback<AuthenticationResult> callback) {
 
         acquireToken(resource, clientId, redirectUri, null, prompt, null,
-                null, callback, EventStrings.ACQUIRE_TOKEN_3, wrapActivity(activity));
+                null, callback, EventStrings.ACQUIRE_TOKEN_3, wrapActivity(activity), false);
     }
 
     /**
@@ -353,7 +353,7 @@ public class AuthenticationContext {
                              @Nullable String redirectUri, @Nullable PromptBehavior prompt, @Nullable String extraQueryParameters,
                              AuthenticationCallback<AuthenticationResult> callback) {
         acquireToken(resource, clientId, redirectUri, null, prompt, extraQueryParameters,
-                null, callback, EventStrings.ACQUIRE_TOKEN_4, wrapActivity(activity));
+                null, callback, EventStrings.ACQUIRE_TOKEN_4, wrapActivity(activity), false);
     }
 
     /**
@@ -381,7 +381,7 @@ public class AuthenticationContext {
                              @Nullable String extraQueryParameters, AuthenticationCallback<AuthenticationResult> callback) {
 
         acquireToken(resource, clientId, redirectUri, loginHint, prompt, extraQueryParameters,
-                null, callback, EventStrings.ACQUIRE_TOKEN_5, wrapActivity(activity));
+                null, callback, EventStrings.ACQUIRE_TOKEN_5, wrapActivity(activity), false);
     }
 
     /**
@@ -407,7 +407,7 @@ public class AuthenticationContext {
                              @Nullable final String claims, final AuthenticationCallback<AuthenticationResult> callback) {
 
         acquireToken(resource, clientId, redirectUri, loginHint, prompt, extraQueryParameters,
-                claims, callback, EventStrings.ACQUIRE_TOKEN_8, wrapActivity(activity));
+                claims, callback, EventStrings.ACQUIRE_TOKEN_8, wrapActivity(activity), false);
     }
 
     /**
@@ -434,7 +434,7 @@ public class AuthenticationContext {
                              @Nullable String extraQueryParameters, AuthenticationCallback<AuthenticationResult> callback) {
 
         acquireToken(resource, clientId, redirectUri, loginHint, prompt, extraQueryParameters,
-                null, callback, EventStrings.ACQUIRE_TOKEN_6, fragment);
+                null, callback, EventStrings.ACQUIRE_TOKEN_6, fragment, false);
 
     }
 
@@ -461,7 +461,7 @@ public class AuthenticationContext {
                              @Nullable final String claims, final AuthenticationCallback<AuthenticationResult> callback) {
 
         acquireToken(resource, clientId, redirectUri, loginHint, prompt, extraQueryParameters,
-                claims, callback, EventStrings.ACQUIRE_TOKEN_9, fragment);
+                claims, callback, EventStrings.ACQUIRE_TOKEN_9, fragment, false);
     }
 
     /**
@@ -491,7 +491,7 @@ public class AuthenticationContext {
                              AuthenticationCallback<AuthenticationResult> callback) {
 
         acquireToken(resource, clientId, redirectUri, loginHint, prompt, extraQueryParameters,
-                null, callback, EventStrings.ACQUIRE_TOKEN_7, null);
+                null, callback, EventStrings.ACQUIRE_TOKEN_7, null, true);
     }
 
     /**
@@ -523,7 +523,7 @@ public class AuthenticationContext {
                              @Nullable final String claims, final AuthenticationCallback<AuthenticationResult> callback) {
 
         acquireToken(resource, clientId, redirectUri, loginHint, prompt, extraQueryParameters,
-                claims, callback, EventStrings.ACQUIRE_TOKEN_10, null);
+                claims, callback, EventStrings.ACQUIRE_TOKEN_10, null, false);
 
     }
 
@@ -531,7 +531,7 @@ public class AuthenticationContext {
                               @Nullable final String loginHint, @Nullable final PromptBehavior prompt,
                               @Nullable String extraQueryParameters, @Nullable final String claims,
                               final AuthenticationCallback<AuthenticationResult> callback, String apiEventString,
-                              final IWindowComponent fragment){
+                              final IWindowComponent fragment, final boolean useDialog){
 
         throwIfClaimsInBothExtraQpAndClaimsParameter(claims, extraQueryParameters);
 
@@ -554,12 +554,12 @@ public class AuthenticationContext {
             request.setTelemetryRequestId(requestId);
             setAppInfoToRequest(request);
 
-            if(!TextUtils.isEmpty(loginHint)) {
+            if(!StringExtensions.isNullOrBlank(loginHint)) {
                 apiEvent.setLoginHint(loginHint);
                 request.setUserIdentifierType(UserIdentifierType.LoginHint);
             }
 
-            createAcquireTokenRequest(apiEvent).acquireToken(fragment, false, request, callback);
+            createAcquireTokenRequest(apiEvent).acquireToken(fragment, useDialog, request, callback);
         }
 
     }
@@ -1157,22 +1157,77 @@ public class AuthenticationContext {
         };
     }
 
-    private String mergeClaimsWithClientCapabilities(String claims) throws JSONException {
+    /**
+     * Util method to merge
+     * @param claims input claims passed on acquireToken call
+     * @return merged claims with capabilities
+     * @throws JSONException if input claims is an invalid JSON
+     *
+     * Sample input claim :
+     *      {
+                "userinfo":
+                {
+                    "given_name": {"essential": true},
+                    "email": {"essential": true},
+                },
+                "id_token":
+                {
+                    "auth_time": {"essential": true},
+                }
+            }
+
+     Sample capabilities list : [CP1, CP2 CP3]
+
+     Output merged claims :
+        {
+            "userinfo": {
+                "given_name": {
+                    "essential": true
+                },
+                "email": {
+                    "essential": true
+                }
+            },
+            "id_token": {
+                "auth_time": {
+                    "essential": true
+                }
+            },
+            "access_token": {
+                "xms_cc": {
+                    "values": ["CP1", "CP2"]
+                }
+            }
+        }
+     */
+    String mergeClaimsWithClientCapabilities(final String claims) throws JSONException {
         if (mClientCapabilites == null || mClientCapabilites.isEmpty()) {
             return claims;
         }
-        String claimsResult = null;
-        JSONArray capabilitiesArray = new JSONArray();
+        String claimsResult;
+        final JSONArray capabilitiesArray = new JSONArray();
 
         for (String capability : mClientCapabilites) {
             capabilitiesArray.put(capability);
         }
 
-        JSONObject capabilities = new JSONObject();
-        capabilities.put(AuthenticationConstants.OAuth2.CLIENT_CAPABILITIES_CLAIMS_LIST, capabilitiesArray);
+        final JSONObject capabilities = new JSONObject();
+        final JSONObject values = new JSONObject();
+        values.put("values", capabilitiesArray);
+        capabilities.put(AuthenticationConstants.OAuth2.CLIENT_CAPABILITIES_CLAIMS_LIST, values);
 
         if (!TextUtils.isEmpty(claims)) {
-            claimsResult = new JSONObject(claims).put(AuthenticationConstants.OAuth2.CLIENT_CAPABILITY_ACCESS_TOKEN, capabilities).toString();
+            final JSONObject claimsJson = new JSONObject(claims);
+
+            if (claimsJson.has(AuthenticationConstants.OAuth2.CLIENT_CAPABILITY_ACCESS_TOKEN)) {
+                final JSONObject accessTokenClaim = claimsJson.getJSONObject(AuthenticationConstants.OAuth2.CLIENT_CAPABILITY_ACCESS_TOKEN);
+                accessTokenClaim.put(AuthenticationConstants.OAuth2.CLIENT_CAPABILITIES_CLAIMS_LIST, values);
+                claimsJson.put(AuthenticationConstants.OAuth2.CLIENT_CAPABILITY_ACCESS_TOKEN, accessTokenClaim);
+            } else {
+                claimsJson.put(AuthenticationConstants.OAuth2.CLIENT_CAPABILITY_ACCESS_TOKEN, capabilities);
+            }
+            claimsResult = claimsJson.toString();
+
         } else {
             JSONObject claimsObject = new JSONObject();
             claimsObject.put(AuthenticationConstants.OAuth2.CLIENT_CAPABILITY_ACCESS_TOKEN, capabilities);
@@ -1461,7 +1516,7 @@ public class AuthenticationContext {
     }
 
     public void setClientCapabilites(List<String> clientCapabilites){
-        this.mClientCapabilites = clientCapabilites;
+        mClientCapabilites = clientCapabilites;
     }
 
     /**
