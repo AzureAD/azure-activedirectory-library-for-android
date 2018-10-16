@@ -566,6 +566,35 @@ public final class AuthenticationContextTest {
         assertNull("Extra query param is null", authenticationRequest2.getExtraQueryParamsAuthentication());
     }
 
+    @Test
+    public void testInvalidClaimsAcquireToken() throws InterruptedException {
+        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final AuthenticationContext context = getAuthenticationContext(mockContext,
+                "https://login.windows.net/common", false, null);
+
+        List<String> capabilities = new ArrayList<>();
+        capabilities.add("CC1");
+        capabilities.add("CC2");
+        context.setClientCapabilites(capabilities);
+
+        final MockActivity testActivity = new MockActivity();
+        final CountDownLatch signal = new CountDownLatch(1);
+        String expected = "&extraParam=1";
+        MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
+        testActivity.mSignal = signal;
+
+        // 1 - Send extra param
+        context.acquireToken(testActivity.getTestActivity(), "testResource",
+                "testClientId", "testredirectUri", "test_login_hint",
+                PromptBehavior.Always, "&extraParam=1", "invalid_claims", callback);
+        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+        // Check response in callback result
+        assertNotNull("Error is not null", callback.getException());
+        assertEquals("NOT_A_VALID_CLAIMS_JSON", ADALError.JSON_PARSE_ERROR,
+                ((AuthenticationException) callback.getException()).getCode());
+
+    }
+
     public static AuthenticationRequest createAuthenticationRequest(final String authority, final String resource,
                                                                     final String client, final String redirect, final String loginhint, final boolean isExtendedLifetimeEnabled) {
 
@@ -944,6 +973,8 @@ public final class AuthenticationContextTest {
                 testActivity.mStartActivityRequestCode);
         clearCache(context);
     }
+
+
 
     /**
      * acquire token using refresh token. All web calls are mocked. Refresh
@@ -1614,7 +1645,7 @@ public final class AuthenticationContextTest {
 
         latch.await();
 
-        verify(outputStream).write(Util.getPoseMessage(refreshTokenForPassedInAuthority, clientId, resource));
+        verify(outputStream).write(Util.getPostMessage(refreshTokenForPassedInAuthority, clientId, resource));
         assertTrue(HttpUrlConnectionFactory.getMockedConnectionOpenUrl().getHost().equals("login.microsoftonline.com"));
 
         // verify cache
@@ -2622,6 +2653,92 @@ public final class AuthenticationContextTest {
             e.printStackTrace();
         }
 
+        result = context.acquireTokenSilentSync(resource, clientId, TEST_IDTOKEN_UPN, claims.toString());
+        assertNull("Error is null", result.getErrorCode());
+        assertEquals("Same token as refresh token result", expectedAT,
+                result.getAccessToken());
+
+        clearCache(context);
+    }
+
+    @Test
+    public void testAcquireTokenSilentSyncClientCapabilitiesWithoutBroker() throws IOException, AuthenticationException, InterruptedException {
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+
+        final String clientId = "clientId";
+
+        final String tokenToTest = "accessToken=" + UUID.randomUUID();
+        final String expectedAT = "accesstoken";
+        String resource = "Resource" + UUID.randomUUID();
+        ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
+        mockCache.removeAll();
+
+        TestCacheItem newItem = new TestCacheItem();
+        newItem.setToken(tokenToTest);
+        newItem.setRefreshToken("refreshTokenNormal");
+        newItem.setAuthority(VALID_AUTHORITY);
+        newItem.setResource(resource);
+        newItem.setClientId(clientId);
+        newItem.setUserId(TEST_IDTOKEN_USERID);
+        newItem.setName("name");
+        newItem.setFamilyName("familyName");
+        newItem.setDisplayId(TEST_IDTOKEN_UPN);
+        newItem.setTenantId("tenantId");
+        newItem.setMultiResource(false);
+
+        addItemToCache(mockCache, newItem);
+
+        newItem = new TestCacheItem();
+        newItem.setToken("");
+        newItem.setRefreshToken("refreshTokenMultiResource");
+        newItem.setAuthority(VALID_AUTHORITY);
+        newItem.setResource(resource);
+        newItem.setClientId(clientId);
+        newItem.setUserId(TEST_IDTOKEN_USERID);
+        newItem.setName("name");
+        newItem.setFamilyName("familyName");
+        newItem.setDisplayId(TEST_IDTOKEN_UPN);
+        newItem.setTenantId("tenantId");
+        newItem.setMultiResource(true);
+
+        addItemToCache(mockCache, newItem);
+        // only one MRRT for same user, client, authority
+        final AuthenticationContext context = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, mockCache);
+
+        final String response = "{\"access_token\":\"accesstoken"
+                + "\",\"token_type\":\"Bearer\",\"expires_in\":\"29344\",\"expires_on\":\"1368768616\","
+                + "\"resource\":\"" + resource + "\","
+                + "\"refresh_token\":\""
+                + "refreshToken" + "\",\"scope\":\"*\",\"id_token\":\"" + TEST_IDTOKEN + "\", \"client_info\":\"" + Util.TEST_CLIENT_INFO + "\"}";
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
+        Util.prepareMockedUrlConnection(mockedConnection);
+        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response),
+                Util.createInputStream(response));
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
+
+        // 1st token request, read from cache.
+        AuthenticationResult result = context.acquireTokenSilentSync(resource, clientId, TEST_IDTOKEN_UPN);
+        assertNull("Error is null", result.getErrorCode());
+        assertEquals("Same token in response as in cache", tokenToTest,
+                result.getAccessToken());
+
+        List<String> capabilities = new ArrayList<>();
+        capabilities.add("CC1");
+        capabilities.add("CC2");
+        context.setClientCapabilites(capabilities);
+
+        JSONObject email = new JSONObject();
+        JSONObject claims = new JSONObject();
+        try {
+            email.put("email", null);
+            claims.put("id_token", email);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
         // 2nd token request with claims with correct claims
         result = context.acquireTokenSilentSync(resource, clientId, TEST_IDTOKEN_UPN, claims.toString());
         assertNull("Error is null", result.getErrorCode());
@@ -2629,6 +2746,131 @@ public final class AuthenticationContextTest {
                 result.getAccessToken());
 
         clearCache(context);
+    }
+
+    @Test
+    public void testAcquireTokenSilentSyncClientCapabilitiesAndClaims() throws IOException, AuthenticationException, InterruptedException {
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+
+        final String clientId = "clientId";
+
+        final String tokenToTest = "accessToken=" + UUID.randomUUID();
+        final String expectedAT = "accesstoken";
+        String resource = "Resource" + UUID.randomUUID();
+        ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
+        mockCache.removeAll();
+
+        TestCacheItem newItem = new TestCacheItem();
+        newItem.setToken(tokenToTest);
+        newItem.setRefreshToken("refreshTokenNormal");
+        newItem.setAuthority(VALID_AUTHORITY);
+        newItem.setResource(resource);
+        newItem.setClientId(clientId);
+        newItem.setUserId(TEST_IDTOKEN_USERID);
+        newItem.setName("name");
+        newItem.setFamilyName("familyName");
+        newItem.setDisplayId(TEST_IDTOKEN_UPN);
+        newItem.setTenantId("tenantId");
+        newItem.setMultiResource(false);
+
+        addItemToCache(mockCache, newItem);
+
+        newItem = new TestCacheItem();
+        newItem.setToken("");
+        newItem.setRefreshToken("refreshTokenMultiResource");
+        newItem.setAuthority(VALID_AUTHORITY);
+        newItem.setResource(resource);
+        newItem.setClientId(clientId);
+        newItem.setUserId(TEST_IDTOKEN_USERID);
+        newItem.setName("name");
+        newItem.setFamilyName("familyName");
+        newItem.setDisplayId(TEST_IDTOKEN_UPN);
+        newItem.setTenantId("tenantId");
+        newItem.setMultiResource(true);
+
+        addItemToCache(mockCache, newItem);
+        // only one MRRT for same user, client, authority
+        final AuthenticationContext context = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, mockCache);
+
+        final String response = "{\"access_token\":\"accesstoken"
+                + "\",\"token_type\":\"Bearer\",\"expires_in\":\"29344\",\"expires_on\":\"1368768616\","
+                + "\"resource\":\"" + resource + "\","
+                + "\"refresh_token\":\""
+                + "refreshToken" + "\",\"scope\":\"*\",\"id_token\":\"" + TEST_IDTOKEN + "\", \"client_info\":\"" + Util.TEST_CLIENT_INFO + "\"}";
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
+        Util.prepareMockedUrlConnection(mockedConnection);
+        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response),
+                Util.createInputStream(response));
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
+
+        // 1st token request, read from cache.
+        AuthenticationResult result = context.acquireTokenSilentSync(resource, clientId, TEST_IDTOKEN_UPN);
+        assertNull("Error is null", result.getErrorCode());
+        assertEquals("Same token in response as in cache", tokenToTest,
+                result.getAccessToken());
+
+
+        List<String> capabilities = new ArrayList<>();
+        capabilities.add("CC1");
+        capabilities.add("CC2");
+        context.setClientCapabilites(capabilities);
+
+
+
+        // 2nd token request with claims with correct claims
+        result = context.acquireTokenSilentSync(resource, clientId, TEST_IDTOKEN_UPN);
+        assertNull("Error is null", result.getErrorCode());
+        assertEquals("Same token as refresh token result", expectedAT,
+                result.getAccessToken());
+
+        clearCache(context);
+    }
+
+
+    @Test(expected = AuthenticationException.class)
+    public void testInvalidClaimsAcquireTokenSilent() throws AuthenticationException, InterruptedException {
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+
+        final String clientId = "clientId";
+
+        final String tokenToTest = "accessToken=" + UUID.randomUUID();
+        String resource = "Resource" + UUID.randomUUID();
+        ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
+        mockCache.removeAll();
+
+        TestCacheItem newItem = new TestCacheItem();
+        newItem.setToken(tokenToTest);
+        newItem.setRefreshToken("refreshTokenNormal");
+        newItem.setAuthority(VALID_AUTHORITY);
+        newItem.setResource(resource);
+        newItem.setClientId(clientId);
+        newItem.setUserId(TEST_IDTOKEN_USERID);
+        newItem.setName("name");
+        newItem.setFamilyName("familyName");
+        newItem.setDisplayId(TEST_IDTOKEN_UPN);
+        newItem.setTenantId("tenantId");
+        newItem.setMultiResource(false);
+
+        addItemToCache(mockCache, newItem);
+
+        final AuthenticationContext context = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, mockCache);
+
+        // 1st token request, read from cache.
+        AuthenticationResult result = context.acquireTokenSilentSync(resource, clientId, TEST_IDTOKEN_UPN);
+        assertNull("Error is null", result.getErrorCode());
+        assertEquals("Same token in response as in cache", tokenToTest,
+                result.getAccessToken());
+
+        List<String> capabilities = new ArrayList<>();
+        capabilities.add("CC1");
+        capabilities.add("CC2");
+        context.setClientCapabilites(capabilities);
+
+        context.acquireTokenSilentSync(resource, clientId, TEST_IDTOKEN_UPN, "invalid_claims");
     }
 
     @Test
@@ -3007,6 +3249,106 @@ public final class AuthenticationContextTest {
         final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
         context.deserialize(differentVersionString);
     }
+
+    @Test
+    public void testMergeClaimsWithValidInput() throws JSONException {
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
+        final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
+        final List<String> capabilities = new ArrayList<>();
+        capabilities.add("CP1");
+        capabilities.add("CP2");
+        context.setClientCapabilites(capabilities);
+
+        String inputClaims = "{\"userinfo\":{\"given_name\":{\"essential\":true},\"email\":{\"essential\":true}},\"id_token\":{\"auth_time\":{\"essential\":true}}}";
+
+        String expectedJson = "{\"userinfo\":{\"given_name\":{\"essential\":true},\"email\":{\"essential\":true}},\"id_token\":" +
+                "{\"auth_time\":{\"essential\":true}},\"access_token\":{\"xms_cc\":{\"values\":[\"CP1\",\"CP2\"]}}}";
+
+        String mergedClaims  = context.mergeClaimsWithClientCapabilities(inputClaims);
+
+        JSONObject mergedClaimsJson = new JSONObject(mergedClaims);
+
+        assertNotNull(mergedClaimsJson);
+        assertEquals("Valid merged claims Json", expectedJson, mergedClaimsJson.toString());
+    }
+
+    @Test
+    public void testMergeClaimsWithNoClientCapabilities() throws JSONException {
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
+        final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
+
+        String inputClaims = "{\"userinfo\":{\"given_name\":{\"essential\":true},\"email\":{\"essential\":true}},\"id_token\":{\"auth_time\":{\"essential\":true}}}";
+        String mergedClaims  = context.mergeClaimsWithClientCapabilities(inputClaims);
+
+        JSONObject mergedClaimsJson = new JSONObject(mergedClaims);
+
+        assertNotNull(mergedClaimsJson);
+        assertEquals("Valid merged claims Json", inputClaims, mergedClaimsJson.toString());
+    }
+
+    @Test
+    public void testMergeClaimsWithNoInputClaims() throws JSONException {
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
+        final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
+
+        final List<String> capabilities = new ArrayList<>();
+        capabilities.add("CP1");
+        capabilities.add("CP2");
+        context.setClientCapabilites(capabilities);
+
+        String expectedClaims = "{\"access_token\":{\"xms_cc\":{\"values\":[\"CP1\",\"CP2\"]}}}";
+        String mergedClaims  = context.mergeClaimsWithClientCapabilities(null);
+
+        JSONObject mergedClaimsJson = new JSONObject(mergedClaims);
+
+        assertNotNull(mergedClaimsJson);
+        assertEquals("Valid merged claims Json", expectedClaims, mergedClaimsJson.toString());
+    }
+
+    @Test(expected = JSONException.class)
+    public void testMergeClaimsWithInvalidInputClaims() throws JSONException {
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
+        final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
+        final List<String> capabilities = new ArrayList<>();
+        capabilities.add("CP1");
+        capabilities.add("CP2");
+        context.setClientCapabilites(capabilities);
+
+        String invalidClaims = "{\"userinfo\"";
+        context.mergeClaimsWithClientCapabilities(invalidClaims);
+    }
+
+    @Test
+    public void testMergeClaimsWithValidInputAccessTokenClaim() throws JSONException {
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
+        final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
+        final List<String> capabilities = new ArrayList<>();
+        capabilities.add("CP1");
+        capabilities.add("CP2");
+        context.setClientCapabilites(capabilities);
+
+        String inputClaims = "{\"userinfo\":{\"given_name\":{\"essential\":true},\"email\":{\"essential\":true}}," +
+                "\"access_token\":{\"auth_time\":{\"essential\":true}}}";
+
+        String expectedJson = "{\"userinfo\":{\"given_name\":{\"essential\":true},\"email\":{\"essential\":true}}," +
+                "\"access_token\":{\"auth_time\":{\"essential\":true},\"xms_cc\":{\"values\":[\"CP1\",\"CP2\"]}}}";
+
+        String mergedClaims  = context.mergeClaimsWithClientCapabilities(inputClaims);
+
+        JSONObject mergedClaimsJson = new JSONObject(mergedClaims);
+
+        assertNotNull(mergedClaimsJson);
+        assertEquals("Valid merged claims Json", expectedJson, mergedClaimsJson.toString());
+    }
+
+
+
+
 
     private String getErrorResponseBody(final String errorCode) {
         final String errorDescription = "\"error_description\":\"AADSTS70000: Authentication failed. Refresh Token is not valid.\r\nTrace ID: bb27293d-74e4-4390-882b-037a63429026\r\nCorrelation ID: b73106d5-419b-4163-8bc6-d2c18f1b1a13\r\nTimestamp: 2014-11-06 18:39:47Z\",\"error_codes\":[70000],\"timestamp\":\"2014-11-06 18:39:47Z\",\"trace_id\":\"bb27293d-74e4-4390-882b-037a63429026\",\"correlation_id\":\"b73106d5-419b-4163-8bc6-d2c18f1b1a13\",\"submit_url\":null,\"context\":null";
