@@ -2653,7 +2653,7 @@ public final class AuthenticationContextTest {
             e.printStackTrace();
         }
 
-        result = context.acquireTokenSilentSync(resource, clientId, TEST_IDTOKEN_UPN);
+        result = context.acquireTokenSilentSync(resource, clientId, TEST_IDTOKEN_UPN, claims.toString());
         assertNull("Error is null", result.getErrorCode());
         assertEquals("Same token as refresh token result", expectedAT,
                 result.getAccessToken());
