@@ -1,7 +1,7 @@
 // Variables for entire project
 ext {
     // SDK
-    minSdkVersion = 14
+    minSdkVersion = 16
     automationAppMinSDKVersion = 21
     targetSdkVersion = 27
     compileSdkVersion = 27
@@ -17,6 +17,6 @@ ext {
     runnerVersion = "1.0.1"
     gsonVersion = "2.8.4"
     rulesVersion = "1.0.0"
-    adalLegacy = "1.14.0"
-    msal = "0.1.1"
+    adalLegacy = "1.15.0"
+    msal = "0.1.3"
 }

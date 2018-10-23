@@ -23,9 +23,9 @@
 
 package com.microsoft.aad.adal;
 
-
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
+import com.microsoft.identity.common.adal.internal.util.HashMapExtensions;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.ClientInfo;
 
 import org.json.JSONException;
@@ -71,13 +71,13 @@ public class AuthenticationResult implements Serializable {
 
     private String mCode;
 
-    private String mAccessToken;
+    protected String mAccessToken;
 
-    private String mRefreshToken;
+    protected String mRefreshToken;
 
     private String mTokenType;
 
-    private Date mExpiresOn;
+    protected Date mExpiresOn;
 
     //Number of seconds the token is valid
     private Long mExpiresIn;
@@ -85,39 +85,39 @@ public class AuthenticationResult implements Serializable {
     //Number of milliseconds since the unix epoch
     private Long mResponseReceived;
 
-    private String mErrorCode;
+    protected String mErrorCode;
 
-    private String mErrorDescription;
+    protected String mErrorDescription;
 
-    private String mErrorCodes;
+    protected String mErrorCodes;
 
-    private boolean mIsMultiResourceRefreshToken;
+    protected boolean mIsMultiResourceRefreshToken;
 
-    private UserInfo mUserInfo;
+    protected UserInfo mUserInfo;
 
-    private String mTenantId;
+    protected String mTenantId;
 
-    private String mIdToken;
+    protected String mIdToken;
 
-    private AuthenticationStatus mStatus = AuthenticationStatus.Failed;
+    protected AuthenticationStatus mStatus = AuthenticationStatus.Failed;
 
-    private boolean mInitialRequest;
+    protected boolean mInitialRequest;
 
-    private String mFamilyClientId;
+    protected String mFamilyClientId;
 
-    private boolean mIsExtendedLifeTimeToken = false;
+    protected boolean mIsExtendedLifeTimeToken = false;
 
-    private Date mExtendedExpiresOn;
+    protected Date mExtendedExpiresOn;
 
-    private String mAuthority;
+    protected String mAuthority;
 
-    private CliTelemInfo mCliTelemInfo;
+    protected CliTelemInfo mCliTelemInfo;
 
-    private HashMap<String, String> mHttpResponseBody = null;
+    protected HashMap<String, String> mHttpResponseBody = null;
 
-    private int mServiceStatusCode = -1;
+    protected int mServiceStatusCode = -1;
 
-    private HashMap<String, List<String>> mHttpResponseHeaders = null;
+    protected HashMap<String, List<String>> mHttpResponseHeaders = null;
 
     private String mClientId;
 
@@ -188,6 +188,10 @@ public class AuthenticationResult implements Serializable {
                         cacheItem.getExtendedExpiresOn(),
                         cacheItem.getClientId()
                 );
+
+        final CliTelemInfo cliTelemInfo = new CliTelemInfo();
+        cliTelemInfo.setSpeRing(cacheItem.getSpeRing());
+        result.setCliTelemInfo(cliTelemInfo);
 
         return result;
     }
@@ -440,13 +444,13 @@ public class AuthenticationResult implements Serializable {
         mFamilyClientId = familyClientId;
     }
 
-    final void setAuthority(final String authority) {
+    public final void setAuthority(final String authority) {
         if (!StringExtensions.isNullOrBlank(authority)) {
             mAuthority = authority;
         }
     }
 
-    final CliTelemInfo getCliTelemInfo() {
+    public final CliTelemInfo getCliTelemInfo() {
         return mCliTelemInfo;
     }
 
@@ -485,7 +489,7 @@ public class AuthenticationResult implements Serializable {
     }
 
     /**
-     *  Get service status code.
+     * Get service status code.
      *
      * @return ServiceStatusCode
      */

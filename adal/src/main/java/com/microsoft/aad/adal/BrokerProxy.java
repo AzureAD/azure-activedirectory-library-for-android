@@ -771,13 +771,17 @@ class BrokerProxy implements IBrokerProxy {
         }
 
         if (request.isClaimsChallengePresent()) {
-            brokerOptions.putString(AuthenticationConstants.Broker.BROKER_SKIP_CACHE, Boolean.toString(true));
             brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CLAIMS, request.getClaimsChallenge());
         }
 
         if (request.getForceRefresh()){
             brokerOptions.putString(AuthenticationConstants.Broker.BROKER_FORCE_REFRESH, Boolean.toString(true));
         }
+
+        brokerOptions.putString(AuthenticationConstants.AAD.APP_VERSION, request.getAppVersion());
+
+        brokerOptions.putString(AuthenticationConstants.AAD.APP_PACKAGE_NAME, request.getAppName());
+
 
         return brokerOptions;
     }

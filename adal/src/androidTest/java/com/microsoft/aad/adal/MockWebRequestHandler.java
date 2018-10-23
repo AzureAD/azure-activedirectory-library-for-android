@@ -109,8 +109,8 @@ class MockWebRequestHandler implements IWebRequestHandler {
     }
 
     @Override
-    public void setClientVersion(String version) {
-        mClientVersion = version;
+    public void setClientVersion(String clientVersion) { 
+        mClientVersion = clientVersion;
     }
 
 }

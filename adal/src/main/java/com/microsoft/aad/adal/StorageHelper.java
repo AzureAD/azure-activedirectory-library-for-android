@@ -30,6 +30,8 @@ import android.os.Build;
 import android.security.KeyPairGeneratorSpec;
 import android.util.Base64;
 
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;

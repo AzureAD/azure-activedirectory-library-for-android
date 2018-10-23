@@ -272,6 +272,11 @@ public class OauthTests {
         final Oauth2 oAuthxtraQPContainHasChrome = createOAuthInstance(extraQPContainHasChrome);
         final String actualCodeRequestQPHasChrome = oAuthxtraQPContainHasChrome.getCodeRequestUrl();
         assertTrue("Prompt", actualCodeRequestQPHasChrome.contains("&prompt=login&extra=1&haschrome=1"));
+
+        request.setAppName("test.mock.");
+        request.setAppVersion("test");
+        final Oauth2  oAuthWithAppInfo = createOAuthInstance(request);
+        assertTrue("App Info", oAuthWithAppInfo.getCodeRequestUrl().contains("&x-app-name=test.mock.&x-app-ver=test"));
     }
 
     @Test
@@ -346,6 +351,24 @@ public class OauthTests {
                 "Token request",
                 "grant_type=authorization_code&code=authorizationcodevalue%3D&client_id=client+1234567890-%2B%3D%3B%27&redirect_uri=redirect+1234567890-%2B%3D%3B%27&client_info=1",
                 oauthWithoutLoginHint.buildTokenRequestMessage("authorizationcodevalue="));
+
+        request.setAppName("test.mock.");
+        request.setAppVersion("test");
+
+        final Oauth2 oauthAppInfo = createOAuthInstance(request);
+        assertEquals(
+                "Token request",
+                "grant_type=authorization_code&code=authorizationcodevalue%3D&client_id=client+1234567890-%2B%3D%3B%27&redirect_uri=redirect+1234567890-%2B%3D%3B%27&client_info=1&x-app-name=test.mock.&x-app-ver=test",
+                oauthAppInfo.buildTokenRequestMessage("authorizationcodevalue="));
+
+        // with claims challenge
+        request.setClaimsChallenge("testClaims");
+        final Oauth2 oauthClaims = createOAuthInstance(request);
+        assertEquals(
+                "Token request",
+                "grant_type=authorization_code&code=authorizationcodevalue%3D&client_id=client+1234567890-%2B%3D%3B%27&redirect_uri=redirect+1234567890-%2B%3D%3B%27&client_info=1&claims=testClaims&x-app-name=test.mock.&x-app-ver=test",
+                oauthClaims.buildTokenRequestMessage("authorizationcodevalue="));
+
     }
 
     /**
@@ -359,10 +382,7 @@ public class OauthTests {
                 "client 1234567890-+=;'", "redirect 1234567890-+=;'", "loginhint@ggg.com", null,
                 null, null, false);
         final Oauth2 oauth2 = createOAuthInstance(request);
-        assertEquals(
-                "Token request",
-                "grant_type=refresh_token&refresh_token=refreshToken23434%3D&client_id=client+1234567890-%2B%3D%3B%27&client_info=1&resource=resource%2520+",
-                oauth2.buildRefreshTokenRequestMessage("refreshToken23434="));
+        assertTrue(oauth2.buildRefreshTokenRequestMessage("refreshToken23434=").startsWith("grant_type=refresh_token&refresh_token=refreshToken23434%3D&client_id=client+1234567890-%2B%3D%3B%27&client_info=1&resource=resource%2520+"));
 
         // without resource
         final AuthenticationRequest requestWithoutResource = createAuthenticationRequest(
@@ -370,10 +390,22 @@ public class OauthTests {
                 "redirect 1234567890-+=;'", "loginhint@ggg.com", null, null, null, false);
 
         final Oauth2 oauthWithoutResource = createOAuthInstance(requestWithoutResource);
-        assertEquals(
-                "Token request",
-                "grant_type=refresh_token&refresh_token=refreshToken234343455%3D&client_id=client+1234567890-%2B%3D%3B%27&client_info=1",
-                oauthWithoutResource.buildRefreshTokenRequestMessage("refreshToken234343455="));
+        assertTrue(oauthWithoutResource.buildRefreshTokenRequestMessage("refreshToken234343455=").startsWith("grant_type=refresh_token&refresh_token=refreshToken234343455%3D&client_id=client+1234567890-%2B%3D%3B%27&client_info=1"));
+
+        request.setAppName("test.mock.");
+        request.setAppVersion("test");
+
+        final Oauth2 oauthAppInfo = createOAuthInstance(request);
+        assertEquals("grant_type=refresh_token&refresh_token=refreshToken23434%3D&client_id=client+1234567890-%2B%3D%3B%27&client_info=1&resource=resource%2520+&redirect_uri=redirect+1234567890-%2B%3D%3B%27&x-app-name=test.mock.&x-app-ver=test",
+                oauthAppInfo.buildRefreshTokenRequestMessage("refreshToken23434="));
+
+        // with claims challenge
+        request.setClaimsChallenge("testClaims");
+        final Oauth2 oauthClaims = createOAuthInstance(request);
+
+        assertEquals("grant_type=refresh_token&refresh_token=refreshToken23434%3D&client_id=client+1234567890-%2B%3D%3B%27&client_info=1&resource=resource%2520+&redirect_uri=redirect+1234567890-%2B%3D%3B%27&claims=testClaims&x-app-name=test.mock.&x-app-ver=test",
+                oauthClaims.buildRefreshTokenRequestMessage("refreshToken23434="));
+
     }
 
     /**

@@ -140,6 +140,11 @@ public enum ADALError {
     IO_EXCEPTION("I/O exception"),
 
     /**
+     * I/O exception.
+     */
+    SOCKET_TIMEOUT_EXCEPTION("Socket timeout exception"),
+
+    /**
      * Invalid argument.
      */
     ARGUMENT_EXCEPTION("Invalid argument"),
@@ -357,9 +362,19 @@ public enum ADALError {
     BROKER_PACKAGE_NAME_NOT_FOUND("Broker is not installed in your system"),
 
     /**
+     * Broker failed to get the PRT.
+     */
+    BROKER_PRT_FAILED("Broker failed to get PRT"),
+    
+    /**
      * Authenticator is not responding.
      */
     BROKER_AUTHENTICATOR_NOT_RESPONDING("Authenticator is not responding"),
+
+    /**
+     * Operation was cancelled by the broker
+     */
+    BROKER_AUTHENTICATOR_OPERATION_CANCEL("Operation was cancelled by the broker"),
 
     /**
      * Authenticator error.
@@ -425,7 +440,17 @@ public enum ADALError {
      * Signature is not saved.
      */
     BROKER_SIGNATURE_NOT_SAVED("Signature is not saved"),
+    
+    /**
+     * Device registration failed
+     */
+    BROKER_ACCOUNT_DEVICE_REGISTRY_FAILURE("Device registration failed"),
 
+    /**
+     * Token request after resolving web interrupt failed.
+     */
+    BROKER_ACCOUNT_FAILED_RESOLVED_INTERRUPT("Token request after resolving web interrupt failed"),
+    
     /**
      * Device does not support the algorithm.
      */
@@ -598,6 +623,11 @@ public enum ADALError {
     BROKER_APP_INSTALLATION_STARTED("Broker app installation started"),
 
     /**
+     * Multiple parallel UI requests. Broker will only allow one UI request per app at a time. 
+     */
+    PARALLEL_UI_REQUESTS("Parallel UI requests, cancelling and only one request will be allowed."),
+
+    /**
      * The version field of x-ms-clitelem contained an unknown or unsupported value.
      */
     X_MS_CLITELEM_VERSION_UNRECOGNIZED("Unrecognized x-ms-clitelem header version"),
@@ -606,6 +636,11 @@ public enum ADALError {
      * The value of the x-ms-clitelem header contained malformed data.
      */
     X_MS_CLITELEM_MALFORMED("Malformed x-ms-clitelem header"),
+
+    /**
+     * Error logged when DeviceCertProxy class is sought, but found to be uninitialized.
+     */
+    DEVICE_CERT_PROXY_UNINITIALIZED("WPJ Device Certificate Proxy class was not initialized."),
 
     /**
      * Failed to bind the service in broker app.
@@ -667,6 +702,7 @@ public enum ADALError {
         exceptionMap.put(ErrorStrings.ENCRYPTION_ERROR, ADALError.ENCRYPTION_ERROR);
         exceptionMap.put(ErrorStrings.INVALID_JWT, ADALError.JSON_PARSE_ERROR);
         exceptionMap.put(ErrorStrings.IO_ERROR, ADALError.IO_EXCEPTION);
+        exceptionMap.put(ErrorStrings.SOCKET_TIMEOUT, ADALError.SOCKET_TIMEOUT_EXCEPTION);
         exceptionMap.put(ErrorStrings.JSON_PARSE_FAILURE, ADALError.JSON_PARSE_ERROR);
         // TODO: :O
         exceptionMap.put(ErrorStrings.MALFORMED_URL, ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL);

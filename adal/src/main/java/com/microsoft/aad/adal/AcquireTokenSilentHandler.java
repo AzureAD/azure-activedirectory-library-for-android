@@ -107,8 +107,8 @@ class AcquireTokenSilentHandler {
         // Check for if there is valid access token item in the cache.
         final TokenCacheItem accessTokenItem = mTokenCacheAccessor.getATFromCache(mAuthRequest.getResource(),
                 mAuthRequest.getClientId(), mAuthRequest.getUserFromRequest());
-        // If accessToken is null or if the user requested force refresh then get a new access token using local refresh tokens
-        if (accessTokenItem == null || mAuthRequest.getForceRefresh()) {
+        // If accessToken is null or if the user requested force refresh or if claims challenge is present then get a new access token using local refresh tokens
+        if (accessTokenItem == null || mAuthRequest.getForceRefresh() || mAuthRequest.isClaimsChallengePresent()) {
             Logger.v(TAG + methodName, "No valid access token exists, try with refresh token.");
             return tryRT();
         }
@@ -342,7 +342,7 @@ class AcquireTokenSilentHandler {
         final AuthenticationResult result = acquireTokenWithRefreshToken(cachedItem.getRefreshToken());
 
         if (result != null && !result.isExtendedLifeTimeToken()) {
-            mTokenCacheAccessor.updateCachedItemWithResult(mAuthRequest.getResource(), mAuthRequest.getClientId(),
+            mTokenCacheAccessor.updateCachedItemWithResult(mAuthRequest,
                     result, cachedItem);
         }
 

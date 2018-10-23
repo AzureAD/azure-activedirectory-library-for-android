@@ -21,21 +21,20 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 
-package com.microsoft.identity.common.test.automation;
+package com.microsoft.identity.common.test.automation.tests_broker;
 
 import com.microsoft.identity.common.test.automation.actors.User;
-import com.microsoft.identity.common.test.automation.interactions.ClickDone;
-import com.microsoft.identity.common.test.automation.model.AuthenticationResult;
 import com.microsoft.identity.common.test.automation.model.Constants;
 import com.microsoft.identity.common.test.automation.questions.AccessTokenFromAuthenticationResult;
-import com.microsoft.identity.common.test.automation.questions.AuthenticationResultFromResultInfo;
 import com.microsoft.identity.common.test.automation.tasks.AcquireToken;
-import com.microsoft.identity.common.test.automation.tasks.AcquireTokenSilent;
+import com.microsoft.identity.common.test.automation.tasks.authenticatorapp.WorkplaceLeave;
+import com.microsoft.identity.common.test.automation.ui.Results;
 import com.microsoft.identity.common.test.automation.utility.Scenario;
 import com.microsoft.identity.common.test.automation.utility.TestConfigurationQuery;
 
 import net.serenitybdd.junit.runners.SerenityParameterizedRunner;
 import net.serenitybdd.screenplay.abilities.BrowseTheWeb;
+import net.serenitybdd.screenplay.waits.WaitUntil;
 import net.thucydides.core.annotations.Managed;
 import net.thucydides.core.annotations.Steps;
 import net.thucydides.junit.annotations.TestData;
@@ -56,37 +55,21 @@ import io.appium.java_client.service.local.AppiumDriverLocalService;
 import static net.serenitybdd.screenplay.GivenWhenThen.givenThat;
 import static net.serenitybdd.screenplay.GivenWhenThen.seeThat;
 import static net.serenitybdd.screenplay.GivenWhenThen.then;
-import static net.serenitybdd.screenplay.GivenWhenThen.when;
-import static org.hamcrest.Matchers.not;
+import static net.serenitybdd.screenplay.matchers.WebElementStateMatchers.isVisible;
+import static org.hamcrest.Matchers.notNullValue;
 
 @RunWith(SerenityParameterizedRunner.class)
-public class AcquireTokenSilentForceRefreshWithBroker {
+public class AcquireTokenTestWithAuthenticator {
 
     @TestData
     public static Collection<Object[]> FederationProviders() {
 
 
         return Arrays.asList(new Object[][]{
-                {"ADFSv2"}//,
-                /*)
-                {"ADFSv3"},
-                {"ADFSv4"},
-                {"PingFederate"},
-                {"Shibboleth"}
-                */
-
+                {"ADFSv2"}
         });
 
     }
-
-    @Steps
-    AcquireTokenSilent acquireTokenSilent;
-
-    @Steps
-    AcquireToken acquireToken;
-
-    @Steps
-    ClickDone clickDone;
 
     static AppiumDriverLocalService appiumService = null;
 
@@ -107,7 +90,14 @@ public class AcquireTokenSilentForceRefreshWithBroker {
     private User james;
     private String federationProvider;
 
-    public AcquireTokenSilentForceRefreshWithBroker(String federationProvider) {
+    @Steps
+    AcquireToken acquireToken;
+
+    @Steps
+    WorkplaceLeave workplaceLeave;
+
+
+    public AcquireTokenTestWithAuthenticator(String federationProvider) {
         this.federationProvider = federationProvider;
     }
 
@@ -129,34 +119,113 @@ public class AcquireTokenSilentForceRefreshWithBroker {
         newUser.setFederationProvider(scenario.getTestConfiguration().getUsers().getFederationProvider());
         newUser.setTokenRequest(scenario.getTokenRequest());
         newUser.getTokenRequest().setRedirectUri(Constants.AUTOMATION_TEST_APP_BROKER_REDIRECT_URI);
+        newUser.setCredential(scenario.getCredential());
         newUser.setSilentTokenRequest(scenario.getSilentTokenRequest());
         newUser.getSilentTokenRequest().setRedirectUri(Constants.AUTOMATION_TEST_APP_BROKER_REDIRECT_URI);
-        newUser.setCredential(scenario.getCredential());
-
+        newUser.setWorkplaceJoined(false);
         return newUser;
     }
 
-
     @Test
-    public void should_be_able_to_acquire_token_and_then_acquire_silent_with_force_refresh() {
+    public void should_be_able_to_acquire_token_with_broker() {
 
         givenThat(james).wasAbleTo(
-                acquireToken.withBroker()
-        );
+                acquireToken.withBroker(),
+                WaitUntil.the(Results.RESULT_FIELD, isVisible()).forNoMoreThan(10).seconds()
+                );
 
-        String accessToken1 = james.asksFor(AccessTokenFromAuthenticationResult.displayed());
-        AuthenticationResult result = james.asksFor(AuthenticationResultFromResultInfo.displayed());
+        then(james).should(seeThat(AccessTokenFromAuthenticationResult.displayed(), notNullValue()));
 
-        james.attemptsTo(clickDone);
-
-        james.getSilentTokenRequest().setAuthority("https://login.microsoftonline.com/" + result.tenantId);
-
-        when(james).attemptsTo(
-                acquireTokenSilent.withUserIdentifier(james.getCredential().userName).withForceRefresh()
-        );
-
-        then(james).should(seeThat(AccessTokenFromAuthenticationResult.displayed(), not(accessToken1)));
-
+        james.attemptsTo(workplaceLeave);
     }
+
+    @Test
+    public void should_be_able_to_acquire_token_with_broker_with_prompt_always() {
+
+        givenThat(james).wasAbleTo(
+                acquireToken
+                        .withBroker()
+                        .withPrompt("Always"),
+                WaitUntil.the(Results.RESULT_FIELD, isVisible()).forNoMoreThan(10).seconds()
+        );
+
+        then(james).should(seeThat(AccessTokenFromAuthenticationResult.displayed(), notNullValue()));
+
+        james.attemptsTo(workplaceLeave);
+    }
+
+    @Test
+    public void should_be_able_to_acquire_token_with_broker_with_prompt_null() {
+
+        givenThat(james).wasAbleTo(
+                acquireToken
+                        .withBroker()
+                        .withPrompt(null),
+                WaitUntil.the(Results.RESULT_FIELD, isVisible()).forNoMoreThan(10).seconds()
+        );
+
+        then(james).should(seeThat(AccessTokenFromAuthenticationResult.displayed(), notNullValue()));
+
+        james.attemptsTo(workplaceLeave);
+    }
+
+    @Test
+    public void should_be_able_to_acquire_token_with_broker_with_prompt_auto() {
+
+        givenThat(james).wasAbleTo(
+                acquireToken
+                        .withBroker()
+                        .withPrompt("Auto"),
+                WaitUntil.the(Results.RESULT_FIELD, isVisible()).forNoMoreThan(10).seconds()
+        );
+
+        then(james).should(seeThat(AccessTokenFromAuthenticationResult.displayed(), notNullValue()));
+
+        james.attemptsTo(workplaceLeave);
+    }
+
+    @Test
+    public void should_be_able_to_acquire_token_with_broker_with_login_hint() {
+
+        givenThat(james).wasAbleTo(
+                acquireToken
+                        .withBroker()
+                        .withUserIdentifier(james.getCredential().userName),
+                WaitUntil.the(Results.RESULT_FIELD, isVisible()).forNoMoreThan(10).seconds()
+        );
+
+        then(james).should(seeThat(AccessTokenFromAuthenticationResult.displayed(), notNullValue()));
+
+        james.attemptsTo(workplaceLeave);
+    }
+
+    //TODO : This test is currently broken as we need to fix tap account in authenticator app.Enable this once it's fixed
+//    @Test
+//    public void should_be_able_to_acquire_token_with_force_prompt() {
+//
+//        givenThat(james).wasAbleTo(
+//                acquireToken
+//                        .withBroker()
+//                        .withPrompt("Auto"),
+//                WaitUntil.the(Results.RESULT_FIELD, isVisible()).forNoMoreThan(10).seconds()
+//        );
+//
+//        String accessToken1 = james.asksFor(AccessTokenFromAuthenticationResult.displayed());
+//
+//        james.setWorkplaceJoined(true);
+//
+//        when(james).attemptsTo(
+//                clickDone,
+//                acquireToken
+//                        .withBroker()
+//                        .withPrompt("FORCE_PROMPT")
+//                        .withUserIdentifier(null),
+//                WaitUntil.the(Results.RESULT_FIELD, isVisible()).forNoMoreThan(10).seconds());
+//
+//        then(james).should(seeThat(AccessTokenFromAuthenticationResult.displayed(), not(accessToken1)));
+//
+//        james.attemptsTo(workplaceLeave);
+//
+//    }
 
 }

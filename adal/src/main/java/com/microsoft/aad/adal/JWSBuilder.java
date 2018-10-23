@@ -27,8 +27,12 @@ import android.util.Base64;
 
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
+
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
@@ -39,6 +43,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.Map;
 
 /**
  * JWS response builder for certificate challenge response.
@@ -98,6 +103,44 @@ class JWSBuilder implements IJWSBuilder {
         @SuppressWarnings("unused")
         private JwsHeader() {
         }
+    }
+
+    /**
+     * Generate generic String key/value pair JWT.
+     *
+     * @param header
+     * @param body
+     * @return String Base64URLSafe(header)+Base64URLSafe(body)
+     * @throws JSONException
+     * @throws UnsupportedEncodingException
+     */
+    public String generateJWT(Map<String, String> header, Map<String, String> body,
+            int expTimeInSeconds) throws JSONException, UnsupportedEncodingException {
+        Logger.v(TAG, "Generating JWT.");
+        JSONObject headerJson = generateJson(header, expTimeInSeconds);
+        JSONObject bodyJson = generateJson(body, expTimeInSeconds);
+        String signingInput = StringExtensions.encodeBase64URLSafeString(headerJson.toString().getBytes(AuthenticationConstants.ENCODING_UTF8))
+                + "." + StringExtensions.encodeBase64URLSafeString(bodyJson.toString().getBytes(AuthenticationConstants.ENCODING_UTF8));
+        return signingInput;
+    }
+
+    private JSONObject generateJson(Map<String, String> values, int expireSeconds)
+            throws JSONException {
+        JSONObject json = new JSONObject();
+        long iat = (System.currentTimeMillis() / SECONDS_MS);
+        long expTimeInSeconds = iat + expireSeconds;
+
+        for (Map.Entry<String, String> entry : values.entrySet()) {
+            if (entry.getKey().equalsIgnoreCase("iat") || entry.getKey().equalsIgnoreCase("nbf")) {
+                json.put(entry.getKey(), iat);
+            } else if (entry.getKey().equalsIgnoreCase("exp")) {
+                json.put(entry.getKey(), expTimeInSeconds);
+            } else {
+                json.put(entry.getKey(), entry.getValue());
+            }
+        }
+
+        return json;
     }
 
     /**

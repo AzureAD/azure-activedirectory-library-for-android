@@ -26,6 +26,8 @@ package com.microsoft.aad.adal;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -65,6 +67,10 @@ class AcquireTokenRequest {
     private final IBrokerProxy mBrokerProxy;
 
     private static Handler sHandler = null;
+
+    private static final long CP_LLT_VERSION_CODE = 2950722;
+
+    private static final long AUTHENTICATOR_LLT_VERSION_CODE = 138;
 
     /**
      * Instance validation related calls are serviced inside Discovery as a
@@ -411,9 +417,37 @@ class AcquireTokenRequest {
     }
 
     private boolean shouldTrySilentFlow(final AuthenticationRequest authenticationRequest) {
-        return !authenticationRequest.isClaimsChallengePresent()
-                && authenticationRequest.getPrompt() == PromptBehavior.Auto
-                || authenticationRequest.isSilent();
+        boolean result = true;
+        if(authenticationRequest.isClaimsChallengePresent()){
+            result = checkIfBrokerHasLltChanges();
+        }
+        return  authenticationRequest.isSilent() || (result && authenticationRequest.getPrompt() == PromptBehavior.Auto) ;
+    }
+
+    /**
+     * The previous behavior to always  do an interactive call if claims challenge is present is changed with long live token feature.
+     * However to support the case were the broker app is not updated to have Llt changes, we check the version code of the both the broker
+     * and retain the old behavior.
+     */
+    private boolean checkIfBrokerHasLltChanges() {
+        PackageManager packageManager = mContext.getPackageManager();
+        int authVersionCode = Integer.MAX_VALUE;
+        int cpVersionCode = Integer.MAX_VALUE;
+
+        try {
+            PackageInfo authPackageInfo = packageManager.getPackageInfo(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, 0);
+            authVersionCode = authPackageInfo.versionCode;
+        } catch (PackageManager.NameNotFoundException ignored) {
+        }
+
+        try {
+            PackageInfo cpPackageInfo = packageManager.getPackageInfo(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME, 0);
+            cpVersionCode = cpPackageInfo.versionCode;
+        } catch (PackageManager.NameNotFoundException ignored) {
+        }
+
+        return authVersionCode >= AUTHENTICATOR_LLT_VERSION_CODE && cpVersionCode >= CP_LLT_VERSION_CODE;
+
     }
 
     /**
@@ -426,8 +460,8 @@ class AcquireTokenRequest {
 
         final boolean requestEligibleForBroker = mBrokerProxy.verifyBrokerForSilentRequest(authenticationRequest);
 
-        //1. if forceRefresh == true AND the request is eligible for the broker
-        if(authenticationRequest.getForceRefresh() && requestEligibleForBroker){
+        //1. if forceRefresh == true OR claimsChallenge is not null AND the request is eligible for the broker
+        if((authenticationRequest.getForceRefresh() || authenticationRequest.isClaimsChallengePresent()) && requestEligibleForBroker){
             return tryAcquireTokenSilentWithBroker(authenticationRequest);
         }
 
@@ -668,7 +702,7 @@ class AcquireTokenRequest {
         if (requestCode == AuthenticationConstants.UIRequest.BROWSER_FLOW) {
             getHandler();
 
-            if (data == null) {
+            if (data == null || data.getExtras() == null) {
                 // If data is null, RequestId is unknown. It could not find
                 // callback to respond to this request.
                 Logger.e(TAG + methodName, "BROWSER_FLOW data is null.", "",

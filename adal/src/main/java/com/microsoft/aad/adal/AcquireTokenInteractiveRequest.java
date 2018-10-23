@@ -123,8 +123,7 @@ final class AcquireTokenInteractiveRequest {
         if (!StringExtensions.isNullOrBlank(result.getAccessToken()) && mTokenCacheAccessor != null) {
             // Developer may pass null for the acquireToken flow.
             try {
-                mTokenCacheAccessor.updateTokenCache(mAuthRequest.getResource(),
-                        mAuthRequest.getClientId(), result);
+                mTokenCacheAccessor.updateTokenCache(mAuthRequest, result);
             } catch (MalformedURLException e) {
                 throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e.getMessage(), e);
             }

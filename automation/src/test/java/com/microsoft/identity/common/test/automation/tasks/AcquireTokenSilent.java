@@ -49,6 +49,7 @@ public class AcquireTokenSilent implements Task {
     private String clientId = "";
     private String redirectUri = "";
     private String resourceId = "";
+    private boolean withBroker = false;
 
     @Steps
     CloseKeyboard closeKeyboard;
@@ -75,6 +76,7 @@ public class AcquireTokenSilent implements Task {
         if (!TextUtils.isEmpty(resourceId)) {
             tokenRequest.setResourceId(resourceId);
         }
+        tokenRequest.setUseBroker(withBroker);
         tokenRequest.setForceRefresh(forceRefresh);
         actor.attemptsTo(
                 WaitUntil.the(Main.ACQUIRE_TOKEN_SILENT, isVisible()).forNoMoreThan(10).seconds(),
@@ -118,6 +120,11 @@ public class AcquireTokenSilent implements Task {
 
     public AcquireTokenSilent withResourceId(String resourceId) {
         this.resourceId = resourceId;
+        return this;
+    }
+
+    public AcquireTokenSilent withBroker() {
+        this.withBroker = true;
         return this;
     }
 

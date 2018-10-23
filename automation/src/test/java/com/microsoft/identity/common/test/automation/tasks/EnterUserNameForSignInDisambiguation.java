@@ -32,8 +32,8 @@ import net.serenitybdd.screenplay.Actor;
 import net.serenitybdd.screenplay.Task;
 import net.serenitybdd.screenplay.actions.Click;
 import net.serenitybdd.screenplay.actions.Enter;
+import net.serenitybdd.screenplay.targets.Target;
 import net.serenitybdd.screenplay.waits.WaitUntil;
-import net.thucydides.core.annotations.Steps;
 
 import static net.serenitybdd.screenplay.matchers.WebElementStateMatchers.isVisible;
 
@@ -42,31 +42,20 @@ public class EnterUserNameForSignInDisambiguation implements Task {
 
     boolean withBroker;
 
-    @Steps
-    TapAccount tapAccount;
-
     @Override
     public <T extends Actor> void performAs(T actor) {
         User user = (User) actor;
-
-        if (withBroker) {
-            if (user.getWorkplaceJoined()) {
-                user.attemptsTo(
-                        tapAccount
-                );
-            } else {
-                user.attemptsTo(
-                        WaitUntil.the(SignInPageUserNameBroker.USERNAME, isVisible()).forNoMoreThan(10).seconds(),
-                        Enter.theValue(user.getCredential().userName).into(SignInPageUserNameBroker.USERNAME),
-                        Click.on(SignInPageUserNameBroker.NEXT_BUTTON)
-                );
-            }
-        } else {
-            user.attemptsTo(
-                    WaitUntil.the(SignInPageUserName.USERNAME, isVisible()).forNoMoreThan(10).seconds(),
-                    Enter.theValue(user.getCredential().userName).into(SignInPageUserName.USERNAME),
-                    Click.on(SignInPageUserName.NEXT_BUTTON)
+        if(withBroker && user.getWorkplaceJoined()){
+            actor.attemptsTo(
+                    new TapAccount()
             );
+        }else {
+            Target username = withBroker ? SignInPageUserNameBroker.USERNAME : SignInPageUserName.USERNAME;
+            Target nextButton = withBroker ? SignInPageUserNameBroker.NEXT_BUTTON : SignInPageUserName.NEXT_BUTTON;
+            actor.attemptsTo(
+                    WaitUntil.the(nextButton, isVisible()).forNoMoreThan(10).seconds(),
+                    Enter.theValue(user.getCredential().userName).into(username),
+                    Click.on(nextButton));
         }
     }
 

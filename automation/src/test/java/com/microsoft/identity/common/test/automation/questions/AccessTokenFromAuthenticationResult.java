@@ -36,7 +36,10 @@ public class AccessTokenFromAuthenticationResult implements Question<String> {
     public String answeredBy(Actor actor) {
         String results = Text.of(Results.RESULT_FIELD).viewedBy(actor).asString();
         AuthenticationResult readCacheResult = ResultsMapper.GetAuthenticationResultFromString(results);
-        return readCacheResult.accessToken;
+        if(readCacheResult!=null){
+            return readCacheResult.accessToken;
+        }
+        return null;
     }
 
     public static Question<String> displayed() {

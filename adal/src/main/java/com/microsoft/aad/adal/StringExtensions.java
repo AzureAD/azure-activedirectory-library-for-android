@@ -26,6 +26,9 @@ package com.microsoft.aad.adal;
 import android.net.Uri;
 import android.util.Base64;
 
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.util.HashMapExtensions;
+
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -38,8 +41,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.StringTokenizer;
 
-
-final class StringExtensions {
+public final class StringExtensions {
     /**
      * The Constant ENCODING_UTF8.
      */
@@ -59,7 +61,7 @@ final class StringExtensions {
      * @param param String to check for null or blank
      * @return boolean if the string was null or blank
      */
-    static boolean isNullOrBlank(String param) {
+    public static boolean isNullOrBlank(String param) {
         return param == null || param.trim().length() == 0; //NOPMD
     }
 
@@ -98,7 +100,7 @@ final class StringExtensions {
         return URLDecoder.decode(source, ENCODING_UTF8);
     }
 
-    static String encodeBase64URLSafeString(final byte[] bytes)
+    public static String encodeBase64URLSafeString(final byte[] bytes)
             throws UnsupportedEncodingException {
         return new String(
                 Base64.encode(bytes, Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE),
