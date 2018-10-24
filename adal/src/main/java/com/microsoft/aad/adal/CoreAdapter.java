@@ -21,6 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
+
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryAccount;

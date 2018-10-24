@@ -778,6 +778,11 @@ class BrokerProxy implements IBrokerProxy {
             brokerOptions.putString(AuthenticationConstants.Broker.BROKER_FORCE_REFRESH, Boolean.toString(true));
         }
 
+        brokerOptions.putString(AuthenticationConstants.AAD.APP_VERSION, request.getAppVersion());
+
+        brokerOptions.putString(AuthenticationConstants.AAD.APP_PACKAGE_NAME, request.getAppName());
+
+
         return brokerOptions;
     }
 

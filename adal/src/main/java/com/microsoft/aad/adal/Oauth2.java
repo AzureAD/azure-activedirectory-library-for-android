@@ -32,6 +32,7 @@ import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
+import com.microsoft.identity.common.adal.internal.util.HashMapExtensions;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.ClientInfo;
@@ -206,6 +207,14 @@ class Oauth2 {
             queryParameter.appendQueryParameter(AuthenticationConstants.OAuth2.CLAIMS, mRequest.getClaimsChallenge());
         }
 
+        if(!StringExtensions.isNullOrBlank(mRequest.getAppName())){
+            queryParameter.appendQueryParameter(AuthenticationConstants.AAD.APP_PACKAGE_NAME, mRequest.getAppName());
+        }
+
+        if(!StringExtensions.isNullOrBlank(mRequest.getAppVersion())){
+            queryParameter.appendQueryParameter(AuthenticationConstants.AAD.APP_VERSION, mRequest.getAppVersion());
+        }
+
         String requestUrl = queryParameter.build().getQuery();
         if (!StringExtensions.isNullOrBlank(extraQP)) {
             String parsedQP = extraQP;
@@ -226,7 +235,7 @@ class Oauth2 {
     public String buildTokenRequestMessage(String code) throws UnsupportedEncodingException {
         Logger.v(TAG, "Building request message for redeeming token with auth code.");
 
-        String message =  String.format("%s=%s&%s=%s&%s=%s&%s=%s&%s=%s",
+        String message = String.format("%s=%s&%s=%s&%s=%s&%s=%s&%s=%s",
                 AuthenticationConstants.OAuth2.GRANT_TYPE,
                 StringExtensions.urlFormEncode(AuthenticationConstants.OAuth2.AUTHORIZATION_CODE),
 
@@ -249,6 +258,15 @@ class Oauth2 {
                     StringExtensions.urlFormEncode(mRequest.getClaimsChallenge()));
         }
 
+        if (!StringExtensions.isNullOrBlank(mRequest.getAppName())) {
+            message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.AAD.APP_PACKAGE_NAME,
+                    StringExtensions.urlFormEncode(mRequest.getAppName()));
+        }
+
+        if (!StringExtensions.isNullOrBlank(mRequest.getAppVersion())) {
+            message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.AAD.APP_VERSION,
+                    StringExtensions.urlFormEncode(mRequest.getAppVersion()));
+        }
         return message;
 
     }
@@ -287,6 +305,15 @@ class Oauth2 {
                     StringExtensions.urlFormEncode(mRequest.getClaimsChallenge()));
         }
 
+        if (!StringExtensions.isNullOrBlank(mRequest.getAppName())) {
+            message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.AAD.APP_PACKAGE_NAME,
+                    StringExtensions.urlFormEncode(mRequest.getAppName()));
+        }
+
+        if (!StringExtensions.isNullOrBlank(mRequest.getAppVersion())) {
+            message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.AAD.APP_VERSION,
+                    StringExtensions.urlFormEncode(mRequest.getAppVersion()));
+        }
         return message;
     }
 
@@ -338,7 +365,7 @@ class Oauth2 {
                 }
             }
 
-            if (null != response.get(AuthenticationConstants.OAuth2.HTTP_STATUS_CODE)){
+            if (null != response.get(AuthenticationConstants.OAuth2.HTTP_STATUS_CODE)) {
                 result.setServiceStatusCode(Integer.parseInt(response.get(AuthenticationConstants.OAuth2.HTTP_STATUS_CODE)));
             }
         } else if (response.containsKey(AuthenticationConstants.OAuth2.CODE)) {
@@ -863,7 +890,7 @@ class Oauth2 {
             if (null != xMsCliTelemValues && !xMsCliTelemValues.isEmpty()) {
                 // Only one value is expected to be present, so we'll grab the first element...
                 final String speValue = xMsCliTelemValues.get(0);
-                final CliTelemInfo cliTelemInfo =  TelemetryUtils.parseXMsCliTelemHeader(speValue);
+                final CliTelemInfo cliTelemInfo = TelemetryUtils.parseXMsCliTelemHeader(speValue);
                 if (result != null) {
                     result.setCliTelemInfo(cliTelemInfo);
                 }

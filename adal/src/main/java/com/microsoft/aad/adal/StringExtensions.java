@@ -27,6 +27,7 @@ import android.net.Uri;
 import android.util.Base64;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.util.HashMapExtensions;
 
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
@@ -39,8 +40,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.StringTokenizer;
-
-
 
 public final class StringExtensions {
     /**

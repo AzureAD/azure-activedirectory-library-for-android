@@ -81,6 +81,10 @@ class AuthenticationRequest implements Serializable {
 
     private boolean mSkipCache = false;
 
+    private String mAppName;
+
+    private String mAppVersion;
+
     /**
      * Developer can use acquireToken(with loginhint) or acquireTokenSilent(with
      * userid), so this sets the type of the request.
@@ -383,5 +387,21 @@ class AuthenticationRequest implements Serializable {
 
     public void setForceRefresh(boolean forceRefresh){
         mForceRefresh = forceRefresh;
+    }
+
+    public String getAppName() {
+        return mAppName;
+    }
+
+    public void setAppName(String appName) {
+        mAppName = appName;
+    }
+
+    public String getAppVersion() {
+        return mAppVersion;
+    }
+
+    public void setAppVersion(String appVersion) {
+        mAppVersion = appVersion;
     }
 }
