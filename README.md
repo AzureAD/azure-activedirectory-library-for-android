@@ -386,7 +386,9 @@ To disable obfuscation of ADAL classes:
 -keep class com.microsoft.aad.adal.** {
   *;
 }
-
+-keep class com.microsoft.identity.common.** {
+  *;
+}
 ```
 
 ### Diagnostics
