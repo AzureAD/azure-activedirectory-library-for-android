@@ -743,7 +743,7 @@ class BrokerProxy implements IBrokerProxy {
     private Bundle getBrokerOptions(final AuthenticationRequest request) {
         Bundle brokerOptions = new Bundle();
         // request needs to be parcelable to send across process
-        brokerOptions.putInt(AuthenticationConstants.Browser.REQUEST_ID, request.getRequestId());
+        brokerOptions.putString(AuthenticationConstants.Browser.REQUEST_ID, String.valueOf(request.getRequestId()));
         brokerOptions.putInt(AuthenticationConstants.Broker.EXPIRATION_BUFFER, AuthenticationSettings.INSTANCE.getExpirationBuffer());
         brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY, request.getAuthority());
         brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_RESOURCE, request.getResource());

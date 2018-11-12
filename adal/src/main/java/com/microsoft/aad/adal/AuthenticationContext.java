@@ -1028,7 +1028,7 @@ public class AuthenticationContext {
 
             AuthenticationRequestState waitingRequest;
             final Bundle extras = data.getExtras();
-            final int requestId = extras.getInt(AuthenticationConstants.Browser.REQUEST_ID);
+            final int requestId = Integer.parseInt(extras.getString(AuthenticationConstants.Browser.REQUEST_ID));
 
             synchronized (DELEGATE_MAP) {
                 waitingRequest = DELEGATE_MAP.get(requestId);
