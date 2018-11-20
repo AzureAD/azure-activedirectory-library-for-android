@@ -46,11 +46,12 @@ import android.widget.Toast;
 import com.microsoft.aad.adal.AuthenticationCallback;
 import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationResult;
-import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.IDispatcher;
 import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.PromptBehavior;
 import com.microsoft.aad.adal.Telemetry;
+import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
+import com.microsoft.identity.common.internal.broker.BrokerResult;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
@@ -98,6 +99,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setUpADALForCallingBroker();
 
         mContentMain = (RelativeLayout) findViewById(R.id.content_main);
+        Logger.getInstance().setEnablePII(true);
+        Logger.getInstance().setAndroidLogEnabled(true);
 
         final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         //setSupportActionBar(toolbar);
@@ -299,7 +302,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mSharedPreference = getSharedPreferences(SHARED_PREFERENCE_STORE_USER_UNIQUEID, MODE_PRIVATE);
         if (null != authResult) {
             final SharedPreferences.Editor prefEditor = mSharedPreference.edit();
-            if (null != authResult.getAuthority()) {
+            if ((null != authResult.getAuthority())
+                    && (null != authResult.getUserInfo().getDisplayableId())) {
                 //Save the preferred authority into the shared preference
                 prefEditor.putString((authResult.getUserInfo().getDisplayableId().trim() + ":" + authority.trim() +  ":authority").toLowerCase(), authResult.getAuthority().trim().toLowerCase());
             } else {

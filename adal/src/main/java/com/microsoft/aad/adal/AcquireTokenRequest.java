@@ -24,6 +24,7 @@
 package com.microsoft.aad.adal;
 
 
+import android.accounts.AccountManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -36,6 +37,7 @@ import android.util.Log;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.internal.broker.BrokerResult;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryCloud;
 
@@ -686,6 +688,65 @@ class AcquireTokenRequest {
         Logger.v(TAG + methodName, "The broker redirect URI is valid.");
     }
 
+    private AuthenticationResult getAuthenticationResultFromIntent(final Intent data) {
+        final String methodName = ":getAuthenticationResultFromIntent";
+
+        final String accessToken = data
+                .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN);
+        final String accountName = data
+                .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_NAME);
+        mBrokerProxy.saveAccount(accountName);
+        final long expireTime = data.getLongExtra(
+                AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE, 0);
+        final Date expire = new Date(expireTime);
+        final String idtoken = data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_IDTOKEN);
+        final String tenantId = data.getStringExtra(
+                AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID);
+        UserInfo userinfo = null;
+        if (null != data.getExtras()) {
+            userinfo = UserInfo.getUserInfoFromBrokerResult(data.getExtras());
+        }
+
+        // grab the fields tracked by x-ms-clitelem
+        final String serverErrorCode = data.getStringExtra(AuthenticationConstants.Broker.CliTelemInfo.SERVER_ERROR);
+        final String serverSubErrorCode = data.getStringExtra(AuthenticationConstants.Broker.CliTelemInfo.SERVER_SUBERROR);
+        final String refreshTokenAge = data.getStringExtra(AuthenticationConstants.Broker.CliTelemInfo.RT_AGE);
+        final String speRingInfo = data.getStringExtra(AuthenticationConstants.Broker.CliTelemInfo.SPE_RING);
+//
+//        // Use the waitingRequest to get the original request to get the clientId
+//        final AuthenticationRequest originalRequest = waitingRequest.getRequest();
+//        String clientId = null;
+//
+//        if (null != originalRequest) {
+//            clientId = originalRequest.getClientId();
+//        }
+
+        // create the broker AuthenticationResult
+        final AuthenticationResult brokerResult =
+                new AuthenticationResult(
+                        accessToken,
+                        null,
+                        expire,
+                        false,
+                        userinfo,
+                        tenantId,
+                        idtoken,
+                        null,
+                        ""
+                );
+        final String authority = data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY);
+        brokerResult.setAuthority(authority);
+
+        // set the x-ms-clitelem fields on the result from the Broker
+        final TelemetryUtils.CliTelemInfo cliTelemInfo = new TelemetryUtils.CliTelemInfo();
+        cliTelemInfo.setServerErrorCode(serverErrorCode);
+        cliTelemInfo.setServerSubErrorCode(serverSubErrorCode);
+        cliTelemInfo.setRefreshTokenAge(refreshTokenAge);
+        cliTelemInfo.setSpeRing(speRingInfo);
+        brokerResult.setCliTelemInfo(cliTelemInfo);
+
+        return brokerResult;
+    }
 
     /**
      * This method wraps the implementation for onActivityResult at the related
@@ -727,57 +788,7 @@ class AcquireTokenRequest {
                 // out original correlationId send with request.
                 final String correlationInfo = mAuthContext.getCorrelationInfoFromWaitingRequest(waitingRequest);
                 if (resultCode == AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE) {
-                    final String accessToken = data
-                            .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN);
-                    final String accountName = data
-                            .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_NAME);
-                    mBrokerProxy.saveAccount(accountName);
-                    final long expireTime = data.getLongExtra(
-                            AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE, 0);
-                    final Date expire = new Date(expireTime);
-                    final String idtoken = data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_IDTOKEN);
-                    final String tenantId = data.getStringExtra(
-                            AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID);
-                    final UserInfo userinfo = UserInfo.getUserInfoFromBrokerResult(data.getExtras());
-
-                    // grab the fields tracked by x-ms-clitelem
-                    final String serverErrorCode = data.getStringExtra(AuthenticationConstants.Broker.CliTelemInfo.SERVER_ERROR);
-                    final String serverSubErrorCode = data.getStringExtra(AuthenticationConstants.Broker.CliTelemInfo.SERVER_SUBERROR);
-                    final String refreshTokenAge = data.getStringExtra(AuthenticationConstants.Broker.CliTelemInfo.RT_AGE);
-                    final String speRingInfo = data.getStringExtra(AuthenticationConstants.Broker.CliTelemInfo.SPE_RING);
-
-                    // Use the waitingRequest to get the original request to get the clientId
-                    final AuthenticationRequest originalRequest = waitingRequest.getRequest();
-                    String clientId = null;
-
-                    if (null != originalRequest) {
-                        clientId = originalRequest.getClientId();
-                    }
-
-                    // create the broker AuthenticationResult
-                    final AuthenticationResult brokerResult =
-                            new AuthenticationResult(
-                                    accessToken,
-                                    null,
-                                    expire,
-                                    false,
-                                    userinfo,
-                                    tenantId,
-                                    idtoken,
-                                    null,
-                                    clientId
-                            );
-                    final String authority = data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY);
-                    brokerResult.setAuthority(authority);
-
-                    // set the x-ms-clitelem fields on the result from the Broker
-                    final TelemetryUtils.CliTelemInfo cliTelemInfo = new TelemetryUtils.CliTelemInfo();
-                    cliTelemInfo.setServerErrorCode(serverErrorCode);
-                    cliTelemInfo.setServerSubErrorCode(serverSubErrorCode);
-                    cliTelemInfo.setRefreshTokenAge(refreshTokenAge);
-                    cliTelemInfo.setSpeRing(speRingInfo);
-                    brokerResult.setCliTelemInfo(cliTelemInfo);
-
+                    AuthenticationResult brokerResult = getAuthenticationResultFromIntent(data);
                     if (brokerResult.getAccessToken() != null) {
                         waitingRequest.getAPIEvent().setWasApiCallSuccessful(true, null);
                         waitingRequest.getAPIEvent().setCorrelationId(
@@ -785,10 +796,10 @@ class AcquireTokenRequest {
                         waitingRequest.getAPIEvent().setIdToken(brokerResult.getIdToken());
 
                         // add the x-ms-clitelem info to the ApiEvent
-                        waitingRequest.getAPIEvent().setServerErrorCode(cliTelemInfo.getServerErrorCode());
-                        waitingRequest.getAPIEvent().setServerSubErrorCode(cliTelemInfo.getServerSubErrorCode());
-                        waitingRequest.getAPIEvent().setRefreshTokenAge(cliTelemInfo.getRefreshTokenAge());
-                        waitingRequest.getAPIEvent().setSpeRing(cliTelemInfo.getSpeRing());
+                        waitingRequest.getAPIEvent().setServerErrorCode(brokerResult.getCliTelemInfo().getServerErrorCode());
+                        waitingRequest.getAPIEvent().setServerSubErrorCode(brokerResult.getCliTelemInfo().getServerSubErrorCode());
+                        waitingRequest.getAPIEvent().setRefreshTokenAge(brokerResult.getCliTelemInfo().getRefreshTokenAge());
+                        waitingRequest.getAPIEvent().setSpeRing(brokerResult.getCliTelemInfo().getSpeRing());
 
                         // stop the event
                         waitingRequest.getAPIEvent().stopTelemetryAndFlush();
