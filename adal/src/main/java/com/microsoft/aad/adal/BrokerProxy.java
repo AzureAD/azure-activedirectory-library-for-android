@@ -742,21 +742,17 @@ class BrokerProxy implements IBrokerProxy {
 
     private Bundle getBrokerOptions(final AuthenticationRequest request) {
         Bundle brokerOptions = new Bundle();
-        // request needs to be parcelable to send across process
-        brokerOptions.putInt(AuthenticationConstants.Browser.REQUEST_ID, request.getRequestId());
-        brokerOptions.putInt(AuthenticationConstants.Broker.EXPIRATION_BUFFER, AuthenticationSettings.INSTANCE.getExpirationBuffer());
         brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY, request.getAuthority());
         brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_RESOURCE, request.getResource());
+        //TODO 1. missing scope
+        //TODO 2: EXPIRATION_BUFFER
+        brokerOptions.putInt(AuthenticationConstants.Broker.EXPIRATION_BUFFER, AuthenticationSettings.INSTANCE.getExpirationBuffer());
+
+
         brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_REDIRECT, request.getRedirectUri());
-        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY, request.getClientId());
-        brokerOptions.putString(AuthenticationConstants.Broker.ADAL_VERSION_KEY, request.getVersion());
-        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID, request.getUserId());
-        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_EXTRA_QUERY_PARAM,
-                request.getExtraQueryParamsAuthentication());
-        if (request.getCorrelationId() != null) {
-            brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CORRELATIONID,
-                    request.getCorrelationId().toString());
-        }
+
+        // request needs to be parcelable to send across process
+        brokerOptions.putInt(AuthenticationConstants.Browser.REQUEST_ID, request.getRequestId());
 
         String username = request.getBrokerAccountName();
         if (StringExtensions.isNullOrBlank(username)) {
@@ -765,13 +761,25 @@ class BrokerProxy implements IBrokerProxy {
 
         brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT, username);
         brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_NAME, username);
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY, request.getClientId());
+        if (request.getCorrelationId() != null) {
+            brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CORRELATIONID,
+                    request.getCorrelationId().toString());
+        }
+
+        brokerOptions.putString(AuthenticationConstants.Broker.ADAL_VERSION_KEY, request.getVersion());
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID, request.getUserId());
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_EXTRA_QUERY_PARAM,
+                request.getExtraQueryParamsAuthentication());
+        if (request.isClaimsChallengePresent()) {
+            brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CLAIMS, request.getClaimsChallenge());
+        }
+
+
+
 
         if (request.getPrompt() != null) {
             brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_PROMPT, request.getPrompt().name());
-        }
-
-        if (request.isClaimsChallengePresent()) {
-            brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CLAIMS, request.getClaimsChallenge());
         }
 
         if (request.getForceRefresh()){

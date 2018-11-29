@@ -178,16 +178,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     void prepareRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions) {
         mRequestAuthority = requestOptions.getAuthorityType().getText();
-        final String authority = getAuthorityBasedOnUPN(requestOptions.getLoginHint(), mRequestAuthority);
-        if (null != authority && !authority.isEmpty()) {
-            //Replace the request authority with the preferred authority stored in shared preference
-            mAuthority = authority;
-            mAuthContext = new AuthenticationContext(mApplicationContext, mAuthority, false);
-        } else {
+//        final String authority = getAuthorityBasedOnUPN(requestOptions.getLoginHint(), mRequestAuthority);
+//        if (null != authority && !authority.isEmpty()) {
+//            //Replace the request authority with the preferred authority stored in shared preference
+//            mAuthority = authority;
+//            mAuthContext = new AuthenticationContext(mApplicationContext, mAuthority, false);
+//        } else {
             //If there is no preferred authority stored, use the type-in authority
             mAuthority = mRequestAuthority;
             mAuthContext = new AuthenticationContext(mApplicationContext, mAuthority, true);
-        }
+        //}
 
         mLoginhint = requestOptions.getLoginHint();
         mPromptBehavior = requestOptions.getBehavior();
@@ -302,8 +302,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mSharedPreference = getSharedPreferences(SHARED_PREFERENCE_STORE_USER_UNIQUEID, MODE_PRIVATE);
         if (null != authResult) {
             final SharedPreferences.Editor prefEditor = mSharedPreference.edit();
-            if ((null != authResult.getAuthority())
-                    && (null != authResult.getUserInfo().getDisplayableId())) {
+            if (null != authResult.getAuthority()
+                    && null != authResult.getUserInfo().getDisplayableId()
+                    && null != authResult.getAuthority()) {
                 //Save the preferred authority into the shared preference
                 prefEditor.putString((authResult.getUserInfo().getDisplayableId().trim() + ":" + authority.trim() +  ":authority").toLowerCase(), authResult.getAuthority().trim().toLowerCase());
             } else {
@@ -313,7 +314,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 toast.show();
             }
 
-            if (null != authResult.getUserInfo() && null != authResult.getUserInfo().getUserId()) {
+            if (null != authResult.getUserInfo()
+                    && null != authResult.getUserInfo().getDisplayableId()
+                    && null != authResult.getUserInfo().getUserId()) {
                 prefEditor.putString((authResult.getUserInfo().getDisplayableId().trim() + ":" + authority.trim() + ":userId").toLowerCase(), authResult.getUserInfo().getUserId().trim().toLowerCase());
             } else {
                 final Toast toast = Toast.makeText(mApplicationContext,
