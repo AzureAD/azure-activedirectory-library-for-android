@@ -42,6 +42,7 @@ buildscript {
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
 
     defaultConfig {
         minSdkVersion rootProject.ext.minSdkVersion
@@ -135,10 +136,10 @@ dependencies {
         transitive = false
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '0.0.7-SNAPSHOT', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '0.0.7-local', changing: true)
 
     // 'dist' flavor dependencies
-    distApi("com.microsoft.identity:common:0.0.7") {
+    distApi("com.microsoft.identity:common:0.0.7-local") {
         transitive = false
     }
 

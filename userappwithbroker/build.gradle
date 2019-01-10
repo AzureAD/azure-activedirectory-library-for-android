@@ -2,6 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
 
     defaultConfig {
         applicationId "com.microsoft.aad.adal.userappwithbroker"
@@ -35,5 +36,5 @@ android {
 dependencies {
     // Compile Dependencies
     implementation "com.android.support:design:$rootProject.ext.supportLibraryVersion"
-    implementation project(':adal')
+    implementation(group: 'com.microsoft.aad', name: 'adal', version: '1.16.0-local')
 }
