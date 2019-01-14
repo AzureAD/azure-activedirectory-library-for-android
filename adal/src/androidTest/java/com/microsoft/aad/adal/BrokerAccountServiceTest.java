@@ -42,6 +42,10 @@ import android.support.test.rule.ServiceTestRule;
 import android.util.Base64;
 import android.util.Pair;
 
+
+
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+
 import junit.framework.Assert;
 
 import org.junit.After;
@@ -264,9 +268,13 @@ public final class BrokerAccountServiceTest {
                 brokerEvent.setRequestId("1234");
                 Telemetry.getInstance().startEvent(brokerEvent.getTelemetryRequestId(), EventStrings.BROKER_REQUEST_INTERACTIVE);
 
-                final Intent intent = brokerProxy.getIntentForBrokerActivity(authRequest, brokerEvent);
-                assertTrue(Boolean.toString(true).equals(intent.getStringExtra(AuthenticationConstants.Broker.BROKER_SKIP_CACHE)));
-                assertTrue(claimsChallenge.equals(intent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_CLAIMS)));
+                try {
+                    final Intent intent = brokerProxy.getIntentForBrokerActivity(authRequest, brokerEvent);
+                    assertTrue(claimsChallenge.equals(intent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_CLAIMS)));
+
+                } catch (final AuthenticationException exc) {
+                    fail("Exception is not expected.");
+                }
 
                 verifyBrokerEventList(brokerEvent);
                 latch.countDown();
@@ -336,7 +344,7 @@ public final class BrokerAccountServiceTest {
         final AccountManager mockedAccountManager = Mockito.mock(AccountManager.class);
         final AuthenticatorDescription authenticatorDescription = new AuthenticatorDescription(
                 AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE, InstrumentationRegistry.getContext().getPackageName(), 0, 0, 0, 0);
-        Mockito.when(mockedAccountManager.getAuthenticatorTypes()).thenReturn(new AuthenticatorDescription[] {authenticatorDescription});
+        Mockito.when(mockedAccountManager.getAuthenticatorTypes()).thenReturn(new AuthenticatorDescription[]{authenticatorDescription});
         mockContext.setMockedAccountManager(mockedAccountManager);
         return mockContext;
     }
@@ -347,7 +355,7 @@ public final class BrokerAccountServiceTest {
                 Mockito.anyString())).thenReturn(PackageManager.PERMISSION_DENIED);
 
         final PackageInfo packageInfo = Mockito.mock(PackageInfo.class);
-        packageInfo.signatures = new Signature[] {signature};
+        packageInfo.signatures = new Signature[]{signature};
         Mockito.when(packageManager.getPackageInfo(Mockito.anyString(), Mockito.anyInt())).thenReturn(packageInfo);
 
         Mockito.when(packageManager.checkPermission(Mockito.contains("android.permission.GET_ACCOUNTS"),
@@ -395,6 +403,7 @@ public final class BrokerAccountServiceTest {
 
     final class BrokerAccountServiceContext extends FileMockContext {
         private final Context mContext;
+
         BrokerAccountServiceContext(final Context context) {
             super(context);
             mContext = context;

@@ -53,6 +53,11 @@ import android.webkit.WebView;
 
 import com.google.gson.Gson;
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
+import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
+import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -280,7 +285,7 @@ public class AuthenticationActivity extends Activity {
         mRegisterReceiver = false;
         final String postUrl = mStartUrl;
         Logger.i(TAG + methodName, "Device info:" + android.os.Build.VERSION.RELEASE + " " + android.os.Build.MANUFACTURER
-                        + android.os.Build.MODEL, "");
+                + android.os.Build.MODEL, "");
 
         mStorageHelper = new StorageHelper(getApplicationContext());
         setupWebView();
@@ -477,7 +482,7 @@ public class AuthenticationActivity extends Activity {
      * Activity sets result to go back to the caller.
      *
      * @param resultCode result code to be returned to the called
-     * @param data intent to be returned to the caller
+     * @param data       intent to be returned to the caller
      */
     private void returnToCaller(int resultCode, Intent data) {
         final String methodName = ":returnToCaller";

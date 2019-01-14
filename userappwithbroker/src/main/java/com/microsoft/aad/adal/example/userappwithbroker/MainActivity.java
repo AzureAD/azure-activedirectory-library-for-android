@@ -48,6 +48,7 @@ import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.IDispatcher;
+import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.PromptBehavior;
 import com.microsoft.aad.adal.Telemetry;
 
@@ -78,6 +79,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private String mLoginhint;
 
     private String mAuthority;
+
+    private String mRequestAuthority;
 
     private AuthenticationResult mAuthResult = null;
 
@@ -165,20 +168,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         prepareRequestParameters(requestOptions);
 
-        callAcquireTokenSilent(requestOptions.getDataProfile().getText(),getUserIdBasedOnUPN(requestOptions.getLoginHint()),
+        callAcquireTokenSilent(requestOptions.getDataProfile().getText(),
+                getUserIdBasedOnUPN(requestOptions.getLoginHint(), requestOptions.getAuthorityType().getText()),
                 requestOptions.getClientId().getText());
     }
 
     void prepareRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions) {
-        final String authority = getAuthorityBasedOnUPN(requestOptions.getLoginHint());
+        mRequestAuthority = requestOptions.getAuthorityType().getText();
+        final String authority = getAuthorityBasedOnUPN(requestOptions.getLoginHint(), mRequestAuthority);
         if (null != authority && !authority.isEmpty()) {
+            //Replace the request authority with the preferred authority stored in shared preference
             mAuthority = authority;
             mAuthContext = new AuthenticationContext(mApplicationContext, mAuthority, false);
         } else {
-            mAuthority = requestOptions.getAuthorityType().getText();
-            if (mAuthContext == null) {
-                mAuthContext = new AuthenticationContext(mApplicationContext, mAuthority, true);
-            }
+            //If there is no preferred authority stored, use the type-in authority
+            mAuthority = mRequestAuthority;
+            mAuthContext = new AuthenticationContext(mApplicationContext, mAuthority, true);
         }
 
         mLoginhint = requestOptions.getLoginHint();
@@ -274,7 +279,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                         // Update this user for next call
                         if (authenticationResult.getUserInfo() != null) {
-                            saveUserIdFromAuthenticationResult(authenticationResult);
+                            saveUserIdFromAuthenticationResult(authenticationResult, mRequestAuthority);
                         }
                     }
 
@@ -290,25 +295,40 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      * for later use.
      * To make the sample app easier, the saved data will be keyed by displayable id.
      */
-    private void saveUserIdFromAuthenticationResult(final AuthenticationResult authResult) {
+    private void saveUserIdFromAuthenticationResult(final AuthenticationResult authResult, final String authority) {
         mSharedPreference = getSharedPreferences(SHARED_PREFERENCE_STORE_USER_UNIQUEID, MODE_PRIVATE);
+        if (null != authResult) {
+            final SharedPreferences.Editor prefEditor = mSharedPreference.edit();
+            if (null != authResult.getAuthority()) {
+                //Save the preferred authority into the shared preference
+                prefEditor.putString((authResult.getUserInfo().getDisplayableId().trim() + ":" + authority.trim() +  ":authority").toLowerCase(), authResult.getAuthority().trim().toLowerCase());
+            } else {
+                final Toast toast = Toast.makeText(mApplicationContext,
+                        "Warning: the result authority is null," +
+                                "Silent auth for Sovereign account will fail. ", Toast.LENGTH_SHORT);
+                toast.show();
+            }
 
-        final SharedPreferences.Editor prefEditor = mSharedPreference.edit();
-        prefEditor.putString(authResult.getUserInfo().getDisplayableId(), authResult.getUserInfo().getUserId());
-        if (authResult.getAuthority() != null) {
-            prefEditor.putString(authResult.getUserInfo().getDisplayableId() + "authority", authResult.getAuthority());
+            if (null != authResult.getUserInfo() && null != authResult.getUserInfo().getUserId()) {
+                prefEditor.putString((authResult.getUserInfo().getDisplayableId().trim() + ":" + authority.trim() + ":userId").toLowerCase(), authResult.getUserInfo().getUserId().trim().toLowerCase());
+            } else {
+                final Toast toast = Toast.makeText(mApplicationContext,
+                        "Warning: the result userInfo is null. " +
+                                "Silent auth without userID will fail. ", Toast.LENGTH_SHORT);
+                toast.show();
+            }
+
+            prefEditor.apply();
         }
-        prefEditor.apply();
     }
 
     /**
      * For the sake of simplicity of the sample app, used id stored in the shared preference is keyed
      * by displayable id.
      */
-    private String getUserIdBasedOnUPN(final String upn) {
+    private String getUserIdBasedOnUPN(final String upn, final String requestAuthority) {
         mSharedPreference = getSharedPreferences(SHARED_PREFERENCE_STORE_USER_UNIQUEID, MODE_PRIVATE);
-
-        return mSharedPreference.getString(upn, null);
+        return mSharedPreference.getString((upn.trim() + ":" + requestAuthority.trim() + ":userId").toLowerCase(), null);
     }
 
     /**
@@ -331,9 +351,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
     }
 
-    private String getAuthorityBasedOnUPN(final String upn) {
+    private String getAuthorityBasedOnUPN(final String upn, final String requestAuthority) {
         mSharedPreference = getSharedPreferences(SHARED_PREFERENCE_STORE_USER_UNIQUEID, MODE_PRIVATE);
-        return mSharedPreference.getString(upn+"authority", null);
+        return mSharedPreference.getString((upn.trim() + ":" + requestAuthority.trim() + ":authority").toLowerCase(), null);
     }
 
 }

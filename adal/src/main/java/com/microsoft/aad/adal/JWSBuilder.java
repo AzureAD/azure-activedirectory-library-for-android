@@ -28,6 +28,12 @@ import android.util.Base64;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -37,6 +43,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.Map;
 
 /**
  * JWS response builder for certificate challenge response.
@@ -99,10 +106,48 @@ class JWSBuilder implements IJWSBuilder {
     }
 
     /**
+     * Generate generic String key/value pair JWT.
+     *
+     * @param header
+     * @param body
+     * @return String Base64URLSafe(header)+Base64URLSafe(body)
+     * @throws JSONException
+     * @throws UnsupportedEncodingException
+     */
+    public String generateJWT(Map<String, String> header, Map<String, String> body,
+            int expTimeInSeconds) throws JSONException, UnsupportedEncodingException {
+        Logger.v(TAG, "Generating JWT.");
+        JSONObject headerJson = generateJson(header, expTimeInSeconds);
+        JSONObject bodyJson = generateJson(body, expTimeInSeconds);
+        String signingInput = StringExtensions.encodeBase64URLSafeString(headerJson.toString().getBytes(AuthenticationConstants.ENCODING_UTF8))
+                + "." + StringExtensions.encodeBase64URLSafeString(bodyJson.toString().getBytes(AuthenticationConstants.ENCODING_UTF8));
+        return signingInput;
+    }
+
+    private JSONObject generateJson(Map<String, String> values, int expireSeconds)
+            throws JSONException {
+        JSONObject json = new JSONObject();
+        long iat = (System.currentTimeMillis() / SECONDS_MS);
+        long expTimeInSeconds = iat + expireSeconds;
+
+        for (Map.Entry<String, String> entry : values.entrySet()) {
+            if (entry.getKey().equalsIgnoreCase("iat") || entry.getKey().equalsIgnoreCase("nbf")) {
+                json.put(entry.getKey(), iat);
+            } else if (entry.getKey().equalsIgnoreCase("exp")) {
+                json.put(entry.getKey(), expTimeInSeconds);
+            } else {
+                json.put(entry.getKey(), entry.getValue());
+            }
+        }
+
+        return json;
+    }
+
+    /**
      * Generate the signed JWT.
      */
     public String generateSignedJWT(String nonce, String audience, RSAPrivateKey privateKey,
-            RSAPublicKey pubKey, X509Certificate cert) throws AuthenticationException {
+                                    RSAPublicKey pubKey, X509Certificate cert) throws AuthenticationException {
         // http://tools.ietf.org/html/draft-ietf-jose-json-web-signature-25
         // In the JWS Compact Serialization, a JWS object is represented as the
         // combination of these three string values,
@@ -161,7 +206,7 @@ class JWSBuilder implements IJWSBuilder {
                     .getBytes(AuthenticationConstants.ENCODING_UTF8))
                     + "."
                     + StringExtensions.encodeBase64URLSafeString(claimsJsonString
-                            .getBytes(AuthenticationConstants.ENCODING_UTF8));
+                    .getBytes(AuthenticationConstants.ENCODING_UTF8));
 
             signature = sign(privateKey,
                     signingInput.getBytes(AuthenticationConstants.ENCODING_UTF8));
@@ -179,7 +224,7 @@ class JWSBuilder implements IJWSBuilder {
      * Signs the input with the private key.
      *
      * @param privateKey the key to sign input with
-     * @param input the data that needs to be signed
+     * @param input      the data that needs to be signed
      * @return String signed string
      */
     private static String sign(RSAPrivateKey privateKey, final byte[] input) throws AuthenticationException {

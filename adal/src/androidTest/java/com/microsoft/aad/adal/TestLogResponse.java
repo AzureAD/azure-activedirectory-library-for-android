@@ -26,6 +26,7 @@ package com.microsoft.aad.adal;
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
 
+
 import java.util.concurrent.CountDownLatch;
 
 public class TestLogResponse {
@@ -53,7 +54,7 @@ public class TestLogResponse {
 
             @Override
             public void Log(String tag, String message, String additionalMessage, LogLevel level,
-                    ADALError errorCode) {
+                            ADALError errorCode) {
 
                 if (message.contains(msg)) {
                     response.mTag = tag;
@@ -71,6 +72,7 @@ public class TestLogResponse {
 
     /**
      * Check log message for segments since some of the responses include server generated traceid, timeStamp etc.
+     *
      * @param msgs
      */
     public void listenLogForMessageSegments(final String... msgs) {
@@ -80,9 +82,9 @@ public class TestLogResponse {
 
             @Override
             public void Log(String tag, String message, String additionalMessage, LogLevel level,
-                    ADALError errorCode) {
+                            ADALError errorCode) {
                 for (String msg : msgs) {
-                    if (message.contains(msg) || additionalMessage.contains(msg)) {
+                    if (message.contains(msg) || (null != additionalMessage && additionalMessage.contains(msg))) {
                         response.mTag = tag;
                         response.mMessage = message;
                         response.mAdditionalMessage = additionalMessage;

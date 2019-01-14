@@ -34,7 +34,7 @@ public final class ReflectionUtils {
 
     /**
      * get non public method from class
-     * 
+     *
      * @param object
      * @param methodName
      * @return
@@ -53,7 +53,7 @@ public final class ReflectionUtils {
         m.setAccessible(true);
         return m;
     }
-    
+
     public static Method getStaticTestMethod(Class<?> c, final String methodName, Class<?>... paramtypes)
             throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
             InstantiationException, IllegalAccessException, InvocationTargetException {
@@ -64,7 +64,7 @@ public final class ReflectionUtils {
 
     /**
      * get non public instance default constructor for testing
-     * 
+     *
      * @param name
      * @return
      * @throws ClassNotFoundException
@@ -147,7 +147,7 @@ public final class ReflectionUtils {
             paramTypes = new Class<?>[params.length];
             for (int i = 0; i < params.length; i++) {
                 //paramTypes[i] = params[i].getClass();
-                if (params[i].getClass().getSimpleName().equals("Boolean")) {                    
+                if (params[i].getClass().getSimpleName().equals("Boolean")) {
                     paramTypes[i] = boolean.class;
                 } else {
                     paramTypes[i] = params[i].getClass();

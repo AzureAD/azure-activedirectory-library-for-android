@@ -23,6 +23,8 @@
 
 package com.microsoft.aad.adal;
 
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+
 import android.util.Pair;
 
 import java.util.Map;
@@ -47,6 +49,12 @@ public final class Telemetry {
     /**
      * Sets the PII/OII allow flag. If set to true, PII/OII fields will not be explicitly blocked
      * in Telemetry data.
+     *
+     * Calling {@link #setAllowPii(boolean)} setAllowPii with true, will allow ADAL to return
+     * fields with user information in the telemetry events. ADAL does not send telemetry data
+     * by itself to any server. If apps want to collect ADAL telemetry with user information
+     * they must setup the telemetry callback and set this flag on. By default ADAL will not
+     * return any user information in telemetry.
      *
      * @param allowFlag true, if PII/OII should be allowed in Telemetry data. False otherwise.
      */

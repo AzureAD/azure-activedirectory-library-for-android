@@ -31,10 +31,12 @@ android {
 
     defaultConfig {
         applicationId "com.microsoft.aad.automation.testapp"
-        minSdkVersion rootProject.ext.minSdkVersion
+        minSdkVersion rootProject.ext.automationAppMinSDKVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
@@ -42,11 +44,57 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    flavorDimensions "main"
+
+    productFlavors {
+        local {
+            applicationIdSuffix ".adal"
+            versionNameSuffix "-adal"
+            resValue("string", "application_name", "adal")
+        }
+        /*
+        //Leaving out MSAL support until i look into dynamically linking
+        msalR{
+            applicationIdSuffix ".msalR"
+            versionNameSuffix "-msalR"
+            resValue("string", "application_name", "msalR")
+        }
+        */
+        dist {
+            applicationIdSuffix "adal.dist"
+            versionNameSuffix "adal-dist"
+            resValue("string", "application_name", "adal-dist")
+        }
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+
 }
 
 dependencies {
-    compile "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
-    compile project(':adal')
+    implementation "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
+    implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
+    implementation project(":common")
 
-    testCompile "junit:junit:$rootProject.ext.junitVersion"
+    // Flavored dependencies
+    localImplementation(project(':adal')) {
+        exclude group: 'com.microsoft.identity', module: 'common'
+    }
+
+    distImplementation("com.microsoft.aad:adal:$rootProject.ext.adalLegacy") {
+        exclude group: 'com.microsoft.identity', module: 'common'
+    }
+
+    // Unit tests
+    testImplementation "junit:junit:$rootProject.ext.junitVersion"
+
+    // Instrumented tests
+    androidTestImplementation "junit:junit:$rootProject.ext.junitVersion"
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+    androidTestImplementation 'com.android.support.test:runner:1.0.1'
+    androidTestImplementation 'com.android.support.test.uiautomator:uiautomator-v18:2.1.1'
+
 }

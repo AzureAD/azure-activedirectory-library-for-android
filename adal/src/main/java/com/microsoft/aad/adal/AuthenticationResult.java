@@ -23,8 +23,17 @@
 
 package com.microsoft.aad.adal;
 
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
+import com.microsoft.identity.common.adal.internal.util.HashMapExtensions;
+import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.ClientInfo;
+
+import org.json.JSONException;
+
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 
 import static com.microsoft.aad.adal.TelemetryUtils.CliTelemInfo;
 
@@ -38,6 +47,9 @@ public class AuthenticationResult implements Serializable {
      * Serial version number for serialization.
      */
     private static final long serialVersionUID = 2243372613182536368L;
+
+    private ClientInfo mClientInfo;
+    private String mResource;
 
     /**
      * Status for authentication.
@@ -59,55 +71,77 @@ public class AuthenticationResult implements Serializable {
 
     private String mCode;
 
-    private String mAccessToken;
+    protected String mAccessToken;
 
-    private String mRefreshToken;
+    protected String mRefreshToken;
 
     private String mTokenType;
 
-    private Date mExpiresOn;
+    protected Date mExpiresOn;
 
-    private String mErrorCode;
+    //Number of seconds the token is valid
+    private Long mExpiresIn;
 
-    private String mErrorDescription;
+    //Number of milliseconds since the unix epoch
+    private Long mResponseReceived;
 
-    private String mErrorCodes;
+    protected String mErrorCode;
 
-    private boolean mIsMultiResourceRefreshToken;
+    protected String mErrorDescription;
 
-    private UserInfo mUserInfo;
+    protected String mErrorCodes;
 
-    private String mTenantId;
+    protected boolean mIsMultiResourceRefreshToken;
 
-    private String mIdToken;
+    protected UserInfo mUserInfo;
 
-    private AuthenticationStatus mStatus = AuthenticationStatus.Failed;
+    protected String mTenantId;
 
-    private boolean mInitialRequest;
-    
-    private String mFamilyClientId;
+    protected String mIdToken;
 
-    private boolean mIsExtendedLifeTimeToken = false;
+    protected AuthenticationStatus mStatus = AuthenticationStatus.Failed;
 
-    private Date mExtendedExpiresOn;
+    protected boolean mInitialRequest;
 
-    private String mAuthority;
+    protected String mFamilyClientId;
 
-    private CliTelemInfo mCliTelemInfo;
+    protected boolean mIsExtendedLifeTimeToken = false;
+
+    protected Date mExtendedExpiresOn;
+
+    protected String mAuthority;
+
+    protected CliTelemInfo mCliTelemInfo;
+
+    protected HashMap<String, String> mHttpResponseBody = null;
+
+    protected int mServiceStatusCode = -1;
+
+    protected HashMap<String, List<String>> mHttpResponseHeaders = null;
+
+    private String mClientId;
 
     AuthenticationResult() {
         mCode = null;
     }
 
-    AuthenticationResult(String code) {
+    AuthenticationResult(final String clientId, final String code) {
+        mClientId = clientId;
         mCode = code;
         mStatus = AuthenticationStatus.Succeeded;
         mAccessToken = null;
         mRefreshToken = null;
     }
 
-    AuthenticationResult(String accessToken, String refreshToken, Date expires, boolean isBroad,
-                         UserInfo userInfo, String tenantId, String idToken, Date extendedExpires) {
+    AuthenticationResult(final String accessToken,
+                         final String refreshToken,
+                         final Date expires,
+                         final boolean isBroad,
+                         final UserInfo userInfo,
+                         final String tenantId,
+                         final String idToken,
+                         final Date extendedExpires,
+                         final String clientId) {
         mCode = null;
         mAccessToken = accessToken;
         mRefreshToken = refreshToken;
@@ -118,16 +152,7 @@ public class AuthenticationResult implements Serializable {
         mTenantId = tenantId;
         mIdToken = idToken;
         mExtendedExpiresOn = extendedExpires;
-    }
-
-    AuthenticationResult(String accessToken, String refreshToken, Date expires, boolean isBroad, Date extendedExpires) {
-        mCode = null;
-        mAccessToken = accessToken;
-        mRefreshToken = refreshToken;
-        mExpiresOn = expires;
-        mIsMultiResourceRefreshToken = isBroad;
-        mStatus = AuthenticationStatus.Succeeded;
-        mExtendedExpiresOn = extendedExpires;
+        mClientId = clientId;
     }
 
     AuthenticationResult(String errorCode, String errDescription, String errorCodes) {
@@ -139,7 +164,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Creates result from {@link TokenCacheItem}.
-     * 
+     *
      * @param cacheItem TokenCacheItem to be converted.
      * @return AuthenticationResult
      */
@@ -152,19 +177,32 @@ public class AuthenticationResult implements Serializable {
         }
 
         final AuthenticationResult result =
-                new AuthenticationResult(cacheItem.getAccessToken(), cacheItem.getRefreshToken(),
-                        cacheItem.getExpiresOn(), cacheItem.getIsMultiResourceRefreshToken(),
-                        cacheItem.getUserInfo(), cacheItem.getTenantId(), cacheItem.getRawIdToken(), cacheItem.getExtendedExpiresOn());
+                new AuthenticationResult(
+                        cacheItem.getAccessToken(),
+                        cacheItem.getRefreshToken(),
+                        cacheItem.getExpiresOn(),
+                        cacheItem.getIsMultiResourceRefreshToken(),
+                        cacheItem.getUserInfo(),
+                        cacheItem.getTenantId(),
+                        cacheItem.getRawIdToken(),
+                        cacheItem.getExtendedExpiresOn(),
+                        cacheItem.getClientId()
+                );
+
+        final CliTelemInfo cliTelemInfo = new CliTelemInfo();
+        cliTelemInfo.setSpeRing(cacheItem.getSpeRing());
+        result.setCliTelemInfo(cliTelemInfo);
 
         return result;
     }
 
-    static AuthenticationResult createResultForInitialRequest() {
+    static AuthenticationResult createResultForInitialRequest(final String clientId) {
         AuthenticationResult result = new AuthenticationResult();
         result.mInitialRequest = true;
+        result.mClientId = clientId;
         return result;
     }
-    
+
     static AuthenticationResult createExtendedLifeTimeResult(final TokenCacheItem accessTokenItem) {
         final AuthenticationResult retryResult = createResult(accessTokenItem);
         retryResult.setExpiresOn(retryResult.getExtendedExpiresOn());
@@ -174,7 +212,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Uses access token to create header for web requests.
-     * 
+     *
      * @return AuthorizationHeader
      */
     public String createAuthorizationHeader() {
@@ -183,7 +221,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Access token to send to the service in Authorization Header.
-     * 
+     *
      * @return Access token
      */
     public String getAccessToken() {
@@ -192,7 +230,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Refresh token to get new tokens.
-     * 
+     *
      * @return Refresh token
      */
     public String getRefreshToken() {
@@ -201,7 +239,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Token type.
-     * 
+     *
      * @return access token type
      */
     public String getAccessTokenType() {
@@ -210,17 +248,33 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Epoch time for expiresOn.
-     * 
+     *
      * @return expiresOn {@link Date}
      */
     public Date getExpiresOn() {
-        return Utility.getImmutableDateObject(mExpiresOn);
+        return DateExtensions.createCopy(mExpiresOn);
+    }
+
+    public Long getExpiresIn() {
+        return mExpiresIn;
+    }
+
+    public void setExpiresIn(final Long expiresIn) {
+        mExpiresIn = expiresIn;
+    }
+
+    public Long getResponseReceived() {
+        return mResponseReceived;
+    }
+
+    public void setResponseReceived(final Long responseReceived) {
+        mResponseReceived = responseReceived;
     }
 
     /**
      * Multi-resource refresh tokens can be used to request token for another
      * resource.
-     * 
+     *
      * @return multi resource refresh token status
      */
     public boolean getIsMultiResourceRefreshToken() {
@@ -229,7 +283,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * UserInfo returned from IdToken.
-     * 
+     *
      * @return {@link UserInfo}
      */
     public UserInfo getUserInfo() {
@@ -238,7 +292,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Set userinfo after refresh from previous idtoken.
-     * 
+     *
      * @param userinfo latest user info.
      */
     void setUserInfo(UserInfo userinfo) {
@@ -247,7 +301,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Gets tenantId.
-     * 
+     *
      * @return TenantId
      */
     public String getTenantId() {
@@ -256,7 +310,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Gets status.
-     * 
+     *
      * @return {@link AuthenticationStatus}
      */
     public AuthenticationStatus getStatus() {
@@ -273,7 +327,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Gets error code.
-     * 
+     *
      * @return Error code
      */
     public String getErrorCode() {
@@ -282,7 +336,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Gets error description.
-     * 
+     *
      * @return error description
      */
     public String getErrorDescription() {
@@ -291,7 +345,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Gets error log info.
-     * 
+     *
      * @return log info
      */
     public String getErrorLogInfo() {
@@ -300,7 +354,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Checks expiration time.
-     * 
+     *
      * @return true if expired
      */
     public boolean isExpired() {
@@ -311,9 +365,13 @@ public class AuthenticationResult implements Serializable {
         return TokenCacheItem.isTokenExpired(getExpiresOn());
     }
 
-    // The token returned is cached with this authority as key.
-    // We expect the subsequent requests to AcquireToken will use this authority as the authority parameter else
-    // AcquireTokenSilent will fail
+    /**
+     * The token returned is cached with this authority as key.
+     * We expect the subsequent requests to AcquireToken will use this authority as the authority parameter else
+     * AcquireTokenSilent will fail
+     *
+     * @return Authority
+     */
     public final String getAuthority() {
         return mAuthority;
     }
@@ -328,7 +386,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Get raw idtoken.
-     * 
+     *
      * @return IdToken
      */
     public String getIdToken() {
@@ -373,30 +431,134 @@ public class AuthenticationResult implements Serializable {
     void setTenantId(String tenantid) {
         mTenantId = tenantid;
     }
-    
+
     void setRefreshToken(String refreshToken) {
         mRefreshToken = refreshToken;
     }
-    
+
     final String getFamilyClientId() {
         return mFamilyClientId;
     }
-    
+
     final void setFamilyClientId(final String familyClientId) {
         mFamilyClientId = familyClientId;
     }
 
-    final void setAuthority(final String authority) {
+    public final void setAuthority(final String authority) {
         if (!StringExtensions.isNullOrBlank(authority)) {
             mAuthority = authority;
         }
     }
 
-    final CliTelemInfo getCliTelemInfo() {
+    public final CliTelemInfo getCliTelemInfo() {
         return mCliTelemInfo;
     }
 
     final void setCliTelemInfo(final CliTelemInfo cliTelemInfo) {
         mCliTelemInfo = cliTelemInfo;
     }
+
+    void setHttpResponseBody(final HashMap<String, String> body) {
+        mHttpResponseBody = body;
+    }
+
+    /**
+     * Get Http response message.
+     *
+     * @return HttpResponseBody
+     */
+    public HashMap<String, String> getHttpResponseBody() {
+        return mHttpResponseBody;
+    }
+
+    void setHttpResponseHeaders(final HashMap<String, List<String>> headers) {
+        mHttpResponseHeaders = headers;
+    }
+
+    /**
+     * Get Http response headers.
+     *
+     * @return HttpResponseHeaders
+     */
+    public HashMap<String, List<String>> getHttpResponseHeaders() {
+        return mHttpResponseHeaders;
+    }
+
+    void setServiceStatusCode(int statusCode) {
+        mServiceStatusCode = statusCode;
+    }
+
+    /**
+     * Get service status code.
+     *
+     * @return ServiceStatusCode
+     */
+    public int getServiceStatusCode() {
+        return mServiceStatusCode;
+    }
+
+    void setHttpResponse(final HttpWebResponse response) {
+        if (null != response) {
+            mServiceStatusCode = response.getStatusCode();
+
+            if (null != response.getResponseHeaders()) {
+                mHttpResponseHeaders = new HashMap<>(response.getResponseHeaders());
+            }
+
+            if (null != response.getBody()) {
+                try {
+                    mHttpResponseBody = new HashMap<>(HashMapExtensions.getJsonResponse(response));
+                } catch (final JSONException exception) {
+                    Logger.e(AuthenticationException.class.getSimpleName(), "Json exception",
+                            ExceptionExtensions.getExceptionMessage(exception),
+                            ADALError.SERVER_INVALID_JSON_RESPONSE);
+                }
+            }
+        }
+    }
+
+    public String getClientId() {
+        return mClientId;
+    }
+
+    public void setClientId(final String clientId) {
+        mClientId = clientId;
+    }
+
+    /**
+     * Sets the ClientInfo.
+     *
+     * @param clientInfo The ClientInfo to set.
+     */
+    void setClientInfo(final ClientInfo clientInfo) {
+        mClientInfo = clientInfo;
+    }
+
+    /**
+     * Gets the {@link ClientInfo}.
+     *
+     * @return The ClientInfo to get or null (if the broker was used to acquire tokens).
+     */
+    public ClientInfo getClientInfo() {
+        return mClientInfo;
+    }
+
+    /**
+     * Sets the resource of this AuthenticationResult.
+     *
+     * @param resource The resource to set.
+     */
+    void setResource(String resource) {
+        mResource = resource;
+    }
+
+    /**
+     * Gets the resource of this AuthenticationResult.
+     *
+     * @return The resource to get.
+     */
+    public String getResource() {
+        return mResource;
+    }
+
 }

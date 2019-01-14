@@ -29,6 +29,13 @@ import android.text.TextUtils;
 import android.util.Base64;
 
 import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
+import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
+import com.microsoft.identity.common.adal.internal.util.HashMapExtensions;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.exception.ServiceException;
+import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.ClientInfo;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -48,8 +55,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static com.microsoft.aad.adal.TelemetryUtils.CliTelemInfo;
-
-import static com.microsoft.aad.adal.AuthenticationConstants.HeaderField.X_MS_CLITELEM;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.HeaderField.X_MS_CLITELEM;
 
 /**
  * Base Oauth class.
@@ -78,6 +84,12 @@ class Oauth2 {
 
     private static final String HTTPS_PROTOCOL_STRING = "https";
 
+    private static final String STRING_FORMAT_QUERY_PARAM = "%s&%s=%s";
+
+    private String mBrokerClientVersion = "";
+
+    private String mClientVersion = "";
+
     Oauth2(AuthenticationRequest request) {
         mRequest = request;
         mWebRequestHandler = null;
@@ -85,19 +97,30 @@ class Oauth2 {
         setTokenEndpoint(mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT);
     }
 
-    public Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler) {
+    Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler) {
         mRequest = request;
         mWebRequestHandler = webRequestHandler;
         mJWSBuilder = null;
         setTokenEndpoint(mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT);
     }
 
-    public Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler,
-            IJWSBuilder jwsMessageBuilder) {
+    Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler,
+           IJWSBuilder jwsMessageBuilder) {
         mRequest = request;
         mWebRequestHandler = webRequestHandler;
         mJWSBuilder = jwsMessageBuilder;
         setTokenEndpoint(mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT);
+    }
+
+    public void setClientVersion(String version) {
+        mClientVersion = version;
+        if (mWebRequestHandler != null) {
+            mWebRequestHandler.setClientVersion(version);
+        }
+    }
+
+    public void setBrokerClientVersion(String version) {
+        mBrokerClientVersion = version;
     }
 
     public String getAuthorizationEndpoint() {
@@ -111,7 +134,7 @@ class Oauth2 {
     public String getAuthorizationEndpointQueryParameters() throws UnsupportedEncodingException {
         final Uri.Builder queryParameter = new Uri.Builder();
         queryParameter.appendQueryParameter(AuthenticationConstants.OAuth2.RESPONSE_TYPE,
-                        AuthenticationConstants.OAuth2.CODE)
+                AuthenticationConstants.OAuth2.CODE)
                 .appendQueryParameter(AuthenticationConstants.OAuth2.CLIENT_ID,
                         URLEncoder.encode(mRequest.getClientId(),
                                 AuthenticationConstants.ENCODING_UTF8))
@@ -129,18 +152,27 @@ class Oauth2 {
                             AuthenticationConstants.ENCODING_UTF8));
         }
 
+        if (StringExtensions.isNullOrBlank(mClientVersion)) {
+            mClientVersion = AuthenticationContext.getVersionName();
+        }
+
         // append device and platform info in the query parameters
         queryParameter.appendQueryParameter(AuthenticationConstants.AAD.ADAL_ID_PLATFORM,
-                        AuthenticationConstants.AAD.ADAL_ID_PLATFORM_VALUE)
+                AuthenticationConstants.AAD.ADAL_ID_PLATFORM_VALUE)
+
                 .appendQueryParameter(AuthenticationConstants.AAD.ADAL_ID_VERSION,
-                        URLEncoder.encode(AuthenticationContext.getVersionName(),
-                                AuthenticationConstants.ENCODING_UTF8))
+                        URLEncoder.encode(mClientVersion, AuthenticationConstants.ENCODING_UTF8))
                 .appendQueryParameter(AuthenticationConstants.AAD.ADAL_ID_OS_VER,
                         URLEncoder.encode(String.valueOf(Build.VERSION.SDK_INT),
                                 AuthenticationConstants.ENCODING_UTF8))
                 .appendQueryParameter(AuthenticationConstants.AAD.ADAL_ID_DM,
                         URLEncoder.encode(android.os.Build.MODEL,
                                 AuthenticationConstants.ENCODING_UTF8));
+
+        if (!StringExtensions.isNullOrBlank(mBrokerClientVersion)) {
+            queryParameter.appendQueryParameter(AuthenticationConstants.AAD.ADAL_BROKER_VERSION,
+                    URLEncoder.encode(mBrokerClientVersion, AuthenticationConstants.ENCODING_UTF8));
+        }
 
         if (mRequest.getCorrelationId() != null) {
             queryParameter.appendQueryParameter(AuthenticationConstants.AAD.CLIENT_REQUEST_ID,
@@ -175,6 +207,14 @@ class Oauth2 {
             queryParameter.appendQueryParameter(AuthenticationConstants.OAuth2.CLAIMS, mRequest.getClaimsChallenge());
         }
 
+        if(!StringExtensions.isNullOrBlank(mRequest.getAppName())){
+            queryParameter.appendQueryParameter(AuthenticationConstants.AAD.APP_PACKAGE_NAME, mRequest.getAppName());
+        }
+
+        if(!StringExtensions.isNullOrBlank(mRequest.getAppVersion())){
+            queryParameter.appendQueryParameter(AuthenticationConstants.AAD.APP_VERSION, mRequest.getAppVersion());
+        }
+
         String requestUrl = queryParameter.build().getQuery();
         if (!StringExtensions.isNullOrBlank(extraQP)) {
             String parsedQP = extraQP;
@@ -194,24 +234,47 @@ class Oauth2 {
 
     public String buildTokenRequestMessage(String code) throws UnsupportedEncodingException {
         Logger.v(TAG, "Building request message for redeeming token with auth code.");
-        
-        return String.format("%s=%s&%s=%s&%s=%s&%s=%s",
+
+        String message = String.format("%s=%s&%s=%s&%s=%s&%s=%s&%s=%s",
                 AuthenticationConstants.OAuth2.GRANT_TYPE,
                 StringExtensions.urlFormEncode(AuthenticationConstants.OAuth2.AUTHORIZATION_CODE),
 
-                AuthenticationConstants.OAuth2.CODE, StringExtensions.urlFormEncode(code),
+                AuthenticationConstants.OAuth2.CODE,
+                StringExtensions.urlFormEncode(code),
 
                 AuthenticationConstants.OAuth2.CLIENT_ID,
                 StringExtensions.urlFormEncode(mRequest.getClientId()),
 
                 AuthenticationConstants.OAuth2.REDIRECT_URI,
-                StringExtensions.urlFormEncode(mRequest.getRedirectUri()));
+                StringExtensions.urlFormEncode(mRequest.getRedirectUri()),
+
+                // Request client_info
+                AuthenticationConstants.OAuth2.CLIENT_INFO,
+                AuthenticationConstants.OAuth2.CLIENT_INFO_TRUE
+        );
+
+        if (!StringExtensions.isNullOrBlank(mRequest.getClaimsChallenge())) {
+            message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.OAuth2.CLAIMS,
+                    StringExtensions.urlFormEncode(mRequest.getClaimsChallenge()));
+        }
+
+        if (!StringExtensions.isNullOrBlank(mRequest.getAppName())) {
+            message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.AAD.APP_PACKAGE_NAME,
+                    StringExtensions.urlFormEncode(mRequest.getAppName()));
+        }
+
+        if (!StringExtensions.isNullOrBlank(mRequest.getAppVersion())) {
+            message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.AAD.APP_VERSION,
+                    StringExtensions.urlFormEncode(mRequest.getAppVersion()));
+        }
+        return message;
+
     }
 
     public String buildRefreshTokenRequestMessage(String refreshToken)
             throws UnsupportedEncodingException {
         Logger.v(TAG, "Building request message for redeeming token with refresh token.");
-        String message = String.format("%s=%s&%s=%s&%s=%s",
+        String message = String.format("%s=%s&%s=%s&%s=%s&%s=%s",
                 AuthenticationConstants.OAuth2.GRANT_TYPE,
                 StringExtensions.urlFormEncode(AuthenticationConstants.OAuth2.REFRESH_TOKEN),
 
@@ -219,13 +282,38 @@ class Oauth2 {
                 StringExtensions.urlFormEncode(refreshToken),
 
                 AuthenticationConstants.OAuth2.CLIENT_ID,
-                StringExtensions.urlFormEncode(mRequest.getClientId()));
+                StringExtensions.urlFormEncode(mRequest.getClientId()),
+
+                AuthenticationConstants.OAuth2.CLIENT_INFO,
+                AuthenticationConstants.OAuth2.CLIENT_INFO_TRUE
+        );
 
         if (!StringExtensions.isNullOrBlank(mRequest.getResource())) {
-            message = String.format("%s&%s=%s", message, AuthenticationConstants.AAD.RESOURCE,
+            message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.AAD.RESOURCE,
                     StringExtensions.urlFormEncode(mRequest.getResource()));
         }
 
+        // sending redirect uri for the refresh token request if it's provided
+        if (!StringExtensions.isNullOrBlank(mRequest.getRedirectUri())
+                && !mRequest.getClientId().equalsIgnoreCase(AuthenticationConstants.Broker.BROKER_CLIENT_ID)) {
+            message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.OAuth2.REDIRECT_URI,
+                    StringExtensions.urlFormEncode(mRequest.getRedirectUri()));
+        }
+
+        if (!StringExtensions.isNullOrBlank(mRequest.getClaimsChallenge())) {
+            message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.OAuth2.CLAIMS,
+                    StringExtensions.urlFormEncode(mRequest.getClaimsChallenge()));
+        }
+
+        if (!StringExtensions.isNullOrBlank(mRequest.getAppName())) {
+            message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.AAD.APP_PACKAGE_NAME,
+                    StringExtensions.urlFormEncode(mRequest.getAppName()));
+        }
+
+        if (!StringExtensions.isNullOrBlank(mRequest.getAppVersion())) {
+            message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.AAD.APP_VERSION,
+                    StringExtensions.urlFormEncode(mRequest.getAppVersion()));
+        }
         return message;
     }
 
@@ -257,12 +345,35 @@ class Oauth2 {
                     response.get(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION),
                     response.get(AuthenticationConstants.OAuth2.ERROR_CODES));
 
+            if (null != response.get(AuthenticationConstants.OAuth2.HTTP_RESPONSE_BODY)) {
+                HashMap<String, String> responseBody = null;
+                try {
+                    extractJsonObjects(responseBody, response.get(AuthenticationConstants.OAuth2.HTTP_RESPONSE_BODY));
+                    result.setHttpResponseBody(responseBody);
+                } catch (final JSONException exception) {
+                    Logger.e(TAG, "Json exception", ExceptionExtensions.getExceptionMessage(exception), ADALError.SERVER_INVALID_JSON_RESPONSE);
+                }
+            }
+
+            if (null != response.get(AuthenticationConstants.OAuth2.HTTP_RESPONSE_HEADER)) {
+                HashMap<String, List<String>> responseHeaders = null;
+                try {
+                    responseHeaders = HashMapExtensions.jsonStringAsMapList(response.get(AuthenticationConstants.OAuth2.HTTP_RESPONSE_HEADER));
+                    result.setHttpResponseHeaders(responseHeaders);
+                } catch (final JSONException exception) {
+                    Logger.e(TAG, "Json exception", ExceptionExtensions.getExceptionMessage(exception), ADALError.SERVER_INVALID_JSON_RESPONSE);
+                }
+            }
+
+            if (null != response.get(AuthenticationConstants.OAuth2.HTTP_STATUS_CODE)) {
+                result.setServiceStatusCode(Integer.parseInt(response.get(AuthenticationConstants.OAuth2.HTTP_STATUS_CODE)));
+            }
         } else if (response.containsKey(AuthenticationConstants.OAuth2.CODE)) {
             // The header cloud_instance_host_name points to the right sovereign cloud to use for the given user
             // Using this host name we construct the authority that will get the token request and we use this authority
             // to save the token in the cache. The app should reinitialize AuthenticationContext with this authority for
             // all subsequent requests.
-            result = new AuthenticationResult(response.get(AuthenticationConstants.OAuth2.CODE));
+            result = new AuthenticationResult(mRequest.getClientId(), response.get(AuthenticationConstants.OAuth2.CODE));
             final String cloudInstanceHostName = response.get(AuthenticationConstants.OAuth2.CLOUD_INSTANCE_HOST_NAME);
             if (!StringExtensions.isNullOrBlank(cloudInstanceHostName)) {
 
@@ -279,7 +390,10 @@ class Oauth2 {
             // Token response
             boolean isMultiResourceToken = false;
             String expiresIn = response.get(AuthenticationConstants.OAuth2.EXPIRES_IN);
+            Long expiresInLong;
             Calendar expires = new GregorianCalendar();
+
+            expiresInLong = (expiresIn == null || expiresIn.isEmpty() ? ((long) AuthenticationConstants.DEFAULT_EXPIRATION_TIME_SEC) : Long.parseLong(expiresIn));
 
             // Compute token expiration
             expires.add(
@@ -288,9 +402,12 @@ class Oauth2 {
                             : Integer.parseInt(expiresIn));
 
             final String refreshToken = response.get(AuthenticationConstants.OAuth2.REFRESH_TOKEN);
+
+            String resource = null;
             if (response.containsKey(AuthenticationConstants.AAD.RESOURCE)
                     && !StringExtensions.isNullOrBlank(refreshToken)) {
                 isMultiResourceToken = true;
+                resource = response.get(AuthenticationConstants.AAD.RESOURCE);
             }
 
             UserInfo userinfo = null;
@@ -302,9 +419,11 @@ class Oauth2 {
                 rawIdToken = response.get(AuthenticationConstants.OAuth2.ID_TOKEN);
                 if (!StringExtensions.isNullOrBlank(rawIdToken)) {
                     Logger.v(TAG, "Id token was returned, parsing id token.");
-                    IdToken tokenParsed = new IdToken(rawIdToken);
-                    tenantId = tokenParsed.getTenantId();
-                    userinfo = new UserInfo(tokenParsed);
+                    final IdToken tokenParsed = new IdToken(rawIdToken);
+                    if (tokenParsed != null) {
+                        tenantId = tokenParsed.getTenantId();
+                        userinfo = new UserInfo(tokenParsed);
+                    }
                 } else {
                     Logger.v(TAG, "IdToken was not returned from token request.");
                 }
@@ -315,9 +434,32 @@ class Oauth2 {
                 familyClientId = response.get(AuthenticationConstants.OAuth2.ADAL_CLIENT_FAMILY_ID);
             }
 
+            ClientInfo clientInfo = null;
+            if (response.containsKey(AuthenticationConstants.OAuth2.CLIENT_INFO)) {
+                final String rawClientInfo = response.get(AuthenticationConstants.OAuth2.CLIENT_INFO);
+                try {
+                    clientInfo = new ClientInfo(rawClientInfo);
+                } catch (ServiceException e) {
+                    Logger.w(TAG, "ClientInfo decoding/parsing failed.");
+                }
+            }
+
             result = new AuthenticationResult(
-                    response.get(AuthenticationConstants.OAuth2.ACCESS_TOKEN), refreshToken, expires.getTime(),
-                    isMultiResourceToken, userinfo, tenantId, rawIdToken, null);
+                    response.get(AuthenticationConstants.OAuth2.ACCESS_TOKEN),
+                    refreshToken,
+                    expires.getTime(),
+                    isMultiResourceToken,
+                    userinfo,
+                    tenantId,
+                    rawIdToken,
+                    null,
+                    mRequest.getClientId()
+            );
+
+            result.setResource(resource);
+            result.setClientInfo(clientInfo);
+            result.setExpiresIn(expiresInLong);
+            result.setResponseReceived(System.currentTimeMillis());
 
             if (response.containsKey(AuthenticationConstants.OAuth2.EXT_EXPIRES_IN)) {
                 final String extendedExpiresIn = response.get(AuthenticationConstants.OAuth2.EXT_EXPIRES_IN);
@@ -339,7 +481,7 @@ class Oauth2 {
         return result;
     }
 
-    private static void extractJsonObjects(Map<String, String> responseItems, String jsonStr)
+    public static void extractJsonObjects(Map<String, String> responseItems, String jsonStr)
             throws JSONException {
         final JSONObject jsonObject = new JSONObject(jsonStr);
 
@@ -384,11 +526,11 @@ class Oauth2 {
     /**
      * parse final url for code(normal flow) or token(implicit flow) and then it
      * proceeds to next step.
-     * 
+     *
      * @param authorizationUrl browser reached to this final url and it has code
-     *            or token for next step
+     *                         or token for next step
      * @return Token in the AuthenticationResult. Null result if response does
-     *         not have protocol error.
+     * not have protocol error.
      * @throws IOException
      * @throws AuthenticationException
      */
@@ -442,7 +584,7 @@ class Oauth2 {
 
     /**
      * get code and exchange for token.
-     * 
+     *
      * @param code the authorization code for which Authentication result is needed
      * @return AuthenticationResult
      * @throws IOException
@@ -502,7 +644,7 @@ class Oauth2 {
             if (response.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
                 if (response.getResponseHeaders() != null
                         && response.getResponseHeaders().containsKey(
-                                AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER)) {
+                        AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER)) {
 
                     // Device certificate challenge will send challenge request
                     // in 401 header.
@@ -537,7 +679,7 @@ class Oauth2 {
                     } else {
                         throw new AuthenticationException(
                                 ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
-                                "Challenge header is empty");
+                                "Challenge header is empty", response);
                     }
                 } else {
                     // AAD server returns 401 response for wrong request
@@ -564,7 +706,7 @@ class Oauth2 {
                         throw e;
                     } else {
                         Logger.v(TAG + methodName, "WebResponse is not a success due to: " + response.getStatusCode());
-                        throw new AuthenticationException(ADALError.SERVER_ERROR, "WebResponse is not a success due to: " + response.getStatusCode());
+                        throw new AuthenticationException(ADALError.SERVER_ERROR, "WebResponse is not a success due to: " + response.getStatusCode(), response);
                     }
                 }
                 ClientMetrics.INSTANCE.setLastError(null);
@@ -573,7 +715,7 @@ class Oauth2 {
                 // non-protocol related error
                 String errMessage = isBodyEmpty ? "Status code:" + response.getStatusCode() : response.getBody();
                 Logger.e(TAG + methodName, ADALError.SERVER_ERROR.getDescription(), errMessage, ADALError.SERVER_ERROR);
-                throw new AuthenticationException(ADALError.SERVER_ERROR, errMessage);
+                throw new AuthenticationException(ADALError.SERVER_ERROR, errMessage, response);
             } else {
                 ClientMetrics.INSTANCE.setLastErrorCodes(result.getErrorCodes());
             }
@@ -611,7 +753,7 @@ class Oauth2 {
 
     private AuthenticationResult retry(String requestMessage, Map<String, String> headers) throws IOException, AuthenticationException {
         final String methodName = ":retry";
-        //retry once if there is an observation of a network timeout by the client 
+        //retry once if there is an observation of a network timeout by the client
         if (mRetryOnce) {
             mRetryOnce = false;
             try {
@@ -651,7 +793,7 @@ class Oauth2 {
 
     /**
      * Extract AuthenticationResult object from response body if available.
-     * 
+     *
      * @param webResponse the web response from which authentication result will be constructed
      * @return AuthenticationResult
      */
@@ -704,18 +846,27 @@ class Oauth2 {
             try {
                 result = parseJsonResponse(webResponse.getBody());
                 if (result != null) {
+                    if (null != result.getErrorCode()) {
+                        result.setHttpResponse(webResponse);
+                    }
+
                     final CliTelemInfo cliTelemInfo = new CliTelemInfo();
                     cliTelemInfo.setSpeRing(speRing);
                     result.setCliTelemInfo(cliTelemInfo);
                     httpEvent.setOauthErrorCode(result.getErrorCode());
                 }
             } catch (final JSONException jsonException) {
-                throw new AuthenticationException(ADALError.SERVER_INVALID_JSON_RESPONSE, "Can't parse server response " + webResponse.getBody(), jsonException);
+                throw new AuthenticationException(ADALError.SERVER_INVALID_JSON_RESPONSE,
+                        "Can't parse server response. " + webResponse.getBody(),
+                        webResponse, jsonException);
             }
         } else if (statusCode >= HttpURLConnection.HTTP_INTERNAL_ERROR && statusCode <= MAX_RESILIENCY_ERROR_CODE) {
-            throw new ServerRespondingWithRetryableException("Server Error " + statusCode + " " + webResponse.getBody());
+            throw new ServerRespondingWithRetryableException("Server Error " + statusCode + " "
+                    + webResponse.getBody(), webResponse);
         } else {
-            throw new AuthenticationException(ADALError.SERVER_ERROR, "Unexpected server response " + statusCode + " " + webResponse.getBody());
+            throw new AuthenticationException(ADALError.SERVER_ERROR,
+                    "Unexpected server response " + statusCode + " " + webResponse.getBody(),
+                    webResponse);
         }
 
         // Set correlationId in the result
@@ -731,6 +882,18 @@ class Oauth2 {
             } catch (IllegalArgumentException ex) {
                 Logger.e(TAG + methodName, "Wrong format of the correlation ID:" + correlationIdInHeader, "",
                         ADALError.CORRELATION_ID_FORMAT, ex);
+            }
+        }
+
+        if (null != webResponse.getResponseHeaders()) {
+            final List<String> xMsCliTelemValues = webResponse.getResponseHeaders().get(X_MS_CLITELEM);
+            if (null != xMsCliTelemValues && !xMsCliTelemValues.isEmpty()) {
+                // Only one value is expected to be present, so we'll grab the first element...
+                final String speValue = xMsCliTelemValues.get(0);
+                final CliTelemInfo cliTelemInfo = TelemetryUtils.parseXMsCliTelemHeader(speValue);
+                if (result != null) {
+                    result.setCliTelemInfo(cliTelemInfo);
+                }
             }
         }
 
@@ -758,7 +921,7 @@ class Oauth2 {
                 EventStrings.HTTP_EVENT);
     }
 
-    private void setTokenEndpoint(final String tokenEndpoint) {
+    public void setTokenEndpoint(final String tokenEndpoint) {
         mTokenEndpoint = tokenEndpoint;
     }
 }

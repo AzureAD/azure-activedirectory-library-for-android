@@ -25,6 +25,8 @@ package com.microsoft.aad.adal;
 
 import android.content.Context;
 
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -56,11 +58,11 @@ public class FileTokenCacheStore implements ITokenCacheStore {
     /**
      * It tracks data in memory until it writes that to a file with write
      * operation.
-     * 
-     * @param context {@link Context}
+     *
+     * @param context  {@link Context}
      * @param fileName filename should be unique to this instance since read
-     *            operations don't read from file directly. write operations
-     *            write to a file.
+     *                 operations don't read from file directly. write operations
+     *                 write to a file.
      */
     public FileTokenCacheStore(Context context, String fileName) {
         final String methodName = ":FileTokenCacheStore";

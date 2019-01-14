@@ -25,6 +25,8 @@ package com.microsoft.aad.adal;
 
 import android.support.annotation.Nullable;
 
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+
 import java.io.Serializable;
 import java.util.UUID;
 
@@ -75,6 +77,14 @@ class AuthenticationRequest implements Serializable {
 
     private transient InstanceDiscoveryMetadata mInstanceDiscoveryMetadata;
 
+    private boolean mForceRefresh = false;
+
+    private boolean mSkipCache = false;
+
+    private String mAppName;
+
+    private String mAppVersion;
+
     /**
      * Developer can use acquireToken(with loginhint) or acquireTokenSilent(with
      * userid), so this sets the type of the request.
@@ -83,13 +93,13 @@ class AuthenticationRequest implements Serializable {
         UniqueId, LoginHint, NoUser
     }
 
-    public AuthenticationRequest() {
+    AuthenticationRequest() {
         mIdentifierType = UserIdentifierType.NoUser;
     }
 
-    public AuthenticationRequest(String authority, String resource, String client, String redirect,
-                                 String loginhint, PromptBehavior prompt, String extraQueryParams, UUID correlationId,
-                                 boolean isExtendedLifetimeEnabled, final String claimsChallenge) {
+    AuthenticationRequest(String authority, String resource, String client, String redirect,
+                          String loginhint, PromptBehavior prompt, String extraQueryParams, UUID correlationId,
+                          boolean isExtendedLifetimeEnabled, final String claimsChallenge) {
         mAuthority = authority;
         mResource = resource;
         mClientId = client;
@@ -104,8 +114,8 @@ class AuthenticationRequest implements Serializable {
         mClaimsChallenge = claimsChallenge;
     }
 
-    public AuthenticationRequest(String authority, String resource, String client, String redirect,
-                                 String loginhint, UUID requestCorrelationId, boolean isExtendedLifetimeEnabled) {
+    AuthenticationRequest(String authority, String resource, String client, String redirect,
+                          String loginhint, UUID requestCorrelationId, boolean isExtendedLifetimeEnabled) {
         mAuthority = authority;
         mResource = resource;
         mClientId = client;
@@ -116,8 +126,8 @@ class AuthenticationRequest implements Serializable {
         mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
     }
 
-    public AuthenticationRequest(String authority, String resource, String client, String redirect,
-                                 String loginhint, boolean isExtendedLifetimeEnabled) {
+    AuthenticationRequest(String authority, String resource, String client, String redirect,
+                          String loginhint, boolean isExtendedLifetimeEnabled) {
         mAuthority = authority;
         mResource = resource;
         mClientId = client;
@@ -127,7 +137,7 @@ class AuthenticationRequest implements Serializable {
         mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
     }
 
-    public AuthenticationRequest(String authority, String resource, String clientid, boolean isExtendedLifetimeEnabled) {
+    AuthenticationRequest(String authority, String resource, String clientid, boolean isExtendedLifetimeEnabled) {
         mAuthority = authority;
         mResource = resource;
         mClientId = clientid;
@@ -143,8 +153,8 @@ class AuthenticationRequest implements Serializable {
      * @param userid        user id
      * @param correlationId for logging
      */
-    public AuthenticationRequest(String authority, String resource, String clientid, String userid,
-                                 UUID correlationId, boolean isExtendedLifetimeEnabled) {
+    AuthenticationRequest(String authority, String resource, String clientid, String userid,
+                          UUID correlationId, boolean isExtendedLifetimeEnabled) {
         mAuthority = authority;
         mResource = resource;
         mClientId = clientid;
@@ -153,13 +163,30 @@ class AuthenticationRequest implements Serializable {
         mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
     }
 
-    public AuthenticationRequest(String authority, String resource, String clientId,
-                                 UUID correlationId, boolean isExtendedLifetimeEnabled) {
+    AuthenticationRequest(String authority, String resource, String clientid, String userid,
+                          UUID correlationId, boolean isExtendedLifetimeEnabled, boolean forceRefresh, String claimsChallenge) {
+        mAuthority = authority;
+        mResource = resource;
+        mClientId = clientid;
+        mUserId = userid;
+        mCorrelationId = correlationId;
+        mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
+        mForceRefresh = forceRefresh;
+        mClaimsChallenge = claimsChallenge;
+    }
+
+    AuthenticationRequest(String authority, String resource, String clientId,
+                          UUID correlationId, boolean isExtendedLifetimeEnabled) {
         mAuthority = authority;
         mClientId = clientId;
         mResource = resource;
         mCorrelationId = correlationId;
         mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
+    }
+
+    public boolean isClaimsChallengePresent() {
+        // if developer pass claims down through extra qp, we should also skip cache.
+        return !StringExtensions.isNullOrBlank(this.getClaimsChallenge());
     }
 
     public String getAuthority() {
@@ -173,6 +200,10 @@ class AuthenticationRequest implements Serializable {
     public String getRedirectUri() {
         return mRedirectUri;
     }
+    
+    public void setRedirectUri(final String redirectUri) {
+        mRedirectUri = redirectUri;
+    }
 
     public String getResource() {
         return mResource;
@@ -180,6 +211,10 @@ class AuthenticationRequest implements Serializable {
 
     public String getClientId() {
         return mClientId;
+    }
+    
+    public void setClientId(final String id) {
+        mClientId = id;
     }
 
     public String getLoginHint() {
@@ -189,11 +224,19 @@ class AuthenticationRequest implements Serializable {
     public UUID getCorrelationId() {
         return this.mCorrelationId;
     }
+    
+    public void setCorrelationId(UUID correlationId) {
+        mCorrelationId = correlationId;
+    }
 
     public String getExtraQueryParamsAuthentication() {
         return mExtraQueryParamsAuthentication;
     }
 
+    public void setExtraQueryParamsAuthentication(String queryParam) {
+        mExtraQueryParamsAuthentication = queryParam;
+    }
+    
     public String getLogInfo() {
         return String.format("Request authority:%s clientid:%s", mAuthority, mClientId);
     }
@@ -232,6 +275,11 @@ class AuthenticationRequest implements Serializable {
         mLoginHint = name;
     }
 
+    public void setUserName(String name){
+        mLoginHint = name;
+        mBrokerAccountName = name;
+    }
+    
     public String getUserId() {
         return mUserId;
     }
@@ -264,6 +312,10 @@ class AuthenticationRequest implements Serializable {
         mIdentifierType = user;
     }
 
+    public void setResource(String resource) {
+        this.mResource = resource;
+    }
+
     public boolean getIsExtendedLifetimeEnabled() {
         return mIsExtendedLifetimeEnabled;
     }
@@ -276,6 +328,14 @@ class AuthenticationRequest implements Serializable {
         return mClaimsChallenge;
     }
 
+    void setSkipCache(final boolean skipCache) {
+        mSkipCache = skipCache;
+    }
+
+    public boolean getSkipCache() {
+        return mSkipCache;
+    }
+    
     /**
      * Get either loginhint or user id based what's passed in the request.
      */
@@ -319,5 +379,29 @@ class AuthenticationRequest implements Serializable {
 
     InstanceDiscoveryMetadata getInstanceDiscoveryMetadata() {
         return mInstanceDiscoveryMetadata;
+    }
+
+    public boolean getForceRefresh(){
+        return mForceRefresh;
+    }
+
+    public void setForceRefresh(boolean forceRefresh){
+        mForceRefresh = forceRefresh;
+    }
+
+    public String getAppName() {
+        return mAppName;
+    }
+
+    public void setAppName(String appName) {
+        mAppName = appName;
+    }
+
+    public String getAppVersion() {
+        return mAppVersion;
+    }
+
+    public void setAppVersion(String appVersion) {
+        mAppVersion = appVersion;
     }
 }

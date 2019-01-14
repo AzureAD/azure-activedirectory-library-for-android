@@ -24,6 +24,7 @@
 package com.microsoft.aad.adal;
 
 import android.support.annotation.Nullable;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import org.json.JSONArray;
 import org.json.JSONException;

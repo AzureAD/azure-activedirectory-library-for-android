@@ -1,3 +1,60 @@
+Version 1.16.0
+--------------
+Added new acquireTokenSilent overloads to supports adding claims parameter.
+Changes to send app name and app version to auth and token endpoints.
+Updated common dependency to 0.0.7.
+
+Version 1.15.1-hf1
+--------------
+Picks up changes in common/0.0.4-hf1
+    * Bugfix: Corrects an issue parsing query parameters with null or "" values (ex. CertAuthorities="")
+Removes duplicated HashMapExtensions class and associated test class.
+
+Version 1.15.1
+--------------
+Support Sovereign and PPE authority setting in Common.
+
+Version 1.15.0
+--------------
+Update Android target and build tools to 27.
+Added support for forceRefresh.
+Support to handle Intune Policy Required errors.
+Added UI Automation Test framework and tests for ADAL.
+Introduced a new submodule 'common' for new unified cache schema and logging.
+Updates to only support AAD w/ unified cache.
+Added build variants : local and dist.
+Refactor broker validation out of the BrokerProxy.
+Changes to delete all tokens with all authority combinations for legacy and common.
+Resiliency fix to not crash the app.
+Fixed a NullPointerException when PromptBehavior is passed as null.
+Fixed NoClassDefFoundException for a dialog layout.
+Updates to README instructions for submodule/common use.
+Remove option for download-as-zip.
+Updated travis.yml for updated build tools.
+Fixed test and duplicated check additional ADFS check where required.
+Updates to reference docs.
+Fix unit test errors. Update checkstyle suppressions.xml.
+
+Version 1.14.1
+--------------
+(Hotfix) Fix for crash on devices where PRNG fixes is used.
+
+Version 1.14.0
+-------------
+Add support for GDPR PII/OII Filtering.
+Add support for Sovereign Cloud.
+With this release and the corresponding broker release, ADAL Android now supports the guest scenario. 
+Add support to parse any/all challenges served in WWW-Authenticate headers
+Update the URI query parameter parsing to handle the situation when parsing the key with empty value case.
+Updated supported Android Studio to 3.0 and Gradle to v3.5.
+Add API to get the HTTP error response info in AuthenticationException, like http response headers, response body, error code, error description and status code.
+Fix the utilization of locks in PRNGFixes.
+Stopped crashing the app if TSL export of token fails.
+
+Version 1.13.3
+-------------
+(Hotfix) Fix the crash when broker returns null for getIntentForInteractiveRequest
+
 Version 1.13.2
 -------------
 Add cache update for authority migration. New token will always be written into the preferred cache location. For read, try preferred_cache first, followed by provided authority and aliased authority.

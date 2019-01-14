@@ -36,6 +36,8 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -51,13 +53,13 @@ abstract class BasicWebViewClient extends WebViewClient {
 
     static final String BLANK_PAGE = "about:blank";
 
-    private final String mRedirect;
-    private final AuthenticationRequest mRequest;
-    private final Context mCallingContext;
+    protected String mRedirect;
+    protected final AuthenticationRequest mRequest;
+    protected final Context mCallingContext;
     private final UIEvent mUIEvent;
 
     BasicWebViewClient(final Context appContext, final String redirect,
-                       final AuthenticationRequest request, final UIEvent uiEvent) {
+                              final AuthenticationRequest request, final UIEvent uiEvent) {
         mCallingContext = appContext;
         mRedirect = redirect;
         mRequest = request;
@@ -78,11 +80,13 @@ abstract class BasicWebViewClient extends WebViewClient {
 
     @Override
     public void onReceivedHttpAuthRequest(WebView view, final HttpAuthHandler handler,
-            String host, String realm) {
+                                          String host, String realm) {
         final String methodName = ":onReceivedHttpAuthRequest";
         // Create a dialog to ask for creds and post it to the handler.
         Logger.i(TAG + methodName, "Start. ", "Host:" + host);
-        mUIEvent.setNTLM(true);
+        if (mUIEvent != null) {
+            mUIEvent.setNTLM(true);
+        }
 
         HttpAuthDialog authDialog = new HttpAuthDialog(mCallingContext, host, realm);
 
@@ -175,7 +179,7 @@ abstract class BasicWebViewClient extends WebViewClient {
         } else {
             Logger.v(TAG + methodName, "Webview starts loading. ",
                     " Host: " + uri.getHost() + " Path: " + uri.getPath()
-                    + " Auth code is returned for the loading url.", null);
+                            + " Auth code is returned for the loading url.", null);
         }
     }
 
@@ -236,8 +240,8 @@ abstract class BasicWebViewClient extends WebViewClient {
                         // returns errors to callback.
                         Intent resultIntent = new Intent();
                         resultIntent.putExtra(
-                                        AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION,
-                                        e);
+                                AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION,
+                                e);
                         if (mRequest != null) {
                             resultIntent.putExtra(
                                     AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
@@ -246,7 +250,7 @@ abstract class BasicWebViewClient extends WebViewClient {
                         sendResponse(
                                 AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION,
                                 resultIntent);
-                        }
+                    }
                 }
             }).start();
 

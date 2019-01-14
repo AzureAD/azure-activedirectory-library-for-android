@@ -25,9 +25,10 @@ package com.microsoft.aad.adal.example.userappwithbroker;
 
 import android.app.Application;
 
-import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.Logger;
-import com.microsoft.aad.adal.Logger.*;
+import com.microsoft.aad.adal.Logger.ILogger;
+import com.microsoft.aad.adal.Logger.LogLevel;
+import com.microsoft.aad.adal.ADALError;
 
 /**
  * ADAL sample app.

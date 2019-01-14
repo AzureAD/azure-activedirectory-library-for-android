@@ -27,14 +27,22 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Base64;
 
-import com.microsoft.aad.adal.AuthenticationConstants.AAD;
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
+
+
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants.AAD;
+import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
+import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
+import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
+import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;
 
 import org.json.JSONException;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.runner.RunWith;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -72,6 +80,9 @@ public class OauthTests {
     private static final String TEST_RETURNED_EXCEPTION = "test-returned-exception";
 
     private static final String TEST_AUTHORITY = "https://login.windows.net/common";
+
+    private static final int RETRY_AFTER = 429;
+
     @Before
     public void setUp() throws Exception {
         System.setProperty("dexmaker.dexcache", InstrumentationRegistry.getContext().getCacheDir().getPath());
@@ -261,6 +272,11 @@ public class OauthTests {
         final Oauth2 oAuthxtraQPContainHasChrome = createOAuthInstance(extraQPContainHasChrome);
         final String actualCodeRequestQPHasChrome = oAuthxtraQPContainHasChrome.getCodeRequestUrl();
         assertTrue("Prompt", actualCodeRequestQPHasChrome.contains("&prompt=login&extra=1&haschrome=1"));
+
+        request.setAppName("test.mock.");
+        request.setAppVersion("test");
+        final Oauth2  oAuthWithAppInfo = createOAuthInstance(request);
+        assertTrue("App Info", oAuthWithAppInfo.getCodeRequestUrl().contains("&x-app-name=test.mock.&x-app-ver=test"));
     }
 
     @Test
@@ -322,7 +338,7 @@ public class OauthTests {
         final Oauth2 oauth2 = createOAuthInstance(request);
         assertEquals(
                 "Token request",
-                "grant_type=authorization_code&code=authorizationcodevalue%3D&client_id=client+1234567890-%2B%3D%3B%27&redirect_uri=redirect+1234567890-%2B%3D%3B%27",
+                "grant_type=authorization_code&code=authorizationcodevalue%3D&client_id=client+1234567890-%2B%3D%3B%27&redirect_uri=redirect+1234567890-%2B%3D%3B%27&client_info=1",
                 oauth2.buildTokenRequestMessage("authorizationcodevalue="));
 
         // without login hint
@@ -333,8 +349,26 @@ public class OauthTests {
         final Oauth2 oauthWithoutLoginHint = createOAuthInstance(requestWithoutLogin);
         assertEquals(
                 "Token request",
-                "grant_type=authorization_code&code=authorizationcodevalue%3D&client_id=client+1234567890-%2B%3D%3B%27&redirect_uri=redirect+1234567890-%2B%3D%3B%27",
+                "grant_type=authorization_code&code=authorizationcodevalue%3D&client_id=client+1234567890-%2B%3D%3B%27&redirect_uri=redirect+1234567890-%2B%3D%3B%27&client_info=1",
                 oauthWithoutLoginHint.buildTokenRequestMessage("authorizationcodevalue="));
+
+        request.setAppName("test.mock.");
+        request.setAppVersion("test");
+
+        final Oauth2 oauthAppInfo = createOAuthInstance(request);
+        assertEquals(
+                "Token request",
+                "grant_type=authorization_code&code=authorizationcodevalue%3D&client_id=client+1234567890-%2B%3D%3B%27&redirect_uri=redirect+1234567890-%2B%3D%3B%27&client_info=1&x-app-name=test.mock.&x-app-ver=test",
+                oauthAppInfo.buildTokenRequestMessage("authorizationcodevalue="));
+
+        // with claims challenge
+        request.setClaimsChallenge("testClaims");
+        final Oauth2 oauthClaims = createOAuthInstance(request);
+        assertEquals(
+                "Token request",
+                "grant_type=authorization_code&code=authorizationcodevalue%3D&client_id=client+1234567890-%2B%3D%3B%27&redirect_uri=redirect+1234567890-%2B%3D%3B%27&client_info=1&claims=testClaims&x-app-name=test.mock.&x-app-ver=test",
+                oauthClaims.buildTokenRequestMessage("authorizationcodevalue="));
+
     }
 
     /**
@@ -348,10 +382,7 @@ public class OauthTests {
                 "client 1234567890-+=;'", "redirect 1234567890-+=;'", "loginhint@ggg.com", null,
                 null, null, false);
         final Oauth2 oauth2 = createOAuthInstance(request);
-        assertEquals(
-                "Token request",
-                "grant_type=refresh_token&refresh_token=refreshToken23434%3D&client_id=client+1234567890-%2B%3D%3B%27&resource=resource%2520+",
-                oauth2.buildRefreshTokenRequestMessage("refreshToken23434="));
+        assertTrue(oauth2.buildRefreshTokenRequestMessage("refreshToken23434=").startsWith("grant_type=refresh_token&refresh_token=refreshToken23434%3D&client_id=client+1234567890-%2B%3D%3B%27&client_info=1&resource=resource%2520+"));
 
         // without resource
         final AuthenticationRequest requestWithoutResource = createAuthenticationRequest(
@@ -359,10 +390,22 @@ public class OauthTests {
                 "redirect 1234567890-+=;'", "loginhint@ggg.com", null, null, null, false);
 
         final Oauth2 oauthWithoutResource = createOAuthInstance(requestWithoutResource);
-        assertEquals(
-                "Token request",
-                "grant_type=refresh_token&refresh_token=refreshToken234343455%3D&client_id=client+1234567890-%2B%3D%3B%27",
-                oauthWithoutResource.buildRefreshTokenRequestMessage("refreshToken234343455="));
+        assertTrue(oauthWithoutResource.buildRefreshTokenRequestMessage("refreshToken234343455=").startsWith("grant_type=refresh_token&refresh_token=refreshToken234343455%3D&client_id=client+1234567890-%2B%3D%3B%27&client_info=1"));
+
+        request.setAppName("test.mock.");
+        request.setAppVersion("test");
+
+        final Oauth2 oauthAppInfo = createOAuthInstance(request);
+        assertEquals("grant_type=refresh_token&refresh_token=refreshToken23434%3D&client_id=client+1234567890-%2B%3D%3B%27&client_info=1&resource=resource%2520+&redirect_uri=redirect+1234567890-%2B%3D%3B%27&x-app-name=test.mock.&x-app-ver=test",
+                oauthAppInfo.buildRefreshTokenRequestMessage("refreshToken23434="));
+
+        // with claims challenge
+        request.setClaimsChallenge("testClaims");
+        final Oauth2 oauthClaims = createOAuthInstance(request);
+
+        assertEquals("grant_type=refresh_token&refresh_token=refreshToken23434%3D&client_id=client+1234567890-%2B%3D%3B%27&client_info=1&resource=resource%2520+&redirect_uri=redirect+1234567890-%2B%3D%3B%27&claims=testClaims&x-app-name=test.mock.&x-app-ver=test",
+                oauthClaims.buildRefreshTokenRequestMessage("refreshToken23434="));
+
     }
 
     /**
@@ -417,9 +460,8 @@ public class OauthTests {
     public void testRefreshTokenWebResponseInvalidStatus() {
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
         webrequest.setReturnResponse(new HttpWebResponse(HttpURLConnection.HTTP_UNAVAILABLE,
-                null, null));
-        // Invalid status that cause some exception at webrequest
-        webrequest.setReturnException(TEST_RETURNED_EXCEPTION);
+                "{\"error\":\"no_internet\"}",
+                new HashMap<String, List<String>>()));
 
         // send request
         MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),
@@ -428,8 +470,8 @@ public class OauthTests {
         // Verify that callback can receive this error
         assertNull("AuthenticationResult is null", testResult.getAuthenticationResult());
         assertNotNull("Exception is not null", testResult.getException());
-        assertEquals("Exception has same error message", TEST_RETURNED_EXCEPTION,
-                testResult.getException().getMessage());
+        assertTrue(testResult.getException() instanceof AuthenticationException);
+        assertEquals(((AuthenticationException) testResult.getException()).getServiceStatusCode(), HttpURLConnection.HTTP_UNAVAILABLE);
     }
 
     @Test
@@ -453,7 +495,6 @@ public class OauthTests {
                 testResult.getAuthenticationResult().getRefreshToken());
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testRefreshTokenWebResponseDeviceChallengePositive()
             throws IOException, AuthenticationException, NoSuchAlgorithmException {
@@ -487,10 +528,12 @@ public class OauthTests {
                 HttpURLConnection.HTTP_OK, tokenPositiveResponse, null);
         // first call returns 401 and second call returns token
         when(
-                mockWebRequest.sendPost(eq(new URL(TEST_AUTHORITY + "/oauth2/token")),
-                        any(headers.getClass()), any(byte[].class),
-                        eq("application/x-www-form-urlencoded"))).thenReturn(responeChallenge)
-                .thenReturn(responseValid);
+                mockWebRequest.sendPost(
+                        eq(new URL(TEST_AUTHORITY + "/oauth2/token")),
+                        Mockito.<String, String>anyMap(),
+                        any(byte[].class),
+                        eq("application/x-www-form-urlencoded"))
+        ).thenReturn(responeChallenge).thenReturn(responseValid);
 
         // send request
         final MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),
@@ -505,6 +548,24 @@ public class OauthTests {
                 testResult.getAuthenticationResult().getRefreshToken());
     }
 
+    @Test
+    public void testRefreshTokenWebResponseHeader() {
+        Map<String, List<String>> headers = getHeader(
+                "Retry-After", "120");
+        MockWebRequestHandler mockWebRequest = new MockWebRequestHandler();
+        mockWebRequest.setReturnResponse(new HttpWebResponse(RETRY_AFTER, "{\"body\":\"not_null\"}", headers));
+        // send request
+        MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),
+                mockWebRequest, "testRefreshToken");
+
+        // Verify that callback can receive this error
+        assertNotNull("Callback has error", testResult.getException());
+        assertNotNull(testResult.getException());
+        assertTrue(testResult.getException() instanceof AuthenticationException);
+        assertEquals(((AuthenticationException) testResult.getException()).getServiceStatusCode(), RETRY_AFTER);
+        assertTrue(((AuthenticationException) testResult.getException()).getHttpResponseHeaders().containsKey("Retry-After"));
+    }
+
     @SuppressWarnings("unchecked")
     @Test
     public void testRefreshTokenWebResponseDeviceChallengeHeaderEmpty()
@@ -514,9 +575,12 @@ public class OauthTests {
                 AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER, " ");
         HttpWebResponse responseChallenge = new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, headers);
         when(
-                mockWebRequest.sendPost(eq(new URL(TEST_AUTHORITY + "/oauth2/token")),
-                        any(headers.getClass()), any(byte[].class),
-                        eq("application/x-www-form-urlencoded"))).thenReturn(responseChallenge);
+                mockWebRequest.sendPost(
+                        eq(new URL(TEST_AUTHORITY + "/oauth2/token")),
+                        Mockito.<String, String>anyMap(),
+                        any(byte[].class),
+                        eq("application/x-www-form-urlencoded"))
+        ).thenReturn(responseChallenge);
 
         // send request
         MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),
@@ -531,7 +595,7 @@ public class OauthTests {
     }
 
     @Test
-    public void testprocessTokenResponse() throws  IOException {
+    public void testprocessTokenResponse() throws IOException {
 
         final AuthenticationRequest request = createAuthenticationRequest(TEST_AUTHORITY,
                 "resource", "client", "redirect", "loginhint", null, null, UUID.randomUUID(), false);
