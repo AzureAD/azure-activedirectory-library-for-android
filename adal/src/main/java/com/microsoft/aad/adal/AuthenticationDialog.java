@@ -91,10 +91,10 @@ class AuthenticationDialog {
                 int dialogAuthenticationResourceId = getResourceId("dialog_authentication", "layout");
 
 
-                View webViewInDialog = null;
+                View webviewInDialog = null;
                 // using static layout
                 try {
-                    webViewInDialog = inflater.inflate(dialogAuthenticationResourceId, null);
+                    webviewInDialog = inflater.inflate(dialogAuthenticationResourceId, null);
                 }catch(InflateException e){
                     //This code was added to debug a threading issue; however there could be other cases when this would occur... so leaving in.
                     //NOTE: With the threading issue even though the exception was caught the test app still interrupted (looks like a crash)... presumably because of
@@ -102,11 +102,10 @@ class AuthenticationDialog {
                     Logger.e(TAG, "Failed to inflate authentication dialog", "", ADALError.DEVELOPER_DIALOG_INFLATION_ERROR, e);
                 }
 
-                if(webViewInDialog != null) {
-                    mWebView = (WebView) webViewInDialog.findViewById(getResourceId(
+                if(webviewInDialog != null) {
+                    mWebView = (WebView) webviewInDialog.findViewById(getResourceId(
                             "com_microsoft_aad_adal_webView1", "id"));
                 }
-
                 if (mWebView == null) {
                     Logger.e(
                             TAG + methodName,
@@ -178,7 +177,7 @@ class AuthenticationDialog {
                     Logger.e(TAG + methodName, "Encoding error", "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
                 }
 
-                builder.setView(webViewInDialog).setCancelable(true);
+                builder.setView(webviewInDialog).setCancelable(true);
                 builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
 
                     @Override
@@ -220,7 +219,7 @@ class AuthenticationDialog {
         }
     }
 
-    private class DialogWebViewClient extends BasicWebViewClient {
+    class DialogWebViewClient extends BasicWebViewClient {
 
         DialogWebViewClient(Context ctx, String stopRedirect,
                 AuthenticationRequest request) {

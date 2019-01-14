@@ -42,7 +42,6 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * Hold the authority validation metadata.
  */
-
 final class AuthorityValidationMetadataCache {
     private static final String TAG = AuthorityValidationMetadataCache.class.getSimpleName();
 

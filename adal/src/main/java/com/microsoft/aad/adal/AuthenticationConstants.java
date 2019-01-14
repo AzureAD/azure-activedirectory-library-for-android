@@ -74,22 +74,22 @@ public final class AuthenticationConstants {
         public static final String RESPONSE_REQUEST_INFO = "com.microsoft.aad.adal:BrowserRequestInfo";
 
         /**
-         * Represents the error code returned from WebView.
+         * Represents the error code returned from webview.
          */
         public static final String RESPONSE_ERROR_CODE = "com.microsoft.aad.adal:BrowserErrorCode";
 
         /**
-         * Represents the error message returned from WebView.
+         * Represents the error message returned from webview.
          */
         public static final String RESPONSE_ERROR_MESSAGE = "com.microsoft.aad.adal:BrowserErrorMessage";
 
         /**
-         * Represents the exception returned from WebView.
+         * Represents the exception returned from webview.
          */
         public static final String RESPONSE_AUTHENTICATION_EXCEPTION = "com.microsoft.aad.adal:AuthenticationException";
 
         /**
-         * Represents the final url that WebView receives.
+         * Represents the final url that webview receives.
          */
         public static final String RESPONSE_FINAL_URL = "com.microsoft.aad.adal:BrowserFinalUrl";
 
@@ -99,7 +99,7 @@ public final class AuthenticationConstants {
         public static final String RESPONSE = "com.microsoft.aad.adal:BrokerResponse";
 
         /**
-         * Represent the error code of invalid request returned from WebView.
+         * Represent the error code of invalid request returned from webview.
          */
         public static final String WEBVIEW_INVALID_REQUEST = "Invalid request";
 
@@ -140,7 +140,7 @@ public final class AuthenticationConstants {
         public static final int TOKEN_BROKER_RESPONSE = 2004;
 
         /**
-         * WebView throws Authentication exception. It needs to be send to callback.
+         * Webview throws Authentication exception. It needs to be send to callback.
          */
         public static final int BROWSER_CODE_AUTHENTICATION_EXCEPTION = 2005;
 
@@ -328,7 +328,7 @@ public final class AuthenticationConstants {
         static final String ADAL_CLIENT_FAMILY_ID = "foci";
 
         /**
-         * String of has_chrome sent as extra query param to hide back button in the WebView.
+         * String of has_chrome sent as extra query param to hide back button in the webview.
          */
         static final String HAS_CHROME = "haschrome";
 

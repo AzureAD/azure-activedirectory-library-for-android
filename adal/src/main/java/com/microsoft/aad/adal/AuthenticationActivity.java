@@ -572,7 +572,7 @@ public class AuthenticationActivity extends Activity {
             cancelRequest(null);
         } else {
             // Don't use default back pressed action, since user can go back in
-            // WebView
+            // webview
             mWebView.goBack();
         }
     }
@@ -731,7 +731,6 @@ public class AuthenticationActivity extends Activity {
                 }
             }
 
-            //noinspection WrongConstant
             KeyChain.choosePrivateKeyAlias(AuthenticationActivity.this, new KeyChainAliasCallback() {
 
                 @Override
@@ -838,7 +837,7 @@ public class AuthenticationActivity extends Activity {
      * setUserData/getUserData inside the AccountManager. This is used only for
      * broker related call.
      */
-    private class TokenTask extends AsyncTask<String, String, TokenTaskResult> {
+    class TokenTask extends AsyncTask<String, String, TokenTaskResult> {
 
         private String mPackageName;
 
@@ -854,7 +853,7 @@ public class AuthenticationActivity extends Activity {
             // Intentionally left blank
         }
 
-        TokenTask(IWebRequestHandler webHandler, final AuthenticationRequest request,
+        public TokenTask(IWebRequestHandler webHandler, final AuthenticationRequest request,
                   final String packageName, final int callingUID) {
             mRequestHandler = webHandler;
             mRequest = request;
