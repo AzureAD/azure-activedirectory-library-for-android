@@ -1,0 +1,81 @@
+project.ext.vstsUsername = System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") : project.findProperty("vstsUsername")
+project.ext.vstsPassword = System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
+project.ext.vstsUsername = System.getenv("ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME") : project.findProperty("vstsUsername")
+project.ext.vstsMavenAccessToken = System.getenv("ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
+project.ext.ariaGradleAccessToken = System.getenv("ENV_VSTS_GRADLE_ANDROIDADACCOUNTS_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_GRADLE_ANDROIDADACCOUNTS_ACCESSTOKEN") : project.findProperty("vstsAriaGradleAccessToken")
+project.ext.ariaTenantTokenTest = System.getenv("ENV_ARIA_ANDROIDADACCOUNTS_TOKENTEST") != null ? System.getenv("ENV_ARIA_ANDROIDADACCOUNTS_TOKENTEST") : project.findProperty("ariaTenantTokenTest")
+project.ext.ariaTenantTokenProd = System.getenv("ENV_ARIA_ANDROIDADACCOUNTS_TOKENPROD") != null ? System.getenv("ENV_ARIA_ANDROIDADACCOUNTS_TOKENPROD") : project.findProperty("ariaTenantTokenProd")
+ext.ariaPkgName = 'vsts-maven-aria-sdk'
+ext.ariaPkgUrl = 'https://msasg.pkgs.visualstudio.com/_packaging/ARIA-SDK/maven/v1'
+buildscript {
+
+    apply from: rootProject.file("gradle/versions.gradle")
+
+    repositories {
+        google()
+        jcenter()
+    }
+
+    dependencies {
+        classpath "com.android.tools.build:gradle:$rootProject.ext.gradleVersion"
+        classpath "net.serenity-bdd:serenity-gradle-plugin:1.9.6"
+    }
+}
+allprojects {
+
+    if (org.gradle.internal.os.OperatingSystem.current().isWindows()) {
+        buildDir = "C:/temp/${rootProject.name}/${project.name}"
+    }
+
+    repositories {
+        mavenLocal()
+        maven {
+            name "vsts-maven-adal-android"
+            url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
+            credentials {
+                username project.vstsUsername
+                password project.vstsMavenAccessToken
+            }
+        }
+        maven {
+            name project.ariaPkgName
+            url project.ariaPkgUrl
+            credentials {
+                username project.vstsUsername
+                password project.ariaGradleAccessToken
+            }
+        }
+        google()
+        jcenter()
+    }
+
+
+
+    gradle.projectsEvaluated {
+        tasks.withType(JavaCompile) {
+            options.compilerArgs << "-Xlint:unchecked"
+        }
+    }
+
+    tasks.withType(Javadoc) {
+        options.addStringOption('Xdoclint:none', '-quiet')
+    }
+}
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
+if (!project.hasProperty("vstsUsername")) {
+    logger.error('vstsUsername is missing in gradle.properties')
+}
+if (!project.hasProperty("vstsMavenAccessToken")) {
+    logger.error('vstsMavenAccessToken is missing in gradle.properties')
+}
+if (!project.hasProperty("vstsGradleAccessToken")) {
+    logger.error('vstsGradleAccessToken is missing in gradle.properties')
+}
+if (!project.hasProperty("ariaTenantTokenProd")) {
+    logger.error('ariaTenantTokenProd is missing in gradle.properties')
+}
+if (!project.hasProperty("ariaTenantTokenTest")) {
+    logger.error('ariaTenantTokenTest is missing in gradle.properties')
+}

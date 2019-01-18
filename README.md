@@ -1,4 +1,28 @@
 
+# Introduction
+
+This repository contains a build gradle and git alias commands for building ADAL, MSAL, Authentication Broker, Common and test apps.  This project is intended for use by developers building and verifying integration primarily between ADAL, MSAL and the Android Authentication Broker.
+
+## Install
+
+1. Clone the repo
+2. Run the following commands from within the repo to register the custom aliases and initiate the clone and setup for the Android projects
+
+```bat
+git config --local include.path ../.gitconfig
+git androidSetup
+```
+
+## Usage
+
+This build places a shared common repo at the root of the global project.  In order to ensure that your checkin builds for ADAL, MSAL and broker are updated with the correct sub-module pointer the following command is provided to update the sub-modules to the matching revision.
+
+```bat
+git updateCommon
+```
+
+>NOTE: Your changes to common need to be committed and pushed to github in order for the sub-module update to succeed.  
+
 # Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
