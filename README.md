@@ -13,7 +13,18 @@ git config --local include.path ../.gitconfig
 git droidSetup
 ```
 
-## Usage
+## Usage - Custom git commands
+
+Running droidSetup will clone ADAL, MSAL, Brokeer (AD Accounts) and Common into sub-folders.  Each of these folders is a separate git repo.
+In order to help ease the management of changes to those repos the following custom git commands are provided for your convenience.  Please feel free to propose
+additional commands and/or changes to this initial set.
+
+A typical flow would include:
+
+```bat
+git droidNewFeature githubid-newfeature
+# Make the changes to
+```
 
 ### droidUpdateCommon
 
@@ -22,6 +33,8 @@ This build places a shared common repo at the root of the global project.  In or
 ```bat
 git droidUpdateCommon
 ```
+
+>NOTE: Your changes to common need to be committed and pushed to github in order for the sub-module update to succeed.
 
 ### droidStatus
 
@@ -64,8 +77,6 @@ git droidStash
 git droidStash apply
 git droidStash clear
 ```
-
->NOTE: Your changes to common need to be committed and pushed to github in order for the sub-module update to succeed.  
 
 # Contributing
 
