@@ -1,6 +1,6 @@
 [alias]
 	hello = "!echo \"Hello World\""
-	androidSetup = "!f() { \
+	droidSetup = "!f() { \
 		git clone -b dev https://github.com/AzureAD/microsoft-authentication-library-for-android.git msal; \
 		git clone -b dev https://github.com/AzureAD/microsoft-authentication-library-common-for-android.git common; \
 		git clone -b dev https://github.com/AzureAD/azure-activedirectory-library-for-android.git adal; \
@@ -11,7 +11,7 @@
 		workDir=$(pwd); \
 		git config --replace-all androidcomplete.workDir $workDir; \
 		}; f"
-	updateCommon = "!f() { \
+	droidUpdateCommon = "!f() { \
 			workDir=$(git config --get androidcomplete.workDir); \
 			cd $workDir; \
 			cd common; commonRevision=$(git rev-parse HEAD); cd ..;\
@@ -20,3 +20,40 @@
 			cd $workDir/msal/common; git fetch origin; git checkout $commonRevision; \
 			cd $workDir/broker/common; git fetch origin; git checkout $commonRevision; \
 		}; f"
+	droidStatus = "!f() { \
+	        RED='\\033[0;31m'; \
+	        NC='\\033[0m'; \
+            workDir=$(git config --get androidcomplete.workDir); \
+            cd $workDir/adal/; printf "${RED}ADAL${NC}"; printf ": "; git fetch origin; git status; \
+            cd $workDir/msal/; printf "${RED}MSAL${NC}"; printf ": "; git fetch origin; git status; \
+            cd $workDir/broker/; printf "${RED}BROKER${NC}"; printf ": "; git fetch origin; git status; \
+            cd $workDir/common/; printf "${RED}COMMON${NC}"; printf ": "; git fetch origin; git status; \
+        }; f"
+    droidNewFeature = "!f() { \
+            workDir=$(git config --get androidcomplete.workDir); \
+            cd $workDir/adal/; git checkout -b $1 dev; \
+            cd $workDir/msal/; git checkout -b $1 dev; \
+            cd $workDir/broker/; git checkout -b $1 dev; \
+            cd $workDir/common/; git checkout -b $1 dev; \
+        }; f"
+    droidCheckout = "!f() { \
+          workDir=$(git config --get androidcomplete.workDir); \
+          cd $workDir/adal/; git checkout $1; \
+          cd $workDir/msal/; git checkout $1; \
+          cd $workDir/broker/; git checkout $1; \
+          cd $workDir/common/; git checkout $1; \
+      }; f"
+    droidPull = "!f() { \
+              workDir=$(git config --get androidcomplete.workDir); \
+              cd $workDir/adal/; git pull; \
+              cd $workDir/msal/; git pull; \
+              cd $workDir/broker/; git pull; \
+              cd $workDir/common/; git pull; \
+          }; f"
+    droidStash = "!f() { \
+            workDir=$(git config --get androidcomplete.workDir); \
+            cd $workDir/adal/; git stash $1; \
+            cd $workDir/msal/; git stash $1; \
+            cd $workDir/broker/; git stash $1; \
+            cd $workDir/common/; git stash $1; \
+        }; f"

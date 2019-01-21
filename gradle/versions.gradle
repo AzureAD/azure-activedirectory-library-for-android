@@ -1,0 +1,24 @@
+// Variables for entire project
+ext {
+    // SDK
+    minSdkVersion = 16
+    automationAppMinSDKVersion = 21
+    targetSdkVersion = 27
+    compileSdkVersion = 27
+
+    // Plugins
+    gradleVersion = '3.2.1'
+    androidMavenGradlePluginVersion = "1.4.1"
+
+    // Libraries
+    buildToolsVersion = '28.0.3'
+    supportLibraryVersion = "27.1.+"
+    junitVersion = "4.12"
+    mockitoCoreVersion = "2.18.3"
+    mockitoAndroidVersion = "2.18.3"
+    runnerVersion = "1.0.1"
+    gsonVersion = "2.8.4"
+    rulesVersion = "1.0.0"
+    adalLegacy = "1.15.0"
+    msal = "0.1.3"
+}
