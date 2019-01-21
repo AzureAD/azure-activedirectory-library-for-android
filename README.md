@@ -10,15 +10,59 @@ This repository contains a build gradle and git alias commands for building ADAL
 
 ```bat
 git config --local include.path ../.gitconfig
-git androidSetup
+git droidSetup
 ```
 
 ## Usage
 
+### droidUpdateCommon
+
 This build places a shared common repo at the root of the global project.  In order to ensure that your checkin builds for ADAL, MSAL and broker are updated with the correct sub-module pointer the following command is provided to update the sub-modules to the matching revision.
 
 ```bat
-git updateCommon
+git droidUpdateCommon
+```
+
+### droidStatus
+
+Outputs the git status for each of the repos under the project
+
+```bat
+git droidStatus
+```
+
+### droidNewFeature
+
+Creates a new feature with the specified name in each of the repositories
+
+```bat
+git droidNewFeature <nameofnewfeaturebranch>
+```
+
+### droidCheckout
+
+Attempts to check out the specified branch in each repo
+
+```bat
+git droidCheckout <nameofbranchtocheckout>
+```
+
+### droidPull
+
+Pulls changes from origin to local for each repository
+
+```bat
+git droidPull
+```
+
+### droidStash
+
+Runs stash on each of the repositories...
+
+```bat
+git droidStash
+git droidStash apply
+git droidStash clear
 ```
 
 >NOTE: Your changes to common need to be committed and pushed to github in order for the sub-module update to succeed.  
