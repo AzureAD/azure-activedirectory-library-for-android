@@ -10,6 +10,18 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
     }
 
+    signingConfigs {
+        debug {
+            def debugKeyFile = rootProject.file("gradle/debug.keystore")
+            if(debugKeyFile.exists()){
+                storeFile rootProject.file("gradle/debug.keystore")
+                storePassword "android"
+                keyAlias "androiddebugkey"
+                keyPassword "android"
+            }
+        }
+    }
+
     flavorDimensions 'main'
 
     productFlavors {
@@ -22,9 +34,13 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField("String", "REGULAR_REDIDRECT_URI", "\"msauth://com.microsoft.aad.adal.userappwithbroker/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D\"")
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt')
+            buildConfigField("String", "REGULAR_REDIDRECT_URI", "\"msauth://com.microsoft.aad.adal.userappwithbroker/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D\"")
         }
     }
 
