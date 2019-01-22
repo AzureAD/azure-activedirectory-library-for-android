@@ -9,10 +9,12 @@
 
 rootProject.name = 'android_auth'
 
-include ':adal', ':msal', ':common', ':AADAuthenticator', ':brokerHost'
+include ':adal', ':msal', ':common', ':AADAuthenticator', ':brokerHost', ':msalTestApp', ':adalTestApp'
 project(':common').projectDir = new File('common/common')
 project(':msal').projectDir = new File('msal/msal')
 project(':adal').projectDir = new File('adal/adal')
 project(':AADAuthenticator').projectDir = new File('broker/AADAuthenticator')
 project(":brokerHost").projectDir = new File('broker/userapp')
+project(':adalTestApp').projectDir = new File ('adal/userappwithbroker')
+project(':msalTestApp').projectDir = new File ('msal/testapps/testapp')
 

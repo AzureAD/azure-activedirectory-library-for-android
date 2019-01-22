@@ -1,3 +1,5 @@
+[push]
+    default = simple
 [alias]
 	hello = "!echo \"Hello World\""
 	droidSetup = "!f() { \
