@@ -17,7 +17,7 @@ In each case you'll need to:
 2. Then select gradle.  
 3. Then click the generate credentials button
 
-Then add the following to your gradle properties (in your user folder on windows in the .gradle folder.  You may need to create this file: gradle.properties.  Learn more about gradle configuration properties [here](https://docs.gradle.org/current/userguide/build_environment.html#sec:gradle_configuration_properties)) file replacing with the token values from the generate credentials UI:
+Then add the following to your gradle properties (in your user folder on windows in the .gradle folder.  You may need to create this file: gradle.properties.For Mac,if gradle is not already installed or don't know where it is installed, you can do it easily through [brew](https://brew.sh/). You can run 'brew install gradle' to install it and 'brew info gradle' to find installed location. Learn more about gradle configuration properties [here](https://docs.gradle.org/current/userguide/build_environment.html#sec:gradle_configuration_properties)) file replacing with the token values from the generate credentials UI:
 
 ```gradle.properties
 vstsUsername=VSTS 
