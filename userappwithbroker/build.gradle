@@ -13,15 +13,15 @@ android {
     flavorDimensions 'main'
 
     productFlavors {
-        main {
-            matchingFallbacks = ['local', 'dist']
+        local{
+
+        }
+        dist{
+
         }
     }
 
     buildTypes {
-        debug {
-
-        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt')
