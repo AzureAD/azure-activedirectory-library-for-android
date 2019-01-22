@@ -25,7 +25,7 @@ vstsGradleAccessToken=<InsertIdentityAccessTokenHere>
 vstsMavenAccessToken=<InsertIdentityAccessTokenHere>
 vstsAriaGradleAccessToken=<InsertAriaAccessTokenHere>
 ```
->NOTE: The sample configuration produced by Azure DevOps change when the service was renamed from Visual Studio Online to Azure DevOps... the vstsUsername VSTS is still accepted.  
+>NOTE: The sample configuration produced by Azure DevOps changed when the service was renamed from Visual Studio Online to Azure DevOps... the vstsUsername VSTS is still accepted.  
 
 ## Install
 
@@ -118,6 +118,20 @@ git droidStash
 git droidStash apply
 git droidStash clear
 ```
+
+## Build Variants
+
+All projects with the exception of "Common" have local, dist and snapshot variants.  Where:
+
+- local: Indicates that local dependencies and build configuration should be used.  
+- snapshot: Indicates that nightly build artifacts and build configuration should be used.
+- dist: Indicates that release dependencies and build configuration should be used.
+
+The default build variants, cannot be configured via gradle, to the best of my knowledge.  As a result you'll need to configure them.  Generally you will want to set everything to:
+
+localDebug
+
+Where "local" is the name of the variant and "Debug" is the build type.
 
 # Contributing
 
