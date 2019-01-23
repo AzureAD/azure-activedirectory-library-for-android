@@ -17,7 +17,7 @@ In each case you'll need to:
 2. Then select gradle.  
 3. Then click the generate credentials button
 
-Then add the following to your gradle properties (in your user folder on windows in the .gradle folder.  You may need to create this file: gradle.properties.For Mac,if gradle is not already installed or don't know where it is installed, you can do it easily through [brew](https://brew.sh/). You can run 'brew install gradle' to install it and 'brew info gradle' to find installed location. Learn more about gradle configuration properties [here](https://docs.gradle.org/current/userguide/build_environment.html#sec:gradle_configuration_properties)) file replacing with the token values from the generate credentials UI:
+Then add the following to your gradle properties (in your user folder on windows in the .gradle folder.  You may need to create this file: gradle.properties. Learn more about gradle configuration properties [here](https://docs.gradle.org/current/userguide/build_environment.html#sec:gradle_configuration_properties)) file using the token values from the generate credentials UI:
 
 ```gradle.properties
 vstsUsername=VSTS 
@@ -38,6 +38,23 @@ git config --local include.path ../.gitconfig
 # Run this newly minted command to clone each repo as a subfolder
 git droidSetup
 ```
+
+3. Open Android Studio and open project from the folder you cloned into (project: android_auth)
+4. Update your build variants to point to use localDebug.  See more in the next section.
+
+## Build Variants
+
+All projects with the exception of "Common" have local, dist and snapshot variants.  Where:
+
+- local: Indicates that local dependencies and build configuration should be used.  
+- snapshot: Indicates that nightly build artifacts and build configuration should be used.
+- dist: Indicates that release dependencies and build configuration should be used.
+
+The default build variants, cannot be configured via gradle, to the best of my knowledge.  As a result you'll need to configure them.  Generally you will want to set everything to:
+
+localDebug
+
+Where "local" is the name of the variant and "Debug" is the build type.
 
 ## Usage - Custom git commands
 
@@ -118,20 +135,6 @@ git droidStash
 git droidStash apply
 git droidStash clear
 ```
-
-## Build Variants
-
-All projects with the exception of "Common" have local, dist and snapshot variants.  Where:
-
-- local: Indicates that local dependencies and build configuration should be used.  
-- snapshot: Indicates that nightly build artifacts and build configuration should be used.
-- dist: Indicates that release dependencies and build configuration should be used.
-
-The default build variants, cannot be configured via gradle, to the best of my knowledge.  As a result you'll need to configure them.  Generally you will want to set everything to:
-
-localDebug
-
-Where "local" is the name of the variant and "Debug" is the build type.
 
 # Contributing
 
