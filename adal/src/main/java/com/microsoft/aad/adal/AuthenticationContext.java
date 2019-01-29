@@ -535,24 +535,25 @@ public class AuthenticationContext {
 
         throwIfClaimsInBothExtraQpAndClaimsParameter(claims, extraQueryParameters);
 
+        try {
+            validateClaims(claims);
+        } catch (AuthenticationException e) {
+            callback.onError(e);
+            return;
+        }
+
         if (checkPreRequirements(resource, clientId, callback) && checkADFSValidationRequirements(loginHint, callback)) {
             redirectUri = getRedirectUri(redirectUri);
             final String requestId = Telemetry.registerNewRequest();
             final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, apiEventString);
             apiEvent.setPromptBehavior(prompt);
 
-            String mergedClaims = null;
-            try {
-                mergedClaims = mergeClaimsWithClientCapabilities(claims);
-            } catch (JSONException e) {
-                callback.onError(new AuthenticationException(ADALError.JSON_PARSE_ERROR, e.getMessage(), e));
-            }
-
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                     clientId, redirectUri, loginHint, prompt, extraQueryParameters,
-                    getRequestCorrelationId(), getExtendedLifetimeEnabled(), mergedClaims);
+                    getRequestCorrelationId(), getExtendedLifetimeEnabled(), claims);
             request.setTelemetryRequestId(requestId);
             setAppInfoToRequest(request);
+            request.setClientCapabilities(mClientCapabilites);
 
             if(!StringExtensions.isNullOrBlank(loginHint)) {
                 apiEvent.setLoginHint(loginHint);
@@ -643,8 +644,9 @@ public class AuthenticationContext {
                                                         final String claims,
                                                         final String apiEventString)
             throws AuthenticationException, InterruptedException {
-
         final String methodName = ":acquireTokenSilentSync";
+
+        validateClaims(claims);
         checkPreRequirements(resource, clientId);
         checkADFSValidationRequirements(null);
         final AtomicReference<AuthenticationResult> authenticationResult = new AtomicReference<>();
@@ -655,19 +657,13 @@ public class AuthenticationContext {
         final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, apiEventString);
         apiEvent.setPromptBehavior(PromptBehavior.Auto.toString());
 
-        String mergedClaims;
-        try {
-            mergedClaims = mergeClaimsWithClientCapabilities(claims);
-        } catch (JSONException e) {
-            throw new AuthenticationException(ADALError.JSON_PARSE_ERROR, e.getMessage(), e);
-        }
-
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled(), forceRefresh, mergedClaims);
+                clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled(), forceRefresh, claims);
         request.setSilent(true);
         request.setPrompt(PromptBehavior.Auto);
         request.setUserIdentifierType(UserIdentifierType.UniqueId);
         request.setTelemetryRequestId(requestId);
+        request.setClientCapabilities(mClientCapabilites);
         setAppInfoToRequest(request);
 
         final Looper currentLooper = Looper.myLooper();
@@ -878,24 +874,24 @@ public class AuthenticationContext {
             // AD FS validation cannot be perfomed, stop executing
             return;
         }
+        try {
+            validateClaims(claims);
+        } catch (AuthenticationException e) {
+            callback.onError(e);
+            return;
+        }
 
         final String requestId = Telemetry.registerNewRequest();
         final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId,
                 apiEventString);
         apiEvent.setPromptBehavior(PromptBehavior.Auto.toString());
 
-        String mergedClaims = null;
-        try {
-            mergedClaims = mergeClaimsWithClientCapabilities(claims);
-        } catch (JSONException e) {
-            callback.onError(new AuthenticationException(ADALError.JSON_PARSE_ERROR, e.getMessage(), e));
-        }
-
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled(), forceRefresh, mergedClaims);
+                clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled(), forceRefresh, claims);
         request.setSilent(true);
         request.setPrompt(PromptBehavior.Auto);
         request.setUserIdentifierType(UserIdentifierType.UniqueId);
+        request.setClientCapabilities(mClientCapabilites);
         setAppInfoToRequest(request);
 
         request.setTelemetryRequestId(requestId);
@@ -1200,40 +1196,47 @@ public class AuthenticationContext {
             }
         }
      */
-    String mergeClaimsWithClientCapabilities(final String claims) throws JSONException {
-        if (mClientCapabilites == null || mClientCapabilites.isEmpty()) {
+    public static String mergeClaimsWithClientCapabilities(final String claims,
+                                                           final List<String> clientCapabilities) {
+        if (clientCapabilities == null || clientCapabilities.isEmpty()) {
             return claims;
         }
-        String claimsResult;
+        String mergedClaims;
         final JSONArray capabilitiesArray = new JSONArray();
 
-        for (String capability : mClientCapabilites) {
+        for (String capability : clientCapabilities) {
             capabilitiesArray.put(capability);
         }
+        try {
+            final JSONObject capabilities = new JSONObject();
+            final JSONObject values = new JSONObject();
+            values.put("values", capabilitiesArray);
+            capabilities.put(AuthenticationConstants.OAuth2.CLIENT_CAPABILITIES_CLAIMS_LIST, values);
 
-        final JSONObject capabilities = new JSONObject();
-        final JSONObject values = new JSONObject();
-        values.put("values", capabilitiesArray);
-        capabilities.put(AuthenticationConstants.OAuth2.CLIENT_CAPABILITIES_CLAIMS_LIST, values);
+            if (!TextUtils.isEmpty(claims)) {
+                final JSONObject claimsJson = new JSONObject(claims);
 
-        if (!TextUtils.isEmpty(claims)) {
-            final JSONObject claimsJson = new JSONObject(claims);
+                if (claimsJson.has(AuthenticationConstants.OAuth2.CLIENT_CAPABILITY_ACCESS_TOKEN)) {
+                    final JSONObject accessTokenClaim = claimsJson.getJSONObject(AuthenticationConstants.OAuth2.CLIENT_CAPABILITY_ACCESS_TOKEN);
+                    accessTokenClaim.put(AuthenticationConstants.OAuth2.CLIENT_CAPABILITIES_CLAIMS_LIST, values);
+                    claimsJson.put(AuthenticationConstants.OAuth2.CLIENT_CAPABILITY_ACCESS_TOKEN, accessTokenClaim);
+                } else {
+                    claimsJson.put(AuthenticationConstants.OAuth2.CLIENT_CAPABILITY_ACCESS_TOKEN, capabilities);
+                }
+                mergedClaims = claimsJson.toString();
 
-            if (claimsJson.has(AuthenticationConstants.OAuth2.CLIENT_CAPABILITY_ACCESS_TOKEN)) {
-                final JSONObject accessTokenClaim = claimsJson.getJSONObject(AuthenticationConstants.OAuth2.CLIENT_CAPABILITY_ACCESS_TOKEN);
-                accessTokenClaim.put(AuthenticationConstants.OAuth2.CLIENT_CAPABILITIES_CLAIMS_LIST, values);
-                claimsJson.put(AuthenticationConstants.OAuth2.CLIENT_CAPABILITY_ACCESS_TOKEN, accessTokenClaim);
             } else {
-                claimsJson.put(AuthenticationConstants.OAuth2.CLIENT_CAPABILITY_ACCESS_TOKEN, capabilities);
+                JSONObject claimsObject = new JSONObject();
+                claimsObject.put(AuthenticationConstants.OAuth2.CLIENT_CAPABILITY_ACCESS_TOKEN, capabilities);
+                mergedClaims = claimsObject.toString();
             }
-            claimsResult = claimsJson.toString();
-
-        } else {
-            JSONObject claimsObject = new JSONObject();
-            claimsObject.put(AuthenticationConstants.OAuth2.CLIENT_CAPABILITY_ACCESS_TOKEN, capabilities);
-            claimsResult = claimsObject.toString();
+        } catch (JSONException e) {
+            // This case should never hit as we validate claims at acquireToken request level
+            Logger.e(TAG, "Invalid json format for claims or Client capabilities ", e);
+            return claims;
         }
-        return claimsResult;
+
+        return mergedClaims;
     }
 
     private boolean checkPreRequirements(final String resource, final String clientId) throws AuthenticationException {
@@ -1557,6 +1560,16 @@ public class AuthenticationContext {
     private void throwIfClaimsInBothExtraQpAndClaimsParameter(final String claims, final String extraQP) {
         if (!StringExtensions.isNullOrBlank(claims) && !StringExtensions.isNullOrBlank(extraQP) && extraQP.contains(AuthenticationConstants.OAuth2.CLAIMS)) {
             throw new IllegalArgumentException("claims cannot be sent in claims parameter and extra qp.");
+        }
+    }
+
+    private void validateClaims(final String claims) throws AuthenticationException {
+        try {
+            if(!TextUtils.isEmpty(claims)) {
+               new JSONObject(claims);
+            }
+        } catch (JSONException e) {
+            throw new AuthenticationException(ADALError.JSON_PARSE_ERROR, "Invalid claims request parameters", e);
         }
     }
 }
