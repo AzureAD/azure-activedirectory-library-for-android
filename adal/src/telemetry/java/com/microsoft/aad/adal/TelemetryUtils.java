@@ -20,17 +20,11 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.microsoft.aad.adal.EventStrings.LOGIN_HINT;
 import static com.microsoft.aad.adal.EventStrings.TENANT_ID;
@@ -60,108 +54,25 @@ public final class TelemetryUtils {
         );
     }
 
-    public static class CliTelemInfo implements Serializable {
+    public static class CliTelemInfo
+            extends com.microsoft.identity.common.internal.telemetry.CliTelemInfo {
+        // Looking for this class? It's moved! (See parent class)
 
-        private String mVersion;
-        private String mServerErrorCode;
-        private String mServerSubErrorCode;
-        private String mRefreshTokenAge;
-        private String mSpeRing;
-
-        public String getVersion() {
-            return mVersion;
+        public CliTelemInfo() {
+            super();
         }
 
-        void setVersion(String version) {
-            this.mVersion = version;
-        }
-
-        public String getServerErrorCode() {
-            return mServerErrorCode;
-        }
-
-        void setServerErrorCode(String serverErrorCode) {
-            this.mServerErrorCode = serverErrorCode;
-        }
-
-        public String getServerSubErrorCode() {
-            return mServerSubErrorCode;
-        }
-
-        void setServerSubErrorCode(String serverSubErrorCode) {
-            this.mServerSubErrorCode = serverSubErrorCode;
-        }
-
-        public String getRefreshTokenAge() {
-            return mRefreshTokenAge;
-        }
-
-        void setRefreshTokenAge(String refreshTokenAge) {
-            this.mRefreshTokenAge = refreshTokenAge;
-        }
-
-        public String getSpeRing() {
-            return mSpeRing;
-        }
-
-        void setSpeRing(String speRing) {
-            this.mSpeRing = speRing;
+        private CliTelemInfo(final com.microsoft.identity.common.internal.telemetry.CliTelemInfo in) {
+            super(in);
         }
     }
 
     public static CliTelemInfo parseXMsCliTelemHeader(final String headerValue) {
-        // if the header isn't present, do nothing
-        if (StringExtensions.isNullOrBlank(headerValue)) {
-            return null;
-        }
-
-        // split the header based on the delimiter
-        String[] headerSegments = headerValue.split(",");
-
-        // make sure the header isn't empty
-        if (0 == headerSegments.length) {
-            Logger.w(TAG, "SPE Ring header missing version field.", null, ADALError.X_MS_CLITELEM_VERSION_UNRECOGNIZED);
-            return null;
-        }
-
-        // get the version of this header
-        final String headerVersion = headerSegments[0];
-
-        // The eventual result
-        final CliTelemInfo cliTelemInfo = new CliTelemInfo();
-        cliTelemInfo.setVersion(headerVersion);
-
-        if (headerVersion.equals("1")) {
-            // The expected delimiter count of the v1 header
-            final int delimCount = 4;
-
-            // Verify the expected format "<version>, <error_code>, <sub_error_code>, <token_age>, <ring>"
-            Pattern headerFmt = Pattern.compile("^[1-9]+\\.?[0-9|\\.]*,[0-9|\\.]*,[0-9|\\.]*,[^,]*[0-9\\.]*,[^,]*$");
-            Matcher matcher = headerFmt.matcher(headerValue);
-            if (!matcher.matches()) {
-                Logger.w(TAG, "", "", ADALError.X_MS_CLITELEM_MALFORMED);
-                return null;
-            }
-
-            headerSegments = headerValue.split(",", delimCount + 1);
-
-            // Constants used to identify value position
-            final int indexErrorCode = 1;
-            final int indexSubErrorCode = 2;
-            final int indexTokenAge = 3;
-            final int indexSpeInfo = 4;
-
-            cliTelemInfo.setServerErrorCode(headerSegments[indexErrorCode]);
-            cliTelemInfo.setServerSubErrorCode(headerSegments[indexSubErrorCode]);
-            cliTelemInfo.setRefreshTokenAge(headerSegments[indexTokenAge]);
-            cliTelemInfo.setSpeRing(headerSegments[indexSpeInfo]);
-        } else { // unrecognized version
-            Logger.w(TAG, "Unexpected header version. ",
-                    "Header version: " + headerVersion, ADALError.X_MS_CLITELEM_VERSION_UNRECOGNIZED);
-            return null;
-        }
-
-        return cliTelemInfo;
+        return new CliTelemInfo(
+                com.microsoft.identity.common.internal.telemetry.CliTelemInfo.fromXMsCliTelemHeader(
+                        headerValue
+                )
+        );
     }
 
 }
