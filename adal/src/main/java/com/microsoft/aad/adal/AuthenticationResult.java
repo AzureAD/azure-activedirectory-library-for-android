@@ -190,7 +190,7 @@ public class AuthenticationResult implements Serializable {
                 );
 
         final CliTelemInfo cliTelemInfo = new CliTelemInfo();
-        cliTelemInfo.setSpeRing(cacheItem.getSpeRing());
+        cliTelemInfo._setSpeRing(cacheItem.getSpeRing());
         result.setCliTelemInfo(cliTelemInfo);
 
         return result;
