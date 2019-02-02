@@ -772,10 +772,10 @@ class AcquireTokenRequest {
 
                     // set the x-ms-clitelem fields on the result from the Broker
                     final TelemetryUtils.CliTelemInfo cliTelemInfo = new TelemetryUtils.CliTelemInfo();
-                    cliTelemInfo.setServerErrorCode(serverErrorCode);
-                    cliTelemInfo.setServerSubErrorCode(serverSubErrorCode);
-                    cliTelemInfo.setRefreshTokenAge(refreshTokenAge);
-                    cliTelemInfo.setSpeRing(speRingInfo);
+                    cliTelemInfo._setServerErrorCode(serverErrorCode);
+                    cliTelemInfo._setServerSubErrorCode(serverSubErrorCode);
+                    cliTelemInfo._setRefreshTokenAge(refreshTokenAge);
+                    cliTelemInfo._setSpeRing(speRingInfo);
                     brokerResult.setCliTelemInfo(cliTelemInfo);
 
                     if (brokerResult.getAccessToken() != null) {

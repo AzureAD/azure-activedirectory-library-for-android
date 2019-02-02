@@ -65,6 +65,26 @@ public final class TelemetryUtils {
         private CliTelemInfo(final com.microsoft.identity.common.internal.telemetry.CliTelemInfo in) {
             super(in);
         }
+
+        void _setVersion(final String version) {
+            super.setVersion(version);
+        }
+
+        void _setServerErrorCode(final String serverErrorCode) {
+            super.setServerErrorCode(serverErrorCode);
+        }
+
+        void _setServerSubErrorCode(final String serverSubErrorCode) {
+            super.setServerSubErrorCode(serverSubErrorCode);
+        }
+
+        void _setRefreshTokenAge(final String refreshTokenAge) {
+            super.setRefreshTokenAge(refreshTokenAge);
+        }
+
+        void _setSpeRing(final String speRing) {
+            super.setSpeRing(speRing);
+        }
     }
 
     public static CliTelemInfo parseXMsCliTelemHeader(final String headerValue) {
