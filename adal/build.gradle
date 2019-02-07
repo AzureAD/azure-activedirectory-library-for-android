@@ -42,6 +42,7 @@ buildscript {
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
 
     defaultConfig {
         minSdkVersion rootProject.ext.minSdkVersion
@@ -54,7 +55,7 @@ android {
     }
     buildTypes {
         debug {
-            testCoverageEnabled true
+            testCoverageEnabled false
             debuggable true
 
         }

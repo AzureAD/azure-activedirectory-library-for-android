@@ -531,10 +531,10 @@ class BrokerProxy implements IBrokerProxy {
 
             // set the x-ms-clitelem data
             final TelemetryUtils.CliTelemInfo cliTelemInfo = new TelemetryUtils.CliTelemInfo();
-            cliTelemInfo.setServerErrorCode(bundleResult.getString(SERVER_ERROR));
-            cliTelemInfo.setServerSubErrorCode(bundleResult.getString(SERVER_SUBERROR));
-            cliTelemInfo.setRefreshTokenAge(bundleResult.getString(RT_AGE));
-            cliTelemInfo.setSpeRing(bundleResult.getString(SPE_RING));
+            cliTelemInfo._setServerErrorCode(bundleResult.getString(SERVER_ERROR));
+            cliTelemInfo._setServerSubErrorCode(bundleResult.getString(SERVER_SUBERROR));
+            cliTelemInfo._setRefreshTokenAge(bundleResult.getString(RT_AGE));
+            cliTelemInfo._setSpeRing(bundleResult.getString(SPE_RING));
             result.setCliTelemInfo(cliTelemInfo);
 
             return result;
