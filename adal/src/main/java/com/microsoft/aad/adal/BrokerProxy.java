@@ -124,8 +124,6 @@ class BrokerProxy implements IBrokerProxy {
         }
         final String packageName = mContext.getPackageName();
         boolean canSwitchToBroker = AuthenticationSettings.INSTANCE.getUseBroker()
-                && !packageName.equalsIgnoreCase(AuthenticationSettings.INSTANCE.getBrokerPackageName())
-                && !packageName.equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME)
                 && verifyAuthenticator(mAcctManager)
                 && !UrlExtensions.isADFSAuthority(authorityUrl);
 
