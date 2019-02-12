@@ -60,6 +60,8 @@ import java.net.URI;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -192,6 +194,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mAuthContext = new AuthenticationContext(mApplicationContext, mAuthority, true);
         }
 
+        //TODO: We can add UX to set or not set this
+        mAuthContext.setClientCapabilites(new ArrayList<>(Arrays.asList("CP1")));
         mLoginhint = requestOptions.getLoginHint();
         mPromptBehavior = requestOptions.getBehavior();
     }
