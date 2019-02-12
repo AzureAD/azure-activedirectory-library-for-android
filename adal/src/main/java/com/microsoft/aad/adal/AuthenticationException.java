@@ -24,6 +24,7 @@
 package com.microsoft.aad.adal;
 
 import android.content.Context;
+import android.support.annotation.Nullable;
 
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 import com.microsoft.identity.common.adal.internal.util.HashMapExtensions;
@@ -47,6 +48,18 @@ public class AuthenticationException extends Exception {
     private int mServiceStatusCode = -1;
 
     private HashMap<String, List<String>> mHttpResponseHeaders = null;
+
+    @Nullable
+    private String mSpeRing;
+
+    @Nullable
+    private String mRefreshTokenAge;
+
+    @Nullable
+    private String mCliTelemErrorCode;
+
+    @Nullable
+    private String mCliTelemSubErrorCode;
 
     /**
      * Default constructor for {@link AuthenticationException}.
@@ -224,5 +237,41 @@ public class AuthenticationException extends Exception {
         }
 
         return null;
+    }
+
+    @Nullable
+    String getSpeRing() {
+        return mSpeRing;
+    }
+
+    void setSpeRing(@Nullable String speRing) {
+        this.mSpeRing = speRing;
+    }
+
+    @Nullable
+    String getRefreshTokenAge() {
+        return mRefreshTokenAge;
+    }
+
+    void setRefreshTokenAge(@Nullable String refreshTokenAge) {
+        this.mRefreshTokenAge = refreshTokenAge;
+    }
+
+    @Nullable
+    String getCliTelemErrorCode() {
+        return mCliTelemErrorCode;
+    }
+
+    void setCliTelemErrorCode(@Nullable String cliTelemErrorCode) {
+        this.mCliTelemErrorCode = cliTelemErrorCode;
+    }
+
+    @Nullable
+    String getCliTelemSubErrorCode() {
+        return mCliTelemSubErrorCode;
+    }
+
+    void setCliTelemSubErrorCode(@Nullable String cliTelemSubErrorCode) {
+        this.mCliTelemSubErrorCode = cliTelemSubErrorCode;
     }
 }

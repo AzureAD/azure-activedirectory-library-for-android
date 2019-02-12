@@ -449,6 +449,8 @@ class BrokerProxy implements IBrokerProxy {
 
         final String oauth2ErrorCode = bundleResult.getString(AuthenticationConstants.OAuth2.ERROR);
         final String oauth2ErrorDescription = bundleResult.getString(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION);
+        final TelemetryUtils.CliTelemInfo cliTelemInfo = getCliTelemInfoFromBundle(bundleResult);
+
         if (!StringExtensions.isNullOrBlank(msg)) {
             final ADALError adalErrorCode;
             switch (errCode) {
@@ -479,11 +481,24 @@ class BrokerProxy implements IBrokerProxy {
                     adalErrorCode = ADALError.BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN;
             }
 
-            throw new AuthenticationException(adalErrorCode, msg);
+            final AuthenticationException authException = new AuthenticationException(adalErrorCode, msg);
+
+            // Set Spe Ring / Client Telemetry
+            authException.setSpeRing(cliTelemInfo.getSpeRing());
+            authException.setRefreshTokenAge(cliTelemInfo.getRefreshTokenAge());
+            authException.setCliTelemErrorCode(cliTelemInfo.getServerErrorCode());
+            authException.setCliTelemSubErrorCode(cliTelemInfo.getServerSubErrorCode());
+
+            throw authException;
         } else if (!StringExtensions.isNullOrBlank(oauth2ErrorCode) && request.isSilent()) {
-            final AuthenticationException exception = getAuthenticationExceptionForResult(oauth2ErrorCode, oauth2ErrorDescription, bundleResult);
+            final AuthenticationException exception = getAuthenticationExceptionForResult(
+                    oauth2ErrorCode,
+                    oauth2ErrorDescription,
+                    bundleResult
+            );
             final Serializable responseBody = bundleResult.getSerializable(AuthenticationConstants.OAuth2.HTTP_RESPONSE_BODY);
             final Serializable responseHeaders = bundleResult.getSerializable(AuthenticationConstants.OAuth2.HTTP_RESPONSE_HEADER);
+
             if (null != responseBody && responseBody instanceof HashMap) {
                 exception.setHttpResponseBody((HashMap) responseBody);
             }
@@ -530,28 +545,38 @@ class BrokerProxy implements IBrokerProxy {
             );
 
             // set the x-ms-clitelem data
-            final TelemetryUtils.CliTelemInfo cliTelemInfo = new TelemetryUtils.CliTelemInfo();
-            cliTelemInfo._setServerErrorCode(bundleResult.getString(SERVER_ERROR));
-            cliTelemInfo._setServerSubErrorCode(bundleResult.getString(SERVER_SUBERROR));
-            cliTelemInfo._setRefreshTokenAge(bundleResult.getString(RT_AGE));
-            cliTelemInfo._setSpeRing(bundleResult.getString(SPE_RING));
             result.setCliTelemInfo(cliTelemInfo);
 
             return result;
         }
     }
 
-    private AuthenticationException getAuthenticationExceptionForResult(final String oauth2ErrorCode, final String oauth2ErrorDescription,
+    private TelemetryUtils.CliTelemInfo getCliTelemInfoFromBundle(final Bundle brokerResult) {
+        final TelemetryUtils.CliTelemInfo cliTelemInfo = new TelemetryUtils.CliTelemInfo();
+        cliTelemInfo._setServerErrorCode(brokerResult.getString(SERVER_ERROR));
+        cliTelemInfo._setServerSubErrorCode(brokerResult.getString(SERVER_SUBERROR));
+        cliTelemInfo._setRefreshTokenAge(brokerResult.getString(RT_AGE));
+        cliTelemInfo._setSpeRing(brokerResult.getString(SPE_RING));
+        return cliTelemInfo;
+    }
+
+    private AuthenticationException getAuthenticationExceptionForResult(final String oauth2ErrorCode,
+                                                                        final String oauth2ErrorDescription,
                                                                         final Bundle bundleResult) {
         final String message = String.format("Received error from broker, errorCode: %s; ErrorDescription: %s",
                 oauth2ErrorCode, oauth2ErrorDescription);
 
         // check the response body for the "unauthorized_client" error and the "protection_policy_required" suberror
         final Serializable responseBody = bundleResult.getSerializable(AuthenticationConstants.OAuth2.HTTP_RESPONSE_BODY);
+        final TelemetryUtils.CliTelemInfo cliTelemInfo = getCliTelemInfoFromBundle(bundleResult);
+
+        AuthenticationException authenticationException = null;
+
         if (null != responseBody && responseBody instanceof HashMap) {
             final HashMap<String, String> responseMap = (HashMap<String, String>) responseBody;
             final String error = responseMap.get(AuthenticationConstants.OAuth2.ERROR);
             final String suberror = responseMap.get(AuthenticationConstants.OAuth2.SUBERROR);
+
             if (!StringExtensions.isNullOrBlank(error) && !StringExtensions.isNullOrBlank(suberror) &&
                     AuthenticationConstants.OAuth2ErrorCode.UNAUTHORIZED_CLIENT.compareTo(error) == 0 &&
                     AuthenticationConstants.OAuth2ErrorCode.PROTECTION_POLICY_REQUIRED.compareTo(suberror) == 0) {
@@ -562,13 +587,30 @@ class BrokerProxy implements IBrokerProxy {
                 final String authorityUrl = bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY);
 
                 AuthenticationException exception = new IntuneAppProtectionPolicyRequiredException(
-                        message, accountUpn, accountUserId, tenantId, authorityUrl);
+                        message,
+                        accountUpn,
+                        accountUserId,
+                        tenantId,
+                        authorityUrl
+                );
 
-                return exception;
+                authenticationException = exception;
             }
         }
 
-        return new AuthenticationException(ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, message);
+        if (null == authenticationException) {
+            authenticationException = new AuthenticationException(
+                    ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED,
+                    message
+            );
+        }
+
+        authenticationException.setSpeRing(cliTelemInfo.getSpeRing());
+        authenticationException.setRefreshTokenAge(cliTelemInfo.getRefreshTokenAge());
+        authenticationException.setCliTelemErrorCode(cliTelemInfo.getServerErrorCode());
+        authenticationException.setCliTelemSubErrorCode(cliTelemInfo.getServerSubErrorCode());
+
+        return authenticationException;
     }
 
     /**
@@ -630,8 +672,8 @@ class BrokerProxy implements IBrokerProxy {
                 mAcctManager.getAuthToken(targetAccount, AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
                         brokerOptions, false,
                         null /*
-                                      * set to null to avoid callback
-                                      */, mHandler);
+                         * set to null to avoid callback
+                         */, mHandler);
 
             }
         }
@@ -774,7 +816,7 @@ class BrokerProxy implements IBrokerProxy {
             brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CLAIMS, request.getClaimsChallenge());
         }
 
-        if (request.getForceRefresh()){
+        if (request.getForceRefresh()) {
             brokerOptions.putString(AuthenticationConstants.Broker.BROKER_FORCE_REFRESH, Boolean.toString(true));
         }
 
