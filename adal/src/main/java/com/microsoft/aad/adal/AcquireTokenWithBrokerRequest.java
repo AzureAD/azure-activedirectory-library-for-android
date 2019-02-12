@@ -67,8 +67,13 @@ final class AcquireTokenWithBrokerRequest {
                 .isNullOrBlank(mAuthRequest.getUserId())) {
             Logger.v(TAG + methodName, "User is specified for background(silent) token request, trying to acquire token silently.");
             authenticationResult = mBrokerProxy.getAuthTokenInBackground(mAuthRequest, brokerEvent);
+
             if (null != authenticationResult && null != authenticationResult.getCliTelemInfo()) {
-                brokerEvent.setSpeRing(authenticationResult.getCliTelemInfo().getSpeRing());
+                final TelemetryUtils.CliTelemInfo cliTelemInfo = authenticationResult.getCliTelemInfo();
+                brokerEvent.setSpeRing(cliTelemInfo.getSpeRing());
+                brokerEvent.setRefreshTokenAge(cliTelemInfo.getRefreshTokenAge());
+                brokerEvent.setServerErrorCode(cliTelemInfo.getServerErrorCode());
+                brokerEvent.setServerSubErrorCode(cliTelemInfo.getServerSubErrorCode());
             }
         } else {
             Logger.v(TAG + methodName, "User is not specified, skipping background(silent) token request.");
