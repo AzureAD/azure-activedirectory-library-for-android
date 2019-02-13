@@ -335,7 +335,9 @@ class BrokerProxy implements IBrokerProxy {
         return getResultFromBrokerResponse(bundleResult, request);
     }
 
-    private Bundle getAuthTokenFromAccountManager(final AuthenticationRequest request, final Bundle requestBundle) throws AuthenticationException {
+    private Bundle getAuthTokenFromAccountManager(final AuthenticationRequest request,
+                                                  final Bundle requestBundle)
+            throws AuthenticationException {
         // if there is not any user added to account, it returns empty
         final String methodName = ":getAuthTokenFromAccountManager";
         final Account targetAccount = getTargetAccount(request);
@@ -437,7 +439,8 @@ class BrokerProxy implements IBrokerProxy {
         return targetAccount;
     }
 
-    private AuthenticationResult getResultFromBrokerResponse(final Bundle bundleResult, final AuthenticationRequest request)
+    private AuthenticationResult getResultFromBrokerResponse(final Bundle bundleResult,
+                                                             final AuthenticationRequest request)
             throws AuthenticationException {
         final String methodName = ":getResultFromBrokerResponse";
         if (bundleResult == null) {
