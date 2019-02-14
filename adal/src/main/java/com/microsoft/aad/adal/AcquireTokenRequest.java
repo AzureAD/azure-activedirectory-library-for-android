@@ -128,6 +128,10 @@ class AcquireTokenRequest {
                     validateAcquireTokenRequest(authRequest);
                     performAcquireTokenRequest(callbackHandle, activity, useDialog, authRequest);
                 } catch (final AuthenticationException authenticationException) {
+                    mAPIEvent.setSpeRing(authenticationException.getSpeRing());
+                    mAPIEvent.setRefreshTokenAge(authenticationException.getRefreshTokenAge());
+                    mAPIEvent.setServerErrorCode(authenticationException.getCliTelemErrorCode());
+                    mAPIEvent.setServerSubErrorCode(authenticationException.getCliTelemSubErrorCode());
                     mAPIEvent.setWasApiCallSuccessful(false, authenticationException);
                     mAPIEvent.setCorrelationId(authRequest.getCorrelationId().toString());
                     mAPIEvent.stopTelemetryAndFlush();
@@ -418,10 +422,10 @@ class AcquireTokenRequest {
 
     private boolean shouldTrySilentFlow(final AuthenticationRequest authenticationRequest) {
         boolean result = true;
-        if(authenticationRequest.isClaimsChallengePresent()){
+        if (authenticationRequest.isClaimsChallengePresent()) {
             result = checkIfBrokerHasLltChanges();
         }
-        return  authenticationRequest.isSilent() || (result && authenticationRequest.getPrompt() == PromptBehavior.Auto) ;
+        return authenticationRequest.isSilent() || (result && authenticationRequest.getPrompt() == PromptBehavior.Auto);
     }
 
     /**
@@ -461,7 +465,7 @@ class AcquireTokenRequest {
         final boolean requestEligibleForBroker = mBrokerProxy.verifyBrokerForSilentRequest(authenticationRequest);
 
         //1. if forceRefresh == true OR claimsChallenge is not null AND the request is eligible for the broker
-        if((authenticationRequest.getForceRefresh() || authenticationRequest.isClaimsChallengePresent()) && requestEligibleForBroker){
+        if ((authenticationRequest.getForceRefresh() || authenticationRequest.isClaimsChallengePresent()) && requestEligibleForBroker) {
             return tryAcquireTokenSilentWithBroker(authenticationRequest);
         }
 
@@ -472,9 +476,9 @@ class AcquireTokenRequest {
         }
 
         //3. We couldn't get locally...If eligible return via broker... otherwise return local result
-        if(requestEligibleForBroker){
+        if (requestEligibleForBroker) {
             return tryAcquireTokenSilentWithBroker(authenticationRequest);
-        }else{
+        } else {
             return authResult;
         }
 
