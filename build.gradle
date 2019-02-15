@@ -19,8 +19,8 @@ allprojects {
         buildDir = "C:/temp/${rootProject.name}/${project.name}"
     }
     repositories {
-        jcenter()
         google()
+        jcenter()
     }
 
     gradle.projectsEvaluated {
