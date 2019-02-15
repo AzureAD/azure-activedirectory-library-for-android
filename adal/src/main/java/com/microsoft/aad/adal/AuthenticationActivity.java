@@ -70,6 +70,11 @@ import java.security.cert.X509Certificate;
 import java.util.Locale;
 import java.util.UUID;
 
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.RT_AGE;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_ERROR;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_SUBERROR;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.SPE_RING;
+
 /**
  * Authentication Activity to launch {@link WebView} for authentication.
  */
@@ -1060,28 +1065,45 @@ public class AuthenticationActivity extends Activity {
 
             if (result.mTaskResult == null) {
                 Logger.v(TAG, "Token task has exception");
-                returnError(ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
-                        result.mTaskException.getMessage());
+
+                returnError(
+                        ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
+                        result.mTaskException.getMessage()
+                );
+
                 return;
             }
 
             if (result.mTaskResult.getStatus().equals(AuthenticationStatus.Succeeded)) {
-                intent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mWaitingRequestId);
-                intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN,
-                        result.mTaskResult.getAccessToken());
-                intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_NAME, result.mAccountName);
+                intent.putExtra(
+                        AuthenticationConstants.Browser.REQUEST_ID,
+                        mWaitingRequestId
+                );
+                intent.putExtra(
+                        AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN,
+                        result.mTaskResult.getAccessToken()
+                );
+                intent.putExtra(
+                        AuthenticationConstants.Broker.ACCOUNT_NAME,
+                        result.mAccountName
+                );
 
                 if (result.mTaskResult.getExpiresOn() != null) {
-                    intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE,
-                            result.mTaskResult.getExpiresOn().getTime());
+                    intent.putExtra(
+                            AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE,
+                            result.mTaskResult.getExpiresOn().getTime()
+                    );
                 }
 
                 if (result.mTaskResult.getTenantId() != null) {
-                    intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID,
-                            result.mTaskResult.getTenantId());
+                    intent.putExtra(
+                            AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID,
+                            result.mTaskResult.getTenantId()
+                    );
                 }
 
                 UserInfo userinfo = result.mTaskResult.getUserInfo();
+
                 if (userinfo != null) {
                     intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID,
                             userinfo.getUserId());
@@ -1098,10 +1120,33 @@ public class AuthenticationActivity extends Activity {
                             userinfo.getDisplayableId());
                 }
 
+                if (null != result.mTaskResult.getCliTelemInfo()) {
+                    final TelemetryUtils.CliTelemInfo cliTelemInfo = result.mTaskResult.getCliTelemInfo();
+
+                    intent.putExtra(
+                            SPE_RING,
+                            cliTelemInfo.getSpeRing()
+                    );
+                    intent.putExtra(
+                            RT_AGE,
+                            cliTelemInfo.getRefreshTokenAge()
+                    );
+                    intent.putExtra(
+                            SERVER_ERROR,
+                            cliTelemInfo.getServerErrorCode()
+                    );
+                    intent.putExtra(
+                            SERVER_SUBERROR,
+                            cliTelemInfo.getServerSubErrorCode()
+                    );
+                }
+
                 returnResult(AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE, intent);
             } else {
-                returnError(ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
-                        result.mTaskResult.getErrorDescription());
+                returnError(
+                        ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
+                        result.mTaskResult.getErrorDescription()
+                );
             }
         }
     }
