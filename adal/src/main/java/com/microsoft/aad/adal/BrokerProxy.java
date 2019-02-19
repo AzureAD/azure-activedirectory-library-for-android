@@ -108,9 +108,7 @@ class BrokerProxy implements IBrokerProxy {
 
     /**
      * Verifies the broker related app and AD-Authenticator in Account Manager
-     * ADAL directs call to AccountManager if component is valid and present. It
-     * does not direct call if the caller is from Authenticator itself.
-     *
+     * ADAL directs call to AccountManager if component is valid and present.
      */
     @Override
     public SwitchToBroker canSwitchToBroker(final String authorityUrlStr) {
