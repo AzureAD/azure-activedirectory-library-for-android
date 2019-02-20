@@ -203,8 +203,15 @@ class Oauth2 {
 
         // Claims challenge are opaque to the sdk, we're not going to do any merging if both extra qp and claims parameter
         // contain it. Also, if developer sends it in both places, server will fail it.
-        if (!StringExtensions.isNullOrBlank(mRequest.getClaimsChallenge())) {
-            queryParameter.appendQueryParameter(AuthenticationConstants.OAuth2.CLAIMS, mRequest.getClaimsChallenge());
+        if (!StringExtensions.isNullOrBlank(mRequest.getClaimsChallenge())
+                || mRequest.getClientCapabilities() != null) {
+            queryParameter.appendQueryParameter(AuthenticationConstants.OAuth2.CLAIMS,
+                    URLEncoder.encode(AuthenticationContext.mergeClaimsWithClientCapabilities(
+                                    mRequest.getClaimsChallenge(),
+                                    mRequest.getClientCapabilities()
+                            ),
+                            AuthenticationConstants.ENCODING_UTF8)
+            );
         }
 
         if (!StringExtensions.isNullOrBlank(mRequest.getAppName())) {
@@ -253,9 +260,13 @@ class Oauth2 {
                 AuthenticationConstants.OAuth2.CLIENT_INFO_TRUE
         );
 
-        if (!StringExtensions.isNullOrBlank(mRequest.getClaimsChallenge())) {
+        if (!StringExtensions.isNullOrBlank(mRequest.getClaimsChallenge()) ||
+                mRequest.getClientCapabilities() != null) {
             message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.OAuth2.CLAIMS,
-                    StringExtensions.urlFormEncode(mRequest.getClaimsChallenge()));
+                    StringExtensions.urlFormEncode(AuthenticationContext.mergeClaimsWithClientCapabilities(
+                            mRequest.getClaimsChallenge(),
+                            mRequest.getClientCapabilities()
+                    )));
         }
 
         if (!StringExtensions.isNullOrBlank(mRequest.getAppName())) {
@@ -300,9 +311,15 @@ class Oauth2 {
                     StringExtensions.urlFormEncode(mRequest.getRedirectUri()));
         }
 
-        if (!StringExtensions.isNullOrBlank(mRequest.getClaimsChallenge())) {
+        if (!StringExtensions.isNullOrBlank(mRequest.getClaimsChallenge()) ||
+                mRequest.getClientCapabilities() != null) {
             message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.OAuth2.CLAIMS,
-                    StringExtensions.urlFormEncode(mRequest.getClaimsChallenge()));
+                    StringExtensions.urlFormEncode(AuthenticationContext.mergeClaimsWithClientCapabilities(
+                                    mRequest.getClaimsChallenge(),
+                                    mRequest.getClientCapabilities()
+                            )
+                    )
+            );
         }
 
         if (!StringExtensions.isNullOrBlank(mRequest.getAppName())) {

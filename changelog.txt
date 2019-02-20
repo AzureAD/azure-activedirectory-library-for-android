@@ -1,3 +1,10 @@
+Version 1.16.1
+--------------
+Bugfix : Resolved ADAL/1378
+    * Fixed a bug where the token is refreshed if Client capabilities are set.
+Bugfix: Resolves COMMON/#343
+    * Fix the discrepancy on idToken claim of Account object in v1.15.1.
+
 Version 1.16.0
 --------------
 Added new acquireTokenSilent overloads to supports adding claims parameter.
