@@ -2749,13 +2749,12 @@ public final class AuthenticationContextTest {
     }
 
     @Test
-    public void testAcquireTokenSilentSyncClientCapabilitiesAndClaims() throws IOException, AuthenticationException, InterruptedException {
+    public void testAcquireTokenSilentSyncClientCapabilitiesAndNoClaims() throws IOException, AuthenticationException, InterruptedException {
         final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
 
         final String clientId = "clientId";
 
         final String tokenToTest = "accessToken=" + UUID.randomUUID();
-        final String expectedAT = "accesstoken";
         String resource = "Resource" + UUID.randomUUID();
         ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
         mockCache.removeAll();
@@ -2818,12 +2817,10 @@ public final class AuthenticationContextTest {
         capabilities.add("CC2");
         context.setClientCapabilites(capabilities);
 
-
-
-        // 2nd token request with claims with correct claims
+        // 2nd token request with client capabilities only, should return token from cache
         result = context.acquireTokenSilentSync(resource, clientId, TEST_IDTOKEN_UPN);
         assertNull("Error is null", result.getErrorCode());
-        assertEquals("Same token as refresh token result", expectedAT,
+        assertEquals("Same token as refresh token result", tokenToTest,
                 result.getAccessToken());
 
         clearCache(context);
@@ -3252,20 +3249,17 @@ public final class AuthenticationContextTest {
 
     @Test
     public void testMergeClaimsWithValidInput() throws JSONException {
-        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
-        final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
-        final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
+
         final List<String> capabilities = new ArrayList<>();
         capabilities.add("CP1");
         capabilities.add("CP2");
-        context.setClientCapabilites(capabilities);
 
         String inputClaims = "{\"userinfo\":{\"given_name\":{\"essential\":true},\"email\":{\"essential\":true}},\"id_token\":{\"auth_time\":{\"essential\":true}}}";
 
         String expectedJson = "{\"userinfo\":{\"given_name\":{\"essential\":true},\"email\":{\"essential\":true}},\"id_token\":" +
                 "{\"auth_time\":{\"essential\":true}},\"access_token\":{\"xms_cc\":{\"values\":[\"CP1\",\"CP2\"]}}}";
 
-        String mergedClaims  = context.mergeClaimsWithClientCapabilities(inputClaims);
+        String mergedClaims  = AuthenticationContext.mergeClaimsWithClientCapabilities(inputClaims, capabilities);
 
         JSONObject mergedClaimsJson = new JSONObject(mergedClaims);
 
@@ -3275,12 +3269,9 @@ public final class AuthenticationContextTest {
 
     @Test
     public void testMergeClaimsWithNoClientCapabilities() throws JSONException {
-        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
-        final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
-        final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
 
         String inputClaims = "{\"userinfo\":{\"given_name\":{\"essential\":true},\"email\":{\"essential\":true}},\"id_token\":{\"auth_time\":{\"essential\":true}}}";
-        String mergedClaims  = context.mergeClaimsWithClientCapabilities(inputClaims);
+        String mergedClaims  = AuthenticationContext.mergeClaimsWithClientCapabilities(inputClaims, null);
 
         JSONObject mergedClaimsJson = new JSONObject(mergedClaims);
 
@@ -3290,17 +3281,13 @@ public final class AuthenticationContextTest {
 
     @Test
     public void testMergeClaimsWithNoInputClaims() throws JSONException {
-        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
-        final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
-        final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
 
         final List<String> capabilities = new ArrayList<>();
         capabilities.add("CP1");
         capabilities.add("CP2");
-        context.setClientCapabilites(capabilities);
 
         String expectedClaims = "{\"access_token\":{\"xms_cc\":{\"values\":[\"CP1\",\"CP2\"]}}}";
-        String mergedClaims  = context.mergeClaimsWithClientCapabilities(null);
+        String mergedClaims  = AuthenticationContext.mergeClaimsWithClientCapabilities(null, capabilities);
 
         JSONObject mergedClaimsJson = new JSONObject(mergedClaims);
 
@@ -3308,29 +3295,12 @@ public final class AuthenticationContextTest {
         assertEquals("Valid merged claims Json", expectedClaims, mergedClaimsJson.toString());
     }
 
-    @Test(expected = JSONException.class)
-    public void testMergeClaimsWithInvalidInputClaims() throws JSONException {
-        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
-        final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
-        final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
-        final List<String> capabilities = new ArrayList<>();
-        capabilities.add("CP1");
-        capabilities.add("CP2");
-        context.setClientCapabilites(capabilities);
-
-        String invalidClaims = "{\"userinfo\"";
-        context.mergeClaimsWithClientCapabilities(invalidClaims);
-    }
-
     @Test
     public void testMergeClaimsWithValidInputAccessTokenClaim() throws JSONException {
-        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
-        final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
-        final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
+
         final List<String> capabilities = new ArrayList<>();
         capabilities.add("CP1");
         capabilities.add("CP2");
-        context.setClientCapabilites(capabilities);
 
         String inputClaims = "{\"userinfo\":{\"given_name\":{\"essential\":true},\"email\":{\"essential\":true}}," +
                 "\"access_token\":{\"auth_time\":{\"essential\":true}}}";
@@ -3338,16 +3308,13 @@ public final class AuthenticationContextTest {
         String expectedJson = "{\"userinfo\":{\"given_name\":{\"essential\":true},\"email\":{\"essential\":true}}," +
                 "\"access_token\":{\"auth_time\":{\"essential\":true},\"xms_cc\":{\"values\":[\"CP1\",\"CP2\"]}}}";
 
-        String mergedClaims  = context.mergeClaimsWithClientCapabilities(inputClaims);
+        String mergedClaims  = AuthenticationContext.mergeClaimsWithClientCapabilities(inputClaims, capabilities);
 
         JSONObject mergedClaimsJson = new JSONObject(mergedClaims);
 
         assertNotNull(mergedClaimsJson);
         assertEquals("Valid merged claims Json", expectedJson, mergedClaimsJson.toString());
     }
-
-
-
 
 
     private String getErrorResponseBody(final String errorCode) {
