@@ -27,11 +27,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Parcel;
-import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -56,14 +53,11 @@ import com.microsoft.aad.adal.PromptBehavior;
 import com.microsoft.aad.adal.Telemetry;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URL;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import javax.crypto.SecretKey;
@@ -309,17 +303,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mSharedPreference = getSharedPreferences(SHARED_PREFERENCE_STORE_USER_UNIQUEID, MODE_PRIVATE);
         if (null != authResult) {
             if (null != authResult.getAuthority()) {
-                Uri.Builder builder = Uri.parse(authResult.getAuthority()).buildUpon();
-                if (null != authResult.getUserInfo() && null != authResult.getUserInfo().getIdentityProvider()) {
-                    builder.appendPath(authResult.getUserInfo().getIdentityProvider());
-                } else {
-                    builder.appendPath("common");
-                }
-
                 final SharedPreferences.Editor prefEditor = mSharedPreference.edit();
                 if (null != authResult.getUserInfo() && null != authResult.getUserInfo().getDisplayableId()) {
-                    prefEditor.putString((authResult.getUserInfo().getDisplayableId().trim() + ":" + authority.trim() +  ":authority").toLowerCase(),
-                            "https://" + builder.build().toString().trim().toLowerCase());
+                    if (null != authResult.getUserInfo() && null != authResult.getUserInfo().getIdentityProvider()) {
+                        prefEditor.putString(
+                                (authResult.getUserInfo().getDisplayableId().trim() + ":" + authority.trim() +  ":authority").toLowerCase(),
+                                authResult.getUserInfo().getIdentityProvider().trim().toLowerCase());
+                    } else {
+                       prefEditor.putString(
+                               (authResult.getUserInfo().getDisplayableId().trim() + ":" + authority.trim() +  ":authority").toLowerCase(),
+                               authResult.getAuthority().trim().toLowerCase());
+                    }
                 }  else {
                     final Toast toast = Toast.makeText(mApplicationContext,
                             "Warning: the result authority is null," +
