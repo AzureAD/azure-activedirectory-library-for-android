@@ -638,6 +638,12 @@ class AcquireTokenRequest {
             throw new UsageAuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, "The redirectUri is null or blank.");
         }
 
+        if (inputUri.equalsIgnoreCase(AuthenticationConstants.Broker.BROKER_REDIRECT_URI)) {
+            // TODO: Clean this up once we migrate all Logger functions to the common one.
+            com.microsoft.identity.common.internal.logging.Logger.info(TAG + methodName, "This is a broker redirectUri. Bypass the check.");
+            return;
+        }
+
         // verify that redirect uri passed in by developer has the correct prefix msauth://
         if (!inputUri.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX + "://")) {
             errMsg = " The valid broker redirect URI prefix: " + AuthenticationConstants.Broker.REDIRECT_PREFIX

@@ -108,11 +108,12 @@ class BrokerProxy implements IBrokerProxy {
 
     /**
      * Verifies the broker related app and AD-Authenticator in Account Manager
-     * ADAL directs call to AccountManager if component is valid and present. It
-     * does not direct call if the caller is from Authenticator itself.
+     * ADAL directs call to AccountManager if component is valid and present.
      */
     @Override
     public SwitchToBroker canSwitchToBroker(final String authorityUrlStr) {
+        // TODO: Get CompanyPortal to verify that they can also switch to broker when acquiring token with ADAL.
+
         final String methodName = ":canSwitchToBroker";
         final URL authorityUrl;
         try {
@@ -124,8 +125,6 @@ class BrokerProxy implements IBrokerProxy {
         }
         final String packageName = mContext.getPackageName();
         boolean canSwitchToBroker = AuthenticationSettings.INSTANCE.getUseBroker()
-                && !packageName.equalsIgnoreCase(AuthenticationSettings.INSTANCE.getBrokerPackageName())
-                && !packageName.equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME)
                 && verifyAuthenticator(mAcctManager)
                 && !UrlExtensions.isADFSAuthority(authorityUrl);
 
