@@ -17,9 +17,9 @@ Note: A corpnet account is required to view the VSTS build.
 
 ## Versions
 
-Current version - 1.16.+
+Current version - 1.16.1
 
-Minimum recommended version - 1.15.+
+Minimum recommended version - 1.15.1-hf1
 
 You can find version-to-version differences in the [change log](https://github.com/AzureAD/azure-activedirectory-library-for-android/blob/master/changelog.txt).
 
