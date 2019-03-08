@@ -19,7 +19,6 @@ configurations.all {
 allprojects {
     repositories {
         mavenLocal()
-        jcenter()
         google()
         maven {
             name "vsts-maven-adal-android"
@@ -29,6 +28,7 @@ allprojects {
                 password System.getenv("ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
             }
         }
+        jcenter()
     }
 }
 
@@ -136,10 +136,10 @@ dependencies {
         transitive = false
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '0.0.10-RC1', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '0.0.10-RC2', changing: true)
 
     // 'dist' flavor dependencies
-    distApi("com.microsoft.identity:common:0.0.10-RC1") {
+    distApi("com.microsoft.identity:common:0.0.10-RC2") {
         transitive = false
     }
 
