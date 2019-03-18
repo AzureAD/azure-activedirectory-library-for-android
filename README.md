@@ -10,6 +10,7 @@ and store the credentials for the Identity and Aria azure devops instances.
 
 - [Aria](https://msasg.visualstudio.com/Shared%20Data/_packaging?_a=package&feed=ARIA-SDK&package=com.microsoft.applications%3Aariaandroidjavasdk-release&version=3.0.22.0&protocolType=maven)
 - [Identity](https://identitydivision.visualstudio.com/DevEx/_packaging?_a=feed&feed=AndroidADAL)
+- [Intune](https://msazure.visualstudio.com/Intune/_packaging?_a=feed&feed=android-maven)
 
 In each case you'll need to:
 
@@ -24,6 +25,7 @@ vstsUsername=VSTS
 vstsGradleAccessToken=<InsertIdentityAccessTokenHere>
 vstsMavenAccessToken=<InsertIdentityAccessTokenHere>
 vstsAriaGradleAccessToken=<InsertAriaAccessTokenHere>
+azureArtifactsGradleAccessToken=<InsertIntuneAccessTokenHere>
 ```
 >NOTE: The sample configuration produced by Azure DevOps changed when the service was renamed from Visual Studio Online to Azure DevOps... the vstsUsername VSTS is still accepted.  
 

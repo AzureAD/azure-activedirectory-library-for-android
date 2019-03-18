@@ -3,6 +3,7 @@ project.ext.vstsPassword = System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN"
 project.ext.vstsUsername = System.getenv("ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME") : project.findProperty("vstsUsername")
 project.ext.vstsMavenAccessToken = System.getenv("ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
 project.ext.ariaGradleAccessToken = System.getenv("ENV_VSTS_GRADLE_ANDROIDADACCOUNTS_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_GRADLE_ANDROIDADACCOUNTS_ACCESSTOKEN") : project.findProperty("vstsAriaGradleAccessToken")
+project.ext.msazureGradleAccessToken = System.getenv("AZURE_ARTIFACTS_ENV_ACCESS_TOKEN") != null ? System.getenv("AZURE_ARTIFACTS_ENV_ACCESS_TOKEN") : project.findProperty("azureArtifactsGradleAccessToken")
 project.ext.ariaTenantTokenTest = System.getenv("ENV_ARIA_ANDROIDADACCOUNTS_TOKENTEST") != null ? System.getenv("ENV_ARIA_ANDROIDADACCOUNTS_TOKENTEST") : project.findProperty("ariaTenantTokenTest")
 project.ext.ariaTenantTokenProd = System.getenv("ENV_ARIA_ANDROIDADACCOUNTS_TOKENPROD") != null ? System.getenv("ENV_ARIA_ANDROIDADACCOUNTS_TOKENPROD") : project.findProperty("ariaTenantTokenProd")
 ext.ariaPkgName = 'vsts-maven-aria-sdk'
@@ -29,6 +30,14 @@ allprojects {
 
     repositories {
         mavenLocal()
+        maven {
+            name "msazure"
+            url 'https://msazure.pkgs.visualstudio.com/_packaging/android-maven/maven/v1'
+            credentials {
+                username project.vstsUsername
+                password project.msazureGradleAccessToken
+            }
+        }
         maven {
             name "vsts-maven-adal-android"
             url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
@@ -73,6 +82,9 @@ if (!project.hasProperty("vstsMavenAccessToken")) {
 }
 if (!project.hasProperty("vstsGradleAccessToken")) {
     logger.error('vstsGradleAccessToken is missing in gradle.properties')
+}
+if (!project.hasProperty("azureArtifactsGradleAccessToken")) {
+    logger.error('azureArtifactsGradleAccessToken is missing in gradle.properties')
 }
 if (!project.hasProperty("ariaTenantTokenProd")) {
     logger.error('ariaTenantTokenProd is missing in gradle.properties')
