@@ -43,7 +43,6 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Base64;
 
-
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
@@ -699,64 +698,6 @@ public final class AcquireTokenRequestTest {
         }
 
         return cacheStore;
-    }
-
-    @Test
-    public void testVerifyBrokerRedirectUriValid() throws PackageManager.NameNotFoundException,
-            InterruptedException, OperationCanceledException, IOException, AuthenticatorException {
-        final AccountManager mockedAccountManager = getMockedAccountManager();
-        mockAddAccountCall(mockedAccountManager);
-
-        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
-        mockContext.setMockedAccountManager(mockedAccountManager);
-        mockContext.setMockedPackageManager(getMockedPackageManager());
-
-        AuthenticationSettings.INSTANCE.setUseBroker(true);
-        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
-                VALID_AUTHORITY, false);
-
-        //test@case valid redirect uri
-        final String testRedirectUri = "msauth://" + mockContext.getPackageName() + "/"
-                + URLEncoder.encode(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_SIGNATURE,
-                AuthenticationConstants.ENCODING_UTF8);
-        final TestAuthCallback callback = new TestAuthCallback();
-        authContext.acquireToken(Mockito.mock(Activity.class), "resource", "clientid",
-                testRedirectUri, "loginHint", callback);
-        final CountDownLatch signal = new CountDownLatch(1);
-        signal.await(ACTIVITY_TIME_OUT, TimeUnit.MILLISECONDS);
-
-        final int requestCode = AuthenticationConstants.UIRequest.BROWSER_FLOW;
-        final int resultCode = AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE;
-
-        final Intent data = new Intent();
-        data.putExtra(AuthenticationConstants.Browser.REQUEST_ID, callback.hashCode());
-        data.putExtra(AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN, "testAccessToken");
-        authContext.onActivityResult(requestCode, resultCode, data);
-
-        assertNull(callback.getCallbackException());
-    }
-
-    @Test
-    public void testVerifyBrokerRedirectUriInvalidPrefix() throws PackageManager.NameNotFoundException,
-            InterruptedException {
-        final FileMockContext mockContext = createMockContext();
-
-        AuthenticationSettings.INSTANCE.setUseBroker(true);
-        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
-                VALID_AUTHORITY, false);
-        final String testRedirectUri = "http://helloApp";
-
-        final TestAuthCallback callback = new TestAuthCallback();
-        authContext.acquireToken(Mockito.mock(Activity.class), "resource", "clientid", testRedirectUri,
-                "loginHint", callback);
-        final CountDownLatch signal = new CountDownLatch(1);
-        signal.await(ACTIVITY_TIME_OUT, TimeUnit.MILLISECONDS);
-
-        assertNotNull(callback.getCallbackException());
-        assertTrue(callback.getCallbackException() instanceof UsageAuthenticationException);
-        final UsageAuthenticationException usageAuthenticationException
-                = (UsageAuthenticationException) callback.getCallbackException();
-        assertTrue(usageAuthenticationException.getMessage().contains("prefix"));
     }
 
     @Test
