@@ -12,11 +12,18 @@ and store the credentials for the Identity and Aria azure devops instances.
 - [Identity](https://identitydivision.visualstudio.com/DevEx/_packaging?_a=feed&feed=AndroidADAL)
 - [Intune](https://msazure.visualstudio.com/Intune/_packaging?_a=feed&feed=android-maven)
 
-In each case you'll need to:
-
 1. Click the "Connect to feed" button.  
 2. Then select gradle.  
 3. Then click the generate credentials button
+
+- [PowerLift](https://office.visualstudio.com/_usersSettings/tokens) 
+1. Press “+ New token” and create a name for your token
+2. Under “Scopes” select “Custom Defined”, hit "See all scopes", check only “Packaging (read)”.
+
+- [AuthenticatorApp](https://msazure.visualstudio.com/One/_git/AD-MFA-phonefactor-phoneApp-android)
+1. Go to //myaccess
+2. Send a request to join "Identity Apps Team - 18174"
+3. Install [Git Credential Manager for Windows](https://github.com/Microsoft/Git-Credential-Manager-for-Windows) or [Git Credential Manager for Mac and Linux](https://github.com/Microsoft/Git-Credential-Manager-for-Mac-and-Linux) and setup with your MSFT credential.
 
 Then add the following to your gradle properties (in your user folder on windows in the .gradle folder.  You may need to create this file: gradle.properties. Learn more about gradle configuration properties [here](https://docs.gradle.org/current/userguide/build_environment.html#sec:gradle_configuration_properties)) file using the token values from the generate credentials UI:
 
@@ -26,6 +33,8 @@ vstsGradleAccessToken=<InsertIdentityAccessTokenHere>
 vstsMavenAccessToken=<InsertIdentityAccessTokenHere>
 vstsAriaGradleAccessToken=<InsertAriaAccessTokenHere>
 azureArtifactsGradleAccessToken=<InsertIntuneAccessTokenHere>
+powerliftUsername=<Your Alias>
+powerliftPassword=<InsertPowerLiftAccessTokenHere>
 ```
 >NOTE: The sample configuration produced by Azure DevOps changed when the service was renamed from Visual Studio Online to Azure DevOps... the vstsUsername VSTS is still accepted.  
 
