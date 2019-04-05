@@ -9,6 +9,7 @@ msal
 adal
 broker
 common
+authenticator
 
 # Gradle files
 .gradle/
@@ -22,4 +23,5 @@ build/
 .project
 
 # Local configuration file (sdk path, etc)
+gradle.properties
 local.properties
