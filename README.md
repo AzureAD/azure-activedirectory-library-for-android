@@ -55,7 +55,7 @@ git droidSetup
 
 ## Build Variants
 
-All projects with the exception of "Common" have local, dist and snapshot variants.  Where:
+All projects with the exception of "Common" and "MSAuthenticator" have local, dist and snapshot variants.  Where:
 
 - local: Indicates that local dependencies and build configuration should be used.  
 - snapshot: Indicates that nightly build artifacts and build configuration should be used.
@@ -66,6 +66,8 @@ The default build variants, cannot be configured via gradle, to the best of my k
 localDebug
 
 Where "local" is the name of the variant and "Debug" is the build type.
+
+For MSAuthenticator, please use "devDebug" to test against PROD, and "integrationDebug" to test against INT.
 
 ## Usage - Custom git commands
 
