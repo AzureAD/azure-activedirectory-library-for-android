@@ -302,6 +302,7 @@ final class BrokerAccountServiceHandler {
         }
 
         final ArrayList<UserInfo> brokerUsers = new ArrayList<>();
+
         final Set<String> users = usersBundle.keySet();
         for (final String user : users) {
             final Bundle userBundle = usersBundle.getBundle(user);
