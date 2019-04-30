@@ -1,5 +1,21 @@
 apply plugin: 'com.android.application'
 
+allprojects {
+    repositories {
+        mavenLocal()
+        google()
+        maven {
+            name "vsts-maven-adal-android"
+            url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
+            credentials {
+                username System.getenv("ENV_VSTS_MVN_ANDROIDADAL_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_ANDROIDADAL_USERNAME") : project.findProperty("vstsUsername")
+                password System.getenv("ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
+            }
+        }
+        jcenter()
+    }
+}
+
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -52,5 +68,10 @@ android {
 dependencies {
     // Compile Dependencies
     implementation "com.android.support:design:$rootProject.ext.supportLibraryVersion"
-    implementation project(':adal')
+
+    localImplementation(project(':adal'))
+    distImplementation("com.microsoft.aad:adal:1.16.3-RC10") {
+        exclude module: 'support-v4'
+        exclude module: 'android'
+    }
 }
