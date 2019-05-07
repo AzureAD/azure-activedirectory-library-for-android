@@ -55,6 +55,8 @@ import com.microsoft.aad.adal.Telemetry;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -186,6 +188,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mAuthContext = new AuthenticationContext(mApplicationContext, mAuthority, true);
         }
 
+        //TODO: We can add UX to set or not set this
+        mAuthContext.setClientCapabilites(new ArrayList<>(Arrays.asList("CP1")));
         mLoginhint = requestOptions.getLoginHint();
         mPromptBehavior = requestOptions.getBehavior();
     }
@@ -298,27 +302,38 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void saveUserIdFromAuthenticationResult(final AuthenticationResult authResult, final String authority) {
         mSharedPreference = getSharedPreferences(SHARED_PREFERENCE_STORE_USER_UNIQUEID, MODE_PRIVATE);
         if (null != authResult) {
-            final SharedPreferences.Editor prefEditor = mSharedPreference.edit();
             if (null != authResult.getAuthority()) {
-                //Save the preferred authority into the shared preference
-                prefEditor.putString((authResult.getUserInfo().getDisplayableId().trim() + ":" + authority.trim() +  ":authority").toLowerCase(), authResult.getAuthority().trim().toLowerCase());
-            } else {
-                final Toast toast = Toast.makeText(mApplicationContext,
-                        "Warning: the result authority is null," +
-                                "Silent auth for Sovereign account will fail. ", Toast.LENGTH_SHORT);
-                toast.show();
-            }
+                final SharedPreferences.Editor prefEditor = mSharedPreference.edit();
+                if (null != authResult.getUserInfo() && null != authResult.getUserInfo().getDisplayableId()) {
+                    if (null != authResult.getUserInfo() && null != authResult.getUserInfo().getIdentityProvider()) {
+                        prefEditor.putString(
+                                (authResult.getUserInfo().getDisplayableId().trim() + ":" + authority.trim() +  ":authority").toLowerCase(),
+                                authResult.getUserInfo().getIdentityProvider().trim().toLowerCase());
+                    } else {
+                       prefEditor.putString(
+                               (authResult.getUserInfo().getDisplayableId().trim() + ":" + authority.trim() +  ":authority").toLowerCase(),
+                               authResult.getAuthority().trim().toLowerCase());
+                    }
+                }  else {
+                    final Toast toast = Toast.makeText(mApplicationContext,
+                            "Warning: the result authority is null," +
+                                    "Silent auth for Sovereign account will fail. ", Toast.LENGTH_SHORT);
+                    toast.show();
+                }
 
-            if (null != authResult.getUserInfo() && null != authResult.getUserInfo().getUserId()) {
-                prefEditor.putString((authResult.getUserInfo().getDisplayableId().trim() + ":" + authority.trim() + ":userId").toLowerCase(), authResult.getUserInfo().getUserId().trim().toLowerCase());
-            } else {
-                final Toast toast = Toast.makeText(mApplicationContext,
-                        "Warning: the result userInfo is null. " +
-                                "Silent auth without userID will fail. ", Toast.LENGTH_SHORT);
-                toast.show();
-            }
+                if (null != authResult.getUserInfo()
+                    && null != authResult.getUserInfo().getDisplayableId()
+                    && null != authResult.getUserInfo().getUserId()) {
+                    prefEditor.putString((authResult.getUserInfo().getDisplayableId().trim() + ":" + authority.trim() + ":userId").toLowerCase(), authResult.getUserInfo().getUserId().trim().toLowerCase());
+                } else {
+                    final Toast toast = Toast.makeText(mApplicationContext,
+                            "Warning: the result userInfo is null. " +
+                                    "Silent auth without userID will fail. ", Toast.LENGTH_SHORT);
+                    toast.show();
+                }
 
-            prefEditor.apply();
+                prefEditor.apply();
+            }
         }
     }
 

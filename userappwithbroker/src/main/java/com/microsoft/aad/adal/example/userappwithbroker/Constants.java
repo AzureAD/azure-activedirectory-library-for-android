@@ -79,7 +79,7 @@ public class Constants {
     }
 
     enum RedirectUri {
-        Regular("msauth://com.microsoft.aad.adal.userappwithbroker/IcB5PxIyvbLkbFVtBI%2FitkW%2Fejk%3D"),
+        Regular(BuildConfig.REGULAR_REDIDRECT_URI),
         Regular2("msauth://com.microsoft.aad.adal.userappwithbroker/L8kGVGYgNOaxbhn9Y7vR%2F6LIEG8%3D"),
         Broker("urn:ietf:wg:oauth:2.0:oob"),
         LABS("msauth://com.microsoft.aad.adal.userappwithbroker/2%2BQqCWt1ilKg0IrfKT6CkdMpPqk%3D");
