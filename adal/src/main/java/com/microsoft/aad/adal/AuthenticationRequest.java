@@ -28,6 +28,7 @@ import android.support.annotation.Nullable;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -84,6 +85,8 @@ class AuthenticationRequest implements Serializable {
     private String mAppName;
 
     private String mAppVersion;
+
+    private List<String> mClientCapabilities;
 
     /**
      * Developer can use acquireToken(with loginhint) or acquireTokenSilent(with
@@ -403,5 +406,13 @@ class AuthenticationRequest implements Serializable {
 
     public void setAppVersion(String appVersion) {
         mAppVersion = appVersion;
+    }
+
+    public List<String> getClientCapabilities() {
+        return mClientCapabilities;
+    }
+
+    public void setClientCapabilities(final List<String> clientCapabilities) {
+        this.mClientCapabilities = clientCapabilities;
     }
 }

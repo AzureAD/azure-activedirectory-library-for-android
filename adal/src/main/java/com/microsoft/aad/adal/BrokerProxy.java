@@ -770,11 +770,20 @@ class BrokerProxy implements IBrokerProxy {
             brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_PROMPT, request.getPrompt().name());
         }
 
-        if (request.isClaimsChallengePresent()) {
-            brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CLAIMS, request.getClaimsChallenge());
+        if (request.isClaimsChallengePresent() || request.getClientCapabilities() != null) {
+            brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CLAIMS,
+                    AuthenticationContext.mergeClaimsWithClientCapabilities(
+                            request.getClaimsChallenge(),
+                            request.getClientCapabilities()
+                    )
+            );
         }
 
-        if (request.getForceRefresh()){
+        if (request.getForceRefresh() || request.isClaimsChallengePresent()){
+            // set force refresh to true if claims challenge is present, ad-accounts and adal-unity consumes this parameter
+            // to refresh token if claims is present on Request.
+            // Note: Even though client capabilities are sent as claims, they should not be treated as claims set to request and
+            // token should not be refreshed if they are present.
             brokerOptions.putString(AuthenticationConstants.Broker.BROKER_FORCE_REFRESH, Boolean.toString(true));
         }
 
