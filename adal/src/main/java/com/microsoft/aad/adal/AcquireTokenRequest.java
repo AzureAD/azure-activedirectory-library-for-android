@@ -128,6 +128,10 @@ class AcquireTokenRequest {
                     validateAcquireTokenRequest(authRequest);
                     performAcquireTokenRequest(callbackHandle, activity, useDialog, authRequest);
                 } catch (final AuthenticationException authenticationException) {
+                    mAPIEvent.setSpeRing(authenticationException.getSpeRing());
+                    mAPIEvent.setRefreshTokenAge(authenticationException.getRefreshTokenAge());
+                    mAPIEvent.setServerErrorCode(authenticationException.getCliTelemErrorCode());
+                    mAPIEvent.setServerSubErrorCode(authenticationException.getCliTelemSubErrorCode());
                     mAPIEvent.setWasApiCallSuccessful(false, authenticationException);
                     mAPIEvent.setCorrelationId(authRequest.getCorrelationId().toString());
                     mAPIEvent.stopTelemetryAndFlush();
@@ -418,10 +422,10 @@ class AcquireTokenRequest {
 
     private boolean shouldTrySilentFlow(final AuthenticationRequest authenticationRequest) {
         boolean result = true;
-        if(authenticationRequest.isClaimsChallengePresent()){
+        if (authenticationRequest.isClaimsChallengePresent()) {
             result = checkIfBrokerHasLltChanges();
         }
-        return  authenticationRequest.isSilent() || (result && authenticationRequest.getPrompt() == PromptBehavior.Auto) ;
+        return authenticationRequest.isSilent() || (result && authenticationRequest.getPrompt() == PromptBehavior.Auto);
     }
 
     /**
@@ -461,7 +465,7 @@ class AcquireTokenRequest {
         final boolean requestEligibleForBroker = mBrokerProxy.verifyBrokerForSilentRequest(authenticationRequest);
 
         //1. if forceRefresh == true OR claimsChallenge is not null AND the request is eligible for the broker
-        if((authenticationRequest.getForceRefresh() || authenticationRequest.isClaimsChallengePresent()) && requestEligibleForBroker){
+        if ((authenticationRequest.getForceRefresh() || authenticationRequest.isClaimsChallengePresent()) && requestEligibleForBroker) {
             return tryAcquireTokenSilentWithBroker(authenticationRequest);
         }
 
@@ -472,9 +476,9 @@ class AcquireTokenRequest {
         }
 
         //3. We couldn't get locally...If eligible return via broker... otherwise return local result
-        if(requestEligibleForBroker){
+        if (requestEligibleForBroker) {
             return tryAcquireTokenSilentWithBroker(authenticationRequest);
-        }else{
+        } else {
             return authResult;
         }
 
@@ -634,6 +638,12 @@ class AcquireTokenRequest {
             throw new UsageAuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, "The redirectUri is null or blank.");
         }
 
+        if (inputUri.equalsIgnoreCase(AuthenticationConstants.Broker.BROKER_REDIRECT_URI)) {
+            // TODO: Clean this up once we migrate all Logger functions to the common one.
+            com.microsoft.identity.common.internal.logging.Logger.info(TAG + methodName, "This is a broker redirectUri. Bypass the check.");
+            return;
+        }
+
         // verify that redirect uri passed in by developer has the correct prefix msauth://
         if (!inputUri.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX + "://")) {
             errMsg = " The valid broker redirect URI prefix: " + AuthenticationConstants.Broker.REDIRECT_PREFIX
@@ -772,10 +782,10 @@ class AcquireTokenRequest {
 
                     // set the x-ms-clitelem fields on the result from the Broker
                     final TelemetryUtils.CliTelemInfo cliTelemInfo = new TelemetryUtils.CliTelemInfo();
-                    cliTelemInfo.setServerErrorCode(serverErrorCode);
-                    cliTelemInfo.setServerSubErrorCode(serverSubErrorCode);
-                    cliTelemInfo.setRefreshTokenAge(refreshTokenAge);
-                    cliTelemInfo.setSpeRing(speRingInfo);
+                    cliTelemInfo._setServerErrorCode(serverErrorCode);
+                    cliTelemInfo._setServerSubErrorCode(serverSubErrorCode);
+                    cliTelemInfo._setRefreshTokenAge(refreshTokenAge);
+                    cliTelemInfo._setSpeRing(speRingInfo);
                     brokerResult.setCliTelemInfo(cliTelemInfo);
 
                     if (brokerResult.getAccessToken() != null) {

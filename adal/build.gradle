@@ -19,7 +19,6 @@ configurations.all {
 allprojects {
     repositories {
         mavenLocal()
-        jcenter()
         google()
         maven {
             name "vsts-maven-adal-android"
@@ -29,6 +28,7 @@ allprojects {
                 password System.getenv("ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
             }
         }
+        jcenter()
     }
 }
 
@@ -42,6 +42,7 @@ buildscript {
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
 
     defaultConfig {
         minSdkVersion rootProject.ext.minSdkVersion
@@ -54,7 +55,7 @@ android {
     }
     buildTypes {
         debug {
-            testCoverageEnabled true
+            testCoverageEnabled false
             debuggable true
 
         }
@@ -135,10 +136,10 @@ dependencies {
         transitive = false
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '0.0.8', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '0.0.10', changing: true)
 
     // 'dist' flavor dependencies
-    distApi("com.microsoft.identity:common:0.0.9") {
+    distApi("com.microsoft.identity:common:0.0.10") {
         transitive = false
     }
 

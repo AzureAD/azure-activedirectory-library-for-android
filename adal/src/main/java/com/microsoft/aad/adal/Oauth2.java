@@ -214,11 +214,11 @@ class Oauth2 {
             );
         }
 
-        if(!StringExtensions.isNullOrBlank(mRequest.getAppName())){
+        if (!StringExtensions.isNullOrBlank(mRequest.getAppName())) {
             queryParameter.appendQueryParameter(AuthenticationConstants.AAD.APP_PACKAGE_NAME, mRequest.getAppName());
         }
 
-        if(!StringExtensions.isNullOrBlank(mRequest.getAppVersion())){
+        if (!StringExtensions.isNullOrBlank(mRequest.getAppVersion())) {
             queryParameter.appendQueryParameter(AuthenticationConstants.AAD.APP_VERSION, mRequest.getAppVersion());
         }
 
@@ -868,7 +868,7 @@ class Oauth2 {
                     }
 
                     final CliTelemInfo cliTelemInfo = new CliTelemInfo();
-                    cliTelemInfo.setSpeRing(speRing);
+                    cliTelemInfo._setSpeRing(speRing);
                     result.setCliTelemInfo(cliTelemInfo);
                     httpEvent.setOauthErrorCode(result.getErrorCode());
                 }
