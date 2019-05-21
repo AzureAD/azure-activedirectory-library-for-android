@@ -123,7 +123,6 @@ class BrokerProxy implements IBrokerProxy {
                     ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL.name()
             );
         }
-        final String packageName = mContext.getPackageName();
         boolean canSwitchToBroker = AuthenticationSettings.INSTANCE.getUseBroker()
                 && verifyAuthenticator(mAcctManager)
                 && !UrlExtensions.isADFSAuthority(authorityUrl);

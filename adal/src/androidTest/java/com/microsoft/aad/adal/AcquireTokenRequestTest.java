@@ -52,6 +52,7 @@ import com.microsoft.identity.common.internal.providers.microsoft.azureactivedir
 import org.json.JSONException;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Matchers;
@@ -96,6 +97,7 @@ import static org.mockito.Mockito.when;
  * Tests for {@link AcquireTokenRequest}.
  */
 @RunWith(AndroidJUnit4.class)
+@Ignore
 public final class AcquireTokenRequestTest {
 
     private static final String TAG = AcquireTokenRequestTest.class.getSimpleName();
