@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Obtain the RedirectURI from an APK.  Requires JDK\bin\keytool and AndroidSDK\build-tools\..\aapt to be on the path.
+Obtain the RedirectURI from an APK.  Requires JDK\bin\keytool and AndroidSDK\build-tools\###\aapt to be on the path.
 
 .EXAMPLE
 GetBrokerRedirectURI MyApp.apk
