@@ -39,7 +39,7 @@ function GetSHA1Hex {
     }
     
     if ($signatures.Keys.count -gt 1) {
-        write-warning "Multiple signatures detected, please select the correct one."
+        write-warning "Multiple signatures detected, please select the correct one based on the owner.  If more context is needed please manually run ``keytool -printcert -jarfile $apkFile``."
     }
 
     return $signatures
