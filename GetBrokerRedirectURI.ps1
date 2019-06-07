@@ -81,8 +81,17 @@ function GetPackageName {
     return $match.Matches.Groups[1].Value
 }
 
+<#
+Get and verify that the necessary dependencies are visible.
+#>
+function VerifyDependencies {
+    get-command aapt -ErrorAction Stop | out-null
+    get-command keytool -ErrorAction Stop | out-null
 
-[Reflection.Assembly]::LoadWithPartialName("System.Web") | out-null
+    [Reflection.Assembly]::LoadWithPartialName("System.Web") | out-null
+}
+
+VerifyDependencies
 
 $signatures = GetSHA1Hex($apkFile)
 $packageName = GetPackageName($apkFile)
