@@ -37,8 +37,8 @@ import android.content.pm.ResolveInfo;
 import android.content.pm.Signature;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.rule.ServiceTestRule;
+import androidx.test.InstrumentationRegistry;
+import androidx.test.rule.ServiceTestRule;
 import android.util.Base64;
 import android.util.Pair;
 

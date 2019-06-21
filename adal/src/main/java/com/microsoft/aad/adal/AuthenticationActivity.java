@@ -40,7 +40,7 @@ import android.os.Bundle;
 import android.security.KeyChain;
 import android.security.KeyChainAliasCallback;
 import android.security.KeyChainException;
-import android.support.v4.content.LocalBroadcastManager;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;

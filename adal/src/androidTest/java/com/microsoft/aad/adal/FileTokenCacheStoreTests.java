@@ -24,8 +24,8 @@
 package com.microsoft.aad.adal;
 
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.InstrumentationRegistry;
+import androidx.test.runner.AndroidJUnit4;
 
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
@@ -43,7 +43,7 @@ import java.io.ObjectOutputStream;
 import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
 
-import static android.support.test.InstrumentationRegistry.getInstrumentation;
+import static androidx.test.InstrumentationRegistry.getInstrumentation;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;

@@ -28,7 +28,7 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
-import android.support.test.InstrumentationRegistry;
+import androidx.test.InstrumentationRegistry;
 import android.util.Base64;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;

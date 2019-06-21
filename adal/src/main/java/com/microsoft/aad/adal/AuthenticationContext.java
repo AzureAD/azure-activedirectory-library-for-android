@@ -33,8 +33,8 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Looper;
 import android.os.NetworkOnMainThreadException;
-import android.support.annotation.Nullable;
-import android.support.v4.content.LocalBroadcastManager;
+import androidx.annotation.Nullable;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.SparseArray;
 

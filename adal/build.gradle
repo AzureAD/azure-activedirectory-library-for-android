@@ -51,7 +51,7 @@ android {
         versionName getAppVersionName()
         project.archivesBaseName = "adal"
         project.version = android.defaultConfig.versionName
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         debug {
@@ -125,10 +125,10 @@ dependencies {
     }
 
     // Dependencies
-    implementation "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
+    implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
-    implementation "com.android.support:support-annotations:$rootProject.ext.supportLibraryVersion"
-    implementation "com.android.support:support-v4:$rootProject.ext.supportLibraryVersion"
+    implementation "androidx.annotation:annotation:$rootProject.ext.annotationVersion"
+    implementation "androidx.legacy:legacy-support-v4:$rootProject.ext.legacySupportV4Version"
     implementation 'com.nimbusds:nimbus-jose-jwt:5.7'
 
     // 'local' flavor dependencies
@@ -144,8 +144,8 @@ dependencies {
     }
 
     // Android Instrumented Test Dependencies
-    androidTestImplementation "com.android.support.test:runner:$rootProject.ext.runnerVersion"
-    androidTestImplementation "com.android.support.test:rules:$rootProject.ext.rulesVersion"
+    androidTestImplementation "androidx.test:runner:$rootProject.ext.runnerVersion"
+    androidTestImplementation "androidx.test:rules:$rootProject.ext.rulesVersion"
     androidTestImplementation "org.mockito:mockito-core:$rootProject.ext.mockitoCoreVersion"
     androidTestImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
 
@@ -153,8 +153,8 @@ dependencies {
     testImplementation "junit:junit:$rootProject.ext.junitVersion"
 
     // Javadoc Dependencies
-    javadocDeps "com.android.support:support-annotations:$rootProject.ext.supportLibraryVersion"
-    javadocDeps "com.android.support:support-v4:$rootProject.ext.supportLibraryVersion"
+    javadocDeps "androidx.annotation:annotation:$rootProject.ext.annotationVersion"
+    javadocDeps "androidx.legacy:legacy-support-v4:$rootProject.ext.legacySupportV4Version"
 }
 
 task sourcesJar(type: Jar) {

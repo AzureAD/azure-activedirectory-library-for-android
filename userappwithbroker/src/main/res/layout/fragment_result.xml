@@ -28,7 +28,7 @@
              xmlns:tools="http://schemas.android.com/tools"
              android:layout_width="match_parent"
              android:layout_height="match_parent"
-             tools:context="com.microsoft.identity.client.sample.MainActivity">
+             tools:context="com.microsoft.aad.adal.example.userappwithbroker.MainActivity">
 
     <TextView
         android:id="@+id/txt_result"

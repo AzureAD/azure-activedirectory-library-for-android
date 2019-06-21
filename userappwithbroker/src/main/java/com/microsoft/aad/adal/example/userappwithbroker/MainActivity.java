@@ -29,26 +29,26 @@ import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.design.widget.NavigationView;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import androidx.core.view.GravityCompat;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import com.google.android.material.navigation.NavigationView;
 import com.microsoft.aad.adal.AuthenticationCallback;
 import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.IDispatcher;
-import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.PromptBehavior;
 import com.microsoft.aad.adal.Telemetry;
 

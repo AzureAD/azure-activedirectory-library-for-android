@@ -27,7 +27,7 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.res.Configuration;
 import android.os.Build;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.runner.AndroidJUnit4;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 
@@ -37,7 +37,7 @@ import org.junit.runner.RunWith;
 
 import java.util.Locale;
 
-import static android.support.test.InstrumentationRegistry.getInstrumentation;
+import static androidx.test.InstrumentationRegistry.getInstrumentation;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 

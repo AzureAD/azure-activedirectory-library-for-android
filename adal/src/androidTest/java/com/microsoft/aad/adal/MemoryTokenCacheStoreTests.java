@@ -23,7 +23,7 @@
 
 package com.microsoft.aad.adal;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.runner.AndroidJUnit4;
 
 
 
@@ -42,7 +42,7 @@ import java.util.concurrent.CountDownLatch;
 
 import javax.crypto.NoSuchPaddingException;
 
-import static android.support.test.InstrumentationRegistry.getInstrumentation;
+import static androidx.test.InstrumentationRegistry.getInstrumentation;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 

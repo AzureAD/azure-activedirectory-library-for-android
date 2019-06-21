@@ -67,11 +67,12 @@ android {
 
 dependencies {
     // Compile Dependencies
-    implementation "com.android.support:design:$rootProject.ext.supportLibraryVersion"
+    implementation "com.google.android.material:material:1.0.0"
 
     localImplementation(project(':adal'))
-    distImplementation("com.microsoft.aad:adal:1.16.3") {
-        exclude module: 'support-v4'
+
+    distImplementation("com.microsoft.aad:adal:1.16.3-RC10") {
+        exclude module: 'legacy-support-v4'
         exclude module: 'android'
     }
 }
