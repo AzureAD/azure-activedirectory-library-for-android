@@ -234,7 +234,7 @@ class Discovery {
         }
 
         //Check if the network connection available
-        HttpWebRequest.throwIfNetworkNotAvailable(mContext);
+        HttpUtil.throwIfNetworkNotAvailable(mContext);
 
         // It will query prod instance to verify the authority
         // construct query string for this instance

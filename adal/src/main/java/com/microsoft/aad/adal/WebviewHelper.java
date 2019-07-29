@@ -28,6 +28,7 @@ import android.text.TextUtils;
 
 import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.JWSBuilder;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.io.Serializable;
@@ -150,7 +151,7 @@ public class WebviewHelper {
      */
     public PreKeyAuthInfo getPreKeyAuthInfo(String challengeUrl)
             throws UnsupportedEncodingException, AuthenticationException {
-        IJWSBuilder jwsBuilder = new JWSBuilder();
+        JWSBuilder jwsBuilder = new JWSBuilder();
 
         ChallengeResponseBuilder certHandler = new ChallengeResponseBuilder(jwsBuilder);
 

@@ -27,6 +27,7 @@ import android.net.Uri;
 import android.os.Bundle;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.util.DateExtensions;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.io.Serializable;
@@ -247,7 +248,7 @@ public class UserInfo implements Serializable {
 
     void setPasswordExpiresOn(Date passwordExpiresOn) {
         if (null == passwordExpiresOn) {
-            mPasswordExpiresOn= null;
+            mPasswordExpiresOn = null;
         } else {
             mPasswordExpiresOn = new Date(passwordExpiresOn.getTime());
         }

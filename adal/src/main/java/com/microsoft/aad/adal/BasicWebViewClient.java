@@ -36,6 +36,7 @@ import android.webkit.WebViewClient;
 
 import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.JWSBuilder;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.util.HashMap;
@@ -58,7 +59,7 @@ abstract class BasicWebViewClient extends WebViewClient {
     private final UIEvent mUIEvent;
 
     BasicWebViewClient(final Context appContext, final String redirect,
-                              final AuthenticationRequest request, final UIEvent uiEvent) {
+                       final AuthenticationRequest request, final UIEvent uiEvent) {
         mCallingContext = appContext;
         mRedirect = redirect;
         mRequest = request;
