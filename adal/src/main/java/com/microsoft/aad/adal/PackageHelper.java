@@ -25,15 +25,12 @@ package com.microsoft.aad.adal;
 
 import android.accounts.AccountManager;
 import android.annotation.SuppressLint;
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.Signature;
-import android.os.Bundle;
 import android.util.Base64;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
@@ -62,43 +59,6 @@ public class PackageHelper {
     public PackageHelper(Context ctx) {
         mContext = ctx;
         mAcctManager = AccountManager.get(mContext);
-    }
-
-    /**
-     * Gets metadata information from AndroidManifest file.
-     *
-     * @param packageName
-     * @param component
-     * @param metaDataName
-     * @return MetaData
-     */
-    @SuppressLint("WrongConstant")
-    Object getValueFromMetaData(final String packageName, final ComponentName component,
-            final String metaDataName) {
-        try {
-            Logger.i(TAG, "", "Calling package:" + packageName);
-            if (component != null) {
-                Logger.v(TAG, "component:" + component.flattenToString());
-                ActivityInfo ai = mContext.getPackageManager().getActivityInfo(component,
-                        PackageManager.GET_ACTIVITIES | PackageManager.GET_META_DATA);
-                if (ai != null) {
-                    Bundle metaData = ai.metaData;
-                    if (metaData == null) {
-                        Logger.v(TAG, "metaData is null. Unable to get meta data for "
-                                + metaDataName);
-                    } else {
-                        Object value = (Object)metaData.get(metaDataName);
-                        return value;
-                    }
-                }
-            } else {
-                Logger.v(TAG, "calling component is null.");
-            }
-        } catch (NameNotFoundException e) {
-            Logger.e(TAG, "ActivityInfo is not found", "",
-                    ADALError.BROKER_ACTIVITY_INFO_NOT_FOUND, e);
-        }
-        return null;
     }
 
     /**
