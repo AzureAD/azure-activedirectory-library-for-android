@@ -25,6 +25,8 @@ package com.microsoft.aad.adal;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+
 import junit.framework.Assert;
 
 import org.junit.After;
