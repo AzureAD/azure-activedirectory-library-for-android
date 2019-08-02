@@ -37,6 +37,7 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.DigestException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
@@ -157,7 +158,7 @@ public class StorageHelperTests extends AndroidTestHelper {
                     public void run() throws GeneralSecurityException, IOException, AuthenticationException {
                         storageHelper.decrypt("cE1" + new String(Base64.encode(
                                 "U001thatShouldFail1234567890123456789012345678901234567890"
-                                        .getBytes("UTF-8"), Base64.NO_WRAP), "UTF-8"));
+                                        .getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP), StandardCharsets.UTF_8));
                     }
                 });
     }
@@ -219,17 +220,17 @@ public class StorageHelperTests extends AndroidTestHelper {
         final Context context = getInstrumentation().getTargetContext();
         final StorageHelper storageHelper = new StorageHelper(context);
         String clearText = "AAAAAAAA2pILN0mn3wlYIlWk7lqOZ5qjRWXH";
-        String encrypted =  storageHelper.encrypt(clearText);
+        String encrypted = storageHelper.encrypt(clearText);
         assertNotNull("encrypted string is not null", encrypted);
         assertFalse("encrypted string is not same as cleartext", encrypted.equals(clearText));
 
-        String decrypted =  storageHelper.decrypt(encrypted);
+        String decrypted = storageHelper.decrypt(encrypted);
         assertTrue("Same without Tampering", decrypted.equals(clearText));
         final String flagVersion = encrypted.substring(0, 3);
         final byte[] bytes = Base64.decode(encrypted.substring(3), Base64.DEFAULT);
         final int randomlyChosenByte = 15;
         bytes[randomlyChosenByte]++;
-        final String modified = new String(Base64.encode(bytes, Base64.NO_WRAP), "UTF-8");
+        final String modified = new String(Base64.encode(bytes, Base64.NO_WRAP), StandardCharsets.UTF_8);
         assertThrowsException(DigestException.class, null, new ThrowableRunnable() {
             @Override
             public void run() throws Exception {
@@ -241,7 +242,6 @@ public class StorageHelperTests extends AndroidTestHelper {
     /**
      * Make sure that version sets correctly. It needs to be tested at different
      * emulator(18 and before 18).
-     * 
      */
     @Test
     public void testVersion() throws GeneralSecurityException, IOException {
@@ -259,7 +259,7 @@ public class StorageHelperTests extends AndroidTestHelper {
         // get key version used for this data. If user upgraded to different
         // API level, data needs to be updated
         final int keyVersionLength = 4;
-        String keyVersionCheck = new String(bytes, 0, keyVersionLength, "UTF-8");
+        String keyVersionCheck = new String(bytes, 0, keyVersionLength, StandardCharsets.UTF_8);
         Logger.i(TAG, "Key version check. ", "Key version: " + keyVersionCheck);
         if (Build.VERSION.SDK_INT < MIN_SDK_VERSION || AuthenticationSettings.INSTANCE.getSecretKeyData() != null) {
             assertEquals("It should use user defined", "U001", keyVersionCheck);
@@ -348,7 +348,7 @@ public class StorageHelperTests extends AndroidTestHelper {
         Logger.i(TAG, "Key2 ", key2.toString());
         assertTrue("Key info is same", key.toString().equals(key2.toString()));
     }
-    
+
     private void setSecretKeyData() throws NoSuchAlgorithmException, InvalidKeySpecException, UnsupportedEncodingException {
         // use same key for tests
         SecretKeyFactory keyFactory = SecretKeyFactory
@@ -356,7 +356,7 @@ public class StorageHelperTests extends AndroidTestHelper {
         final int iterations = 100;
         final int keySize = 256;
         SecretKey tempkey = keyFactory.generateSecret(new PBEKeySpec("test".toCharArray(),
-                "abcdedfdfd".getBytes("UTF-8"), iterations, keySize));
+                "abcdedfdfd".getBytes(StandardCharsets.UTF_8), iterations, keySize));
         SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
         AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
     }
