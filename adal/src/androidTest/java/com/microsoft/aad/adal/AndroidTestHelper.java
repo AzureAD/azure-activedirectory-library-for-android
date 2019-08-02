@@ -84,7 +84,8 @@ public class AndroidTestHelper {
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(null);
     }
 
-    void assertThrowsException(final Class<? extends Exception> expected, String hasMessage,
+    void assertThrowsException(final Class<? extends Exception> expected,
+                               final String hasMessage,
                                final ThrowableRunnable testCode) {
         try {
             testCode.run();
@@ -101,7 +102,8 @@ public class AndroidTestHelper {
         }
     }
 
-    void assertThrowsException(final Class<? extends Exception> expected, String hasMessage,
+    void assertThrowsException(final Class<? extends Exception> expected,
+                               final String hasMessage,
                                final Runnable testCode) {
         try {
             testCode.run();
