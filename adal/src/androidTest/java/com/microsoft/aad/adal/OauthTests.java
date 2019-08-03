@@ -49,6 +49,7 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -113,13 +114,13 @@ public class OauthTests {
         // check that Base64 UrlSafe flags behaves as expected
         String expected = "Ma~0";
         assertEquals("BAse64 url safe encode", expected,
-                new String(Base64.decode("TWF-MA", Base64.URL_SAFE), "UTF-8"));
+                new String(Base64.decode("TWF-MA", Base64.URL_SAFE), StandardCharsets.UTF_8));
         assertEquals("BAse64 url safe encode", expected,
-                new String(Base64.decode("TWF-MA", Base64.URL_SAFE), "UTF-8"));
+                new String(Base64.decode("TWF-MA", Base64.URL_SAFE), StandardCharsets.UTF_8));
         assertEquals("BAse64 url safe encode", expected,
-                new String(Base64.decode("TWF+MA", Base64.DEFAULT), "UTF-8"));
+                new String(Base64.decode("TWF+MA", Base64.DEFAULT), StandardCharsets.UTF_8));
         assertEquals("BAse64 url safe encode", expected,
-                new String(Base64.decode("TWF+MA==", Base64.DEFAULT), "UTF-8"));
+                new String(Base64.decode("TWF+MA==", Base64.DEFAULT), StandardCharsets.UTF_8));
     }
 
     @Test

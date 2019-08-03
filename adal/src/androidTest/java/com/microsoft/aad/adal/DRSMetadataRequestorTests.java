@@ -25,7 +25,6 @@ package com.microsoft.aad.adal;
 
 import android.support.test.runner.AndroidJUnit4;
 
-
 import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 

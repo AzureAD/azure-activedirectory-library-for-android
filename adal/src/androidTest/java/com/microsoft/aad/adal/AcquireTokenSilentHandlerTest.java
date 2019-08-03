@@ -50,6 +50,7 @@ import org.mockito.Mockito;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -80,10 +81,6 @@ public final class AcquireTokenSilentHandlerTest {
      */
     private static final String VALID_AUTHORITY = "https://Login.windows.net/Omercantest.Onmicrosoft.com";
 
-    protected static final int CONTEXT_REQUEST_TIME_OUT = 20000;
-
-    protected static final int ACTIVITY_TIME_OUT = 1000;
-
     static final String TEST_IDTOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiJlNzBiMTE1ZS1hYzBhLTQ4MjMtODVkYS04ZjRiN2I0ZjAwZTYiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8zMGJhYTY2Ni04ZGY4LTQ4ZTctOTdlNi03N2NmZDA5OTU5NjMvIiwibmJmIjoxMzc2NDI4MzEwLCJleHAiOjEzNzY0NTcxMTAsInZlciI6IjEuMCIsInRpZCI6IjMwYmFhNjY2LThkZjgtNDhlNy05N2U2LTc3Y2ZkMDk5NTk2MyIsIm9pZCI6IjRmODU5OTg5LWEyZmYtNDExZS05MDQ4LWMzMjIyNDdhYzYyYyIsInVwbiI6ImFkbWluQGFhbHRlc3RzLm9ubWljcm9zb2Z0LmNvbSIsInVuaXF1ZV9uYW1lIjoiYWRtaW5AYWFsdGVzdHMub25taWNyb3NvZnQuY29tIiwic3ViIjoiVDU0V2hGR1RnbEJMN1VWYWtlODc5UkdhZEVOaUh5LXNjenNYTmFxRF9jNCIsImZhbWlseV9uYW1lIjoiU2VwZWhyaSIsImdpdmVuX25hbWUiOiJBZnNoaW4ifQ.";
 
     static final String TEST_IDTOKEN_USERID = "4f859989-a2ff-411e-9048-c322247ac62c";
@@ -100,7 +97,7 @@ public final class AcquireTokenSilentHandlerTest {
             final int iterations = 100;
             final int keySize = 256;
             SecretKey tempkey = keyFactory.generateSecret(new PBEKeySpec("test".toCharArray(),
-                    "abcdedfdfd".getBytes("UTF-8"), iterations, keySize));
+                    "abcdedfdfd".getBytes(StandardCharsets.UTF_8), iterations, keySize));
             SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
             AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
         }
