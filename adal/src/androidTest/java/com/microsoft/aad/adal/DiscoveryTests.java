@@ -24,9 +24,9 @@
 package com.microsoft.aad.adal;
 
 import android.os.Build;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.filters.SdkSuppress;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.InstrumentationRegistry;
+import androidx.test.filters.SdkSuppress;
+import androidx.test.runner.AndroidJUnit4;
 
 
 

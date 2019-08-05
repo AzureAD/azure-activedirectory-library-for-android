@@ -23,7 +23,7 @@
 
 package com.microsoft.aad.adal;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.runner.AndroidJUnit4;
 import android.text.TextUtils;
 
 import org.junit.Test;

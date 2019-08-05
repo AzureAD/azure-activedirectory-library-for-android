@@ -24,9 +24,9 @@ package com.microsoft.aad.adal;
 
 import android.content.Context;
 import android.os.Build;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.filters.SdkSuppress;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.InstrumentationRegistry;
+import androidx.test.filters.SdkSuppress;
+import androidx.test.runner.AndroidJUnit4;
 import android.test.suitebuilder.annotation.SmallTest;
 
 import com.microsoft.aad.adal.AuthenticationRequest.UserIdentifierType;
@@ -63,7 +63,7 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import static android.support.test.InstrumentationRegistry.getContext;
+import static androidx.test.InstrumentationRegistry.getContext;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;

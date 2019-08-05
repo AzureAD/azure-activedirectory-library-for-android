@@ -22,7 +22,7 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 /**
  * CacheKey will be the object for key.

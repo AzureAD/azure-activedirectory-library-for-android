@@ -33,8 +33,8 @@ import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.InstrumentationRegistry;
+import androidx.test.runner.AndroidJUnit4;
 import android.test.UiThreadTest;
 import android.util.Base64;
 
