@@ -20,7 +20,6 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-
 package com.microsoft.aad.adal;
 
 
@@ -39,7 +38,7 @@ public class ADFSWebFingerValidatorTests extends TestCase {
     @SmallTest
     public void testTrustedRealmFieldInitialized()
             throws NoSuchFieldException, IllegalAccessException {
-        Field trustedRealmURI = ADFSWebFingerValidator.class.getDeclaredField("TRUSTED_REALM_REL");
+        final Field trustedRealmURI = ADFSWebFingerValidator.class.getDeclaredField("TRUSTED_REALM_REL");
         trustedRealmURI.setAccessible(true);
         assertEquals(
                 trustedRealmURI.get(null).toString(),
@@ -50,9 +49,8 @@ public class ADFSWebFingerValidatorTests extends TestCase {
     @SmallTest
     public void testRealmIsTrustedEmptyMetadata() throws URISyntaxException {
         final URI testAuthority = new URI("https://fs.ngctest.nttest.microsoft.com/adfs/ls/");
-        WebFingerMetadata metadata = new WebFingerMetadata();
-        assertEquals(
-                false,
+        final WebFingerMetadata metadata = new WebFingerMetadata();
+        assertFalse(
                 ADFSWebFingerValidator.realmIsTrusted(
                         testAuthority,
                         metadata
@@ -62,15 +60,18 @@ public class ADFSWebFingerValidatorTests extends TestCase {
 
     public void testRealmIsTrusted() throws URISyntaxException {
         final URI testAuthority = new URI("https://fs.ngctest.nttest.microsoft.com/adfs/ls/");
-        WebFingerMetadata metadata = new WebFingerMetadata();
+        final WebFingerMetadata metadata = new WebFingerMetadata();
         final Link link = new Link();
+
         link.setHref("https://fs.ngctest.nttest.microsoft.com");
         link.setRel("http://schemas.microsoft.com/rel/trusted-realm");
+
         List<Link> links = new ArrayList<>();
         links.add(link);
+
         metadata.setLinks(links);
-        assertEquals(
-                true,
+
+        assertTrue(
                 ADFSWebFingerValidator.realmIsTrusted(
                         testAuthority,
                         metadata

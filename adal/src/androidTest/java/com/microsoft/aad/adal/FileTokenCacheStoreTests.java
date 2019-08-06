@@ -30,8 +30,6 @@ import androidx.test.runner.AndroidJUnit4;
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
 
-
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

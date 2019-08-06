@@ -64,6 +64,7 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -94,6 +95,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -150,7 +152,7 @@ public final class AuthenticationContextTest {
             final int iterationCount = 100;
             final int keyLength = 256;
             SecretKey tempkey = keyFactory.generateSecret(new PBEKeySpec("test".toCharArray(),
-                    "abcdedfdfd".getBytes("UTF-8"), iterationCount, keyLength));
+                    "abcdedfdfd".getBytes(StandardCharsets.UTF_8), iterationCount, keyLength));
 
             SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
             AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
@@ -975,7 +977,6 @@ public final class AuthenticationContextTest {
     }
 
 
-
     /**
      * acquire token using refresh token. All web calls are mocked. Refresh
      * token response must match to result and cache.
@@ -1506,7 +1507,7 @@ public final class AuthenticationContextTest {
             public Void answer(InvocationOnMock invocation) throws Throwable {
                 final Intent intent = new Intent();
                 String state = String.format("a=%s&r=%s", authority, resource);
-                final String encodedState = Base64.encodeToString(state.getBytes("UTF-8"), Base64.NO_PADDING | Base64.URL_SAFE);
+                final String encodedState = Base64.encodeToString(state.getBytes(StandardCharsets.UTF_8), Base64.NO_PADDING | Base64.URL_SAFE);
                 intent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, callback.hashCode());
                 intent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, "https://login.windows.net/common?code=1234&state=" + encodedState);
                 context.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW, AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE, intent);
@@ -1819,22 +1820,49 @@ public final class AuthenticationContextTest {
         final String clientId = "clientId";
 
         // Add MRRT in the cache
-        final TokenCacheItem mrrtTokenCacheItem = Util.getTokenCacheItem(VALID_AUTHORITY, resource,
-                clientId, TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        final TokenCacheItem mrrtTokenCacheItem = Util.getTokenCacheItem(
+                VALID_AUTHORITY,
+                resource,
+                clientId,
+                TEST_IDTOKEN_USERID,
+                TEST_IDTOKEN_UPN
+        );
+
         mrrtTokenCacheItem.setRefreshToken(null);
         mrrtTokenCacheItem.setResource(null);
         mrrtTokenCacheItem.setFamilyClientId("familyClientId");
         mrrtTokenCacheItem.setIsMultiResourceRefreshToken(true);
-        mockedCache.setItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, clientId, TEST_IDTOKEN_USERID), mrrtTokenCacheItem);
-        mockedCache.setItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, clientId, TEST_IDTOKEN_UPN), mrrtTokenCacheItem);
 
-        final AuthenticationContext context = getAuthenticationContext(mockContext,
-                VALID_AUTHORITY, false, mockedCache);
+        mockedCache.setItem(
+                CacheKey.createCacheKeyForMRRT(
+                        VALID_AUTHORITY,
+                        clientId,
+                        TEST_IDTOKEN_USERID
+                ),
+                mrrtTokenCacheItem
+        );
+
+        mockedCache.setItem(
+                CacheKey.createCacheKeyForMRRT(
+                        VALID_AUTHORITY,
+                        clientId,
+                        TEST_IDTOKEN_UPN
+                ),
+                mrrtTokenCacheItem
+        );
+
+        final AuthenticationContext context = getAuthenticationContext(
+                mockContext,
+                VALID_AUTHORITY,
+                false,
+                mockedCache
+        );
+
         try {
             context.acquireTokenSilentSync(resource, clientId, TEST_IDTOKEN_USERID);
             fail("Expecting exception to be thrown");
         } catch (final AuthenticationException e) {
-            assertTrue(e.getCode() == ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
+            assertSame(e.getCode(), ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
         } finally {
             clearCache(context);
         }
@@ -2383,10 +2411,10 @@ public final class AuthenticationContextTest {
      * forceRefresh should result in the following behavior:
      * 1) When broker available (installed and user has refresh tokens in broker cache) for current user,
      * bypass local access and refresh token and perform refresh using the broker
-     *
+     * <p>
      * 2) When the broker is not available (not installed or the user does not have refresh tokens in broker cache)
      * bypass the local access token and use the local refresh token to refresh
-     *
+     * <p>
      * setup cache with userid for normal access token and AAD  refresh token (MRRT)
      * bound to one userid. verify that the forceRefresh parameter bypasses the local access token
      * and refreshes using the local refresh token
@@ -2489,10 +2517,10 @@ public final class AuthenticationContextTest {
      * forceRefresh should result in the following behavior:
      * 1) When broker available (installed and user has refresh tokens in broker cache) for current user,
      * bypass local access and refresh token and perform refresh using the broker
-     *
+     * <p>
      * 2) When the broker is not available (not installed or the user does not have refresh tokens in broker cache)
      * bypass the local access token and use the local refresh token to refresh
-     *
+     * <p>
      * setup cache with userid for normal access token and AAD  refresh token (MRRT)
      * bound to one userid. verify that the forceRefresh parameter bypasses the local access token
      * and refreshes using the local refresh token
@@ -3259,7 +3287,7 @@ public final class AuthenticationContextTest {
         String expectedJson = "{\"userinfo\":{\"given_name\":{\"essential\":true},\"email\":{\"essential\":true}},\"id_token\":" +
                 "{\"auth_time\":{\"essential\":true}},\"access_token\":{\"xms_cc\":{\"values\":[\"CP1\",\"CP2\"]}}}";
 
-        String mergedClaims  = AuthenticationContext.mergeClaimsWithClientCapabilities(inputClaims, capabilities);
+        String mergedClaims = AuthenticationContext.mergeClaimsWithClientCapabilities(inputClaims, capabilities);
 
         JSONObject mergedClaimsJson = new JSONObject(mergedClaims);
 
@@ -3271,7 +3299,7 @@ public final class AuthenticationContextTest {
     public void testMergeClaimsWithNoClientCapabilities() throws JSONException {
 
         String inputClaims = "{\"userinfo\":{\"given_name\":{\"essential\":true},\"email\":{\"essential\":true}},\"id_token\":{\"auth_time\":{\"essential\":true}}}";
-        String mergedClaims  = AuthenticationContext.mergeClaimsWithClientCapabilities(inputClaims, null);
+        String mergedClaims = AuthenticationContext.mergeClaimsWithClientCapabilities(inputClaims, null);
 
         JSONObject mergedClaimsJson = new JSONObject(mergedClaims);
 
@@ -3287,7 +3315,7 @@ public final class AuthenticationContextTest {
         capabilities.add("CP2");
 
         String expectedClaims = "{\"access_token\":{\"xms_cc\":{\"values\":[\"CP1\",\"CP2\"]}}}";
-        String mergedClaims  = AuthenticationContext.mergeClaimsWithClientCapabilities(null, capabilities);
+        String mergedClaims = AuthenticationContext.mergeClaimsWithClientCapabilities(null, capabilities);
 
         JSONObject mergedClaimsJson = new JSONObject(mergedClaims);
 
@@ -3308,7 +3336,7 @@ public final class AuthenticationContextTest {
         String expectedJson = "{\"userinfo\":{\"given_name\":{\"essential\":true},\"email\":{\"essential\":true}}," +
                 "\"access_token\":{\"auth_time\":{\"essential\":true},\"xms_cc\":{\"values\":[\"CP1\",\"CP2\"]}}}";
 
-        String mergedClaims  = AuthenticationContext.mergeClaimsWithClientCapabilities(inputClaims, capabilities);
+        String mergedClaims = AuthenticationContext.mergeClaimsWithClientCapabilities(inputClaims, capabilities);
 
         JSONObject mergedClaimsJson = new JSONObject(mergedClaims);
 

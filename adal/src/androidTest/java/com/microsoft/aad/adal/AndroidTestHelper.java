@@ -44,6 +44,7 @@ import java.util.concurrent.TimeUnit;
 import static androidx.test.InstrumentationRegistry.getInstrumentation;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class AndroidTestHelper {
 
@@ -64,6 +65,7 @@ public class AndroidTestHelper {
         final Context context = getInstrumentation().getContext();
         PackageInfo info = context.getPackageManager()
                 .getPackageInfo(context.getPackageName(), PackageManager.GET_SIGNATURES);
+
         for (Signature signature : info.signatures) {
             mTestSignature = signature.toByteArray();
             MessageDigest md = MessageDigest.getInstance("SHA");
@@ -71,6 +73,7 @@ public class AndroidTestHelper {
             mTestTag = Base64.encodeToString(md.digest(), Base64.DEFAULT);
             break;
         }
+
         AuthenticationSettings.INSTANCE.setBrokerSignature(mTestTag);
         AuthenticationSettings.INSTANCE
                 .setBrokerPackageName(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
@@ -81,8 +84,9 @@ public class AndroidTestHelper {
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(null);
     }
 
-    public void assertThrowsException(final Class<? extends Exception> expected, String hasMessage,
-                                      final ThrowableRunnable testCode) {
+    void assertThrowsException(final Class<? extends Exception> expected,
+                               final String hasMessage,
+                               final ThrowableRunnable testCode) {
         try {
             testCode.run();
             Assert.fail("This is expecting an exception, but it was not thrown.");
@@ -98,8 +102,9 @@ public class AndroidTestHelper {
         }
     }
 
-    public void assertThrowsException(final Class<? extends Exception> expected, String hasMessage,
-                                      final Runnable testCode) {
+    void assertThrowsException(final Class<? extends Exception> expected,
+                               final String hasMessage,
+                               final Runnable testCode) {
         try {
             testCode.run();
             Assert.fail("This is expecting an exception, but it was not thrown.");
@@ -121,8 +126,9 @@ public class AndroidTestHelper {
      * @param testCode
      * @param runOnUI
      */
-    public void testAsyncNoExceptionUIOption(final CountDownLatch signal, final Runnable testCode, boolean runOnUI) {
-
+    void testAsyncNoExceptionUIOption(final CountDownLatch signal,
+                                      final Runnable testCode,
+                                      boolean runOnUI) {
         Logger.d(TAG, "thread:" + android.os.Process.myTid());
 
         try {
@@ -147,8 +153,9 @@ public class AndroidTestHelper {
         }
     }
 
-    public void testMultiThread(int activeThreads, final CountDownLatch signal, final Runnable runnable) {
-
+    public void testMultiThread(int activeThreads,
+                                final CountDownLatch signal,
+                                final Runnable runnable) {
         Logger.d(TAG, "thread:" + android.os.Process.myTid());
 
         Thread[] threads = new Thread[activeThreads];
@@ -162,7 +169,7 @@ public class AndroidTestHelper {
         try {
             signal.await(REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
-            assertFalse("Timeout " + getClass().getName(), true);
+            fail("Timeout " + getClass().getName());
         }
     }
 

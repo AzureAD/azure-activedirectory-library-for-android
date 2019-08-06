@@ -42,8 +42,6 @@ import androidx.test.rule.ServiceTestRule;
 import android.util.Base64;
 import android.util.Pair;
 
-
-
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 
 import junit.framework.Assert;

@@ -29,7 +29,6 @@ import androidx.test.runner.AndroidJUnit4;
 import com.microsoft.aad.adal.AuthenticationParameters.AuthenticationParamCallback;
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
-
 import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 
@@ -404,4 +403,4 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
         dummy.put(key, Arrays.asList(value, "s2", "s3"));
         return dummy;
     }
-};
+}
