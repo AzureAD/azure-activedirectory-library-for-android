@@ -33,7 +33,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import androidx.test.rule.ActivityTestRule;
 import androidx.test.runner.AndroidJUnit4;
-import android.test.RenamingDelegatingContext;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -640,24 +639,5 @@ public class AuthenticationActivityUnitTest {
         Constructor<?> constructorParams = c.getConstructor(mActivityRule.getActivity().getClass());
         constructorParams.setAccessible(true);
         return constructorParams.newInstance(mActivityRule.getActivity());
-    }
-
-    /**
-     * this is a class which delegates to the given context, but performs
-     * database and file operations with a renamed database/file name (prefixes
-     * default names with a given prefix).
-     */
-    class ActivityMockContext extends RenamingDelegatingContext {
-
-        private static final String MOCK_FILE_PREFIX = "test.";
-
-        /**
-         * @param context
-         * @param filePrefix
-         */
-        ActivityMockContext(Context context) {
-            super(context, MOCK_FILE_PREFIX);
-            makeExistingFilesAndDbsAccessible();
-        }
     }
 }

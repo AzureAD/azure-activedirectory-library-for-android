@@ -26,8 +26,8 @@ import android.content.Context;
 import android.os.Build;
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.SdkSuppress;
+import androidx.test.filters.SmallTest;
 import androidx.test.runner.AndroidJUnit4;
-import android.test.suitebuilder.annotation.SmallTest;
 
 import com.microsoft.aad.adal.AuthenticationRequest.UserIdentifierType;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;

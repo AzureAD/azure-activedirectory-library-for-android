@@ -113,6 +113,8 @@ android {
             outputFileName = "${archivesBaseName}-${version}.aar"
         }
     }
+
+    useLibrary 'android.test.mock'
 }
 
 dependencies {

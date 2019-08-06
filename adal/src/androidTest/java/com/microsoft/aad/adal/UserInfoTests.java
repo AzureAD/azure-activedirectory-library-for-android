@@ -24,9 +24,9 @@
 package com.microsoft.aad.adal;
 
 import android.net.Uri;
-import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Base64;
 
+import androidx.test.filters.SmallTest;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 

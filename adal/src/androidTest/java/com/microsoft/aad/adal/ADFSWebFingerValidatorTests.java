@@ -23,7 +23,8 @@
 
 package com.microsoft.aad.adal;
 
-import android.test.suitebuilder.annotation.SmallTest;
+
+import androidx.test.filters.SmallTest;
 
 import junit.framework.TestCase;
 

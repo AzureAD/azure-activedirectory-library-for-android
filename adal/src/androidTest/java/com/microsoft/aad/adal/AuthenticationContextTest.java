@@ -34,8 +34,8 @@ import android.content.pm.Signature;
 import android.os.Build;
 import android.os.Bundle;
 import androidx.test.InstrumentationRegistry;
+import androidx.test.annotation.UiThreadTest;
 import androidx.test.runner.AndroidJUnit4;
-import android.test.UiThreadTest;
 import android.util.Base64;
 
 import com.google.gson.Gson;

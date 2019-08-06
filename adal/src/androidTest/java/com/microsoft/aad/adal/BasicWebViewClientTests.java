@@ -27,8 +27,8 @@ import android.content.Intent;
 import android.net.http.SslError;
 import androidx.annotation.UiThread;
 import androidx.test.InstrumentationRegistry;
+import androidx.test.annotation.UiThreadTest;
 import androidx.test.runner.AndroidJUnit4;
-import android.test.UiThreadTest;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
 
