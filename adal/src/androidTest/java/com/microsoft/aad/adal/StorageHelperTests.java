@@ -27,7 +27,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import androidx.test.filters.Suppress;
-import androidx.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import android.util.Base64;
 
 import org.junit.Before;

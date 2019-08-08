@@ -35,7 +35,7 @@ import android.os.Build;
 import android.os.Bundle;
 import androidx.test.InstrumentationRegistry;
 import androidx.test.annotation.UiThreadTest;
-import androidx.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import android.util.Base64;
 
 import com.google.gson.Gson;
