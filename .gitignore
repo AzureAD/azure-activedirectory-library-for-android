@@ -10,6 +10,7 @@ adal
 broker
 common
 authenticator
+azuresample
 
 # Gradle files
 .gradle/
