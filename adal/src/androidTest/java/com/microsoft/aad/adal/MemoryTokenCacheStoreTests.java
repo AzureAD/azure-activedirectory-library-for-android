@@ -23,7 +23,7 @@
 
 package com.microsoft.aad.adal;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
@@ -40,7 +40,6 @@ import java.util.concurrent.CountDownLatch;
 
 import javax.crypto.NoSuchPaddingException;
 
-import static android.support.test.InstrumentationRegistry.getInstrumentation;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
@@ -153,10 +152,20 @@ public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
     public void testMemoryCacheMultipleContext() throws NoSuchAlgorithmException,
             NoSuchPaddingException, AuthenticationException {
         ITokenCacheStore tokenCacheA = setupItems();
-        AuthenticationContext contextA = new AuthenticationContext(getInstrumentation()
-                .getContext(), VALID_AUTHORITY, false, tokenCacheA);
-        AuthenticationContext contextB = new AuthenticationContext(getInstrumentation()
-                .getContext(), VALID_AUTHORITY, false, tokenCacheA);
+
+        AuthenticationContext contextA = new AuthenticationContext(
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext(),
+                VALID_AUTHORITY,
+                false,
+                tokenCacheA
+        );
+
+        AuthenticationContext contextB = new AuthenticationContext(
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext(),
+                VALID_AUTHORITY,
+                false,
+                tokenCacheA
+        );
 
         // Verify the cache
         TokenCacheItem item = contextA.getCache().getItem(CacheKey.createCacheKey(getTestItem()));

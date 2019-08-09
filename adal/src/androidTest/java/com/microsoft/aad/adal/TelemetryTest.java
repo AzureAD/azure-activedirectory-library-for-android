@@ -28,9 +28,9 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.pm.Signature;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
 import android.util.Base64;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
@@ -59,7 +59,7 @@ public class TelemetryTest {
     @Before
     public void setUp() throws Exception {
         Logger.d(TAG, "setup key at settings");
-        System.setProperty("dexmaker.dexcache", InstrumentationRegistry.getContext().getCacheDir().getPath());
+        System.setProperty("dexmaker.dexcache", androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext().getCacheDir().getPath());
     }
 
     @Test
@@ -124,7 +124,7 @@ public class TelemetryTest {
 
     private FileMockContext createMockContext()
             throws PackageManager.NameNotFoundException {
-        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final FileMockContext mockContext = new FileMockContext(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext());
 
         final PackageManager mockedPackageManager = getMockedPackageManager();
         mockContext.setMockedPackageManager(mockedPackageManager);

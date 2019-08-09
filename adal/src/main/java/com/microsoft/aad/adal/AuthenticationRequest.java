@@ -23,7 +23,7 @@
 
 package com.microsoft.aad.adal;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 

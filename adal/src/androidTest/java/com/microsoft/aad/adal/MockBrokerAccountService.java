@@ -109,5 +109,10 @@ public class MockBrokerAccountService extends Service {
         public void removeAccounts() throws RemoteException {
             return;
         }
+
+        @Override
+        public Bundle getInactiveBrokerKey(Bundle bundle) throws RemoteException {
+            return null;
+        }
     };
 }

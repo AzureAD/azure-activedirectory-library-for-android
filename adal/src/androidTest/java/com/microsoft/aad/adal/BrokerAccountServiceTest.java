@@ -37,10 +37,11 @@ import android.content.pm.ResolveInfo;
 import android.content.pm.Signature;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.rule.ServiceTestRule;
 import android.util.Base64;
 import android.util.Pair;
+
+import androidx.test.core.app.ApplicationProvider;
+import androidx.test.rule.ServiceTestRule;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 
@@ -83,8 +84,23 @@ public final class BrokerAccountServiceTest {
 
     @Before
     public void setUp() throws Exception {
-        System.setProperty("dexmaker.dexcache", InstrumentationRegistry.getContext().getCacheDir().getPath());
-        mIBinder = mServiceTestRule.bindService(new Intent(InstrumentationRegistry.getTargetContext(), MockBrokerAccountService.class));
+        System.setProperty(
+                "dexmaker.dexcache",
+                androidx.test.platform.app.InstrumentationRegistry
+                        .getInstrumentation()
+                        .getTargetContext()
+                        .getCacheDir()
+                        .getPath()
+        );
+
+        System.setProperty(
+                "org.mockito.android.target",
+                ApplicationProvider
+                        .getApplicationContext()
+                        .getCacheDir()
+                        .getPath()
+        );
+        mIBinder = mServiceTestRule.bindService(new Intent(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getTargetContext(), MockBrokerAccountService.class));
     }
 
     @After
@@ -290,8 +306,10 @@ public final class BrokerAccountServiceTest {
             throws PackageManager.NameNotFoundException, NoSuchAlgorithmException {
         final Context context = getMockContext();
         final PackageManager mockedPackageManager = context.getPackageManager();
-
-        final SignatureData signatureData = getSignature(InstrumentationRegistry.getContext(), InstrumentationRegistry.getContext().getPackageName());
+        final SignatureData signatureData = getSignature(
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext(),
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext().getPackageName()
+        );
         mockPackageManagerBrokerSignatureAndPermission(mockedPackageManager, signatureData.getSignature());
 
         AuthenticationSettings.INSTANCE.setBrokerSignature(signatureData.getSignatureHash());
@@ -311,7 +329,10 @@ public final class BrokerAccountServiceTest {
         final Context context = getMockContext();
         final PackageManager mockedPackageManager = context.getPackageManager();
 
-        final SignatureData signatureData = getSignature(InstrumentationRegistry.getContext(), InstrumentationRegistry.getContext().getPackageName());
+        final SignatureData signatureData = getSignature(
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext(),
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext().getPackageName()
+        );
         mockPackageManagerBrokerSignatureAndPermission(mockedPackageManager, signatureData.getSignature());
 
         AuthenticationSettings.INSTANCE.setUseBroker(true);
@@ -332,7 +353,7 @@ public final class BrokerAccountServiceTest {
     }
 
     private Context getMockContext() {
-        final BrokerAccountServiceContext mockContext = new BrokerAccountServiceContext(InstrumentationRegistry.getContext());
+        final BrokerAccountServiceContext mockContext = new BrokerAccountServiceContext(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext());
 
         final PackageManager mockedPackageManager = Mockito.mock(PackageManager.class);
         Mockito.when(mockedPackageManager.queryIntentServices(Mockito.any(Intent.class), Mockito.anyInt())).thenReturn(
@@ -341,7 +362,7 @@ public final class BrokerAccountServiceTest {
 
         final AccountManager mockedAccountManager = Mockito.mock(AccountManager.class);
         final AuthenticatorDescription authenticatorDescription = new AuthenticatorDescription(
-                AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE, InstrumentationRegistry.getContext().getPackageName(), 0, 0, 0, 0);
+                AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE, androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext().getPackageName(), 0, 0, 0, 0);
         Mockito.when(mockedAccountManager.getAuthenticatorTypes()).thenReturn(new AuthenticatorDescription[]{authenticatorDescription});
         mockContext.setMockedAccountManager(mockedAccountManager);
         return mockContext;
