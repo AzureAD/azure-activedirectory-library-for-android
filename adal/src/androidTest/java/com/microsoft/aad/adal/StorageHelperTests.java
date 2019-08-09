@@ -26,9 +26,11 @@ package com.microsoft.aad.adal;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
-import androidx.test.filters.Suppress;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
 import android.util.Base64;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.filters.Suppress;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -49,7 +51,6 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import static androidx.test.InstrumentationRegistry.getInstrumentation;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -80,8 +81,7 @@ public class StorageHelperTests extends AndroidTestHelper {
 
     @Test
     public void testEncryptDecryptNullEmpty() {
-
-        final Context context = getInstrumentation().getTargetContext();
+        final Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         final StorageHelper storageHelper = new StorageHelper(context);
         assertThrowsException(
                 IllegalArgumentException.class,
@@ -126,7 +126,7 @@ public class StorageHelperTests extends AndroidTestHelper {
     @Test
     public void testDecryptInvalidInput() throws
             IOException, GeneralSecurityException {
-        final Context context = getInstrumentation().getTargetContext();
+        final Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         final StorageHelper storageHelper = new StorageHelper(context);
         assertThrowsException(
                 IllegalArgumentException.class,
@@ -179,7 +179,7 @@ public class StorageHelperTests extends AndroidTestHelper {
     }
 
     private void encryptDecrypt(String clearText) throws GeneralSecurityException, IOException, AuthenticationException {
-        Context context = getInstrumentation().getTargetContext();
+        Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         final StorageHelper storageHelper = new StorageHelper(context);
         String encrypted = storageHelper.encrypt(clearText);
         assertNotNull("encrypted string is not null", encrypted);
@@ -191,7 +191,7 @@ public class StorageHelperTests extends AndroidTestHelper {
     @Test
     public void testEncryptSameText() throws GeneralSecurityException, IOException, AuthenticationException {
         // access code
-        Context context = getInstrumentation().getTargetContext();
+        Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         final StorageHelper storageHelper = new StorageHelper(context);
         String clearText = "AAAAAAAA2pILN0mn3wlYIlWk7lqOZ5qjRWXHRnqDdzsq0s4aaUVgnMQo6oXfEUYL4fAxqVQ6dXh9sMAieFDjXVhTkp3mnL2gHSnAHJFwmj9mnlgaU7kVcoujXRA3Je23PEtoqEQMQPaurakVcEl7jOsjUGWD7JdaAHsYTujd1KHoTUdBJQQ-jz4t6Cish25zn9BPocJzN56rLUqgX3dnoA1z-hY4FS_EIn_Xdvqnil29t4etVHLDZD5RJbc5R3p5MaUKqPBF8sAQvJcgW-f9ebPHzO8L87RrsVNu4keagKmOnP139KSuORBhNaD57nmEvecJWtWTIAA&redirect_uri=https%3a%2f%2fworkaad.com%2fdemoclient1&client_id=dba19db4-53de-441d-9c63-da8d6f229e5a";
         Logger.d(TAG, "Starting testEncryptSameText");
@@ -217,7 +217,7 @@ public class StorageHelperTests extends AndroidTestHelper {
 
     @Test
     public void testTampering() throws GeneralSecurityException, IOException, AuthenticationException {
-        final Context context = getInstrumentation().getTargetContext();
+        final Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         final StorageHelper storageHelper = new StorageHelper(context);
         String clearText = "AAAAAAAA2pILN0mn3wlYIlWk7lqOZ5qjRWXH";
         String encrypted = storageHelper.encrypt(clearText);
@@ -246,7 +246,7 @@ public class StorageHelperTests extends AndroidTestHelper {
     @Test
     public void testVersion() throws GeneralSecurityException, IOException {
 
-        final Context context = getInstrumentation().getTargetContext();
+        final Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         final StorageHelper storageHelper = new StorageHelper(context);
         String value = "anvaERSgvhdfgkhrebgagagfdgadfgaadfgadfgadfg435gerhawdeADFGb #$%#gf3$%1234";
         String encrypted = storageHelper.encrypt(value);
@@ -278,7 +278,7 @@ public class StorageHelperTests extends AndroidTestHelper {
         if (Build.VERSION.SDK_INT < MIN_SDK_VERSION) {
             return;
         }
-        final Context context = getInstrumentation().getTargetContext();
+        final Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         final StorageHelper storageHelper = new StorageHelper(context);
         SecretKey kp = storageHelper.loadSecretKeyForEncryption();
 
@@ -296,7 +296,7 @@ public class StorageHelperTests extends AndroidTestHelper {
         if (Build.VERSION.SDK_INT < MIN_SDK_VERSION) {
             return;
         }
-        final Context context = getInstrumentation().getTargetContext();
+        final Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         final StorageHelper storageHelper = new StorageHelper(context);
         SecretKey kp = storageHelper.loadSecretKeyForEncryption(StorageHelper.VERSION_ANDROID_KEY_STORE);
 
@@ -314,7 +314,7 @@ public class StorageHelperTests extends AndroidTestHelper {
         if (Build.VERSION.SDK_INT < MIN_SDK_VERSION) {
             return;
         }
-        final Context context = getInstrumentation().getTargetContext();
+        final Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         final StorageHelper storageHelper = new StorageHelper(context);
         setSecretKeyData();
         String expectedDecrypted = "SomeValue1234";
@@ -331,7 +331,7 @@ public class StorageHelperTests extends AndroidTestHelper {
             return;
         }
 
-        final Context context = getInstrumentation().getTargetContext();
+        final Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         final StorageHelper storageHelper = new StorageHelper(context);
 
         File keyFile = new File(context.getDir(context.getPackageName(),

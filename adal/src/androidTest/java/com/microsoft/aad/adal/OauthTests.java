@@ -23,9 +23,10 @@
 
 package com.microsoft.aad.adal;
 
-import androidx.test.InstrumentationRegistry;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
 import android.util.Base64;
+
+import androidx.test.core.app.ApplicationProvider;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
@@ -86,7 +87,22 @@ public class OauthTests {
 
     @Before
     public void setUp() throws Exception {
-        System.setProperty("dexmaker.dexcache", InstrumentationRegistry.getContext().getCacheDir().getPath());
+        System.setProperty(
+                "dexmaker.dexcache",
+                androidx.test.platform.app.InstrumentationRegistry
+                        .getInstrumentation()
+                        .getTargetContext()
+                        .getCacheDir()
+                        .getPath()
+        );
+
+        System.setProperty(
+                "org.mockito.android.target",
+                ApplicationProvider
+                        .getApplicationContext()
+                        .getCacheDir()
+                        .getPath()
+        );
     }
 
     @After

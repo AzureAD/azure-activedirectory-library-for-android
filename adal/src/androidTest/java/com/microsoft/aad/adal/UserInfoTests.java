@@ -28,8 +28,6 @@ import android.util.Base64;
 
 import androidx.test.filters.SmallTest;
 
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-
 import junit.framework.TestCase;
 
 import java.io.UnsupportedEncodingException;

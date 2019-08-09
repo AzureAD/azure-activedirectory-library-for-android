@@ -27,6 +27,8 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.res.Configuration;
 import android.os.Build;
+
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
@@ -49,7 +51,22 @@ public class ADALErrorTest {
     @Before
     @SuppressLint("PackageManagerGetSignatures")
     public void setUp() throws Exception {
-        System.setProperty("dexmaker.dexcache", getInstrumentation().getTargetContext().getCacheDir().getPath());
+        System.setProperty(
+                "dexmaker.dexcache",
+                androidx.test.platform.app.InstrumentationRegistry
+                        .getInstrumentation()
+                        .getTargetContext()
+                        .getCacheDir()
+                        .getPath()
+        );
+
+        System.setProperty(
+                "org.mockito.android.target",
+                ApplicationProvider
+                        .getApplicationContext()
+                        .getCacheDir()
+                        .getPath()
+        );
 
         AuthenticationSettings.INSTANCE
                 .setBrokerPackageName(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
