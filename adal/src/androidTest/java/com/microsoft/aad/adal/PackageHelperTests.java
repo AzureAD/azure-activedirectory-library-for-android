@@ -30,9 +30,9 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.Signature;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
 import android.util.Base64;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 
@@ -74,7 +74,7 @@ public class PackageHelperTests {
     @SuppressLint("PackageManagerGetSignatures")
     @Before
     public void setUp() throws Exception {
-        mContext = InstrumentationRegistry.getContext();
+        mContext = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext();
         System.setProperty("dexmaker.dexcache", mContext.getCacheDir().getPath());
 
         if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {

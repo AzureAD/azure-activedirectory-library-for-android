@@ -24,8 +24,8 @@
 package com.microsoft.aad.adal;
 
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
@@ -41,7 +41,6 @@ import java.io.ObjectOutputStream;
 import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
 
-import static android.support.test.InstrumentationRegistry.getInstrumentation;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -69,7 +68,7 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
     @Before
     public void setUp() throws Exception {
         super.setUp();
-        mTargetContex = InstrumentationRegistry.getTargetContext();
+        mTargetContex = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getTargetContext();
         AuthenticationSettings.INSTANCE.setBrokerPackageName("invalid");
         AuthenticationSettings.INSTANCE.setBrokerSignature("signature");
     }
@@ -290,10 +289,20 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         String file = FILE_DEFAULT_NAME + "testGetItem";
         setupCache(file);
         ITokenCacheStore tokenCacheA = new FileTokenCacheStore(mTargetContex, file);
-        AuthenticationContext contextA = new AuthenticationContext(getInstrumentation()
-                .getContext(), VALID_AUTHORITY, false, tokenCacheA);
-        AuthenticationContext contextB = new AuthenticationContext(getInstrumentation()
-                .getContext(), VALID_AUTHORITY, false, tokenCacheA);
+
+        AuthenticationContext contextA = new AuthenticationContext(
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext(),
+                VALID_AUTHORITY,
+                false,
+                tokenCacheA
+        );
+
+        AuthenticationContext contextB = new AuthenticationContext(
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext(),
+                VALID_AUTHORITY,
+                false,
+                tokenCacheA
+        );
 
         // Verify the cache
         TokenCacheItem item = contextA.getCache().getItem(CacheKey.createCacheKey(mCacheItem));
