@@ -23,8 +23,9 @@
 package com.microsoft.aad.adal;
 
 import android.content.Context;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
 import android.util.Base64;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import junit.framework.Assert;
 
@@ -83,7 +84,7 @@ public class JwsBuilderTests extends AndroidTestHelper {
             InvocationTargetException, NoSuchMethodException, UnrecoverableKeyException,
             KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException,
             InvalidKeyException, SignatureException {
-        final KeyStore keystore = loadTestCertificate(getInstrumentation().getContext());
+        final KeyStore keystore = loadTestCertificate(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext());
         final Key key = keystore.getKey(TEST_CERT_ALIAS, PKCS12_PASS.toCharArray());
         final RSAPrivateKey privKey = (RSAPrivateKey) key;
         final Certificate cert = keystore.getCertificate(TEST_CERT_ALIAS);

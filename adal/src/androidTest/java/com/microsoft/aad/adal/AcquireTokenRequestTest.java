@@ -39,9 +39,11 @@ import android.content.pm.Signature;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import androidx.test.InstrumentationRegistry;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
 import android.util.Base64;
+
+import androidx.test.InstrumentationRegistry;
+import androidx.test.core.app.ApplicationProvider;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
@@ -119,7 +121,19 @@ public final class AcquireTokenRequestTest {
         Logger.d(TAG, "setup key at settings");
         System.setProperty(
                 "dexmaker.dexcache",
-                InstrumentationRegistry.getContext().getCacheDir().getPath()
+                androidx.test.platform.app.InstrumentationRegistry
+                        .getInstrumentation()
+                        .getTargetContext()
+                        .getCacheDir()
+                        .getPath()
+        );
+
+        System.setProperty(
+                "org.mockito.android.target",
+                ApplicationProvider
+                        .getApplicationContext()
+                        .getCacheDir()
+                        .getPath()
         );
 
         if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {

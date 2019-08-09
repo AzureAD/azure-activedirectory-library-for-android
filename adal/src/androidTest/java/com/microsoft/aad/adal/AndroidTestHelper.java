@@ -28,8 +28,10 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
-import androidx.test.InstrumentationRegistry;
 import android.util.Base64;
+
+import androidx.test.InstrumentationRegistry;
+import androidx.test.core.app.ApplicationProvider;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
@@ -41,7 +43,6 @@ import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static androidx.test.InstrumentationRegistry.getInstrumentation;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -58,11 +59,28 @@ public class AndroidTestHelper {
 
     @SuppressLint("PackageManagerGetSignatures")
     public void setUp() throws Exception {
-        getInstrumentation().getTargetContext().getCacheDir();
-        System.setProperty("dexmaker.dexcache", getInstrumentation().getTargetContext().getCacheDir().getPath());
+        System.setProperty(
+                "dexmaker.dexcache",
+                androidx.test.platform.app.InstrumentationRegistry
+                        .getInstrumentation()
+                        .getTargetContext()
+                        .getCacheDir()
+                        .getPath()
+        );
+
+        System.setProperty(
+                "org.mockito.android.target",
+                ApplicationProvider
+                        .getApplicationContext()
+                        .getCacheDir()
+                        .getPath()
+        );
 
         // ADAL is set to this signature for now
-        final Context context = getInstrumentation().getContext();
+        final Context context = androidx.test.platform.app.InstrumentationRegistry
+                .getInstrumentation()
+                .getContext();
+
         PackageInfo info = context.getPackageManager()
                 .getPackageInfo(context.getPackageName(), PackageManager.GET_SIGNATURES);
 

@@ -77,7 +77,7 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
     @Before
     public void setUp() throws Exception {
         super.setUp();
-        mCtx = InstrumentationRegistry.getContext();
+        mCtx = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext();
         AuthenticationSettings.INSTANCE.setSharedPrefPackageName(null);
     }
 

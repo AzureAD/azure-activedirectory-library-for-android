@@ -25,12 +25,12 @@ package com.microsoft.aad.adal;
 import android.content.Context;
 import android.content.Intent;
 import android.net.http.SslError;
-import androidx.annotation.UiThread;
-import androidx.test.InstrumentationRegistry;
-import androidx.test.annotation.UiThreadTest;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
+
+import androidx.annotation.UiThread;
+import androidx.test.annotation.UiThreadTest;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 
@@ -139,7 +139,7 @@ public class BasicWebViewClientTests {
     public void testUrlOverrideHandlesPKeyAuthRedirect() {
         final BasicWebViewClient basicWebViewClient =
                 setUpWebViewClient(
-                        InstrumentationRegistry.getContext(),
+                        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext(),
                         "",
                         new AuthenticationRequest(
                                 "NA", // authority
@@ -159,7 +159,7 @@ public class BasicWebViewClientTests {
     public void testUrlOverrideHandlesCancellation() {
         final BasicWebViewClient basicWebViewClient =
                 setUpWebViewClient(
-                        InstrumentationRegistry.getContext(),
+                        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext(),
                         TEST_CANCELLATION_URL,
                         new AuthenticationRequest(
                                 "NA", // authority
@@ -179,7 +179,7 @@ public class BasicWebViewClientTests {
     public void testUrlOverrideHandlesExternalSiteRequests() throws InterruptedException {
         final CountDownLatch countDownLatch = new CountDownLatch(2);
         final BasicWebViewClient dummyClient = new BasicWebViewClient(
-                InstrumentationRegistry.getContext(),
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext(),
                 "www.redirect.com",
                 new AuthenticationRequest(
                         "NA",
@@ -254,7 +254,7 @@ public class BasicWebViewClientTests {
     public void testUrlOverrideHandlesInstallRequests() throws InterruptedException {
         final CountDownLatch countDownLatch = new CountDownLatch(2);
         final BasicWebViewClient dummyClient = new BasicWebViewClient(
-                InstrumentationRegistry.getContext(),
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext(),
                 TEST_INSTALL_REQUEST_URL,
                 new AuthenticationRequest(
                         "NA",
@@ -329,7 +329,7 @@ public class BasicWebViewClientTests {
         final String errMsg = "Bad Request";
         final CountDownLatch latch = new CountDownLatch(1);
         final BasicWebViewClient dummyClient = new BasicWebViewClient(
-                InstrumentationRegistry.getContext(),
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext(),
                 TEST_INSTALL_REQUEST_URL,
                 new AuthenticationRequest(
                         "NA",
@@ -405,12 +405,12 @@ public class BasicWebViewClientTests {
 
     @Test
     public void testSslErrorsSendsIntentWithErrorData() throws InterruptedException, UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        KeyStore keystore = JwsBuilderTests.loadTestCertificate(InstrumentationRegistry.getContext());
+        KeyStore keystore = JwsBuilderTests.loadTestCertificate(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext());
         Certificate cert = keystore.getCertificate(JwsBuilderTests.TEST_CERT_ALIAS);
         final SslError sslError = new SslError(SslError.SSL_DATE_INVALID, (X509Certificate) cert);
         final CountDownLatch latch = new CountDownLatch(1);
         final BasicWebViewClient dummyClient = new BasicWebViewClient(
-                InstrumentationRegistry.getContext(),
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext(),
                 TEST_INSTALL_REQUEST_URL,
                 new AuthenticationRequest(
                         "NA",

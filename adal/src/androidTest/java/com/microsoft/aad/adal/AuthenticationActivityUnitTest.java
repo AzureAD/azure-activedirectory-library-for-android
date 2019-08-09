@@ -30,10 +30,13 @@ import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import androidx.test.rule.ActivityTestRule;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+
+import androidx.test.core.app.ApplicationProvider;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.rule.ActivityTestRule;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
@@ -99,10 +102,28 @@ public class AuthenticationActivityUnitTest {
 
     @Before
     public void setUp() throws Exception {
-        System.setProperty("dexmaker.dexcache", getInstrumentation().getTargetContext()
-                .getCacheDir().getPath());
-        mIntentToStartActivity = new Intent(getInstrumentation().getTargetContext(),
-                AuthenticationActivity.class);
+        System.setProperty(
+                "dexmaker.dexcache",
+                androidx.test.platform.app.InstrumentationRegistry
+                        .getInstrumentation()
+                        .getTargetContext()
+                        .getCacheDir()
+                        .getPath()
+        );
+
+        System.setProperty(
+                "org.mockito.android.target",
+                ApplicationProvider
+                        .getApplicationContext()
+                        .getCacheDir()
+                        .getPath()
+        );
+
+        mIntentToStartActivity = new Intent(
+                InstrumentationRegistry.getInstrumentation().getTargetContext(),
+                AuthenticationActivity.class
+        );
+
         Object authorizationRequest = getTestRequest();
         mIntentToStartActivity.putExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE,
                 (Serializable) authorizationRequest);
