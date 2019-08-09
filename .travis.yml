@@ -50,4 +50,4 @@ before_script:
 
 script:
   - cd $PWD
-  - ./gradlew clean adal:assembleLocal adal:connectedLocalDebugAndroidTest -PdisablePreDex
+  - travis_wait ./gradlew clean adal:assembleLocal adal:connectedLocalDebugAndroidTest -PdisablePreDex
