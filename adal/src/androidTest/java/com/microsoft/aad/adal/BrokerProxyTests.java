@@ -46,7 +46,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Base64;
 
-import androidx.test.InstrumentationRegistry;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
