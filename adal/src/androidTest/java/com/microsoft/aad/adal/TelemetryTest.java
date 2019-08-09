@@ -159,10 +159,7 @@ class AggregatedTelemetryTestClass implements IDispatcher {
     }
 
     boolean checkOauthError() {
-        if (mEventData.containsKey(EventStrings.OAUTH_ERROR_CODE)) {
-            return true;
-        }
-        return false;
+        return mEventData.containsKey(EventStrings.OAUTH_ERROR_CODE);
     }
 
     boolean checkNoPIIPresent(final String piiKey, final String piiValue) {

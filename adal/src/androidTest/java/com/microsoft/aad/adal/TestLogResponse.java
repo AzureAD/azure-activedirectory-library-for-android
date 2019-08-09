@@ -26,7 +26,6 @@ package com.microsoft.aad.adal;
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
 
-
 import java.util.concurrent.CountDownLatch;
 
 public class TestLogResponse {

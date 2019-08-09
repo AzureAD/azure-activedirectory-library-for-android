@@ -30,6 +30,7 @@ import junit.framework.Assert;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.UUID;
 
@@ -69,11 +70,7 @@ class MockWebRequestHandler implements IWebRequestHandler {
         mRequestUrl = url;
         mRequestHeaders = headers;
         if (content != null) {
-            try {
-                mRequestContent = new String(content, "UTF-8");
-            } catch (final IOException e) {
-                Assert.fail("IOException");
-            }
+            mRequestContent = new String(content, StandardCharsets.UTF_8);
         }
 
         if (mReturnException != null) {
@@ -109,7 +106,7 @@ class MockWebRequestHandler implements IWebRequestHandler {
     }
 
     @Override
-    public void setClientVersion(String clientVersion) { 
+    public void setClientVersion(String clientVersion) {
         mClientVersion = clientVersion;
     }
 

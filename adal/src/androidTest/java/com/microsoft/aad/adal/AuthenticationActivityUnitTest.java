@@ -37,8 +37,6 @@ import android.test.RenamingDelegatingContext;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-
-
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 
@@ -54,6 +52,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -70,7 +69,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -117,7 +115,7 @@ public class AuthenticationActivityUnitTest {
             final int iterations = 100;
             final int keySize = 256;
             SecretKey tempkey = keyFactory.generateSecret(new PBEKeySpec("test".toCharArray(),
-                    "abcdedfdfd".getBytes("UTF-8"), iterations, keySize));
+                    "abcdedfdfd".getBytes(StandardCharsets.UTF_8), iterations, keySize));
             SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
             AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
         }
@@ -146,7 +144,7 @@ public class AuthenticationActivityUnitTest {
     public void testLayout() throws Throwable {
         mActivityRule.launchActivity(mIntentToStartActivity);
         // Webview
-        final WebView webview = (WebView) mActivityRule.getActivity().findViewById(R.id.webView1);
+        final WebView webview = mActivityRule.getActivity().findViewById(R.id.webView1);
         assertNotNull(webview);
 
         mActivityRule.runOnUiThread(new Runnable() {

@@ -53,6 +53,7 @@ import android.webkit.WebView;
 import com.google.gson.Gson;
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.JWSBuilder;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
 import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;
@@ -114,7 +115,7 @@ public class AuthenticationActivity extends Activity {
 
     private final IWebRequestHandler mWebRequestHandler = new WebRequestHandler();
 
-    private final IJWSBuilder mJWSBuilder = new JWSBuilder();
+    private final JWSBuilder mJWSBuilder = new JWSBuilder();
     private boolean mPkeyAuthRedirect = false;
     private StorageHelper mStorageHelper;
 

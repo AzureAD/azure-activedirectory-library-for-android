@@ -20,7 +20,6 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-
 package com.microsoft.aad.adal;
 
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
@@ -32,6 +31,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -49,7 +49,7 @@ public final class APIEventTest {
         event.setIdToken(AuthenticationContextTest.TEST_IDTOKEN);
         event.setLoginHint("pii@pii.com");
 
-        final Map<String, String> dispatchMap = new HashMap();
+        final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
 
         assertFalse(dispatchMap.isEmpty());
@@ -63,7 +63,7 @@ public final class APIEventTest {
         assertTrue(dispatchMap.containsKey(EventStrings.USER_ID));
 
         final String email = dispatchMap.get(EventStrings.LOGIN_HINT);
-        assertTrue(email.equals(StringExtensions.createHash("pii@pii.com")));
+        assertEquals(email, StringExtensions.createHash("pii@pii.com"));
         Telemetry.setAllowPii(false);
     }
 }

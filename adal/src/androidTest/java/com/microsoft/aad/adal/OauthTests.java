@@ -28,14 +28,14 @@ import android.support.test.runner.AndroidJUnit4;
 import android.util.Base64;
 
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
-
-
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants.AAD;
+import com.microsoft.identity.common.adal.internal.JWSBuilder;
 import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
 import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;
+import com.microsoft.identity.common.exception.ClientException;
 
 import org.json.JSONException;
 import org.junit.After;
@@ -49,6 +49,7 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -113,13 +114,13 @@ public class OauthTests {
         // check that Base64 UrlSafe flags behaves as expected
         String expected = "Ma~0";
         assertEquals("BAse64 url safe encode", expected,
-                new String(Base64.decode("TWF-MA", Base64.URL_SAFE), "UTF-8"));
+                new String(Base64.decode("TWF-MA", Base64.URL_SAFE), StandardCharsets.UTF_8));
         assertEquals("BAse64 url safe encode", expected,
-                new String(Base64.decode("TWF-MA", Base64.URL_SAFE), "UTF-8"));
+                new String(Base64.decode("TWF-MA", Base64.URL_SAFE), StandardCharsets.UTF_8));
         assertEquals("BAse64 url safe encode", expected,
-                new String(Base64.decode("TWF+MA", Base64.DEFAULT), "UTF-8"));
+                new String(Base64.decode("TWF+MA", Base64.DEFAULT), StandardCharsets.UTF_8));
         assertEquals("BAse64 url safe encode", expected,
-                new String(Base64.decode("TWF+MA==", Base64.DEFAULT), "UTF-8"));
+                new String(Base64.decode("TWF+MA==", Base64.DEFAULT), StandardCharsets.UTF_8));
     }
 
     @Test
@@ -275,7 +276,7 @@ public class OauthTests {
 
         request.setAppName("test.mock.");
         request.setAppVersion("test");
-        final Oauth2  oAuthWithAppInfo = createOAuthInstance(request);
+        final Oauth2 oAuthWithAppInfo = createOAuthInstance(request);
         assertTrue("App Info", oAuthWithAppInfo.getCodeRequestUrl().contains("&x-app-name=test.mock.&x-app-ver=test"));
     }
 
@@ -497,7 +498,7 @@ public class OauthTests {
 
     @Test
     public void testRefreshTokenWebResponseDeviceChallengePositive()
-            throws IOException, AuthenticationException, NoSuchAlgorithmException {
+            throws IOException, ClientException, NoSuchAlgorithmException {
         final IWebRequestHandler mockWebRequest = mock(IWebRequestHandler.class);
         final KeyPair keyPair = getKeyPair();
         final RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
@@ -512,7 +513,7 @@ public class OauthTests {
         MockDeviceCertProxy.setThumbPrint(thumbPrint);
         MockDeviceCertProxy.setPrivateKey(privateKey);
         MockDeviceCertProxy.setPublicKey(publicKey);
-        final IJWSBuilder mockJwsBuilder = mock(IJWSBuilder.class);
+        final JWSBuilder mockJwsBuilder = mock(JWSBuilder.class);
         when(
                 mockJwsBuilder.generateSignedJWT(eq(nonce), any(String.class), eq(privateKey),
                         eq(publicKey), eq(mockCert))).thenReturn("signedJwtHere");
@@ -796,7 +797,7 @@ public class OauthTests {
 
     private MockAuthenticationCallback refreshToken(final AuthenticationRequest request,
                                                     final IWebRequestHandler webRequest,
-                                                    final IJWSBuilder jwsBuilder,
+                                                    final JWSBuilder jwsBuilder,
                                                     final String refreshToken) {
         final CountDownLatch signal = new CountDownLatch(1);
         final MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
@@ -841,7 +842,7 @@ public class OauthTests {
 
     private static Oauth2 createOAuthInstance(final AuthenticationRequest authenticationRequest,
                                               final IWebRequestHandler mockWebRequest,
-                                              final IJWSBuilder jwsBuilder) {
+                                              final JWSBuilder jwsBuilder) {
         if (mockWebRequest == null) {
             return createOAuthInstance(authenticationRequest);
         }

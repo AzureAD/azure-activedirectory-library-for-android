@@ -38,6 +38,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Calendar;
@@ -75,12 +76,12 @@ final class Util {
         final String claims = String.format(sIdTokenClaims, tid, oid, upn, uniqueName, sub, familyName,
                 givenName, altsecid, idp, email);
         return String.format("%s.%s.",
-                new String(Base64.encode(sIdTokenHeader.getBytes(AuthenticationConstants.ENCODING_UTF8),
+                new String(Base64.encode(sIdTokenHeader.getBytes(StandardCharsets.UTF_8),
                         Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE),
-                        AuthenticationConstants.ENCODING_UTF8),
-                new String(Base64.encode(claims.getBytes(AuthenticationConstants.ENCODING_UTF8),
+                        StandardCharsets.UTF_8),
+                new String(Base64.encode(claims.getBytes(StandardCharsets.UTF_8),
                         Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE),
-                        AuthenticationConstants.ENCODING_UTF8));
+                        StandardCharsets.UTF_8));
     }
 
     static TokenCacheItem getTokenCacheItem(final String authority, final String resource,
@@ -216,10 +217,10 @@ final class Util {
     static Map<String, byte[]> getSecretKeys() throws NoSuchAlgorithmException, InvalidKeySpecException, UnsupportedEncodingException {
         SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBEWithSHA256And256BitAES-CBC-BC");
         SecretKey tempkey1 = keyFactory.generateSecret(new PBEKeySpec("test1".toCharArray(),
-                    "abcdedfdfd".getBytes("UTF-8"), 100, 256));
+                "abcdedfdfd".getBytes(StandardCharsets.UTF_8), 100, 256));
         SecretKey secretKey1 = new SecretKeySpec(tempkey1.getEncoded(), "AES");
         SecretKey tempkey2 = keyFactory.generateSecret(new PBEKeySpec("test2".toCharArray(),
-                "abcdedfdfd".getBytes("UTF-8"), 100, 256));
+                "abcdedfdfd".getBytes(StandardCharsets.UTF_8), 100, 256));
         SecretKey secretKey2 = new SecretKeySpec(tempkey2.getEncoded(), "AES");
         Map<String, byte[]> secretKeys = new HashMap<String, byte[]>(2);
         secretKeys.put(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, secretKey1.getEncoded());
