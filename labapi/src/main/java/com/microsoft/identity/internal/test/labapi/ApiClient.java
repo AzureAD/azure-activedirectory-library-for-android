@@ -78,6 +78,10 @@ public class ApiClient {
      */
     public ApiClient() {
         httpClient = new OkHttpClient();
+        httpClient.setFollowRedirects(true);
+        List<Protocol> protocols = new ArrayList<>();
+        protocols.add(Protocol.HTTP_1_1);
+        httpClient.setProtocols(protocols);
 
 
         verifyingSsl = true;
