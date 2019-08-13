@@ -34,6 +34,9 @@ import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.JWSBuilder;
@@ -51,15 +54,18 @@ abstract class BasicWebViewClient extends WebViewClient {
     private static final String INSTALL_URL_KEY = "app_link";
     private static final String TAG = "BasicWebViewClient";
 
-    public static final String BLANK_PAGE = "about:blank";
+    private static final String BLANK_PAGE = "about:blank";
 
-    protected String mRedirect;
-    protected final AuthenticationRequest mRequest;
-    protected final Context mCallingContext;
+    final AuthenticationRequest mRequest;
+
+    private String mRedirect;
+    private final Context mCallingContext;
     private final UIEvent mUIEvent;
 
-    BasicWebViewClient(final Context appContext, final String redirect,
-                       final AuthenticationRequest request, final UIEvent uiEvent) {
+    BasicWebViewClient(@NonNull final Context appContext,
+                       @NonNull final String redirect,
+                       @NonNull final AuthenticationRequest request,
+                       @Nullable final UIEvent uiEvent) {
         mCallingContext = appContext;
         mRedirect = redirect;
         mRequest = request;
@@ -79,11 +85,14 @@ abstract class BasicWebViewClient extends WebViewClient {
     public abstract void postRunnable(Runnable item);
 
     @Override
-    public void onReceivedHttpAuthRequest(WebView view, final HttpAuthHandler handler,
-                                          String host, String realm) {
+    public void onReceivedHttpAuthRequest(final WebView view,
+                                          final HttpAuthHandler handler,
+                                          final String host,
+                                          final String realm) {
         final String methodName = ":onReceivedHttpAuthRequest";
         // Create a dialog to ask for creds and post it to the handler.
         Logger.i(TAG + methodName, "Start. ", "Host:" + host);
+
         if (mUIEvent != null) {
             mUIEvent.setNTLM(true);
         }
@@ -187,7 +196,7 @@ abstract class BasicWebViewClient extends WebViewClient {
     //Give the host application a chance to take over the control when a new url is about to be loaded in the current WebView.
     public boolean shouldOverrideUrlLoading(final WebView view, String url) {
         final String methodName = ":shouldOverrideUrlLoading";
-        Logger.v(TAG + methodName, "Navigation is detected");
+        com.microsoft.identity.common.internal.logging.Logger.verbose(TAG + methodName, "Navigation is detected.");
         if (url.startsWith(AuthenticationConstants.Broker.PKEYAUTH_REDIRECT)) {
             Logger.v(TAG + methodName, "Webview detected request for pkeyauth challenge.");
             view.stopLoading();
