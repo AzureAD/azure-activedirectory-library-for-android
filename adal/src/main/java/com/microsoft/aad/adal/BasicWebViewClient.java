@@ -97,7 +97,7 @@ abstract class BasicWebViewClient extends WebViewClient {
             mUIEvent.setNTLM(true);
         }
 
-        HttpAuthDialog authDialog = new HttpAuthDialog(mCallingContext, host, realm);
+        final HttpAuthDialog authDialog = new HttpAuthDialog(mCallingContext, host, realm);
 
         authDialog.setOkListener(new HttpAuthDialog.OkListener() {
             public void onOk(String host, String realm, String username, String password) {
@@ -127,7 +127,8 @@ abstract class BasicWebViewClient extends WebViewClient {
         showSpinner(false);
         Logger.e(TAG, "Webview received an error. ErrorCode:" + errorCode, description,
                 ADALError.ERROR_WEBVIEW);
-        Intent resultIntent = new Intent();
+
+        final Intent resultIntent = new Intent();
         resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE, "Error Code:"
                 + errorCode);
         resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE, description);
@@ -144,7 +145,7 @@ abstract class BasicWebViewClient extends WebViewClient {
         showSpinner(false);
         handler.cancel();
         Logger.e(TAG, "Received ssl error. ", "", ADALError.ERROR_FAILED_SSL_HANDSHAKE);
-        Intent resultIntent = new Intent();
+        final Intent resultIntent = new Intent();
         resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE, "Code:"
                 + ERROR_FAILED_SSL_HANDSHAKE);
         resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE,
@@ -202,6 +203,7 @@ abstract class BasicWebViewClient extends WebViewClient {
     public boolean shouldOverrideUrlLoading(final WebView view, final String url) {
         final String methodName = ":shouldOverrideUrlLoading";
         com.microsoft.identity.common.internal.logging.Logger.verbose(TAG + methodName, "Navigation is detected.");
+
         if (url.startsWith(AuthenticationConstants.Broker.PKEYAUTH_REDIRECT)) {
             Logger.v(TAG + methodName, "Webview detected request for pkeyauth challenge.");
             view.stopLoading();
@@ -211,7 +213,7 @@ abstract class BasicWebViewClient extends WebViewClient {
                 @Override
                 public void run() {
                     try {
-                        ChallengeResponseBuilder certHandler = new ChallengeResponseBuilder(
+                        final ChallengeResponseBuilder certHandler = new ChallengeResponseBuilder(
                                 new JWSBuilder());
                         final ChallengeResponse challengeResponse = certHandler
                                 .getChallengeResponseFromUri(challengeUrl);
@@ -234,15 +236,17 @@ abstract class BasicWebViewClient extends WebViewClient {
                         // It should return error code and finish the
                         // activity, so that onActivityResult implementation
                         // returns errors to callback.
-                        Intent resultIntent = new Intent();
+                        final Intent resultIntent = new Intent();
                         resultIntent.putExtra(
                                 AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION,
                                 e);
+
                         if (mRequest != null) {
                             resultIntent.putExtra(
                                     AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
                                     mRequest);
                         }
+
                         sendResponse(
                                 AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION,
                                 resultIntent);
@@ -252,15 +256,17 @@ abstract class BasicWebViewClient extends WebViewClient {
                         // It should return error code and finish the
                         // activity, so that onActivityResult implementation
                         // returns errors to callback.
-                        Intent resultIntent = new Intent();
+                        final Intent resultIntent = new Intent();
                         resultIntent.putExtra(
                                 AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION,
                                 e);
+
                         if (mRequest != null) {
                             resultIntent.putExtra(
                                     AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
                                     mRequest);
                         }
+
                         sendResponse(
                                 AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION,
                                 resultIntent);
@@ -271,6 +277,7 @@ abstract class BasicWebViewClient extends WebViewClient {
             return true;
         } else if (url.toLowerCase(Locale.US).startsWith(mRedirect.toLowerCase(Locale.US))) {
             Logger.v(TAG + methodName, "Navigation starts with the redirect uri.");
+
             if (hasCancelError(url)) {
                 // Catch WEB-UI cancel request
                 Logger.i(TAG + methodName, "Sending intent to cancel authentication activity", "");
@@ -289,7 +296,7 @@ abstract class BasicWebViewClient extends WebViewClient {
             return true;
         } else if (url.startsWith(AuthenticationConstants.Broker.BROWSER_EXT_INSTALL_PREFIX)) {
             Logger.v(TAG + methodName, "It is an install request");
-            HashMap<String, String> parameters = StringExtensions
+            final HashMap<String, String> parameters = StringExtensions
                     .getUrlParameters(url);
             prepareForBrokerResumeRequest();
             // Having thread sleep for 1 second for calling activity to receive the result from 
@@ -298,11 +305,13 @@ abstract class BasicWebViewClient extends WebViewClient {
             // playstore and broker app download page which brought the calling activity down 
             // in the activity stack.
             final int threadSleepForCallingActivity = 1000;
+
             try {
                 Thread.sleep(threadSleepForCallingActivity);
             } catch (InterruptedException e) {
                 Logger.v(TAG + methodName, "Error occurred when having thread sleeping for 1 second.");
             }
+
             openLinkInBrowser(parameters.get(INSTALL_URL_KEY));
             view.stopLoading();
             return true;
@@ -320,16 +329,16 @@ abstract class BasicWebViewClient extends WebViewClient {
     }
 
     protected void openLinkInBrowser(final String url) {
-        String link = url
+        final String link = url
                 .replace(AuthenticationConstants.Broker.BROWSER_EXT_PREFIX, "https://");
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(link));
         mCallingContext.startActivity(intent);
     }
 
     protected boolean hasCancelError(final String redirectUrl) {
-        Map<String, String> parameters = StringExtensions.getUrlParameters(redirectUrl);
-        String error = parameters.get("error");
-        String errorDescription = parameters.get("error_description");
+        final Map<String, String> parameters = StringExtensions.getUrlParameters(redirectUrl);
+        final String error = parameters.get("error");
+        final String errorDescription = parameters.get("error_description");
 
         if (!StringExtensions.isNullOrBlank(error)) {
             Logger.w(TAG, "Cancel error: " + error, errorDescription, null);
