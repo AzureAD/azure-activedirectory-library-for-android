@@ -84,6 +84,10 @@ abstract class BasicWebViewClient extends WebViewClient {
 
     public abstract void postRunnable(Runnable item);
 
+    public abstract void processRedirectUrl(final WebView view, final String url);
+
+    public abstract boolean processInvalidUrl(final WebView view, final String url);
+
     @Override
     public void onReceivedHttpAuthRequest(final WebView view,
                                           final HttpAuthHandler handler,
@@ -319,10 +323,6 @@ abstract class BasicWebViewClient extends WebViewClient {
 
         return processInvalidUrl(view, url);
     }
-
-    public abstract void processRedirectUrl(final WebView view, final String url);
-
-    public abstract boolean processInvalidUrl(final WebView view, final String url);
 
     final Context getCallingContext() {
         return mCallingContext;
