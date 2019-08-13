@@ -119,7 +119,10 @@ abstract class BasicWebViewClient extends WebViewClient {
     }
 
     @Override
-    public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+    public void onReceivedError(final WebView view,
+                                final int errorCode,
+                                final String description,
+                                final String failingUrl) {
         super.onReceivedError(view, errorCode, description, failingUrl);
         showSpinner(false);
         Logger.e(TAG, "Webview received an error. ErrorCode:" + errorCode, description,
@@ -133,7 +136,9 @@ abstract class BasicWebViewClient extends WebViewClient {
     }
 
     @Override
-    public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
+    public void onReceivedSslError(final WebView view,
+                                   final SslErrorHandler handler,
+                                   final SslError error) {
         // Developer does not have option to control this for now
         super.onReceivedSslError(view, handler, error);
         showSpinner(false);
@@ -149,7 +154,7 @@ abstract class BasicWebViewClient extends WebViewClient {
     }
 
     @Override
-    public void onPageFinished(WebView view, String url) {
+    public void onPageFinished(final WebView view, final String url) {
         super.onPageFinished(view, url);
 
         /*
@@ -162,7 +167,7 @@ abstract class BasicWebViewClient extends WebViewClient {
     }
 
     @Override
-    public void onPageStarted(WebView view, String url, Bitmap favicon) {
+    public void onPageStarted(final WebView view, final String url, final Bitmap favicon) {
         logPageStartLoadingUrl(url);
         super.onPageStarted(view, url, favicon);
         showSpinner(true);
@@ -194,7 +199,7 @@ abstract class BasicWebViewClient extends WebViewClient {
 
     @Override
     //Give the host application a chance to take over the control when a new url is about to be loaded in the current WebView.
-    public boolean shouldOverrideUrlLoading(final WebView view, String url) {
+    public boolean shouldOverrideUrlLoading(final WebView view, final String url) {
         final String methodName = ":shouldOverrideUrlLoading";
         com.microsoft.identity.common.internal.logging.Logger.verbose(TAG + methodName, "Navigation is detected.");
         if (url.startsWith(AuthenticationConstants.Broker.PKEYAUTH_REDIRECT)) {
@@ -306,22 +311,22 @@ abstract class BasicWebViewClient extends WebViewClient {
         return processInvalidUrl(view, url);
     }
 
-    public abstract void processRedirectUrl(final WebView view, String url);
+    public abstract void processRedirectUrl(final WebView view, final String url);
 
-    public abstract boolean processInvalidUrl(final WebView view, String url);
+    public abstract boolean processInvalidUrl(final WebView view, final String url);
 
     final Context getCallingContext() {
         return mCallingContext;
     }
 
-    protected void openLinkInBrowser(String url) {
+    protected void openLinkInBrowser(final String url) {
         String link = url
                 .replace(AuthenticationConstants.Broker.BROWSER_EXT_PREFIX, "https://");
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(link));
         mCallingContext.startActivity(intent);
     }
 
-    protected boolean hasCancelError(String redirectUrl) {
+    protected boolean hasCancelError(final String redirectUrl) {
         Map<String, String> parameters = StringExtensions.getUrlParameters(redirectUrl);
         String error = parameters.get("error");
         String errorDescription = parameters.get("error_description");
