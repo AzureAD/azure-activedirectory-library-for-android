@@ -71,10 +71,19 @@ import java.security.cert.X509Certificate;
 import java.util.Locale;
 import java.util.UUID;
 
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.ACCOUNT_AUTHORITY;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.ACCOUNT_CORRELATIONID;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.ACCOUNT_NAME;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.ACCOUNT_PROMPT;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.ACCOUNT_REDIRECT;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.ACCOUNT_RESOURCE;
 import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.RT_AGE;
 import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_ERROR;
 import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_SUBERROR;
 import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.SPE_RING;
+import static com.microsoft.aad.adal.AuthenticationConstants.Browser.REQUEST_ID;
 
 /**
  * Authentication Activity to launch {@link WebView} for authentication.
@@ -372,32 +381,29 @@ public class AuthenticationActivity extends Activity {
     private AuthenticationRequest getAuthenticationRequestFromIntent(final Intent callingIntent) {
         final String methodName = ":getAuthenticationRequestFromIntent";
         AuthenticationRequest authRequest = null;
+
         if (isBrokerRequest(callingIntent)) {
             Logger.v(TAG + methodName, "It is a broker request. Get request info from bundle extras.");
-            String authority = callingIntent
-                    .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY);
-            String resource = callingIntent
-                    .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_RESOURCE);
-            String redirect = callingIntent
-                    .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_REDIRECT);
-            String loginhint = callingIntent
-                    .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT);
-            String accountName = callingIntent
-                    .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_NAME);
-            String clientidKey = callingIntent
-                    .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY);
-            String correlationId = callingIntent
-                    .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_CORRELATIONID);
-            String prompt = callingIntent
-                    .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT);
+
+            final String authority = callingIntent.getStringExtra(ACCOUNT_AUTHORITY);
+            final String resource = callingIntent.getStringExtra(ACCOUNT_RESOURCE);
+            final String redirect = callingIntent.getStringExtra(ACCOUNT_REDIRECT);
+            final String loginhint = callingIntent.getStringExtra(ACCOUNT_LOGIN_HINT);
+            final String accountName = callingIntent.getStringExtra(ACCOUNT_NAME);
+            final String clientidKey = callingIntent.getStringExtra(ACCOUNT_CLIENTID_KEY);
+            final String correlationId = callingIntent.getStringExtra(ACCOUNT_CORRELATIONID);
+            final String prompt = callingIntent.getStringExtra(ACCOUNT_PROMPT);
+
             PromptBehavior promptBehavior = PromptBehavior.Auto;
+
             if (!StringExtensions.isNullOrBlank(prompt)) {
                 promptBehavior = PromptBehavior.valueOf(prompt);
             }
 
-            mWaitingRequestId = callingIntent.getIntExtra(
-                    AuthenticationConstants.Browser.REQUEST_ID, 0);
+            mWaitingRequestId = callingIntent.getIntExtra(REQUEST_ID, 0);
+
             UUID correlationIdParsed = null;
+
             if (!StringExtensions.isNullOrBlank(correlationId)) {
                 try {
                     correlationIdParsed = UUID.fromString(correlationId);
@@ -407,8 +413,17 @@ public class AuthenticationActivity extends Activity {
                             ADALError.CORRELATION_ID_FORMAT);
                 }
             }
-            authRequest = new AuthenticationRequest(authority, resource, clientidKey, redirect,
-                    loginhint, correlationIdParsed, false);
+
+            authRequest = new AuthenticationRequest(
+                    authority,
+                    resource,
+                    clientidKey,
+                    redirect,
+                    loginhint,
+                    correlationIdParsed,
+                    false // isExtendedLifetimeEnabled
+            );
+
             authRequest.setBrokerAccountName(accountName);
             authRequest.setPrompt(promptBehavior);
             authRequest.setRequestId(mWaitingRequestId);
