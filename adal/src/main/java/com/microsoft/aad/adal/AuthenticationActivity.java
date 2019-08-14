@@ -261,8 +261,7 @@ public class AuthenticationActivity extends Activity {
                 new IntentFilter(ACTION_CANCEL));
 
         String userAgent = mWebView.getSettings().getUserAgentString();
-        mWebView.getSettings().setUserAgentString(
-                userAgent + CLIENT_TLS_NOT_SUPPORTED);
+        mWebView.getSettings().setUserAgentString(userAgent + CLIENT_TLS_NOT_SUPPORTED);
         userAgent = mWebView.getSettings().getUserAgentString();
         Logger.v(TAG + methodName, "", "UserAgent:" + userAgent, null);
 
@@ -285,9 +284,11 @@ public class AuthenticationActivity extends Activity {
 
             mAccountAuthenticatorResponse = getIntent().getParcelableExtra(
                     AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE);
+
             if (mAccountAuthenticatorResponse != null) {
                 mAccountAuthenticatorResponse.onRequestContinued();
             }
+
             PackageHelper info = new PackageHelper(AuthenticationActivity.this);
             mCallingPackage = getCallingPackage();
             mCallingUID = info.getUIDForPackage(mCallingPackage);
@@ -889,6 +890,7 @@ public class AuthenticationActivity extends Activity {
         protected TokenTaskResult doInBackground(final String... urlItems) {
             Oauth2 oauthRequest = new Oauth2(mRequest, mRequestHandler, mJWSBuilder);
             TokenTaskResult result = new TokenTaskResult();
+
             try {
                 result.mTaskResult = oauthRequest.getToken(urlItems[0]);
                 Logger.v(TAG, "Process result returned from TokenTask. ", mRequest.getLogInfo(), null);
@@ -918,9 +920,7 @@ public class AuthenticationActivity extends Activity {
                 throws NoSuchAlgorithmException, UnsupportedEncodingException {
             // include UID in the key for broker to store caches for different
             // apps under same account entry
-            String digestKey = StringExtensions
-                    .createHash(USERDATA_UID_KEY + mAppCallingUID
-                            + cacheKey);
+            String digestKey = StringExtensions.createHash(USERDATA_UID_KEY + mAppCallingUID + cacheKey);
             Logger.v(TAG, "Get broker app cache key.",
                     "Key hash is:" + digestKey
                             + " calling app UID:" + mAppCallingUID
@@ -952,14 +952,14 @@ public class AuthenticationActivity extends Activity {
             if (!appIdList.contains(USERDATA_UID_KEY
                     + mAppCallingUID)) {
                 Logger.i(TAG + methodName, "Account has new calling UID. ", "App UID: " + mAppCallingUID, null);
-                String encryptedValue = mStorageHelper.encrypt(appIdList
-                        + USERDATA_UID_KEY
-                        + mAppCallingUID);
-                mAccountManager
-                        .setUserData(
-                                account,
-                                ACCOUNT_UID_CACHES,
-                                encryptedValue);
+
+                final String encryptedValue = mStorageHelper.encrypt(
+                        appIdList
+                                + USERDATA_UID_KEY
+                                + mAppCallingUID
+                );
+
+                mAccountManager.setUserData(account, ACCOUNT_UID_CACHES, encryptedValue);
             }
         }
 
@@ -971,14 +971,13 @@ public class AuthenticationActivity extends Activity {
 
             final String methodName = ":setAccount";
             // Authenticator sets the account here and stores the tokens.
-            String name = mRequest.getBrokerAccountName();
-            Account[] accountList = mAccountManager
-                    .getAccountsByType(BROKER_ACCOUNT_TYPE);
+            final String name = mRequest.getBrokerAccountName();
+            final Account[] accountList = mAccountManager.getAccountsByType(BROKER_ACCOUNT_TYPE);
 
             if (accountList.length != 1) {
                 result.mTaskResult = null;
-                result.mTaskException = new AuthenticationException(
-                        ADALError.BROKER_SINGLE_USER_EXPECTED);
+                result.mTaskException = new AuthenticationException(ADALError.BROKER_SINGLE_USER_EXPECTED);
+
                 return;
             }
 
@@ -1021,31 +1020,40 @@ public class AuthenticationActivity extends Activity {
                 Logger.i(TAG + methodName, "Calling app doesn't provide the secret key.", "");
             }
 
-            TokenCacheItem item = TokenCacheItem.createRegularTokenCacheItem(mRequest.getAuthority(), mRequest.getResource(),
-                    mRequest.getClientId(), result.mTaskResult);
+            final TokenCacheItem item = TokenCacheItem.createRegularTokenCacheItem(
+                    mRequest.getAuthority(),
+                    mRequest.getResource(),
+                    mRequest.getClientId(),
+                    result.mTaskResult
+            );
+
             String json = gson.toJson(item);
             String encrypted = mStorageHelper.encrypt(json);
 
             // Single user and cache is stored per account
-            String key = CacheKey.createCacheKeyForRTEntry(mAuthRequest.getAuthority(), mAuthRequest.getResource(),
-                    mAuthRequest.getClientId(), null);
+            String key = CacheKey.createCacheKeyForRTEntry(
+                    mAuthRequest.getAuthority(),
+                    mAuthRequest.getResource(),
+                    mAuthRequest.getClientId(),
+                    null
+            );
+
             saveCacheKey(key, newAccount, mAppCallingUID);
-            mAccountManager.setUserData(
-                    newAccount,
-                    getBrokerAppCacheKey(key),
-                    encrypted);
+            mAccountManager.setUserData(newAccount, getBrokerAppCacheKey(key), encrypted);
 
             if (result.mTaskResult.getIsMultiResourceRefreshToken()) {
                 // ADAL stores MRRT refresh token separately
-                TokenCacheItem itemMRRT = TokenCacheItem.createMRRTTokenCacheItem(mRequest.getAuthority(), mRequest.getClientId(), result.mTaskResult);
+                final TokenCacheItem itemMRRT = TokenCacheItem.createMRRTTokenCacheItem(
+                        mRequest.getAuthority(),
+                        mRequest.getClientId(),
+                        result.mTaskResult
+                );
+
                 json = gson.toJson(itemMRRT);
                 encrypted = mStorageHelper.encrypt(json);
                 key = CacheKey.createCacheKeyForMRRT(mAuthRequest.getAuthority(), mAuthRequest.getClientId(), null);
                 saveCacheKey(key, newAccount, mAppCallingUID);
-                mAccountManager.setUserData(
-                        newAccount,
-                        getBrokerAppCacheKey(key),
-                        encrypted);
+                mAccountManager.setUserData(newAccount, getBrokerAppCacheKey(key), encrypted);
             }
 
             // Record calling UID for this account so that app can get token
@@ -1064,8 +1072,7 @@ public class AuthenticationActivity extends Activity {
             // Store cachekeys for each UID
             // Activity has access to packagename and UID, but background call
             // in getAuthToken only knows about UID
-            String keylist = mAccountManager.getUserData(cacheAccount,
-                    USERDATA_CALLER_CACHEKEYS + callingUID);
+            String keylist = mAccountManager.getUserData(cacheAccount, USERDATA_CALLER_CACHEKEYS + callingUID);
 
             if (keylist == null) {
                 keylist = "";
@@ -1142,9 +1149,7 @@ public class AuthenticationActivity extends Activity {
 
     class TokenTaskResult {
         private AuthenticationResult mTaskResult;
-
         private Exception mTaskException;
-
         private String mAccountName;
     }
 }
