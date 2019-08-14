@@ -865,13 +865,9 @@ public class AuthenticationActivity extends Activity {
     class TokenTask extends AsyncTask<String, String, TokenTaskResult> {
 
         private String mPackageName;
-
         private int mAppCallingUID;
-
         private AuthenticationRequest mRequest;
-
         private AccountManager mAccountManager;
-
         private IWebRequestHandler mRequestHandler;
 
         public TokenTask() {
