@@ -408,7 +408,6 @@ public class AuthenticationActivity extends Activity {
                 try {
                     correlationIdParsed = UUID.fromString(correlationId);
                 } catch (IllegalArgumentException ex) {
-                    correlationIdParsed = null;
                     Logger.e(TAG + methodName, "CorrelationId is malformed: " + correlationId, "",
                             ADALError.CORRELATION_ID_FORMAT);
                 }
