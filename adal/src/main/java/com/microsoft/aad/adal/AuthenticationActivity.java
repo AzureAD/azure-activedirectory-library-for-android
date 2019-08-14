@@ -158,7 +158,7 @@ public class AuthenticationActivity extends Activity {
             final String methodName = ":onReceive";
             Logger.v(TAG + methodName, "ActivityBroadcastReceiver onReceive");
 
-            if (intent.getAction().equalsIgnoreCase(ACTION_CANCEL)) {
+            if (null != intent.getAction() && intent.getAction().equalsIgnoreCase(ACTION_CANCEL)) {
                 Logger.v(TAG + methodName,
                         "ActivityBroadcastReceiver onReceive action is for cancelling Authentication Activity");
 
