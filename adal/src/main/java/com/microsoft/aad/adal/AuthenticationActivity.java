@@ -1051,7 +1051,13 @@ public class AuthenticationActivity extends Activity {
 
                 json = gson.toJson(itemMRRT);
                 encrypted = mStorageHelper.encrypt(json);
-                key = CacheKey.createCacheKeyForMRRT(mAuthRequest.getAuthority(), mAuthRequest.getClientId(), null);
+
+                key = CacheKey.createCacheKeyForMRRT(
+                        mAuthRequest.getAuthority(),
+                        mAuthRequest.getClientId(),
+                        null
+                );
+
                 saveCacheKey(key, newAccount, mAppCallingUID);
                 mAccountManager.setUserData(newAccount, getBrokerAppCacheKey(key), encrypted);
             }
@@ -1082,9 +1088,7 @@ public class AuthenticationActivity extends Activity {
                 Logger.v(TAG + methodName, "Account does not have the cache key. Saving it to account for the caller. ",
                         "callerUID: " + callingUID + "The key to be saved is: " + key, null);
                 keylist += CALLER_CACHEKEY_PREFIX + key;
-                mAccountManager.setUserData(cacheAccount,
-                        USERDATA_CALLER_CACHEKEYS + callingUID,
-                        keylist);
+                mAccountManager.setUserData(cacheAccount, USERDATA_CALLER_CACHEKEYS + callingUID, keylist);
                 Logger.v(TAG + methodName, "Cache key saved into key list for the caller.", "keylist:" + keylist, null);
             }
         }
