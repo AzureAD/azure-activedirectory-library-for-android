@@ -87,38 +87,24 @@ public class AuthenticationActivity extends Activity {
     static final int BACK_PRESSED_CANCEL_DIALOG_STEPS = -2;
 
     private static final String TAG = "AuthenticationActivity";
-
     private boolean mRegisterReceiver = false;
-
     private WebView mWebView;
-
     private String mStartUrl;
-
     private ProgressDialog mSpinner;
-
     private String mRedirectUrl;
-
     private AuthenticationRequest mAuthRequest;
 
     // Broadcast receiver for cancel
     private ActivityBroadcastReceiver mReceiver = null;
-
     private String mCallingPackage;
-
     private int mWaitingRequestId;
-
     private int mCallingUID;
-
     private AccountAuthenticatorResponse mAccountAuthenticatorResponse = null;
-
     private Bundle mAuthenticatorResultBundle = null;
-
     private final IWebRequestHandler mWebRequestHandler = new WebRequestHandler();
-
     private final JWSBuilder mJWSBuilder = new JWSBuilder();
     private boolean mPkeyAuthRedirect = false;
     private StorageHelper mStorageHelper;
-
     private UIEvent mUIEvent = null;
 
     // Broadcast receiver is needed to cancel outstanding AuthenticationActivity
