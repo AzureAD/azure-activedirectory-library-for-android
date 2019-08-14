@@ -57,6 +57,7 @@ import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
 import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.internal.logging.Logger;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -157,13 +158,10 @@ public class AuthenticationActivity extends Activity {
         public void onReceive(final Context context, final Intent intent) {
             final String methodName = ":onReceive";
 
-            com.microsoft.identity.common.internal.logging.Logger.verbose(
-                    TAG + methodName,
-                    "ActivityBroadcastReceiver onReceive"
-            );
+            Logger.verbose(TAG + methodName, "ActivityBroadcastReceiver onReceive");
 
             if (null != intent.getAction() && intent.getAction().equalsIgnoreCase(ACTION_CANCEL)) {
-                com.microsoft.identity.common.internal.logging.Logger.verbose(
+                Logger.verbose(
                         TAG + methodName,
                         "ActivityBroadcastReceiver onReceive action is for cancelling Authentication Activity"
                 );
@@ -171,7 +169,7 @@ public class AuthenticationActivity extends Activity {
                 int cancelRequestId = intent.getIntExtra(REQUEST_ID, 0);
 
                 if (cancelRequestId == mWaitingRequestId) {
-                    com.microsoft.identity.common.internal.logging.Logger.verbose(
+                    Logger.verbose(
                             TAG + methodName,
                             "Waiting requestId is same and cancelling this activity"
                     );
@@ -207,16 +205,13 @@ public class AuthenticationActivity extends Activity {
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.setAcceptCookie(true);
 
-        com.microsoft.identity.common.internal.logging.Logger.verbose(
-                TAG + methodName,
-                "AuthenticationActivity was created."
-        );
+        Logger.verbose(TAG + methodName, "AuthenticationActivity was created.");
 
         // Get the message from the intent
         mAuthRequest = getAuthenticationRequestFromIntent(getIntent());
 
         if (mAuthRequest == null) {
-            com.microsoft.identity.common.internal.logging.Logger.warn(
+            Logger.warn(
                     TAG + methodName,
                     "Intent for Authentication Activity doesn't have the request details, returning to caller"
             );
@@ -270,10 +265,7 @@ public class AuthenticationActivity extends Activity {
         if (!AuthenticationSettings.INSTANCE.getDisableWebViewHardwareAcceleration()) {
             mWebView.setLayerType(WebView.LAYER_TYPE_SOFTWARE, null);
 
-            com.microsoft.identity.common.internal.logging.Logger.warn(
-                    TAG + methodName,
-                    "Hardware acceleration is disabled in WebView"
-            );
+            Logger.warn(TAG + methodName, "Hardware acceleration is disabled in WebView");
         }
 
         mStartUrl = "about:blank";
@@ -282,11 +274,7 @@ public class AuthenticationActivity extends Activity {
             final Oauth2 oauth = new Oauth2(mAuthRequest);
             mStartUrl = oauth.getCodeRequestUrl();
         } catch (UnsupportedEncodingException e) {
-            com.microsoft.identity.common.internal.logging.Logger.error(
-                    TAG + methodName,
-                    "Encoding format is not supported. ",
-                    e
-            );
+            Logger.error(TAG + methodName, "Encoding format is not supported. ", e);
 
             final Intent resultIntent = new Intent();
             resultIntent.putExtra(RESPONSE_REQUEST_INFO, mAuthRequest);
@@ -296,17 +284,14 @@ public class AuthenticationActivity extends Activity {
         }
 
         // Create the broadcast receiver for cancel
-        com.microsoft.identity.common.internal.logging.Logger.verbose(
+        Logger.verbose(
                 TAG + methodName,
                 "Init broadcastReceiver with request. "
                         + "RequestId:"
                         + mAuthRequest.getRequestId()
         );
 
-        com.microsoft.identity.common.internal.logging.Logger.verbosePII(
-                TAG + methodName,
-                mAuthRequest.getLogInfo()
-        );
+        Logger.verbosePII(TAG + methodName, mAuthRequest.getLogInfo());
 
         mReceiver = new ActivityBroadcastReceiver();
         mReceiver.mWaitingRequestId = mAuthRequest.getRequestId();
@@ -316,10 +301,7 @@ public class AuthenticationActivity extends Activity {
         mWebView.getSettings().setUserAgentString(userAgent + CLIENT_TLS_NOT_SUPPORTED);
         userAgent = mWebView.getSettings().getUserAgentString();
 
-        com.microsoft.identity.common.internal.logging.Logger.verbosePII(
-                TAG + methodName,
-                "UserAgent:" + userAgent
-        );
+        Logger.verbosePII(TAG + methodName, "UserAgent:" + userAgent);
 
         if (isBrokerRequest(getIntent())) {
             // This activity is started from calling app and running in
@@ -327,7 +309,7 @@ public class AuthenticationActivity extends Activity {
             mCallingPackage = getCallingPackage();
 
             if (mCallingPackage == null) {
-                com.microsoft.identity.common.internal.logging.Logger.verbose(
+                Logger.verbose(
                         TAG + methodName,
                         "Calling package is null, startActivityForResult is not used to call this activity"
                 );
@@ -339,7 +321,7 @@ public class AuthenticationActivity extends Activity {
 
                 return;
             }
-            com.microsoft.identity.common.internal.logging.Logger.info(
+            Logger.info(
                     TAG + methodName,
                     "It is a broker request for package:" + mCallingPackage
             );
@@ -358,7 +340,7 @@ public class AuthenticationActivity extends Activity {
             mStartUrl = getBrokerStartUrl(mStartUrl, mCallingPackage, signatureDigest);
 
             if (!isCallerBrokerInstaller()) {
-                com.microsoft.identity.common.internal.logging.Logger.verbose(
+                Logger.verbose(
                         TAG + methodName,
                         "Caller needs to be verified using special redirectUri"
                 );
@@ -366,7 +348,7 @@ public class AuthenticationActivity extends Activity {
                 mRedirectUrl = PackageHelper.getBrokerRedirectUrl(mCallingPackage, signatureDigest);
             }
 
-            com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+            Logger.verbosePII(
                     TAG + methodName,
                     "Broker redirectUrl: " + mRedirectUrl
                             + " The calling package is: " + mCallingPackage
@@ -375,19 +357,13 @@ public class AuthenticationActivity extends Activity {
                             + " Start url: " + mStartUrl
             );
         } else {
-            com.microsoft.identity.common.internal.logging.Logger.verbose(
-                    TAG + methodName,
-                    "Non-broker request for package " + getCallingPackage()
-            );
-            com.microsoft.identity.common.internal.logging.Logger.verbosePII(
-                    TAG + methodName,
-                    "Start url: " + mStartUrl
-            );
+            Logger.verbose(TAG + methodName, "Non-broker request for package " + getCallingPackage());
+            Logger.verbosePII(TAG + methodName, "Start url: " + mStartUrl);
         }
 
         mRegisterReceiver = false;
         final String postUrl = mStartUrl;
-        com.microsoft.identity.common.internal.logging.Logger.infoPII(
+        Logger.infoPII(
                 TAG + methodName,
                 "Device info:" + android.os.Build.VERSION.RELEASE
                         + " "
@@ -399,12 +375,9 @@ public class AuthenticationActivity extends Activity {
 
         // Also log correlation id
         if (mAuthRequest.getCorrelationId() == null) {
-            com.microsoft.identity.common.internal.logging.Logger.verbose(
-                    TAG + methodName,
-                    "Null correlation id in the request."
-            );
+            Logger.verbose(TAG + methodName, "Null correlation id in the request.");
         } else {
-            com.microsoft.identity.common.internal.logging.Logger.verbose(
+            Logger.verbose(
                     TAG + methodName,
                     "Correlation id for request sent is:"
                             + mAuthRequest.getCorrelationId().toString()
@@ -417,20 +390,14 @@ public class AuthenticationActivity extends Activity {
                 @Override
                 public void run() {
                     // load blank first to avoid error for not loading webview
-                    com.microsoft.identity.common.internal.logging.Logger.verbose(
-                            TAG + methodName,
-                            "Launching webview for acquiring auth code."
-                    );
+                    Logger.verbose(TAG + methodName, "Launching webview for acquiring auth code.");
                     mWebView.loadUrl("about:blank");
                     mWebView.loadUrl(postUrl);
                 }
 
             });
         } else {
-            com.microsoft.identity.common.internal.logging.Logger.verbose(
-                    TAG + methodName,
-                    "Reuse webview"
-            );
+            Logger.verbose(TAG + methodName, "Reuse webview");
         }
     }
 
@@ -442,21 +409,15 @@ public class AuthenticationActivity extends Activity {
 
         if (!StringExtensions.isNullOrBlank(packageName)) {
             if (packageName.equals(AuthenticationSettings.INSTANCE.getBrokerPackageName())) {
-                com.microsoft.identity.common.internal.logging.Logger.verbose(
-                        TAG + methodName,
-                        "Same package as broker."
-                );
+                Logger.verbose(TAG + methodName, "Same package as broker.");
 
                 return true;
             }
 
             final String signature = info.getCurrentSignatureForPackage(packageName);
 
-            com.microsoft.identity.common.internal.logging.Logger.verbose(
-                    TAG + methodName,
-                    "Checking broker signature."
-            );
-            com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+            Logger.verbose(TAG + methodName, "Checking broker signature.");
+            Logger.verbosePII(
                     TAG + methodName,
                     "Check signature for " + packageName
                             + " signature:" + signature
@@ -518,7 +479,7 @@ public class AuthenticationActivity extends Activity {
         AuthenticationRequest authRequest = null;
 
         if (isBrokerRequest(callingIntent)) {
-            com.microsoft.identity.common.internal.logging.Logger.verbose(
+            Logger.verbose(
                     TAG + methodName,
                     "It is a broker request. Get request info from bundle extras."
             );
@@ -547,7 +508,7 @@ public class AuthenticationActivity extends Activity {
                 try {
                     correlationIdParsed = UUID.fromString(correlationId);
                 } catch (final IllegalArgumentException ex) {
-                    com.microsoft.identity.common.internal.logging.Logger.error(
+                    Logger.error(
                             TAG + methodName,
                             "CorrelationId is malformed: " + correlationId,
                             ex
@@ -583,10 +544,7 @@ public class AuthenticationActivity extends Activity {
      */
     private void returnError(final ADALError errorCode, final String argument) {
         // Set result back to account manager call
-        com.microsoft.identity.common.internal.logging.Logger.warn(
-                TAG,
-                "Argument error:" + argument
-        );
+        Logger.warn(TAG, "Argument error:" + argument);
 
         final Intent resultIntent = new Intent();
         // TODO only send adalerror from activity side as int
@@ -616,11 +574,8 @@ public class AuthenticationActivity extends Activity {
                 // This encoding issue will happen at the beginning of API call,
                 // if it is not supported on this device. ADAL uses one encoding
                 // type.
-                com.microsoft.identity.common.internal.logging.Logger.error(
-                        TAG,
-                        "Unsupported encoding",
-                        e
-                );
+                Logger.error(TAG, "Unsupported encoding", e);
+                Logger.error(TAG, "Exception details", e);
             }
         }
         return loadUrl;
@@ -640,10 +595,7 @@ public class AuthenticationActivity extends Activity {
      */
     private void returnToCaller(final int resultCode, Intent data) {
         final String methodName = ":returnToCaller";
-        com.microsoft.identity.common.internal.logging.Logger.verbose(
-                TAG + methodName,
-                "Return To Caller:" + resultCode
-        );
+        Logger.verbose(TAG + methodName, "Return To Caller:" + resultCode);
 
         displaySpinner(false);
 
@@ -652,13 +604,10 @@ public class AuthenticationActivity extends Activity {
         }
 
         if (mAuthRequest == null) {
-            com.microsoft.identity.common.internal.logging.Logger.warn(
-                    TAG + methodName,
-                    "Request object is null"
-            );
+            Logger.warn(TAG + methodName, "Request object is null");
         } else {
             // set request id related to this response to send the delegateId
-            com.microsoft.identity.common.internal.logging.Logger.verbose(
+            Logger.verbose(
                     TAG + methodName,
                     "Set request id related to response. "
                             + "REQUEST_ID for caller returned to:"
@@ -675,10 +624,7 @@ public class AuthenticationActivity extends Activity {
     @Override
     protected void onPause() {
         final String methodName = ":onPause";
-        com.microsoft.identity.common.internal.logging.Logger.verbose(
-                TAG + methodName,
-                "AuthenticationActivity onPause unregister receiver"
-        );
+        Logger.verbose(TAG + methodName, "AuthenticationActivity onPause unregister receiver");
 
         super.onPause();
 
@@ -691,10 +637,7 @@ public class AuthenticationActivity extends Activity {
         mRegisterReceiver = true;
 
         if (mSpinner != null) {
-            com.microsoft.identity.common.internal.logging.Logger.verbose(
-                    TAG + methodName,
-                    "Spinner at onPause will dismiss"
-            );
+            Logger.verbose(TAG + methodName, "Spinner at onPause will dismiss");
             mSpinner.dismiss();
         }
 
@@ -708,18 +651,12 @@ public class AuthenticationActivity extends Activity {
         // It can come here from onCreate, onRestart or onPause.
         // Don't load url again since it will send another 2FA request
         if (mRegisterReceiver) {
-            com.microsoft.identity.common.internal.logging.Logger.verbose(
-                    TAG + methodName,
-                    "Webview onResume will register receiver."
-            );
+            Logger.verbose(TAG + methodName, "Webview onResume will register receiver.");
 
-            com.microsoft.identity.common.internal.logging.Logger.verbosePII(
-                    TAG + methodName,
-                    "StartUrl: " + mStartUrl
-            );
+            Logger.verbosePII(TAG + methodName, "StartUrl: " + mStartUrl);
 
             if (mReceiver != null) {
-                com.microsoft.identity.common.internal.logging.Logger.verbose(
+                Logger.verbose(
                         TAG + methodName,
                         "Webview onResume register broadcast receiver for request. "
                                 + "RequestId: "
@@ -753,20 +690,14 @@ public class AuthenticationActivity extends Activity {
 
     @Override
     protected void onRestart() {
-        com.microsoft.identity.common.internal.logging.Logger.verbose(
-                TAG,
-                "AuthenticationActivity onRestart"
-        );
+        Logger.verbose(TAG, "AuthenticationActivity onRestart");
         super.onRestart();
         mRegisterReceiver = true;
     }
 
     @Override
     public void onBackPressed() {
-        com.microsoft.identity.common.internal.logging.Logger.verbose(
-                TAG,
-                "Back button is pressed"
-        );
+        Logger.verbose(TAG, "Back button is pressed");
 
         // User should be able to click back button to cancel in case pkeyauth
         // happen.
@@ -781,10 +712,7 @@ public class AuthenticationActivity extends Activity {
     }
 
     private void cancelRequest() {
-        com.microsoft.identity.common.internal.logging.Logger.verbose(
-                TAG,
-                "Sending intent to cancel authentication activity"
-        );
+        Logger.verbose(TAG, "Sending intent to cancel authentication activity");
         final Intent resultIntent = new Intent();
 
         if (mUIEvent != null) {
@@ -796,7 +724,7 @@ public class AuthenticationActivity extends Activity {
 
     private void prepareForBrokerResume() {
         final String methodName = ":prepareForBrokerResume";
-        com.microsoft.identity.common.internal.logging.Logger.verbose(
+        Logger.verbose(
                 TAG + methodName,
                 "Return to caller with BROKER_REQUEST_RESUME, and waiting for result."
         );
@@ -838,10 +766,7 @@ public class AuthenticationActivity extends Activity {
             if (!isBrokerRequest(getIntent())) {
                 // It is pointing to redirect. Final url can be processed to
                 // get the code or error.
-                com.microsoft.identity.common.internal.logging.Logger.info(
-                        TAG + methodName,
-                        "It is not a broker request"
-                );
+                Logger.info(TAG + methodName, "It is not a broker request");
 
                 final Intent resultIntent = new Intent();
                 resultIntent.putExtra(RESPONSE_FINAL_URL, url);
@@ -850,10 +775,7 @@ public class AuthenticationActivity extends Activity {
 
                 view.stopLoading();
             } else {
-                com.microsoft.identity.common.internal.logging.Logger.info(
-                        TAG + methodName,
-                        "It is a broker request"
-                );
+                Logger.info(TAG + methodName, "It is a broker request");
 
                 displaySpinnerWithMessage(
                         AuthenticationActivity.this.getText(
@@ -879,12 +801,12 @@ public class AuthenticationActivity extends Activity {
             final String methodName = ":processInvalidUrl";
 
             if (isBrokerRequest(getIntent()) && url.startsWith(REDIRECT_PREFIX)) {
-                com.microsoft.identity.common.internal.logging.Logger.error(
+                Logger.error(
                         TAG + methodName,
                         "The RedirectUri is not as expected.",
                         null
                 );
-                com.microsoft.identity.common.internal.logging.Logger.errorPII(
+                Logger.errorPII(
                         TAG + methodName,
                         String.format("Received %s and expected %s", url, mRedirectUrl),
                         null
@@ -903,26 +825,16 @@ public class AuthenticationActivity extends Activity {
             }
 
             if (url.toLowerCase(Locale.US).equals("about:blank")) {
-                com.microsoft.identity.common.internal.logging.Logger.verbose(
-                        TAG + methodName,
-                        "It is an blank page request"
-                );
+                Logger.verbose(TAG + methodName, "It is an blank page request");
 
                 return true;
             }
 
             if (!url.toLowerCase(Locale.US).startsWith(REDIRECT_SSL_PREFIX)) {
                 final String errMsg = "The webview was redirected to an unsafe URL.";
-                com.microsoft.identity.common.internal.logging.Logger.error(
-                        TAG + methodName,
-                        errMsg,
-                        null
-                );
+                Logger.error(TAG + methodName, errMsg, null);
 
-                returnError(
-                        ADALError.WEBVIEW_REDIRECTURL_NOT_SSL_PROTECTED,
-                        errMsg
-                );
+                returnError(ADALError.WEBVIEW_REDIRECTURL_NOT_SSL_PROTECTED, errMsg);
 
                 view.stopLoading();
 
@@ -966,19 +878,16 @@ public class AuthenticationActivity extends Activity {
         public void onReceivedClientCertRequest(final WebView view,
                                                 final ClientCertRequest request) {
             final String methodName = ":onReceivedClientCertRequest";
-            com.microsoft.identity.common.internal.logging.Logger.verbose(
-                    TAG + methodName,
-                    "Webview receives client TLS request."
-            );
+            Logger.verbose(TAG + methodName, "Webview receives client TLS request.");
 
             final Principal[] acceptableCertIssuers = request.getPrincipals();
 
             // When ADFS server sends null or empty issuers, we'll continue with cert prompt.
             if (acceptableCertIssuers != null) {
-                for (Principal issuer : acceptableCertIssuers) {
+                for (final Principal issuer : acceptableCertIssuers) {
                     if (issuer.getName().contains("CN=MS-Organization-Access")) {
                         //Checking if received acceptable issuers contain "CN=MS-Organization-Access"
-                        com.microsoft.identity.common.internal.logging.Logger.verbose(
+                        Logger.verbose(
                                 TAG + methodName,
                                 "Cancelling the TLS request, not respond to TLS challenge triggered by device authentication."
                         );
@@ -995,7 +904,7 @@ public class AuthenticationActivity extends Activity {
                         @Override
                         public void alias(final String alias) {
                             if (alias == null) {
-                                com.microsoft.identity.common.internal.logging.Logger.verbose(
+                                Logger.verbose(
                                         TAG + methodName,
                                         "No certificate chosen by user, cancelling the TLS request."
                                 );
@@ -1007,29 +916,17 @@ public class AuthenticationActivity extends Activity {
                                 final X509Certificate[] certChain = KeyChain.getCertificateChain(getApplicationContext(), alias);
                                 final PrivateKey privateKey = KeyChain.getPrivateKey(getCallingContext(), alias);
 
-                                com.microsoft.identity.common.internal.logging.Logger.verbose(
+                                Logger.verbose(
                                         TAG + methodName,
                                         "Certificate is chosen by user, proceed with TLS request."
                                 );
                                 request.proceed(privateKey, certChain);
                                 return;
                             } catch (final KeyChainException e) {
-                                com.microsoft.identity.common.internal.logging.Logger.error(
-                                        TAG + methodName,
-                                        "Keychain exception",
-                                        null
-                                );
-                                com.microsoft.identity.common.internal.logging.Logger.errorPII(
-                                        TAG + methodName,
-                                        "Exception details:",
-                                        e
-                                );
+                                Logger.error(TAG + methodName, "Keychain exception", null);
+                                Logger.errorPII(TAG + methodName, "Exception details:", e);
                             } catch (final InterruptedException e) {
-                                com.microsoft.identity.common.internal.logging.Logger.error(
-                                        TAG + methodName,
-                                        "InterruptedException exception",
-                                        e
-                                );
+                                Logger.error(TAG + methodName, "InterruptedException exception", e);
                             }
 
                             request.cancel();
@@ -1055,7 +952,7 @@ public class AuthenticationActivity extends Activity {
         if (!AuthenticationActivity.this.isFinishing()
                 && !AuthenticationActivity.this.isChangingConfigurations() && mSpinner != null) {
             // Used externally to verify web view processing.
-            com.microsoft.identity.common.internal.logging.Logger.verbose(
+            Logger.verbose(
                     TAG + methodName,
                     "DisplaySpinner:" + show
                             + " showing:" + mSpinner.isShowing()
@@ -1094,10 +991,7 @@ public class AuthenticationActivity extends Activity {
         // Added here to make Authenticator work with one common code base
         if (isBrokerRequest(getIntent()) && mAccountAuthenticatorResponse != null) {
             // send the result bundle back if set, otherwise send an error.
-            com.microsoft.identity.common.internal.logging.Logger.verbose(
-                    TAG,
-                    "It is a broker request"
-            );
+            Logger.verbose(TAG, "It is a broker request");
 
             if (mAuthenticatorResultBundle == null) {
                 mAccountAuthenticatorResponse.onError(
@@ -1163,28 +1057,20 @@ public class AuthenticationActivity extends Activity {
 
             try {
                 result.mTaskResult = oauthRequest.getToken(urlItems[0]);
-                com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                Logger.verbosePII(
                         TAG,
                         "Process result returned from TokenTask. "
                                 + mRequest.getLogInfo()
                 );
             } catch (final IOException | AuthenticationException exc) {
-                com.microsoft.identity.common.internal.logging.Logger.error(
-                        TAG,
-                        "Error in processing code to get a token.",
-                        exc
-                );
-                com.microsoft.identity.common.internal.logging.Logger.errorPII(
-                        TAG,
-                        mRequest.getLogInfo(),
-                        null
-                );
+                Logger.error(TAG, "Error in processing code to get a token.", exc);
+                Logger.errorPII(TAG, mRequest.getLogInfo(), null);
 
                 result.mTaskException = exc;
             }
 
             if (result.mTaskResult != null && result.mTaskResult.getAccessToken() != null) {
-                com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                Logger.verbosePII(
                         TAG,
                         "Token task successfully returns access token. "
                                 + mRequest.getLogInfo()
@@ -1194,16 +1080,8 @@ public class AuthenticationActivity extends Activity {
                 try {
                     setAccount(result);
                 } catch (final GeneralSecurityException | IOException exc) {
-                    com.microsoft.identity.common.internal.logging.Logger.error(
-                            TAG,
-                            "Error in setting the account.",
-                            null
-                    );
-                    com.microsoft.identity.common.internal.logging.Logger.errorPII(
-                            TAG,
-                            mRequest.getLogInfo(),
-                            exc
-                    );
+                    Logger.error(TAG, "Error in setting the account.", null);
+                    Logger.errorPII(TAG, mRequest.getLogInfo(), exc);
 
                     result.mTaskException = exc;
                 }
@@ -1222,12 +1100,9 @@ public class AuthenticationActivity extends Activity {
                             + cacheKey
             );
 
-            com.microsoft.identity.common.internal.logging.Logger.verbose(
-                    TAG,
-                    "Get broker app cache key."
-            );
+            Logger.verbose(TAG, "Get broker app cache key.");
 
-            com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+            Logger.verbosePII(
                     TAG,
                     "Key hash is:" + digestKey
                             + " calling app UID:" + mAppCallingUID
@@ -1250,46 +1125,26 @@ public class AuthenticationActivity extends Activity {
                 try {
                     appIdList = mStorageHelper.decrypt(appIdList);
                 } catch (final GeneralSecurityException | IOException ex) {
-                    com.microsoft.identity.common.internal.logging.Logger.error(
-                            TAG + methodName,
-                            "appUIDList failed to decrypt",
-                            null
-                    );
+                    Logger.error(TAG + methodName, "appUIDList failed to decrypt", null);
 
-                    com.microsoft.identity.common.internal.logging.Logger.errorPII(
-                            TAG + methodName,
-                            "appIdList:" + appIdList,
-                            ex
-                    );
+                    Logger.errorPII(TAG + methodName, "appIdList:" + appIdList, ex);
 
                     appIdList = "";
-                    com.microsoft.identity.common.internal.logging.Logger.info(
-                            TAG + methodName,
-                            "Reset the appUIDlist"
-                    );
+                    Logger.info(TAG + methodName, "Reset the appUIDlist");
                 }
             }
 
-            com.microsoft.identity.common.internal.logging.Logger.info(
-                    TAG + methodName,
-                    "Add calling UID."
-            );
+            Logger.info(TAG + methodName, "Add calling UID.");
 
-            com.microsoft.identity.common.internal.logging.Logger.infoPII(
+            Logger.infoPII(
                     TAG + methodName,
                     "App UID: " + mAppCallingUID
                             + "appIdList:" + appIdList
             );
 
             if (!appIdList.contains(USERDATA_UID_KEY + mAppCallingUID)) {
-                com.microsoft.identity.common.internal.logging.Logger.info(
-                        TAG + methodName,
-                        "Account has new calling UID."
-                );
-                com.microsoft.identity.common.internal.logging.Logger.infoPII(
-                        TAG + methodName,
-                        "App UID: " + mAppCallingUID
-                );
+                Logger.info(TAG + methodName, "Account has new calling UID.");
+                Logger.infoPII(TAG + methodName, "App UID: " + mAppCallingUID);
 
                 final String encryptedValue = mStorageHelper.encrypt(
                         appIdList
@@ -1328,18 +1183,12 @@ public class AuthenticationActivity extends Activity {
             if (userinfo == null || StringExtensions.isNullOrBlank(userinfo.getUserId())) {
                 // return userid in the userinfo and use only account name
                 // for all fields
-                com.microsoft.identity.common.internal.logging.Logger.info(
-                        TAG + methodName,
-                        "Set userinfo from account"
-                );
+                Logger.info(TAG + methodName, "Set userinfo from account");
 
                 result.mTaskResult.setUserInfo(new UserInfo(name, name, "", "", name));
                 mRequest.setLoginHint(name);
             } else {
-                com.microsoft.identity.common.internal.logging.Logger.info(
-                        TAG + methodName,
-                        "Saving userinfo to account"
-                );
+                Logger.info(TAG + methodName, "Saving userinfo to account");
                 mAccountManager.setUserData(newAccount, ACCOUNT_USERINFO_USERID, userinfo.getUserId());
                 mAccountManager.setUserData(newAccount, ACCOUNT_USERINFO_GIVEN_NAME, userinfo.getGivenName());
                 mAccountManager.setUserData(newAccount, ACCOUNT_USERINFO_FAMILY_NAME, userinfo.getFamilyName());
@@ -1349,12 +1198,9 @@ public class AuthenticationActivity extends Activity {
 
             result.mAccountName = name;
 
-            com.microsoft.identity.common.internal.logging.Logger.info(
-                    TAG + methodName,
-                    "Setting account in account manager."
-            );
+            Logger.info(TAG + methodName, "Setting account in account manager.");
 
-            com.microsoft.identity.common.internal.logging.Logger.infoPII(
+            Logger.infoPII(
                     TAG + methodName,
                     "Package: " + mPackageName
                             + " calling app UID:" + mAppCallingUID
@@ -1368,7 +1214,7 @@ public class AuthenticationActivity extends Activity {
             // access.
             final Gson gson = new Gson();
 
-            com.microsoft.identity.common.internal.logging.Logger.infoPII(
+            Logger.infoPII(
                     TAG + methodName,
                     "app context:" + getApplicationContext().getPackageName()
                             + " context:" + AuthenticationActivity.this.getPackageName()
@@ -1376,10 +1222,7 @@ public class AuthenticationActivity extends Activity {
             );
 
             if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
-                com.microsoft.identity.common.internal.logging.Logger.info(
-                        TAG + methodName,
-                        "Calling app doesn't provide the secret key."
-                );
+                Logger.info(TAG + methodName, "Calling app doesn't provide the secret key.");
             }
 
             final TokenCacheItem item = TokenCacheItem.createRegularTokenCacheItem(
@@ -1427,10 +1270,7 @@ public class AuthenticationActivity extends Activity {
             // Record calling UID for this account so that app can get token
             // in the background call without requiring server side
             // validation
-            com.microsoft.identity.common.internal.logging.Logger.info(
-                    TAG + methodName,
-                    "Set calling uid:" + mAppCallingUID
-            );
+            Logger.info(TAG + methodName, "Set calling uid:" + mAppCallingUID);
 
             appendAppUIDToAccount(newAccount);
         }
@@ -1441,10 +1281,7 @@ public class AuthenticationActivity extends Activity {
                                   final int callingUID) {
             final String methodName = ":saveCacheKey";
 
-            com.microsoft.identity.common.internal.logging.Logger.verbose(
-                    TAG + methodName,
-                    "Get CacheKeys for account"
-            );
+            Logger.verbose(TAG + methodName, "Get CacheKeys for account");
 
             // Store cachekeys for each UID
             // Activity has access to packagename and UID, but background call
@@ -1456,12 +1293,12 @@ public class AuthenticationActivity extends Activity {
             }
 
             if (!keylist.contains(CALLER_CACHEKEY_PREFIX + key)) {
-                com.microsoft.identity.common.internal.logging.Logger.verbose(
+                Logger.verbose(
                         TAG + methodName,
                         "Account does not have the cache key. Saving it to account for the caller."
                 );
 
-                com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                Logger.verbosePII(
                         TAG + methodName,
                         "callerUID: " + callingUID
                                 + "The key to be saved is: " + key
@@ -1470,36 +1307,20 @@ public class AuthenticationActivity extends Activity {
                 keylist += CALLER_CACHEKEY_PREFIX + key;
                 mAccountManager.setUserData(cacheAccount, USERDATA_CALLER_CACHEKEYS + callingUID, keylist);
 
-                com.microsoft.identity.common.internal.logging.Logger.verbose(
-                        TAG + methodName,
-                        "Cache key saved into key list for the caller."
-                );
-                com.microsoft.identity.common.internal.logging.Logger.verbosePII(
-                        TAG + methodName,
-                        "keylist:" + keylist
-                );
+                Logger.verbose(TAG + methodName, "Cache key saved into key list for the caller.");
+                Logger.verbosePII(TAG + methodName, "keylist:" + keylist);
             }
         }
 
         @Override
         protected void onPostExecute(final TokenTaskResult result) {
-            com.microsoft.identity.common.internal.logging.Logger.verbose(
-                    TAG,
-                    "Token task returns the result"
-            );
+            Logger.verbose(TAG, "Token task returns the result");
             displaySpinner(false);
             Intent intent = new Intent();
 
             if (result.mTaskResult == null) {
-                com.microsoft.identity.common.internal.logging.Logger.verbose(
-                        TAG,
-                        "Token task has exception"
-                );
-
-                returnError(
-                        ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
-                        result.mTaskException.getMessage()
-                );
+                Logger.verbose(TAG, "Token task has exception");
+                returnError(ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN, result.mTaskException.getMessage());
 
                 return;
             }
