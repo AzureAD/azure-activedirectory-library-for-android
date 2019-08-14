@@ -52,7 +52,6 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.gson.Gson;
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.JWSBuilder;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
@@ -163,8 +162,7 @@ public class AuthenticationActivity extends Activity {
                 Logger.v(TAG + methodName,
                         "ActivityBroadcastReceiver onReceive action is for cancelling Authentication Activity");
 
-                int cancelRequestId = intent.getIntExtra(
-                        REQUEST_ID, 0);
+                int cancelRequestId = intent.getIntExtra(REQUEST_ID, 0);
 
                 if (cancelRequestId == mWaitingRequestId) {
                     Logger.v(TAG + methodName, "Waiting requestId is same and cancelling this activity");
@@ -206,26 +204,22 @@ public class AuthenticationActivity extends Activity {
         }
 
         if (mAuthRequest.getAuthority() == null || mAuthRequest.getAuthority().isEmpty()) {
-            returnError(ADALError.ARGUMENT_EXCEPTION,
-                    ACCOUNT_AUTHORITY);
+            returnError(ADALError.ARGUMENT_EXCEPTION, ACCOUNT_AUTHORITY);
             return;
         }
 
         if (mAuthRequest.getResource() == null || mAuthRequest.getResource().isEmpty()) {
-            returnError(ADALError.ARGUMENT_EXCEPTION,
-                    ACCOUNT_RESOURCE);
+            returnError(ADALError.ARGUMENT_EXCEPTION, ACCOUNT_RESOURCE);
             return;
         }
 
         if (mAuthRequest.getClientId() == null || mAuthRequest.getClientId().isEmpty()) {
-            returnError(ADALError.ARGUMENT_EXCEPTION,
-                    ACCOUNT_CLIENTID_KEY);
+            returnError(ADALError.ARGUMENT_EXCEPTION, ACCOUNT_CLIENTID_KEY);
             return;
         }
 
         if (mAuthRequest.getRedirectUri() == null || mAuthRequest.getRedirectUri().isEmpty()) {
-            returnError(ADALError.ARGUMENT_EXCEPTION,
-                    ACCOUNT_REDIRECT);
+            returnError(ADALError.ARGUMENT_EXCEPTION, ACCOUNT_REDIRECT);
             return;
         }
         mRedirectUrl = mAuthRequest.getRedirectUri();
@@ -635,8 +629,7 @@ public class AuthenticationActivity extends Activity {
 
     private void hideKeyBoard() {
         if (mWebView != null) {
-            InputMethodManager imm = (InputMethodManager) this
-                    .getSystemService(Service.INPUT_METHOD_SERVICE);
+            InputMethodManager imm = (InputMethodManager) this.getSystemService(Service.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(mWebView.getApplicationWindowToken(), 0);
         }
     }
@@ -662,12 +655,12 @@ public class AuthenticationActivity extends Activity {
                 // It is pointing to redirect. Final url can be processed to
                 // get the code or error.
                 Logger.i(TAG + methodName, "It is not a broker request", "");
+
                 Intent resultIntent = new Intent();
                 resultIntent.putExtra(RESPONSE_FINAL_URL, url);
-                resultIntent.putExtra(RESPONSE_REQUEST_INFO,
-                        mAuthRequest);
-                returnToCaller(BROWSER_CODE_COMPLETE,
-                        resultIntent);
+                resultIntent.putExtra(RESPONSE_REQUEST_INFO, mAuthRequest);
+                returnToCaller(BROWSER_CODE_COMPLETE, resultIntent);
+
                 view.stopLoading();
             } else {
                 Logger.i(TAG + methodName, "It is a broker request", "");
@@ -1007,21 +1000,11 @@ public class AuthenticationActivity extends Activity {
                 mRequest.setLoginHint(name);
             } else {
                 Logger.i(TAG + methodName, "Saving userinfo to account", "");
-                mAccountManager.setUserData(newAccount,
-                        ACCOUNT_USERINFO_USERID,
-                        userinfo.getUserId());
-                mAccountManager.setUserData(newAccount,
-                        ACCOUNT_USERINFO_GIVEN_NAME,
-                        userinfo.getGivenName());
-                mAccountManager.setUserData(newAccount,
-                        ACCOUNT_USERINFO_FAMILY_NAME,
-                        userinfo.getFamilyName());
-                mAccountManager.setUserData(newAccount,
-                        ACCOUNT_USERINFO_IDENTITY_PROVIDER,
-                        userinfo.getIdentityProvider());
-                mAccountManager.setUserData(newAccount,
-                        ACCOUNT_USERINFO_USERID_DISPLAYABLE,
-                        userinfo.getDisplayableId());
+                mAccountManager.setUserData(newAccount, ACCOUNT_USERINFO_USERID, userinfo.getUserId());
+                mAccountManager.setUserData(newAccount, ACCOUNT_USERINFO_GIVEN_NAME, userinfo.getGivenName());
+                mAccountManager.setUserData(newAccount, ACCOUNT_USERINFO_FAMILY_NAME, userinfo.getFamilyName());
+                mAccountManager.setUserData(newAccount, ACCOUNT_USERINFO_IDENTITY_PROVIDER, userinfo.getIdentityProvider());
+                mAccountManager.setUserData(newAccount, ACCOUNT_USERINFO_USERID_DISPLAYABLE, userinfo.getDisplayableId());
             }
 
             result.mAccountName = name;
@@ -1121,70 +1104,34 @@ public class AuthenticationActivity extends Activity {
             }
 
             if (result.mTaskResult.getStatus().equals(AuthenticationStatus.Succeeded)) {
-                intent.putExtra(
-                        REQUEST_ID,
-                        mWaitingRequestId
-                );
-                intent.putExtra(
-                        ACCOUNT_ACCESS_TOKEN,
-                        result.mTaskResult.getAccessToken()
-                );
-                intent.putExtra(
-                        ACCOUNT_NAME,
-                        result.mAccountName
-                );
+                intent.putExtra(REQUEST_ID, mWaitingRequestId);
+                intent.putExtra(ACCOUNT_ACCESS_TOKEN, result.mTaskResult.getAccessToken());
+                intent.putExtra(ACCOUNT_NAME, result.mAccountName);
 
                 if (result.mTaskResult.getExpiresOn() != null) {
-                    intent.putExtra(
-                            ACCOUNT_EXPIREDATE,
-                            result.mTaskResult.getExpiresOn().getTime()
-                    );
+                    intent.putExtra(ACCOUNT_EXPIREDATE, result.mTaskResult.getExpiresOn().getTime());
                 }
 
                 if (result.mTaskResult.getTenantId() != null) {
-                    intent.putExtra(
-                            ACCOUNT_USERINFO_TENANTID,
-                            result.mTaskResult.getTenantId()
-                    );
+                    intent.putExtra(ACCOUNT_USERINFO_TENANTID, result.mTaskResult.getTenantId());
                 }
 
                 final UserInfo userinfo = result.mTaskResult.getUserInfo();
 
                 if (userinfo != null) {
-                    intent.putExtra(ACCOUNT_USERINFO_USERID,
-                            userinfo.getUserId());
-                    intent.putExtra(ACCOUNT_USERINFO_GIVEN_NAME,
-                            userinfo.getGivenName());
-                    intent.putExtra(
-                            ACCOUNT_USERINFO_FAMILY_NAME,
-                            userinfo.getFamilyName());
-                    intent.putExtra(
-                            ACCOUNT_USERINFO_IDENTITY_PROVIDER,
-                            userinfo.getIdentityProvider());
-                    intent.putExtra(
-                            ACCOUNT_USERINFO_USERID_DISPLAYABLE,
-                            userinfo.getDisplayableId());
+                    intent.putExtra(ACCOUNT_USERINFO_USERID, userinfo.getUserId());
+                    intent.putExtra(ACCOUNT_USERINFO_GIVEN_NAME, userinfo.getGivenName());
+                    intent.putExtra(ACCOUNT_USERINFO_FAMILY_NAME, userinfo.getFamilyName());
+                    intent.putExtra(ACCOUNT_USERINFO_IDENTITY_PROVIDER, userinfo.getIdentityProvider());
+                    intent.putExtra(ACCOUNT_USERINFO_USERID_DISPLAYABLE, userinfo.getDisplayableId());
                 }
 
                 if (null != result.mTaskResult.getCliTelemInfo()) {
                     final TelemetryUtils.CliTelemInfo cliTelemInfo = result.mTaskResult.getCliTelemInfo();
-
-                    intent.putExtra(
-                            SPE_RING,
-                            cliTelemInfo.getSpeRing()
-                    );
-                    intent.putExtra(
-                            RT_AGE,
-                            cliTelemInfo.getRefreshTokenAge()
-                    );
-                    intent.putExtra(
-                            SERVER_ERROR,
-                            cliTelemInfo.getServerErrorCode()
-                    );
-                    intent.putExtra(
-                            SERVER_SUBERROR,
-                            cliTelemInfo.getServerSubErrorCode()
-                    );
+                    intent.putExtra(SPE_RING, cliTelemInfo.getSpeRing());
+                    intent.putExtra(RT_AGE, cliTelemInfo.getRefreshTokenAge());
+                    intent.putExtra(SERVER_ERROR, cliTelemInfo.getServerErrorCode());
+                    intent.putExtra(SERVER_SUBERROR, cliTelemInfo.getServerSubErrorCode());
                 }
 
                 returnResult(TOKEN_BROKER_RESPONSE, intent);
