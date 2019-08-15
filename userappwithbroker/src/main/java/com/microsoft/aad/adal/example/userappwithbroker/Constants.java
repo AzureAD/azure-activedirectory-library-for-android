@@ -58,7 +58,6 @@ public class Constants {
 
 
     enum ClientId {
-        MSIDLABS("4b0db8c2-9f26-4417-8bde-3f0e3656f8e0"),
         ONEDRIVE("af124e86-4e96-495a-b70a-90f90ab96707"),
         OFFICE("d3590ed6-52b3-4102-aeff-aad2292ab01c"),
         APPCHECK2_BF("f5d01c1c-abe6-4207-ae2d-5bc9af251724"),
