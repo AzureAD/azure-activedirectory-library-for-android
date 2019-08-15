@@ -26,3 +26,15 @@ build/
 # Local configuration file (sdk path, etc)
 gradle.properties
 local.properties
+
+# OSX file
+.DS_Store
+
+# Windows thumbnail cache files
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+
+# Folder config file
+[Dd]esktop.ini
