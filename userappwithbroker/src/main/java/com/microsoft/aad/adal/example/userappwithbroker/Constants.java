@@ -26,8 +26,12 @@ package com.microsoft.aad.adal.example.userappwithbroker;
 public class Constants {
     enum AuthorityType {
         AAD_COMMON("https://login.microsoftonline.com/common"),
-        AAD_MSDEVEX("https://login.microsoftonline.com/msdevex.onmicrosoft.com"),
-        AAD_GUEST("https://login.microsoftonline.com/nomfaad.onmicrosoft.com"),
+        MSID_LAB2("https://login.microsoftonline.com/msidlab2.com"),
+        MSID_LAB3("https://login.microsoftonline.com/msidlab3.com"),
+        MSID_LAB4("https://login.microsoftonline.com/msidlab4.com"),
+        MSID_BLACKFOREST("https://login.microsoftonline.de/blfmsidlab1.onmicrosoft.de"),
+        MSID_FAIRFAX("https://login.microsoftonline.us/ffxmsidlab1.onmicrosoft.com"),
+        MSID_ARLINGTON("https://login.microsoftonline.us/arlmsidlab1.onmicrosoft.us"),
         AAD_WINDOWS_NET("https://login.windows.net/common");
 
         private final String text;
