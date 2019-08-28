@@ -29,7 +29,9 @@ import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.os.Bundle;
 import android.os.Handler;
+
 import com.google.android.material.navigation.NavigationView;
+
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -38,6 +40,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.RelativeLayout;
@@ -135,11 +138,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mAuthResult = null;
         } else if (menuItemId == R.id.nav_log) {
             fragment = new LogFragment();
-            final String logs = ((ADALSampleApp)this.getApplication()).getLogs();
+            final String logs = ((ADALSampleApp) this.getApplication()).getLogs();
             final Bundle bundle = new Bundle();
             bundle.putString(LogFragment.LOG_MSG, logs);
             fragment.setArguments(bundle);
-        }else {
+        } else {
             fragment = null;
         }
 
@@ -199,7 +202,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        mAuthContext.onActivityResult(requestCode, resultCode, data);
+        if (mAuthContext != null) {
+            mAuthContext.onActivityResult(requestCode, resultCode, data);
+        } else {
+            showMessage("mAuthContext is null. This is expected in 'Don't keep activities' scenario");
+        }
     }
 
     private void showMessage(final String msg) {
@@ -218,13 +225,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      * 1) You have to call {@link AuthenticationSettings#INSTANCE#setUseBroker(boolean)}
      *    and the supplied value has to be true
      * 2) You have to have to correct set of permissions.
-     *    If target API version is lower than 23:
-     *    i) You have to have GET_ACCOUNTS, USE_CREDENTIAL, MANAGE_ACCOUNTS declared
-     *       in manifest.
-     *    If target API version is 23:
-     *    i)  USE_CREDENTIAL and MANAGE_ACCOUNTS is already deprecated.
-     *    ii) GET_ACCOUNTS permission is now at protection level "dangerous" calling app
-     *        is responsible for requesting it.
+     *      If target API version is lower than 23:
+     *      i) You have to have GET_ACCOUNTS, USE_CREDENTIAL, MANAGE_ACCOUNTS declared
+     *         in manifest.
+     *      If target API version is 23:
+     *      i)  USE_CREDENTIAL and MANAGE_ACCOUNTS is already deprecated.
+     *      ii) GET_ACCOUNTS permission is now at protection level "dangerous" calling app
+     *          is responsible for requesting it.
      * 3) If you're talking to the broker app without PRT support, you have to have an
      *    WPJ account existed in broker(enroll with intune, or register with Azure
      *    Authentication app).
@@ -300,39 +307,39 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      */
     private void saveUserIdFromAuthenticationResult(final AuthenticationResult authResult, final String authority) {
         mSharedPreference = getSharedPreferences(SHARED_PREFERENCE_STORE_USER_UNIQUEID, MODE_PRIVATE);
+        final SharedPreferences.Editor prefEditor = mSharedPreference.edit();
         if (null != authResult) {
             if (null != authResult.getAuthority()) {
-                final SharedPreferences.Editor prefEditor = mSharedPreference.edit();
                 if (null != authResult.getUserInfo() && null != authResult.getUserInfo().getDisplayableId()) {
                     if (null != authResult.getUserInfo() && null != authResult.getUserInfo().getIdentityProvider()) {
                         prefEditor.putString(
-                                (authResult.getUserInfo().getDisplayableId().trim() + ":" + authority.trim() +  ":authority").toLowerCase(),
+                                (authResult.getUserInfo().getDisplayableId().trim() + ":" + authority.trim() + ":authority").toLowerCase(),
                                 authResult.getUserInfo().getIdentityProvider().trim().toLowerCase());
                     } else {
-                       prefEditor.putString(
-                               (authResult.getUserInfo().getDisplayableId().trim() + ":" + authority.trim() +  ":authority").toLowerCase(),
-                               authResult.getAuthority().trim().toLowerCase());
+                        prefEditor.putString(
+                                (authResult.getUserInfo().getDisplayableId().trim() + ":" + authority.trim() + ":authority").toLowerCase(),
+                                authResult.getAuthority().trim().toLowerCase());
                     }
-                }  else {
+                } else {
                     final Toast toast = Toast.makeText(mApplicationContext,
                             "Warning: the result authority is null," +
                                     "Silent auth for Sovereign account will fail. ", Toast.LENGTH_SHORT);
                     toast.show();
                 }
+            }
 
-                if (null != authResult.getUserInfo()
+            if (null != authResult.getUserInfo()
                     && null != authResult.getUserInfo().getDisplayableId()
                     && null != authResult.getUserInfo().getUserId()) {
-                    prefEditor.putString((authResult.getUserInfo().getDisplayableId().trim() + ":" + authority.trim() + ":userId").toLowerCase(), authResult.getUserInfo().getUserId().trim().toLowerCase());
-                } else {
-                    final Toast toast = Toast.makeText(mApplicationContext,
-                            "Warning: the result userInfo is null. " +
-                                    "Silent auth without userID will fail. ", Toast.LENGTH_SHORT);
-                    toast.show();
-                }
-
-                prefEditor.apply();
+                prefEditor.putString((authResult.getUserInfo().getDisplayableId().trim() + ":" + authority.trim() + ":userId").toLowerCase(), authResult.getUserInfo().getUserId().trim().toLowerCase());
+            } else {
+                final Toast toast = Toast.makeText(mApplicationContext,
+                        "Warning: the result userInfo is null. " +
+                                "Silent auth without userID will fail. ", Toast.LENGTH_SHORT);
+                toast.show();
             }
+
+            prefEditor.apply();
         }
     }
 
@@ -346,8 +353,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     /**
-     * Silent acquire token call. Requires to pass the user unique id. If user unique id is not passed, 
-     * silent call to broker will be skipped. 
+     * Silent acquire token call. Requires to pass the user unique id. If user unique id is not passed,
+     * silent call to broker will be skipped.
      */
     private void callAcquireTokenSilent(final String resource, final String userUniqueId, final String clientId) {
         mAuthContext.acquireTokenSilentAsync(resource, clientId, userUniqueId, new AuthenticationCallback<AuthenticationResult>() {
@@ -371,8 +378,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
 }
+
 class SampleTelemetry implements IDispatcher {
     private static final String TAG = "SampleTelemetry";
+
     @Override
     public void dispatchEvent(final Map<String, String> events) {
         final Iterator iterator = events.entrySet().iterator();
