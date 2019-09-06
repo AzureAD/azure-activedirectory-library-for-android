@@ -48,6 +48,7 @@ import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import android.webkit.WebView;
 
+import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.gson.Gson;
@@ -111,7 +112,6 @@ import static com.microsoft.aad.adal.AuthenticationConstants.Browser.RESPONSE_RE
 import static com.microsoft.aad.adal.AuthenticationConstants.Browser.WEBVIEW_INVALID_REQUEST;
 import static com.microsoft.aad.adal.AuthenticationConstants.ENCODING_UTF8;
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROKER_REQUEST_RESUME;
-import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL;
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE;
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR;
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE;
@@ -703,7 +703,7 @@ public class AuthenticationActivity extends Activity {
         // happen.
         if (mPkeyAuthRedirect || !mWebView.canGoBackOrForward(BACK_PRESSED_CANCEL_DIALOG_STEPS)) {
             // counting blank page as well
-            cancelRequest();
+            cancelRequest(null);
         } else {
             // Don't use default back pressed action, since user can go back in
             // webview
@@ -711,15 +711,21 @@ public class AuthenticationActivity extends Activity {
         }
     }
 
-    private void cancelRequest() {
+    private void cancelRequest(@Nullable Intent errorIntent) {
         Logger.verbose(TAG, "Sending intent to cancel authentication activity");
-        final Intent resultIntent = new Intent();
-
-        if (mUIEvent != null) {
-            mUIEvent.setUserCancel();
+        int resultCode;
+        Intent resultIntent = errorIntent;
+        if (resultIntent == null) {
+            resultIntent = new Intent();
+            resultCode = AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL;
+            if (mUIEvent != null) {
+                mUIEvent.setUserCancel();
+            }
+        } else {
+            resultCode = AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR;
         }
 
-        returnToCaller(BROWSER_CODE_CANCEL, resultIntent);
+        returnToCaller(resultCode, resultIntent);
     }
 
     private void prepareForBrokerResume() {
@@ -754,7 +760,7 @@ public class AuthenticationActivity extends Activity {
         }
     }
 
-    class CustomWebViewClient extends BasicWebViewClient {
+    private class CustomWebViewClient extends BasicWebViewClient {
 
         CustomWebViewClient() {
             super(AuthenticationActivity.this, mRedirectUrl, mAuthRequest, mUIEvent);
@@ -854,8 +860,8 @@ public class AuthenticationActivity extends Activity {
         }
 
         @Override
-        public void cancelWebViewRequest() {
-            cancelRequest();
+        public void cancelWebViewRequest(@Nullable Intent errorIntent) {
+            cancelRequest(errorIntent);
         }
 
         @Override
