@@ -25,14 +25,10 @@ package com.microsoft.aad.adal;
 import android.content.Context;
 import android.content.Intent;
 import android.net.http.SslError;
-import android.support.annotation.Nullable;
-import android.support.annotation.UiThread;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
-import android.test.UiThreadTest;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
 
+import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 import androidx.test.annotation.UiThreadTest;
 import androidx.test.ext.junit.runners.AndroidJUnit4;

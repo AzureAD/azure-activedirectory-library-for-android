@@ -39,8 +39,6 @@ import android.os.Bundle;
 import android.security.KeyChain;
 import android.security.KeyChainAliasCallback;
 import android.security.KeyChainException;
-import android.support.annotation.Nullable;
-import android.support.v4.content.LocalBroadcastManager;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
@@ -50,6 +48,7 @@ import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import android.webkit.WebView;
 
+import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.gson.Gson;
@@ -113,7 +112,6 @@ import static com.microsoft.aad.adal.AuthenticationConstants.Browser.RESPONSE_RE
 import static com.microsoft.aad.adal.AuthenticationConstants.Browser.WEBVIEW_INVALID_REQUEST;
 import static com.microsoft.aad.adal.AuthenticationConstants.ENCODING_UTF8;
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROKER_REQUEST_RESUME;
-import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL;
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE;
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR;
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE;
@@ -1047,8 +1045,6 @@ public class AuthenticationActivity extends Activity {
             // Intentionally left blank
         }
 
-        public TokenTask(IWebRequestHandler webHandler, final AuthenticationRequest request,
-                  final String packageName, final int callingUID) {
         public TokenTask(final IWebRequestHandler webHandler,
                          final AuthenticationRequest request,
                          final String packageName,
