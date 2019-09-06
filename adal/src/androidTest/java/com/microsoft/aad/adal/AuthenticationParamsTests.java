@@ -23,13 +23,12 @@
 
 package com.microsoft.aad.adal;
 
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.InstrumentationRegistry;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.microsoft.aad.adal.AuthenticationParameters.AuthenticationParamCallback;
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
-
 import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 
@@ -53,7 +52,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import static android.support.test.InstrumentationRegistry.getInstrumentation;
+import static androidx.test.InstrumentationRegistry.getInstrumentation;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -404,4 +403,4 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
         dummy.put(key, Arrays.asList(value, "s2", "s3"));
         return dummy;
     }
-};
+}

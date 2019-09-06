@@ -20,7 +20,6 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-
 package com.microsoft.aad.adal;
 
 import java.lang.reflect.Constructor;
@@ -45,103 +44,45 @@ public final class ReflectionUtils {
      * @throws IllegalAccessException
      * @throws InvocationTargetException
      */
-    public static Method getTestMethod(Object object, final String methodName, Class<?>... paramtypes)
-            throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
-            InstantiationException, IllegalAccessException, InvocationTargetException {
-        Class<?> c = object.getClass();
-        Method m = c.getDeclaredMethod(methodName, paramtypes);
+    public static Method getTestMethod(final Object object,
+                                       final String methodName,
+                                       final Class<?>... paramtypes)
+            throws IllegalArgumentException, NoSuchMethodException {
+        final Class<?> c = object.getClass();
+        final Method m = c.getDeclaredMethod(methodName, paramtypes);
         m.setAccessible(true);
         return m;
     }
 
-    public static Method getStaticTestMethod(Class<?> c, final String methodName, Class<?>... paramtypes)
-            throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
-            InstantiationException, IllegalAccessException, InvocationTargetException {
-        Method m = c.getDeclaredMethod(methodName, paramtypes);
-        m.setAccessible(true);
-        return m;
-    }
-
-    /**
-     * get non public instance default constructor for testing
-     *
-     * @param name
-     * @return
-     * @throws ClassNotFoundException
-     * @throws NoSuchMethodException
-     * @throws IllegalArgumentException
-     * @throws InstantiationException
-     * @throws IllegalAccessException
-     * @throws InvocationTargetException
-     */
-    public static Object getNonPublicInstance(String name) throws ClassNotFoundException,
-            NoSuchMethodException, IllegalArgumentException, InstantiationException,
-            IllegalAccessException, InvocationTargetException {
-        // full package name
-        Class<?> c = Class.forName(name);
-
-        // getConstructor() returns only public constructors,
-
-        Constructor<?> constructor = c.getDeclaredConstructor();
-
-        constructor.setAccessible(true);
-        return constructor.newInstance(null);
-    }
-
-    public static Object getFieldValue(Object object, String fieldName)
+    public static Object getFieldValue(final Object object, final String fieldName)
             throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
-        Field f = object.getClass().getDeclaredField(fieldName);
+        final Field f = object.getClass().getDeclaredField(fieldName);
         f.setAccessible(true);
         return f.get(object);
     }
 
-    public static void setFieldValue(Object object, String fieldName, Object value)
+    public static void setFieldValue(final Object object,
+                                     final String fieldName,
+                                     final Object value)
             throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
-        Field f = object.getClass().getDeclaredField(fieldName);
+        final Field f = object.getClass().getDeclaredField(fieldName);
         f.setAccessible(true);
         f.set(object, value);
     }
 
-    public static <T> T getterValue(Class<T> clazz, Object instance, String methodName)
-            throws NoSuchMethodException, IllegalArgumentException, IllegalAccessException,
-            InvocationTargetException {
-        Method m = instance.getClass().getDeclaredMethod(methodName);
-        Object object = m.invoke(instance, (Object[]) null);
-        return clazz.cast(object);
-    }
-
-    public static void setterValue(Object authenticationRequest, String methodName, Object param)
-            throws NoSuchMethodException, IllegalArgumentException, IllegalAccessException,
-            InvocationTargetException {
-        Method[] methods = authenticationRequest.getClass().getDeclaredMethods();
-        Method targetMethod = null;
-        // target only name for setters
-        for (Method m : methods) {
-            if (m.getName().equals(methodName)) {
-                targetMethod = m;
-                break;
-            }
-        }
-
-        if (targetMethod != null) {
-            targetMethod.invoke(authenticationRequest, param);
-        } else {
-            throw new NoSuchMethodException();
-        }
-    }
-
-    public static Object getInstance(String className, Object... params)
+    public static Object getInstance(final String className,
+                                     final Object... params)
             throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
             InstantiationException, IllegalAccessException, InvocationTargetException {
-        Class<?> c = Class.forName(className);
-        Class<?>[] paramTypes = getTypes(params);
-        Constructor<?> constructorParams = c.getDeclaredConstructor(paramTypes);
+        final Class<?> c = Class.forName(className);
+        final Class<?>[] paramTypes = getTypes(params);
+        final Constructor<?> constructorParams = c.getDeclaredConstructor(paramTypes);
         constructorParams.setAccessible(true);
         Object o = constructorParams.newInstance(params);
         return o;
     }
 
-    private static Class<?>[] getTypes(Object... params) {
+    private static Class<?>[] getTypes(final Object... params) {
         Class<?>[] paramTypes = null;
         if (params != null) {
             paramTypes = new Class<?>[params.length];

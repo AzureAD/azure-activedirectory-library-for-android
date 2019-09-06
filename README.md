@@ -4,7 +4,7 @@ ADAL for Android gives you the ability to add support for Work Accounts to your 
 
 A Work Account is an identity you use to get work done from your organization or school. Anywhere you need to get access to your work life you'll use a Work Account. The Work Account can be tied to an Active Directory server running in your datacenter or live completely in the cloud like when you use Office 365. A Work Account will be how your users know that they are accessing their important documents and data backed my Microsoft security.
 
-## ADAL for Android 1.16.1 Released!
+## ADAL for Android 1.16.3 Released!
 
 ## Build status
 
@@ -17,7 +17,7 @@ Note: A corpnet account is required to view the VSTS build.
 
 ## Versions
 
-Current version - 1.16.1
+Current version - 1.16.3
 
 Minimum recommended version - 1.15.1-hf1
 
@@ -111,7 +111,7 @@ repositories {
 }
 dependencies {
     // your dependencies here...
-    compile('com.microsoft.aad:adal:1.15.+') {
+    compile('com.microsoft.aad:adal:1.16.+') {
         // if your app includes android support
         // libraries or Gson in its dependencies
         // exclude that groupId from ADAL's compile
@@ -132,7 +132,7 @@ If you are using the m2e plugin in Eclipse, you can specify the dependency in yo
 <dependency>
     <groupId>com.microsoft.aad</groupId>
     <artifactId>adal</artifactId>
-    <version>1.16.1</version>
+    <version>1.16.3</version>
     <type>aar</type>
 </dependency>
 ```
@@ -307,7 +307,7 @@ In order to acquire token via broker, the following requirements have to be met 
 
 * Starting version 1.1.14, developer has to explicitly specify set to use broker via:
     `AuthenticationSettings.INSTANCE.setUseBroker(true);`
-* Developer needs to register special redirectUri for broker usage. RedirectUri is in the format of msauth://packagename/Base64UrlencodedSignature. You can get your redirecturi for your app using the script `brokerRedirectPrint.ps1` on Windows or `brokerRedirectPrint.sh` on Linux or Mac. You can also use API call mContext.getBrokerRedirectUri. Signature is related to your signing certificates.
+* Developer needs to register special redirectUri for broker usage. RedirectUri is in the format of msauth://packagename/Base64UrlencodedSignature. You can get your redirecturi for your app using the script `GetBrokerRedirectURI.ps1` on Windows or `brokerRedirectPrint.sh` on Linux or Mac. You can also use API call mContext.getBrokerRedirectUri. Signature is related to your signing certificates.
 * If target version is lower than 23, calling app has to have the following permissions declared in [the manifest](http://developer.android.com/reference/android/accounts/AccountManager.html):
   * `GET_ACCOUNTS`
   * `USE_CREDENTIALS`
