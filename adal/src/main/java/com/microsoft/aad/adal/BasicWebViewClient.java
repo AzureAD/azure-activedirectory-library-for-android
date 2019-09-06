@@ -65,7 +65,7 @@ abstract class BasicWebViewClient extends WebViewClient {
     private static final String INSTALL_URL_KEY = "app_link";
     private static final String TAG = "BasicWebViewClient";
 
-    private static final String BLANK_PAGE = "about:blank";
+    static final String BLANK_PAGE = "about:blank";
 
     final AuthenticationRequest mRequest;
 

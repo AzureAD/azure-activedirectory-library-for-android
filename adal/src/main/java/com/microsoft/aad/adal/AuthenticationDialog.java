@@ -30,14 +30,14 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Handler;
-import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.ProgressBar;
+
+import androidx.annotation.Nullable;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 
