@@ -11,7 +11,7 @@ rootProject.name = 'android_auth'
 
 include ':adal', ':msal', ':common', ':AADAuthenticator', ':brokerHost', ':msalTestApp', ':adalTestApp',
         ':app', ':library', ':NgcProviderLibrary', ':AadRemoteNgcLibrary', ':SharedCoreLibrary', ':AzureSample', ':TestUtilitiesLibrary',
-        ':labapi', ':keyvault'
+        ':labapi', ':keyvault', ':testutils'
 project(':common').projectDir = new File('common/common')
 project(':msal').projectDir = new File('msal/msal')
 project(':adal').projectDir = new File('adal/adal')
@@ -28,3 +28,4 @@ project(':AzureSample').projectDir = new File ('azuresample/app')
 project(':TestUtilitiesLibrary').projectDir = new File ('authenticator/PhoneFactor/TestUtilitiesLibrary')
 project(':keyvault').projectDir = new File('common/keyvault')
 project(':labapi').projectDir = new File('common/labapi')
+project(':testutils').projectDir = new File('common/testutils')
