@@ -92,7 +92,7 @@ final class APIEvent extends DefaultEvent {
     }
 
     void setPromptBehavior(final PromptBehavior promptBehavior) {
-        if(promptBehavior != null) {
+        if (promptBehavior != null) {
             setProperty(EventStrings.PROMPT_BEHAVIOR, promptBehavior.toString());
         }
     }
@@ -139,7 +139,7 @@ final class APIEvent extends DefaultEvent {
 
         try {
             setProperty(EventStrings.TENANT_ID, StringExtensions.createHash(idToken.getTenantId()));
-            setProperty(EventStrings.USER_ID, StringExtensions.createHash(userInfo.getDisplayableId()));
+            setProperty(EventStrings.USER_ID, StringExtensions.createHash(userInfo.getUserId()));
         } catch (UnsupportedEncodingException | NoSuchAlgorithmException e) {
             Logger.i(TAG + methodName, "Skipping TENANT_ID and USER_ID", "");
         }
@@ -148,7 +148,7 @@ final class APIEvent extends DefaultEvent {
     void setLoginHint(final String loginHint) {
         final String methodName = ":setLoginHint";
         try {
-            setProperty(EventStrings.LOGIN_HINT,  StringExtensions.createHash(loginHint));
+            setProperty(EventStrings.LOGIN_HINT, StringExtensions.createHash(loginHint));
         } catch (UnsupportedEncodingException | NoSuchAlgorithmException e) {
             Logger.i(TAG + methodName, "Skipping telemetry for LOGIN_HINT", "");
         }
@@ -182,6 +182,7 @@ final class APIEvent extends DefaultEvent {
 
     /**
      * Each event chooses which of its members get picked on aggregation.
+     *
      * @param dispatchMap the Map that is filled with the aggregated event properties
      */
     @Override

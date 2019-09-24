@@ -65,7 +65,7 @@ abstract class BasicWebViewClient extends WebViewClient {
     private static final String INSTALL_URL_KEY = "app_link";
     private static final String TAG = "BasicWebViewClient";
 
-    private static final String BLANK_PAGE = "about:blank";
+    static final String BLANK_PAGE = "about:blank";
 
     final AuthenticationRequest mRequest;
 
@@ -87,7 +87,7 @@ abstract class BasicWebViewClient extends WebViewClient {
 
     public abstract void sendResponse(int returnCode, Intent responseIntent);
 
-    public abstract void cancelWebViewRequest();
+    public abstract void cancelWebViewRequest(@Nullable Intent errorIntent);
 
     public abstract void prepareForBrokerResumeRequest();
 
@@ -136,7 +136,7 @@ abstract class BasicWebViewClient extends WebViewClient {
                 );
 
                 handler.cancel();
-                cancelWebViewRequest();
+                cancelWebViewRequest(null);
             }
         });
 
@@ -396,7 +396,8 @@ abstract class BasicWebViewClient extends WebViewClient {
                     "Navigation starts with the redirect uri."
             );
 
-            if (hasCancelError(url)) {
+            Intent errorIntent = parseError(url);
+            if (errorIntent != null) {
                 // Catch WEB-UI cancel request
                 com.microsoft.identity.common.internal.logging.Logger.info(
                         TAG + methodName,
@@ -404,7 +405,7 @@ abstract class BasicWebViewClient extends WebViewClient {
                 );
 
                 view.stopLoading();
-                cancelWebViewRequest();
+                cancelWebViewRequest(errorIntent);
                 return true;
             }
 
@@ -418,7 +419,7 @@ abstract class BasicWebViewClient extends WebViewClient {
 
             openLinkInBrowser(url);
             view.stopLoading();
-            cancelWebViewRequest();
+            cancelWebViewRequest(null);
             return true;
         } else if (url.startsWith(BROWSER_EXT_INSTALL_PREFIX)) {
             com.microsoft.identity.common.internal.logging.Logger.verbose(
@@ -465,10 +466,10 @@ abstract class BasicWebViewClient extends WebViewClient {
         mCallingContext.startActivity(intent);
     }
 
-    protected boolean hasCancelError(final String redirectUrl) {
+    private Intent parseError(String redirectUrl) {
         final Map<String, String> parameters = StringExtensions.getUrlParameters(redirectUrl);
-        final String error = parameters.get("error");
-        final String errorDescription = parameters.get("error_description");
+        final String error = parameters.get(AuthenticationConstants.OAuth2.ERROR);
+        final String errorDescription = parameters.get(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION);
 
         if (!StringExtensions.isNullOrBlank(error)) {
             com.microsoft.identity.common.internal.logging.Logger.warnPII(
@@ -478,9 +479,14 @@ abstract class BasicWebViewClient extends WebViewClient {
                             + "Error Description: " + errorDescription
             );
 
-            return true;
+            Intent intent = new Intent();
+            intent.putExtra(AuthenticationConstants.OAuth2.ERROR, error);
+            intent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE, error);
+            intent.putExtra(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION, errorDescription);
+            intent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE, errorDescription);
+            return intent;
         }
 
-        return false;
+        return null;
     }
 }
