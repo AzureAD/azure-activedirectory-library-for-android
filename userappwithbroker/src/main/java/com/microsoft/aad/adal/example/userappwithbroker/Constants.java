@@ -68,7 +68,7 @@ public class Constants {
         GUESTCLIENT("ea5c8087-2476-489c-ae03-ad44a2ac399d"),
         ADFSV4("4b0db8c2-9f26-4417-8bde-3f0e3656f8e0"),
         ADFSV3("68a10fc3-ead9-41b8-ac5e-5b78af044736"),
-        ADFSV2("55311830-5dd0-4808-847b-77fdd1034b8c"),
+        ADFSV2("e3fbd64e-3bdc-4fe9-b531-31660912b944"),
         PING("6b748729-d940-4482-8724-5eb87a817a10"),
         SHIBBOLETH("d518483c-c15b-4a00-9f59-cff3ffc1077b");
 
