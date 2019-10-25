@@ -87,9 +87,21 @@ public class LoggerTest extends AndroidTestHelper {
         Logger.getInstance().setLogLevel(Logger.LogLevel.Debug);
         Logger.d("test", "testmessage");
 
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         assertEquals("same log tag", "test", logResponses.get(0).getTag());
         assertTrue("same log message", logResponses.get(0).getMessage().contains("testmessage"));
         logResponses.clear();
+
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         // set to warn
         Logger.getInstance().setLogLevel(Logger.LogLevel.Warn);
@@ -178,6 +190,12 @@ public class LoggerTest extends AndroidTestHelper {
     }
 
     private void verifyLogMessage(final List<TestLogResponse> responses) {
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         for (final TestLogResponse response : responses) {
             assertEquals("same log tag", "test", response.getTag());
             assertEquals("same log error code", ADALError.AUTH_FAILED_BAD_STATE, response.getErrorCode());

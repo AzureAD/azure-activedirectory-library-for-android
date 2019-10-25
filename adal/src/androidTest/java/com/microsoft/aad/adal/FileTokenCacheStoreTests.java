@@ -140,6 +140,11 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         Logger.getInstance().setExternalLogger(logger);
         ITokenCacheStore store = new FileTokenCacheStore(mTargetContex, FILE_DEFAULT_NAME);
         String msgToCheck = "Existing cache format is wrong";
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         assertTrue("Verify message ", logger.getLogMessage().contains(msgToCheck));
     }
 
