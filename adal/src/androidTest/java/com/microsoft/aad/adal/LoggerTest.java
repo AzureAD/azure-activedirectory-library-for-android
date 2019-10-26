@@ -88,7 +88,7 @@ public class LoggerTest extends AndroidTestHelper {
         Logger.d("test", "testmessage");
 
         try {
-            Thread.sleep(500);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -98,7 +98,7 @@ public class LoggerTest extends AndroidTestHelper {
         logResponses.clear();
 
         try {
-            Thread.sleep(500);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -191,7 +191,7 @@ public class LoggerTest extends AndroidTestHelper {
 
     private void verifyLogMessage(final List<TestLogResponse> responses) {
         try {
-            Thread.sleep(500);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
