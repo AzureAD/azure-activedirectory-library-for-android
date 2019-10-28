@@ -180,6 +180,12 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         mock.setWritable(false);
         store.removeItem(CacheKey.createCacheKey(mCacheItem));
 
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         assertEquals("Permission issue", ADALError.DEVICE_FILE_CACHE_IS_NOT_WRITING_TO_FILE,
                 logger.mLogErrorCode);
 
