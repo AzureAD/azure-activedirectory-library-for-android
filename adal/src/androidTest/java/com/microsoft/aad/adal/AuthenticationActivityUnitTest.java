@@ -497,6 +497,12 @@ public class AuthenticationActivityUnitTest {
                     e.printStackTrace();
                 }
 
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
                 // get field value to check
                 assertTrue("verify log message",
                         logResponse.getMessage().contains("Webview onResume register broadcast"));

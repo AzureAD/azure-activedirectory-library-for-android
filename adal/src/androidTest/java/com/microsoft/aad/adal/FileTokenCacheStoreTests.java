@@ -140,6 +140,11 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         Logger.getInstance().setExternalLogger(logger);
         ITokenCacheStore store = new FileTokenCacheStore(mTargetContex, FILE_DEFAULT_NAME);
         String msgToCheck = "Existing cache format is wrong";
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         assertTrue("Verify message ", logger.getLogMessage().contains(msgToCheck));
     }
 
@@ -174,6 +179,12 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         File mock = new File(directory, file);
         mock.setWritable(false);
         store.removeItem(CacheKey.createCacheKey(mCacheItem));
+
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         assertEquals("Permission issue", ADALError.DEVICE_FILE_CACHE_IS_NOT_WRITING_TO_FILE,
                 logger.mLogErrorCode);

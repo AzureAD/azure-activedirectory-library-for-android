@@ -179,6 +179,12 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
                 "Bearer   \t  scope=\"is=outer, space=ornot\",\t\t  authorization_uri=\"https://login.windows.net/tenant\", authorization_uri=\"https://login.windows.net/tenant\"",
                 "https://login.windows.net/tenant", null);
 
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         assertTrue("Has warning for redudant items", callback.isCalled());
         Logger.getInstance().setExternalLogger(null);
     }

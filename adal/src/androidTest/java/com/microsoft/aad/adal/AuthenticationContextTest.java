@@ -2150,6 +2150,12 @@ public final class AuthenticationContextTest {
         // act
         authContext.onActivityResult(requestCode, resultCode, null);
 
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         // assert
         assertTrue(logResponse.getMessage().contains(msgToCheck));
     }
@@ -2170,6 +2176,12 @@ public final class AuthenticationContextTest {
 
         // act
         authContext.onActivityResult(requestCode, resultCode, data);
+
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         // assert
         assertTrue(logResponse.getMessage().contains(msgToCheck));
