@@ -612,7 +612,7 @@ public class OauthTests {
     }
 
     @Test
-    public void testprocessTokenResponse() throws IOException {
+    public void testProcessTokenResponse() throws IOException {
 
         final AuthenticationRequest request = createAuthenticationRequest(TEST_AUTHORITY,
                 "resource", "client", "redirect", "loginhint", null, null, UUID.randomUUID(), false);
@@ -646,7 +646,7 @@ public class OauthTests {
     }
 
     @Test
-    public void testprocessTokenResponseWrongCorrelationId() throws IOException {
+    public void testProcessTokenResponseWrongCorrelationId() throws IOException {
         final AuthenticationRequest request = createAuthenticationRequest(TEST_AUTHORITY, "resource",
                 "client", "redirect", "loginhint", null, null, UUID.randomUUID(), false);
         final Oauth2 oauth2 = createOAuthInstance(request, new WebRequestHandler());
@@ -677,12 +677,17 @@ public class OauthTests {
 
         try {
             final AuthenticationResult result = oauth2.refreshToken("fakeRefreshToken");
+
+            Thread.sleep(1000);
+
             // verify same token
             assertEquals("Same token in parsed result", "sometokenhere2343=", result.getAccessToken());
             assertTrue("Log response has message",
                     ADALError.CORRELATION_ID_NOT_MATCHING_REQUEST_RESPONSE.equals(logResponse.getErrorCode()));
         } catch (final AuthenticationException e) {
             fail("unexpected exception");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
 
         final List<String> invalidHeaders = new ArrayList<>();
@@ -691,17 +696,23 @@ public class OauthTests {
         when(mockedConnection.getHeaderFields()).thenReturn(headers);
         TestLogResponse logResponse2 = new TestLogResponse();
         logResponse2.listenLogForMessageSegments("Wrong format of the correlation ID:");
+
         try {
             oauth2.refreshToken("fakeRefreshToken");
+
+            Thread.sleep(1000);
+
             assertTrue("Log response has message",
                     logResponse2.getErrorCode().equals(ADALError.CORRELATION_ID_FORMAT));
         } catch (final AuthenticationException e) {
             fail("Unexpected exception");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
     @Test
-    public void testprocessTokenResponseNegative() throws IOException {
+    public void testProcessTokenResponseNegative() throws IOException {
 
         final AuthenticationRequest request = createAuthenticationRequest(TEST_AUTHORITY, "resource",
                 "client", "redirect", "loginhint", null, null, UUID.randomUUID(), false);
