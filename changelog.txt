@@ -1,3 +1,8 @@
+Version 1.16.3-hf1
+--------------
+- Nimbus version update to 8.2
+- Remove connection close to fix emulator issue.
+
 Version 1.16.3
 --------------
 - Updates dependency com.microsoft.identity:common to 0.0.10
