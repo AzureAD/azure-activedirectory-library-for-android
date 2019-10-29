@@ -11,21 +11,23 @@ rootProject.name = 'android_auth'
 
 include ':adal', ':msal', ':common', ':AADAuthenticator', ':brokerHost', ':msalTestApp', ':adalTestApp',
         ':app', ':library', ':NgcProviderLibrary', ':AadRemoteNgcLibrary', ':SharedCoreLibrary', ':AzureSample', ':TestUtilitiesLibrary',
-        ':labapi', ':keyvault', ':testutils'
+        ':labapi', ':keyvault', ':testutils', ':pop-benchmarker', ':package-inspector'
 project(':common').projectDir = new File('common/common')
 project(':msal').projectDir = new File('msal/msal')
 project(':adal').projectDir = new File('adal/adal')
 project(':AADAuthenticator').projectDir = new File('broker/AADAuthenticator')
 project(':brokerHost').projectDir = new File('broker/userapp')
-project(':adalTestApp').projectDir = new File ('adal/userappwithbroker')
-project(':msalTestApp').projectDir = new File ('msal/testapps/testapp')
-project(':app').projectDir = new File ('authenticator/PhoneFactor/app')
-project(':library').projectDir = new File ('authenticator/PhoneFactor/OpenSourceLibraries/drag-sort-listview/library')
-project(':NgcProviderLibrary').projectDir = new File ('authenticator/PhoneFactor/NgcProviderLibrary')
-project(':AadRemoteNgcLibrary').projectDir = new File ('authenticator/PhoneFactor/AadRemoteNgcLibrary')
-project(':SharedCoreLibrary').projectDir = new File ('authenticator/PhoneFactor/SharedCoreLibrary')
-project(':AzureSample').projectDir = new File ('azuresample/app')
-project(':TestUtilitiesLibrary').projectDir = new File ('authenticator/PhoneFactor/TestUtilitiesLibrary')
+project(':adalTestApp').projectDir = new File('adal/userappwithbroker')
+project(':msalTestApp').projectDir = new File('msal/testapps/testapp')
+project(':app').projectDir = new File('authenticator/PhoneFactor/app')
+project(':library').projectDir = new File('authenticator/PhoneFactor/OpenSourceLibraries/drag-sort-listview/library')
+project(':NgcProviderLibrary').projectDir = new File('authenticator/PhoneFactor/NgcProviderLibrary')
+project(':AadRemoteNgcLibrary').projectDir = new File('authenticator/PhoneFactor/AadRemoteNgcLibrary')
+project(':SharedCoreLibrary').projectDir = new File('authenticator/PhoneFactor/SharedCoreLibrary')
+project(':AzureSample').projectDir = new File('azuresample/app')
+project(':TestUtilitiesLibrary').projectDir = new File('authenticator/PhoneFactor/TestUtilitiesLibrary')
 project(':keyvault').projectDir = new File('common/keyvault')
 project(':labapi').projectDir = new File('common/labapi')
 project(':testutils').projectDir = new File('common/testutils')
+project(':package-inspector').projectDir = new File('msal/package-inspector')
+project(':pop-benchmarker').projectDir = new File('msal/pop-benchmarker')
