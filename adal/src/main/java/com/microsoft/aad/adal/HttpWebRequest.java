@@ -102,10 +102,6 @@ class HttpWebRequest {
         HttpURLConnection.setFollowRedirects(true);
         final HttpURLConnection connection = HttpUrlConnectionFactory.createHttpUrlConnection(mUrl);
         connection.setConnectTimeout(CONNECT_TIME_OUT);
-        // To prevent EOF exception.
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB_MR2) {
-            connection.setRequestProperty("Connection", "close");
-        }
 
         // Apply the request headers
         final Set<Map.Entry<String, String>> headerEntries = mRequestHeaders.entrySet();
