@@ -129,17 +129,17 @@ dependencies {
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
     implementation "com.android.support:support-annotations:$rootProject.ext.supportLibraryVersion"
     implementation "com.android.support:support-v4:$rootProject.ext.supportLibraryVersion"
-    implementation 'com.nimbusds:nimbus-jose-jwt:5.7'
+    implementation 'com.nimbusds:nimbus-jose-jwt:8.2'
 
     // 'local' flavor dependencies
     localApi(project(":common")) {
         transitive = false
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '0.0.10', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '0.0.10-hf1', changing: true)
 
     // 'dist' flavor dependencies
-    distApi("com.microsoft.identity:common:0.0.10") {
+    distApi("com.microsoft.identity:common:0.0.10-hf1") {
         transitive = false
     }
 
