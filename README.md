@@ -8,17 +8,11 @@ This repository contains a build gradle and git alias commands for building ADAL
 The android related auth projects pull artifacts from public and private package repositories.  The private artifacts are published using Azure DevOps.  You will need to generate
 and store the credentials for the Identity and Aria azure devops instances.
 
-- [Aria](https://msasg.visualstudio.com/Shared%20Data/_packaging?_a=package&feed=ARIA-SDK&package=com.microsoft.applications%3Aariaandroidjavasdk-release&version=3.0.22.0&protocolType=maven)
 - [Identity](https://identitydivision.visualstudio.com/DevEx/_packaging?_a=feed&feed=AndroidADAL)
-- [Intune](https://msazure.visualstudio.com/Intune/_packaging?_a=feed&feed=android-maven)
 
 1. Click the "Connect to feed" button.  
 2. Then select gradle.  
 3. Then click the generate credentials button
-
-- [PowerLift](https://office.visualstudio.com/_usersSettings/tokens) 
-1. Press “+ New token” and create a name for your token
-2. Under “Scopes” select “Custom Defined”, hit "See all scopes", check only “Packaging (read)”.
 
 - [AuthenticatorApp](https://msazure.visualstudio.com/One/_git/AD-MFA-phonefactor-phoneApp-android)
 1. Go to //myaccess
@@ -29,12 +23,7 @@ Then add the following to your gradle properties (in your user folder on windows
 
 ```gradle.properties
 vstsUsername=VSTS 
-vstsGradleAccessToken=<InsertIdentityAccessTokenHere>
 vstsMavenAccessToken=<InsertIdentityAccessTokenHere>
-vstsAriaGradleAccessToken=<InsertAriaAccessTokenHere>
-azureArtifactsGradleAccessToken=<InsertIntuneAccessTokenHere>
-powerliftUsername=<Your Alias>
-powerliftPassword=<InsertPowerLiftAccessTokenHere>
 ```
 >NOTE: The sample configuration produced by Azure DevOps changed when the service was renamed from Visual Studio Online to Azure DevOps... the vstsUsername VSTS is still accepted.  
 

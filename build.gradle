@@ -1,13 +1,5 @@
 project.ext.vstsUsername = System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") : project.findProperty("vstsUsername")
-project.ext.vstsPassword = System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
-project.ext.vstsUsername = System.getenv("ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME") : project.findProperty("vstsUsername")
 project.ext.vstsMavenAccessToken = System.getenv("ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
-project.ext.ariaGradleAccessToken = System.getenv("ENV_VSTS_GRADLE_ANDROIDADACCOUNTS_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_GRADLE_ANDROIDADACCOUNTS_ACCESSTOKEN") : project.findProperty("vstsAriaGradleAccessToken")
-project.ext.msazureGradleAccessToken = System.getenv("AZURE_ARTIFACTS_ENV_ACCESS_TOKEN") != null ? System.getenv("AZURE_ARTIFACTS_ENV_ACCESS_TOKEN") : project.findProperty("azureArtifactsGradleAccessToken")
-project.ext.ariaTenantTokenTest = System.getenv("ENV_ARIA_ANDROIDADACCOUNTS_TOKENTEST") != null ? System.getenv("ENV_ARIA_ANDROIDADACCOUNTS_TOKENTEST") : project.findProperty("ariaTenantTokenTest")
-project.ext.ariaTenantTokenProd = System.getenv("ENV_ARIA_ANDROIDADACCOUNTS_TOKENPROD") != null ? System.getenv("ENV_ARIA_ANDROIDADACCOUNTS_TOKENPROD") : project.findProperty("ariaTenantTokenProd")
-ext.ariaPkgName = 'vsts-maven-aria-sdk'
-ext.ariaPkgUrl = 'https://msasg.pkgs.visualstudio.com/_packaging/ARIA-SDK/maven/v1'
 buildscript {
 
     ext.kotlin_version = '1.3.11'
@@ -34,27 +26,12 @@ allprojects {
     repositories {
         mavenLocal()
         maven {
-            name "msazure"
-            url 'https://msazure.pkgs.visualstudio.com/_packaging/android-maven/maven/v1'
-            credentials {
-                username project.vstsUsername
-                password project.msazureGradleAccessToken
-            }
-        }
-        maven {
+            // msazure and aria are consumed via upstream sources of the AndroidADAL feed.
             name "vsts-maven-adal-android"
             url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
             credentials {
                 username project.vstsUsername
                 password project.vstsMavenAccessToken
-            }
-        }
-        maven {
-            name project.ariaPkgName
-            url project.ariaPkgUrl
-            credentials {
-                username project.vstsUsername
-                password project.ariaGradleAccessToken
             }
         }
         google()
@@ -80,16 +57,4 @@ if (!project.hasProperty("vstsUsername")) {
 }
 if (!project.hasProperty("vstsMavenAccessToken")) {
     logger.error('vstsMavenAccessToken is missing in gradle.properties')
-}
-if (!project.hasProperty("vstsGradleAccessToken")) {
-    logger.error('vstsGradleAccessToken is missing in gradle.properties')
-}
-if (!project.hasProperty("azureArtifactsGradleAccessToken")) {
-    logger.error('azureArtifactsGradleAccessToken is missing in gradle.properties')
-}
-if (!project.hasProperty("ariaTenantTokenProd")) {
-    logger.error('ariaTenantTokenProd is missing in gradle.properties')
-}
-if (!project.hasProperty("ariaTenantTokenTest")) {
-    logger.error('ariaTenantTokenTest is missing in gradle.properties')
 }
