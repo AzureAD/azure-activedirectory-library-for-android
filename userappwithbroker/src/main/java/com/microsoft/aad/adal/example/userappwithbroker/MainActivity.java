@@ -296,7 +296,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         if (null != authResult) {
             final SharedPreferences.Editor prefEditor = mSharedPreference.edit();
-            prefEditor.putString(authResult.getUserInfo().getDisplayableId().toLowerCase() + ":" + authority.toLowerCase(),
+            prefEditor.putString(authResult.getUserInfo().getDisplayableId().trim().toLowerCase() + ":" + authority.trim().toLowerCase(),
                     authResult.getUserInfo().getUserId());
             prefEditor.commit();
         }
@@ -308,7 +308,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      */
     private String getUserIdBasedOnUPN(final String upn, final String requestAuthority) {
         mSharedPreference = getSharedPreferences(SHARED_PREFERENCE_STORE_USER_UNIQUEID, MODE_PRIVATE);
-        return mSharedPreference.getString(upn.toLowerCase() + ":" + requestAuthority.toLowerCase(), null);
+        return mSharedPreference.getString(upn.trim().toLowerCase() + ":" + requestAuthority.trim().toLowerCase(), null);
     }
 
     /**
