@@ -29,7 +29,9 @@ import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.os.Bundle;
 import android.os.Handler;
+
 import com.google.android.material.navigation.NavigationView;
+
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -38,6 +40,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.RelativeLayout;
@@ -78,8 +81,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private static final String SHARED_PREFERENCE_STORE_USER_UNIQUEID = "user.app.withbroker.uniqueidstorage";
 
     private String mLoginhint;
-
-    private String mAuthority;
 
     private String mRequestAuthority;
 
@@ -135,11 +136,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mAuthResult = null;
         } else if (menuItemId == R.id.nav_log) {
             fragment = new LogFragment();
-            final String logs = ((ADALSampleApp)this.getApplication()).getLogs();
+            final String logs = ((ADALSampleApp) this.getApplication()).getLogs();
             final Bundle bundle = new Bundle();
             bundle.putString(LogFragment.LOG_MSG, logs);
             fragment.setArguments(bundle);
-        }else {
+        } else {
             fragment = null;
         }
 
@@ -175,17 +176,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     void prepareRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions) {
+        //If there is no preferred authority stored, use the type-in authority
         mRequestAuthority = requestOptions.getAuthorityType().getText();
-        final String authority = getAuthorityBasedOnUPN(requestOptions.getLoginHint(), mRequestAuthority);
-        if (null != authority && !authority.isEmpty()) {
-            //Replace the request authority with the preferred authority stored in shared preference
-            mAuthority = authority;
-            mAuthContext = new AuthenticationContext(mApplicationContext, mAuthority, false);
-        } else {
-            //If there is no preferred authority stored, use the type-in authority
-            mAuthority = mRequestAuthority;
-            mAuthContext = new AuthenticationContext(mApplicationContext, mAuthority, true);
-        }
+        mAuthContext = new AuthenticationContext(mApplicationContext, mRequestAuthority, true);
 
         //TODO: We can add UX to set or not set this
         mAuthContext.setClientCapabilites(new ArrayList<>(Arrays.asList("CP1")));
@@ -216,20 +209,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     /**
      * To call broker, you have to ensure the following:
      * 1) You have to call {@link AuthenticationSettings#INSTANCE#setUseBroker(boolean)}
-     *    and the supplied value has to be true
+     * and the supplied value has to be true
      * 2) You have to have to correct set of permissions.
-     *    If target API version is lower than 23:
-     *    i) You have to have GET_ACCOUNTS, USE_CREDENTIAL, MANAGE_ACCOUNTS declared
-     *       in manifest.
-     *    If target API version is 23:
-     *    i)  USE_CREDENTIAL and MANAGE_ACCOUNTS is already deprecated.
-     *    ii) GET_ACCOUNTS permission is now at protection level "dangerous" calling app
-     *        is responsible for requesting it.
+     * If target API version is lower than 23:
+     * i) You have to have GET_ACCOUNTS, USE_CREDENTIAL, MANAGE_ACCOUNTS declared
+     * in manifest.
+     * If target API version is 23:
+     * i)  USE_CREDENTIAL and MANAGE_ACCOUNTS is already deprecated.
+     * ii) GET_ACCOUNTS permission is now at protection level "dangerous" calling app
+     * is responsible for requesting it.
      * 3) If you're talking to the broker app without PRT support, you have to have an
-     *    WPJ account existed in broker(enroll with intune, or register with Azure
-     *    Authentication app).
+     * WPJ account existed in broker(enroll with intune, or register with Azure
+     * Authentication app).
      * 4) The two broker apps(Company Portal or Azure Authenticator) cannot go through
-     *    broker auth.
+     * broker auth.
      */
     private void setUpADALForCallingBroker() {
         // Set the calling app will talk to broker
@@ -300,39 +293,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      */
     private void saveUserIdFromAuthenticationResult(final AuthenticationResult authResult, final String authority) {
         mSharedPreference = getSharedPreferences(SHARED_PREFERENCE_STORE_USER_UNIQUEID, MODE_PRIVATE);
+
         if (null != authResult) {
-            if (null != authResult.getAuthority()) {
-                final SharedPreferences.Editor prefEditor = mSharedPreference.edit();
-                if (null != authResult.getUserInfo() && null != authResult.getUserInfo().getDisplayableId()) {
-                    if (null != authResult.getUserInfo() && null != authResult.getUserInfo().getIdentityProvider()) {
-                        prefEditor.putString(
-                                (authResult.getUserInfo().getDisplayableId().trim() + ":" + authority.trim() +  ":authority").toLowerCase(),
-                                authResult.getUserInfo().getIdentityProvider().trim().toLowerCase());
-                    } else {
-                       prefEditor.putString(
-                               (authResult.getUserInfo().getDisplayableId().trim() + ":" + authority.trim() +  ":authority").toLowerCase(),
-                               authResult.getAuthority().trim().toLowerCase());
-                    }
-                }  else {
-                    final Toast toast = Toast.makeText(mApplicationContext,
-                            "Warning: the result authority is null," +
-                                    "Silent auth for Sovereign account will fail. ", Toast.LENGTH_SHORT);
-                    toast.show();
-                }
-
-                if (null != authResult.getUserInfo()
-                    && null != authResult.getUserInfo().getDisplayableId()
-                    && null != authResult.getUserInfo().getUserId()) {
-                    prefEditor.putString((authResult.getUserInfo().getDisplayableId().trim() + ":" + authority.trim() + ":userId").toLowerCase(), authResult.getUserInfo().getUserId().trim().toLowerCase());
-                } else {
-                    final Toast toast = Toast.makeText(mApplicationContext,
-                            "Warning: the result userInfo is null. " +
-                                    "Silent auth without userID will fail. ", Toast.LENGTH_SHORT);
-                    toast.show();
-                }
-
-                prefEditor.apply();
-            }
+            final SharedPreferences.Editor prefEditor = mSharedPreference.edit();
+            prefEditor.putString(authResult.getUserInfo().getDisplayableId().toLowerCase() + ":" + authority.toLowerCase(),
+                    authResult.getUserInfo().getUserId());
+            prefEditor.commit();
         }
     }
 
@@ -342,12 +308,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      */
     private String getUserIdBasedOnUPN(final String upn, final String requestAuthority) {
         mSharedPreference = getSharedPreferences(SHARED_PREFERENCE_STORE_USER_UNIQUEID, MODE_PRIVATE);
-        return mSharedPreference.getString((upn.trim() + ":" + requestAuthority.trim() + ":userId").toLowerCase(), null);
+        return mSharedPreference.getString(upn.toLowerCase() + ":" + requestAuthority.toLowerCase(), null);
     }
 
     /**
-     * Silent acquire token call. Requires to pass the user unique id. If user unique id is not passed, 
-     * silent call to broker will be skipped. 
+     * Silent acquire token call. Requires to pass the user unique id. If user unique id is not passed,
+     * silent call to broker will be skipped.
      */
     private void callAcquireTokenSilent(final String resource, final String userUniqueId, final String clientId) {
         mAuthContext.acquireTokenSilentAsync(resource, clientId, userUniqueId, new AuthenticationCallback<AuthenticationResult>() {
@@ -364,15 +330,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         });
     }
-
-    private String getAuthorityBasedOnUPN(final String upn, final String requestAuthority) {
-        mSharedPreference = getSharedPreferences(SHARED_PREFERENCE_STORE_USER_UNIQUEID, MODE_PRIVATE);
-        return mSharedPreference.getString((upn.trim() + ":" + requestAuthority.trim() + ":authority").toLowerCase(), null);
-    }
-
 }
+
 class SampleTelemetry implements IDispatcher {
     private static final String TAG = "SampleTelemetry";
+
     @Override
     public void dispatchEvent(final Map<String, String> events) {
         final Iterator iterator = events.entrySet().iterator();
