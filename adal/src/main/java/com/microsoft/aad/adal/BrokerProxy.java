@@ -547,6 +547,7 @@ class BrokerProxy implements IBrokerProxy {
 
             // set the x-ms-clitelem data
             result.setCliTelemInfo(cliTelemInfo);
+            result.setAuthority(bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY));
 
             return result;
         }

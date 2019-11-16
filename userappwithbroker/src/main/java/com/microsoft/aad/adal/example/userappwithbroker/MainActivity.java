@@ -304,15 +304,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if (null != authResult.getAuthority()) {
                 final SharedPreferences.Editor prefEditor = mSharedPreference.edit();
                 if (null != authResult.getUserInfo() && null != authResult.getUserInfo().getDisplayableId()) {
-                    if (null != authResult.getUserInfo() && null != authResult.getUserInfo().getIdentityProvider()) {
-                        prefEditor.putString(
-                                (authResult.getUserInfo().getDisplayableId().trim() + ":" + authority.trim() +  ":authority").toLowerCase(),
-                                authResult.getUserInfo().getIdentityProvider().trim().toLowerCase());
-                    } else {
-                       prefEditor.putString(
-                               (authResult.getUserInfo().getDisplayableId().trim() + ":" + authority.trim() +  ":authority").toLowerCase(),
-                               authResult.getAuthority().trim().toLowerCase());
-                    }
+                    prefEditor.putString(
+                            (authResult.getUserInfo().getDisplayableId().trim() + ":" + authority.trim() +  ":authority").toLowerCase(),
+                            authResult.getAuthority().trim().toLowerCase());
                 }  else {
                     final Toast toast = Toast.makeText(mApplicationContext,
                             "Warning: the result authority is null," +
