@@ -5,7 +5,7 @@ through the process.
 
 ### CONTRIBUTOR CONDUCT
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact opencode@microsoft.com with any additional questions or comments.
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). Please visit [https://cla.microsoft.com/](https://cla.microsoft.com/) and sign the Contributor License Agreement.  You only need to do that once. We can not look at your code until you've submitted this request. For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact opencode@microsoft.com with any additional questions or comments.
 
 
 ### FORK
