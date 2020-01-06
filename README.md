@@ -24,6 +24,7 @@ Then add the following to your gradle properties (in your user folder on windows
 ```gradle.properties
 vstsUsername=VSTS 
 vstsMavenAccessToken=<InsertIdentityAccessTokenHere>
+versionMajor=6
 ```
 >NOTE: The sample configuration produced by Azure DevOps changed when the service was renamed from Visual Studio Online to Azure DevOps... the vstsUsername VSTS is still accepted.  
 
