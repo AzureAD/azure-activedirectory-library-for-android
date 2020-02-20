@@ -51,7 +51,7 @@ android {
         versionName getAppVersionName()
         project.archivesBaseName = "adal"
         project.version = android.defaultConfig.versionName
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         debug {
@@ -113,6 +113,8 @@ android {
             outputFileName = "${archivesBaseName}-${version}.aar"
         }
     }
+
+    useLibrary 'android.test.mock'
 }
 
 dependencies {
@@ -125,27 +127,28 @@ dependencies {
     }
 
     // Dependencies
-    implementation "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
+    implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
-    implementation "com.android.support:support-annotations:$rootProject.ext.supportLibraryVersion"
-    implementation "com.android.support:support-v4:$rootProject.ext.supportLibraryVersion"
-    implementation 'com.nimbusds:nimbus-jose-jwt:8.2'
+    implementation "androidx.annotation:annotation:$rootProject.ext.annotationVersion"
+    implementation "androidx.legacy:legacy-support-v4:$rootProject.ext.legacySupportV4Version"
+    implementation "com.nimbusds:nimbus-jose-jwt:$rootProject.ext.nimbusVersion"
 
     // 'local' flavor dependencies
     localApi(project(":common")) {
         transitive = false
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '0.0.11-RC6', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '2.0.0', changing: true)
 
     // 'dist' flavor dependencies
-    distApi("com.microsoft.identity:common:0.0.11-RC6") {
+    distApi("com.microsoft.identity:common:2.0.0") {
         transitive = false
     }
 
     // Android Instrumented Test Dependencies
-    androidTestImplementation "com.android.support.test:runner:$rootProject.ext.runnerVersion"
-    androidTestImplementation "com.android.support.test:rules:$rootProject.ext.rulesVersion"
+    androidTestImplementation "androidx.test.ext:junit:$rootProject.ext.androidxJunitVersion"
+    androidTestImplementation "androidx.test:runner:$rootProject.ext.runnerVersion"
+    androidTestImplementation "androidx.test:rules:$rootProject.ext.rulesVersion"
     androidTestImplementation "org.mockito:mockito-core:$rootProject.ext.mockitoCoreVersion"
     androidTestImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
 
@@ -153,8 +156,8 @@ dependencies {
     testImplementation "junit:junit:$rootProject.ext.junitVersion"
 
     // Javadoc Dependencies
-    javadocDeps "com.android.support:support-annotations:$rootProject.ext.supportLibraryVersion"
-    javadocDeps "com.android.support:support-v4:$rootProject.ext.supportLibraryVersion"
+    javadocDeps "androidx.annotation:annotation:$rootProject.ext.annotationVersion"
+    javadocDeps "androidx.legacy:legacy-support-v4:$rootProject.ext.legacySupportV4Version"
 }
 
 task sourcesJar(type: Jar) {
@@ -164,6 +167,7 @@ task sourcesJar(type: Jar) {
 }
 
 task javadoc(type: Javadoc) {
+    failOnError false
     source = android.sourceSets.main.java.srcDirs
     classpath += configurations.compile
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))

@@ -23,6 +23,8 @@
 
 package com.microsoft.aad.adal;
 
+import androidx.annotation.Nullable;
+
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import org.json.JSONArray;
@@ -41,7 +43,6 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * Hold the authority validation metadata.
  */
-
 final class AuthorityValidationMetadataCache {
     private static final String TAG = AuthorityValidationMetadataCache.class.getSimpleName();
 
@@ -66,9 +67,11 @@ final class AuthorityValidationMetadataCache {
     }
 
     static boolean isAuthorityValidated(final URL authorityUrl) {
-        return containsAuthorityHost(authorityUrl) && getCachedInstanceDiscoveryMetadata(authorityUrl).isValidated();
+        InstanceDiscoveryMetadata discoveryMetadata = getCachedInstanceDiscoveryMetadata(authorityUrl);
+        return containsAuthorityHost(authorityUrl) && discoveryMetadata != null && discoveryMetadata.isValidated();
     }
 
+    @Nullable
     static InstanceDiscoveryMetadata getCachedInstanceDiscoveryMetadata(final URL authorityUrl) {
         return sAadAuthorityHostMetadata.get(authorityUrl.getHost().toLowerCase(Locale.US));
     }

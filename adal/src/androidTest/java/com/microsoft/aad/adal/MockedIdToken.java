@@ -24,9 +24,8 @@ package com.microsoft.aad.adal;
 
 import android.util.Base64;
 
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 class MockedIdToken {
 
@@ -59,12 +58,12 @@ class MockedIdToken {
                 GIVEN_NAME, ALTSECID, IDP, EMAIL);
         return String.format(
                 "%s.%s.",
-                new String(Base64.encode(ID_TOKEN_HEADER.getBytes(AuthenticationConstants.ENCODING_UTF8),
+                new String(Base64.encode(ID_TOKEN_HEADER.getBytes(StandardCharsets.UTF_8),
                         Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE),
-                        AuthenticationConstants.ENCODING_UTF8),
-                new String(Base64.encode(claims.getBytes(AuthenticationConstants.ENCODING_UTF8),
+                        StandardCharsets.UTF_8),
+                new String(Base64.encode(claims.getBytes(StandardCharsets.UTF_8),
                         Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE),
-                        AuthenticationConstants.ENCODING_UTF8));
+                        StandardCharsets.UTF_8));
     }
 
     public String getOid() {

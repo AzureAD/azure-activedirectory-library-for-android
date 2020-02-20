@@ -31,7 +31,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.util.Log;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
@@ -586,7 +586,7 @@ class AcquireTokenRequest {
                     + " Cannot launch webview, activity is null.");
         }
 
-        HttpWebRequest.throwIfNetworkNotAvailable(mContext);
+        HttpUtil.throwIfNetworkNotAvailable(mContext);
 
         final int requestId = callbackHandle.getCallback().hashCode();
         authenticationRequest.setRequestId(requestId);

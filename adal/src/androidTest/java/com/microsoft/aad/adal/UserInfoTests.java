@@ -24,15 +24,14 @@
 package com.microsoft.aad.adal;
 
 import android.net.Uri;
-import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Base64;
 
-
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import androidx.test.filters.SmallTest;
 
 import junit.framework.TestCase;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
@@ -130,12 +129,12 @@ public class UserInfoTests extends TestCase {
                 altsecid, idp, email);
         return String.format("%s.%s.",
                 new String(
-                        Base64.encode(sIdTokenHeader.getBytes(AuthenticationConstants.ENCODING_UTF8),
+                        Base64.encode(sIdTokenHeader.getBytes(StandardCharsets.UTF_8),
                                 Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE),
-                        AuthenticationConstants.ENCODING_UTF8),
+                        StandardCharsets.UTF_8),
                 new String(
-                        Base64.encode(claims.getBytes(AuthenticationConstants.ENCODING_UTF8),
+                        Base64.encode(claims.getBytes(StandardCharsets.UTF_8),
                                 Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE),
-                        AuthenticationConstants.ENCODING_UTF8));
+                        StandardCharsets.UTF_8));
     }
 }

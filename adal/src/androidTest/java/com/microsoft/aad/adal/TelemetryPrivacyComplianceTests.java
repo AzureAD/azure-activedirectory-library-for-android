@@ -23,7 +23,7 @@
 
 package com.microsoft.aad.adal;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
@@ -118,7 +118,7 @@ public final class TelemetryPrivacyComplianceTests {
                 }
 
                 if (key.equals(EventStrings.USER_ID)) {
-                    shouldThrow = !entry.getValue().equals(StringExtensions.createHash("admin@aaltests.onmicrosoft.com"));
+                    shouldThrow = !entry.getValue().equals(StringExtensions.createHash("4f859989-a2ff-411e-9048-c322247ac62c"));
                 }
 
                 if (key.equals(EventStrings.TENANT_ID)) {

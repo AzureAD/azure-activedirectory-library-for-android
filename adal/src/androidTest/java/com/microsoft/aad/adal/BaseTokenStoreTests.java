@@ -24,10 +24,8 @@
 package com.microsoft.aad.adal;
 
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
 
-
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
@@ -79,7 +77,7 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
     @Before
     public void setUp() throws Exception {
         super.setUp();
-        mCtx = InstrumentationRegistry.getContext();
+        mCtx = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext();
         AuthenticationSettings.INSTANCE.setSharedPrefPackageName(null);
     }
 
