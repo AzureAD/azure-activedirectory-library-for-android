@@ -62,11 +62,11 @@ public class Constants {
 
 
     enum ClientId {
+        ADFSV4("4b0db8c2-9f26-4417-8bde-3f0e3656f8e0"),
         ONEDRIVE("af124e86-4e96-495a-b70a-90f90ab96707"),
         OFFICE("d3590ed6-52b3-4102-aeff-aad2292ab01c"),
         APPCHECK2_BF("f5d01c1c-abe6-4207-ae2d-5bc9af251724"),
         GUESTCLIENT("ea5c8087-2476-489c-ae03-ad44a2ac399d"),
-        ADFSV4("4b0db8c2-9f26-4417-8bde-3f0e3656f8e0"),
         ADFSV3("68a10fc3-ead9-41b8-ac5e-5b78af044736"),
         ADFSV2("e3fbd64e-3bdc-4fe9-b531-31660912b944"),
         PING("6b748729-d940-4482-8724-5eb87a817a10"),
@@ -85,7 +85,8 @@ public class Constants {
         Regular(BuildConfig.REGULAR_REDIDRECT_URI),
         Regular2("msauth://com.microsoft.aad.adal.userappwithbroker/L8kGVGYgNOaxbhn9Y7vR%2F6LIEG8%3D"),
         Broker("urn:ietf:wg:oauth:2.0:oob"),
-        LABS("msauth://com.microsoft.aad.adal.userappwithbroker/2%2BQqCWt1ilKg0IrfKT6CkdMpPqk%3D");
+        LABS("msauth://com.microsoft.aad.adal.userappwithbroker/2%2BQqCWt1ilKg0IrfKT6CkdMpPqk%3D"),
+        LABSDEBUG("msauth://com.microsoft.aad.adal.userappwithbroker/1wIqXSqBj7w%2bh11ZifsnqwgyKrY%3d");
 
         private final String text;
         RedirectUri(String s) {

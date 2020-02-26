@@ -176,16 +176,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     void prepareRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions) {
         mRequestAuthority = requestOptions.getAuthorityType().getText();
+        /*
         final String authority = getAuthorityBasedOnUPN(requestOptions.getLoginHint(), mRequestAuthority);
         if (null != authority && !authority.isEmpty()) {
             //Replace the request authority with the preferred authority stored in shared preference
             mAuthority = authority;
             mAuthContext = new AuthenticationContext(mApplicationContext, mAuthority, false);
         } else {
+         */
             //If there is no preferred authority stored, use the type-in authority
             mAuthority = mRequestAuthority;
             mAuthContext = new AuthenticationContext(mApplicationContext, mAuthority, true);
-        }
+        //}
 
         //TODO: We can add UX to set or not set this
         mAuthContext.setClientCapabilites(new ArrayList<>(Arrays.asList("CP1")));
@@ -350,6 +352,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      * silent call to broker will be skipped. 
      */
     private void callAcquireTokenSilent(final String resource, final String userUniqueId, final String clientId) {
+
+
         mAuthContext.acquireTokenSilentAsync(resource, clientId, userUniqueId, new AuthenticationCallback<AuthenticationResult>() {
 
             @Override
