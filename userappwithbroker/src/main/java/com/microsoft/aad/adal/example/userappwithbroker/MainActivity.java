@@ -129,6 +129,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if (mAuthResult != null) {
                 bundle.putString(ResultFragment.ACCESS_TOKEN, mAuthResult.getAccessToken());
                 bundle.putString(ResultFragment.ID_TOKEN, mAuthResult.getIdToken());
+                bundle.putString(ResultFragment.AUTHORITY, mAuthResult.getAuthority());
             }
 
             fragment.setArguments(bundle);
