@@ -138,10 +138,10 @@ dependencies {
         transitive = false
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '0.0.10-SNAPSHOT', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '2.0.1', changing: true)
 
     // 'dist' flavor dependencies
-    distApi("com.microsoft.identity:common:0.0.10") {
+    distApi("com.microsoft.identity:common:2.0.1") {
         transitive = false
     }
 
@@ -167,6 +167,7 @@ task sourcesJar(type: Jar) {
 }
 
 task javadoc(type: Javadoc) {
+    failOnError false
     source = android.sourceSets.main.java.srcDirs
     classpath += configurations.compile
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
