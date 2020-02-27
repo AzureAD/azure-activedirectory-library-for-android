@@ -62,6 +62,7 @@ public class Constants {
 
 
     enum ClientId {
+        MOONCAKE("920cd637-4ca3-496b-8a6a-f7c6ca1b2b82"),
         ONEDRIVE("af124e86-4e96-495a-b70a-90f90ab96707"),
         OFFICE("d3590ed6-52b3-4102-aeff-aad2292ab01c"),
         APPCHECK2_BF("f5d01c1c-abe6-4207-ae2d-5bc9af251724"),
@@ -82,6 +83,7 @@ public class Constants {
     }
 
     enum RedirectUri {
+        Mooncake("msauth://com.msft.identity.client.sample.local/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D"),
         Regular(BuildConfig.REGULAR_REDIDRECT_URI),
         Regular2("msauth://com.microsoft.aad.adal.userappwithbroker/L8kGVGYgNOaxbhn9Y7vR%2F6LIEG8%3D"),
         Broker("urn:ietf:wg:oauth:2.0:oob"),

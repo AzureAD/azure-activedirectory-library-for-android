@@ -29,12 +29,12 @@ import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.cache.ADALOAuth2TokenCache;
-import com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
 import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
 import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentialAdapter;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
+import com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
@@ -47,10 +47,8 @@ import com.microsoft.identity.common.internal.providers.microsoft.azureactivedir
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import static com.microsoft.aad.adal.TokenEntryType.FRT_TOKEN_ENTRY;
 import static com.microsoft.aad.adal.TokenEntryType.MRRT_TOKEN_ENTRY;
@@ -306,9 +304,15 @@ class TokenCacheAccessor {
     /**
      * Update token cache with returned auth result.
      */
-    void updateTokenCache(final AuthenticationRequest request,  final AuthenticationResult result) throws MalformedURLException {
+    void updateTokenCache(final AuthenticationRequest request, final AuthenticationResult result) throws MalformedURLException {
         if (result == null || StringExtensions.isNullOrBlank(result.getAccessToken())) {
             return;
+        }
+
+        if (!StringExtensions.isNullOrBlank(result.getAuthority())
+                && !result.getAuthority().equals(mAuthority)) {
+            // If the result authority differs from the authority used to initialize
+            mAuthority = result.getAuthority();
         }
 
         if (mUseCommonCache && !UrlExtensions.isADFSAuthority(new URL(mAuthority))) {
@@ -333,14 +337,15 @@ class TokenCacheAccessor {
     }
 
     void updateTokenCacheUsingCommonCache(final AuthenticationRequest request, final AuthenticationResult result) throws MalformedURLException {
-
         AzureActiveDirectory ad = new AzureActiveDirectory();
         AzureActiveDirectoryTokenResponse tokenResponse = CoreAdapter.asAadTokenResponse(result);
         AzureActiveDirectoryOAuth2Configuration config = new AzureActiveDirectoryOAuth2Configuration();
         config.setAuthorityHostValidationEnabled(this.isValidateAuthorityHost());
+
         if (null != mAuthority) {
             config.setAuthorityUrl(new URL(mAuthority));
         }
+
         AzureActiveDirectoryOAuth2Strategy strategy = ad.createOAuth2Strategy(config);
 
         AzureActiveDirectoryAuthorizationRequest.Builder aadAuthRequestBuilder = new AzureActiveDirectoryAuthorizationRequest.Builder();
