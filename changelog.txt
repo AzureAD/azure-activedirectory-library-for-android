@@ -1,3 +1,21 @@
+Version 1.16.4
+-------------
+- AndroidX migration
+- Bugfix : Resolved ADAL/726
+    * Fixed a bug where WebView errors are treated as cancel.
+- common dependency : 2.0.1
+
+Version 1.16.3-hf2
+-------------
+- Catch/Log an IllegalStateException in cache to avoid app crashes.
+- Fix connection close to fix emulator issue
+- common dependency : 0.0.10-hf2
+
+Version 1.16.3-hf1
+--------------
+- Nimbus version update to 8.2
+- Remove connection close to fix emulator issue.
+
 Version 1.16.3
 --------------
 - Updates dependency com.microsoft.identity:common to 0.0.10
