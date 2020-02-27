@@ -612,11 +612,22 @@ class TokenCacheAccessor {
                                                  final String clientId,
                                                  final String userId,
                                                  final KeyMakerStrategy strategy) {
-        final String keyToAdd = strategy.makeKey(authority, clientId, userId);
-        if (strategy.isFrt()) {
-            addDeletionKeyForFRTIfRTValueIsStale(keysToRemove, deletionTarget, keyToAdd);
-        } else {
-            keysToRemove.add(keyToAdd);
+        try {
+            final String keyToAdd = strategy.makeKey(authority, clientId, userId);
+            if (strategy.isFrt()) {
+                addDeletionKeyForFRTIfRTValueIsStale(keysToRemove, deletionTarget, keyToAdd);
+            } else {
+                keysToRemove.add(keyToAdd);
+            }
+        } catch (final Exception e) {
+            Logger.w(
+                    TAG,
+                    "Exception encountered during key generation."
+                            + "\n"
+                            + "CacheItem client_id: " + deletionTarget.getClientId()
+                            + "\n"
+                            + "CacheItem family_id: " + deletionTarget.getFamilyClientId()
+            );
         }
     }
 
