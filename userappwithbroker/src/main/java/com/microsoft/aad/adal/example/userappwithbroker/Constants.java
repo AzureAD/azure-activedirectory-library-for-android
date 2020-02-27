@@ -35,9 +35,11 @@ public class Constants {
         AAD_WINDOWS_NET("https://login.windows.net/common");
 
         private final String text;
+
         AuthorityType(String s) {
             text = s;
         }
+
         public String getText() {
             return text;
         }
@@ -52,9 +54,11 @@ public class Constants {
 
 
         private final String text;
+
         DataProfile(String s) {
             text = s;
         }
+
         public String getText() {
             return text;
         }
@@ -63,6 +67,7 @@ public class Constants {
 
     enum ClientId {
         ADFSV4("4b0db8c2-9f26-4417-8bde-3f0e3656f8e0"),
+        MOONCAKE("920cd637-4ca3-496b-8a6a-f7c6ca1b2b82"),
         ONEDRIVE("af124e86-4e96-495a-b70a-90f90ab96707"),
         OFFICE("d3590ed6-52b3-4102-aeff-aad2292ab01c"),
         APPCHECK2_BF("f5d01c1c-abe6-4207-ae2d-5bc9af251724"),
@@ -73,15 +78,18 @@ public class Constants {
         SHIBBOLETH("d518483c-c15b-4a00-9f59-cff3ffc1077b");
 
         private final String text;
+
         ClientId(String s) {
             text = s;
         }
+
         public String getText() {
             return text;
         }
     }
 
     enum RedirectUri {
+        Mooncake("msauth://com.msft.identity.client.sample.local/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D"),
         Regular(BuildConfig.REGULAR_REDIDRECT_URI),
         Regular2("msauth://com.microsoft.aad.adal.userappwithbroker/L8kGVGYgNOaxbhn9Y7vR%2F6LIEG8%3D"),
         Broker("urn:ietf:wg:oauth:2.0:oob"),
@@ -89,9 +97,11 @@ public class Constants {
         LABSDEBUG("msauth://com.microsoft.aad.adal.userappwithbroker/1wIqXSqBj7w%2bh11ZifsnqwgyKrY%3d");
 
         private final String text;
+
         RedirectUri(String s) {
             text = s;
         }
+
         public String getText() {
             return text;
         }
