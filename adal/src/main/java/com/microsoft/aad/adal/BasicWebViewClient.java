@@ -419,7 +419,7 @@ abstract class BasicWebViewClient extends WebViewClient {
 
             openLinkInBrowser(url);
             view.stopLoading();
-            cancelWebViewRequest(null);
+            sendResponse(AuthenticationConstants.UIResponse.BROKER_REQUEST_RESUME, null);
             return true;
         } else if (url.startsWith(BROWSER_EXT_INSTALL_PREFIX)) {
             com.microsoft.identity.common.internal.logging.Logger.verbose(
