@@ -171,12 +171,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         prepareRequestParameters(requestOptions);
 
         callAcquireTokenSilent(requestOptions.getDataProfile().getText(),
-                getUserIdBasedOnUPN(requestOptions.getLoginHint(), requestOptions.getAuthorityType().getText()),
+                getUserIdBasedOnUPN(requestOptions.getLoginHint(), requestOptions.getAuthority()),
                 requestOptions.getClientId().getText());
     }
 
     void prepareRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions) {
-        mRequestAuthority = requestOptions.getAuthorityType().getText();
+        mRequestAuthority = requestOptions.getAuthority();
         mAuthority = mRequestAuthority;
         mAuthContext = new AuthenticationContext(mApplicationContext, mAuthority, true);
 
