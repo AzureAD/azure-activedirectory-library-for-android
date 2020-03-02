@@ -30,13 +30,14 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Handler;
-import android.util.Log;
 import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.ProgressBar;
+
+import androidx.annotation.Nullable;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 
@@ -167,7 +168,7 @@ class AuthenticationDialog {
                     mWebView.post(new Runnable() {
                         @Override
                         public void run() {
-                            mWebView.loadUrl("about:blank");
+                            mWebView.loadUrl(BasicWebViewClient.BLANK_PAGE);
                             mWebView.loadUrl(startUrl);
                         }
                     });
@@ -181,7 +182,7 @@ class AuthenticationDialog {
 
                     @Override
                     public void onCancel(DialogInterface dialog) {
-                        cancelFlow();
+                        cancelFlow(null);
                     }
                 });
                 mDialog = builder.create();
@@ -191,12 +192,21 @@ class AuthenticationDialog {
         });
     }
 
-    private void cancelFlow() {
+    private void cancelFlow(@Nullable Intent errorIntent) {
         Logger.i(TAG, "Cancelling dialog", "");
-        Intent resultIntent = new Intent();
+        Intent resultIntent = errorIntent;
+        int resultCode;
+        if (resultIntent == null) {
+            resultIntent = new Intent();
+            resultCode = AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL;
+        } else {
+            resultCode = AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR;
+        }
+
         resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mRequest.getRequestId());
+
         mAcquireTokenRequest.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW,
-                AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
+                resultCode, resultIntent);
         if (mHandlerInView != null) {
             mHandlerInView.post(new Runnable() {
                 @Override
@@ -258,8 +268,8 @@ class AuthenticationDialog {
         }
 
         @Override
-        public void cancelWebViewRequest() {
-            cancelFlow();
+        public void cancelWebViewRequest(@Nullable Intent errorIntent) {
+            cancelFlow(errorIntent);
         }
 
         @Override

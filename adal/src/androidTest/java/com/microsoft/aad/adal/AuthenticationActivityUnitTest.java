@@ -27,17 +27,16 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.test.rule.ActivityTestRule;
-import android.support.test.runner.AndroidJUnit4;
-import android.test.RenamingDelegatingContext;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-
+import androidx.test.core.app.ApplicationProvider;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.rule.ActivityTestRule;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
@@ -54,6 +53,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -64,13 +64,12 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import static android.support.test.InstrumentationRegistry.getInstrumentation;
+import static androidx.test.InstrumentationRegistry.getInstrumentation;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -103,10 +102,28 @@ public class AuthenticationActivityUnitTest {
 
     @Before
     public void setUp() throws Exception {
-        System.setProperty("dexmaker.dexcache", getInstrumentation().getTargetContext()
-                .getCacheDir().getPath());
-        mIntentToStartActivity = new Intent(getInstrumentation().getTargetContext(),
-                AuthenticationActivity.class);
+        System.setProperty(
+                "dexmaker.dexcache",
+                androidx.test.platform.app.InstrumentationRegistry
+                        .getInstrumentation()
+                        .getTargetContext()
+                        .getCacheDir()
+                        .getPath()
+        );
+
+        System.setProperty(
+                "org.mockito.android.target",
+                ApplicationProvider
+                        .getApplicationContext()
+                        .getCacheDir()
+                        .getPath()
+        );
+
+        mIntentToStartActivity = new Intent(
+                InstrumentationRegistry.getInstrumentation().getTargetContext(),
+                AuthenticationActivity.class
+        );
+
         Object authorizationRequest = getTestRequest();
         mIntentToStartActivity.putExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE,
                 (Serializable) authorizationRequest);
@@ -117,7 +134,7 @@ public class AuthenticationActivityUnitTest {
             final int iterations = 100;
             final int keySize = 256;
             SecretKey tempkey = keyFactory.generateSecret(new PBEKeySpec("test".toCharArray(),
-                    "abcdedfdfd".getBytes("UTF-8"), iterations, keySize));
+                    "abcdedfdfd".getBytes(StandardCharsets.UTF_8), iterations, keySize));
             SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
             AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
         }
@@ -146,7 +163,7 @@ public class AuthenticationActivityUnitTest {
     public void testLayout() throws Throwable {
         mActivityRule.launchActivity(mIntentToStartActivity);
         // Webview
-        final WebView webview = (WebView) mActivityRule.getActivity().findViewById(R.id.webView1);
+        final WebView webview = mActivityRule.getActivity().findViewById(R.id.webView1);
         assertNotNull(webview);
 
         mActivityRule.runOnUiThread(new Runnable() {
@@ -480,6 +497,12 @@ public class AuthenticationActivityUnitTest {
                     e.printStackTrace();
                 }
 
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
                 // get field value to check
                 assertTrue("verify log message",
                         logResponse.getMessage().contains("Webview onResume register broadcast"));
@@ -641,24 +664,5 @@ public class AuthenticationActivityUnitTest {
         Constructor<?> constructorParams = c.getConstructor(mActivityRule.getActivity().getClass());
         constructorParams.setAccessible(true);
         return constructorParams.newInstance(mActivityRule.getActivity());
-    }
-
-    /**
-     * this is a class which delegates to the given context, but performs
-     * database and file operations with a renamed database/file name (prefixes
-     * default names with a given prefix).
-     */
-    class ActivityMockContext extends RenamingDelegatingContext {
-
-        private static final String MOCK_FILE_PREFIX = "test.";
-
-        /**
-         * @param context
-         * @param filePrefix
-         */
-        ActivityMockContext(Context context) {
-            super(context, MOCK_FILE_PREFIX);
-            makeExistingFilesAndDbsAccessible();
-        }
     }
 }

@@ -28,8 +28,9 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
-import android.support.test.InstrumentationRegistry;
 import android.util.Base64;
+
+import androidx.test.core.app.ApplicationProvider;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 
@@ -50,8 +51,24 @@ public class HttpDialogTests {
     @SuppressLint("PackageManagerGetSignatures")
     @Before
     protected void setUp() throws Exception {
-        mContext = InstrumentationRegistry.getContext();
-        System.setProperty("dexmaker.dexcache", mContext.getCacheDir().getPath());
+        mContext = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext();
+
+        System.setProperty(
+                "dexmaker.dexcache",
+                androidx.test.platform.app.InstrumentationRegistry
+                        .getInstrumentation()
+                        .getTargetContext()
+                        .getCacheDir()
+                        .getPath()
+        );
+
+        System.setProperty(
+                "org.mockito.android.target",
+                ApplicationProvider
+                        .getApplicationContext()
+                        .getCacheDir()
+                        .getPath()
+        );
 
         // ADAL is set to this signature for now
         PackageInfo info = mContext.getPackageManager().getPackageInfo(mContext.getPackageName(),

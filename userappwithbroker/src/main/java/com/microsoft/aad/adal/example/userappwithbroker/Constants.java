@@ -26,8 +26,12 @@ package com.microsoft.aad.adal.example.userappwithbroker;
 public class Constants {
     enum AuthorityType {
         AAD_COMMON("https://login.microsoftonline.com/common"),
-        AAD_MSDEVEX("https://login.microsoftonline.com/msdevex.onmicrosoft.com"),
-        AAD_GUEST("https://login.microsoftonline.com/nomfaad.onmicrosoft.com"),
+        MSID_LAB2("https://login.microsoftonline.com/msidlab2.com"),
+        MSID_LAB3("https://login.microsoftonline.com/msidlab3.com"),
+        MSID_LAB4("https://login.microsoftonline.com/msidlab4.com"),
+        MSID_BLACKFOREST("https://login.microsoftonline.de/blfmsidlab1.onmicrosoft.de"),
+        MSID_FAIRFAX("https://login.microsoftonline.us/ffxmsidlab1.onmicrosoft.com"),
+        MSID_ARLINGTON("https://login.microsoftonline.us/arlmsidlab1.onmicrosoft.us"),
         AAD_WINDOWS_NET("https://login.windows.net/common");
 
         private final String text;
@@ -58,14 +62,13 @@ public class Constants {
 
 
     enum ClientId {
-        MSDEVEX("b92e0ba5-f86e-4411-8e18-6b5f928d968a"),
         ONEDRIVE("af124e86-4e96-495a-b70a-90f90ab96707"),
         OFFICE("d3590ed6-52b3-4102-aeff-aad2292ab01c"),
         APPCHECK2_BF("f5d01c1c-abe6-4207-ae2d-5bc9af251724"),
         GUESTCLIENT("ea5c8087-2476-489c-ae03-ad44a2ac399d"),
         ADFSV4("4b0db8c2-9f26-4417-8bde-3f0e3656f8e0"),
         ADFSV3("68a10fc3-ead9-41b8-ac5e-5b78af044736"),
-        ADFSV2("55311830-5dd0-4808-847b-77fdd1034b8c"),
+        ADFSV2("e3fbd64e-3bdc-4fe9-b531-31660912b944"),
         PING("6b748729-d940-4482-8724-5eb87a817a10"),
         SHIBBOLETH("d518483c-c15b-4a00-9f59-cff3ffc1077b");
 

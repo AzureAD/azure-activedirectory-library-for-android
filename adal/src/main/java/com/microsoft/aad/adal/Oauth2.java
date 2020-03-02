@@ -25,11 +25,13 @@ package com.microsoft.aad.adal;
 
 import android.net.Uri;
 import android.os.Build;
+import androidx.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Base64;
 
 import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.JWSBuilder;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
 import com.microsoft.identity.common.adal.internal.util.HashMapExtensions;
@@ -66,7 +68,7 @@ class Oauth2 {
 
     private IWebRequestHandler mWebRequestHandler;
 
-    private IJWSBuilder mJWSBuilder = new JWSBuilder();
+    private JWSBuilder mJWSBuilder = new JWSBuilder();
 
     private String mTokenEndpoint;
 
@@ -90,22 +92,24 @@ class Oauth2 {
 
     private String mClientVersion = "";
 
-    Oauth2(AuthenticationRequest request) {
+    Oauth2(@NonNull final AuthenticationRequest request) {
         mRequest = request;
         mWebRequestHandler = null;
         mJWSBuilder = null;
         setTokenEndpoint(mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT);
     }
 
-    Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler) {
+    Oauth2(@NonNull final AuthenticationRequest request,
+           final IWebRequestHandler webRequestHandler) {
         mRequest = request;
         mWebRequestHandler = webRequestHandler;
         mJWSBuilder = null;
         setTokenEndpoint(mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT);
     }
 
-    Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler,
-           IJWSBuilder jwsMessageBuilder) {
+    Oauth2(@NonNull final AuthenticationRequest request,
+           final IWebRequestHandler webRequestHandler,
+           final JWSBuilder jwsMessageBuilder) {
         mRequest = request;
         mWebRequestHandler = webRequestHandler;
         mJWSBuilder = jwsMessageBuilder;
@@ -207,8 +211,8 @@ class Oauth2 {
                 || mRequest.getClientCapabilities() != null) {
             queryParameter.appendQueryParameter(AuthenticationConstants.OAuth2.CLAIMS,
                     URLEncoder.encode(AuthenticationContext.mergeClaimsWithClientCapabilities(
-                                    mRequest.getClaimsChallenge(),
-                                    mRequest.getClientCapabilities()
+                            mRequest.getClaimsChallenge(),
+                            mRequest.getClientCapabilities()
                             ),
                             AuthenticationConstants.ENCODING_UTF8)
             );
@@ -315,8 +319,8 @@ class Oauth2 {
                 mRequest.getClientCapabilities() != null) {
             message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.OAuth2.CLAIMS,
                     StringExtensions.urlFormEncode(AuthenticationContext.mergeClaimsWithClientCapabilities(
-                                    mRequest.getClaimsChallenge(),
-                                    mRequest.getClientCapabilities()
+                            mRequest.getClaimsChallenge(),
+                            mRequest.getClientCapabilities()
                             )
                     )
             );

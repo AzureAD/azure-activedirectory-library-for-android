@@ -23,7 +23,7 @@
 
 package com.microsoft.aad.adal;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
@@ -87,9 +87,21 @@ public class LoggerTest extends AndroidTestHelper {
         Logger.getInstance().setLogLevel(Logger.LogLevel.Debug);
         Logger.d("test", "testmessage");
 
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         assertEquals("same log tag", "test", logResponses.get(0).getTag());
         assertTrue("same log message", logResponses.get(0).getMessage().contains("testmessage"));
         logResponses.clear();
+
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         // set to warn
         Logger.getInstance().setLogLevel(Logger.LogLevel.Warn);
@@ -119,12 +131,25 @@ public class LoggerTest extends AndroidTestHelper {
         Logger.getInstance().setLogLevel(Logger.LogLevel.Debug);
 
         Logger.d(null, "someMessage234");
+
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         assertNull("null log tag since not logging this", response.getTag());
         assertTrue("log message", response.getMessage().contains("someMessage234"));
         assertNull("null log detail message", response.getAdditionalMessage());
         response.reset();
 
         Logger.d(null, null);
+
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         assertNull("null log tag", response.getTag());
         assertNull("null log message", response.getMessage());
@@ -134,6 +159,12 @@ public class LoggerTest extends AndroidTestHelper {
         Logger.getInstance().setLogLevel(Logger.LogLevel.Warn);
         Logger.w(null, null, null, ADALError.AUTH_FAILED_BAD_STATE);
 
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         assertNull("null log tag", response.getTag());
         assertNull("null log detail message", response.getAdditionalMessage());
         response.reset();
@@ -141,12 +172,24 @@ public class LoggerTest extends AndroidTestHelper {
         Logger.getInstance().setLogLevel(Logger.LogLevel.Info);
         Logger.i(null, null, null, ADALError.AUTH_FAILED_BAD_STATE);
 
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         assertNull("null log tag", response.getTag());
         assertNull("null log detail message", response.getAdditionalMessage());
         response.reset();
 
         Logger.getInstance().setLogLevel(Logger.LogLevel.Error);
         Logger.e(null, null, null, ADALError.AUTH_FAILED_BAD_STATE);
+
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         assertNull("null log tag", response.getTag());
         assertNull("null log detail message", response.getAdditionalMessage());
@@ -173,11 +216,23 @@ public class LoggerTest extends AndroidTestHelper {
         Logger.setCorrelationId(testId);
         Logger.v(null, "testMessage", null, ADALError.AUTH_FAILED_BAD_STATE);
 
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         assertTrue("Expected to come here", true);
         assertTrue("same log message", response.getMessage().contains("testMessage") && response.getMessage().contains(testId.toString()));
     }
 
     private void verifyLogMessage(final List<TestLogResponse> responses) {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         for (final TestLogResponse response : responses) {
             assertEquals("same log tag", "test", response.getTag());
             assertEquals("same log error code", ADALError.AUTH_FAILED_BAD_STATE, response.getErrorCode());

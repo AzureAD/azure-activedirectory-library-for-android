@@ -30,9 +30,9 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.Signature;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
 import android.util.Base64;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 
@@ -46,6 +46,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 
 import javax.crypto.SecretKey;
@@ -73,8 +74,9 @@ public class PackageHelperTests {
     @SuppressLint("PackageManagerGetSignatures")
     @Before
     public void setUp() throws Exception {
-        mContext = InstrumentationRegistry.getContext();
+        mContext = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext();
         System.setProperty("dexmaker.dexcache", mContext.getCacheDir().getPath());
+
         if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
             // use same key for tests
             final int iterationCount = 100;
@@ -82,10 +84,11 @@ public class PackageHelperTests {
             SecretKeyFactory keyFactory = SecretKeyFactory
                     .getInstance("PBEWithSHA256And256BitAES-CBC-BC");
             SecretKey tempkey = keyFactory.generateSecret(new PBEKeySpec("test".toCharArray(),
-                    "abcdedfdfd".getBytes("UTF-8"), iterationCount, keyLength));
+                    "abcdedfdfd".getBytes(StandardCharsets.UTF_8), iterationCount, keyLength));
             SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
             AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
         }
+
         AuthenticationSettings.INSTANCE.setBrokerPackageName("invalid_do_not_switch");
         AuthenticationSettings.INSTANCE.setBrokerSignature("invalid_do_not_switch");
         // ADAL is set to this signature for now
@@ -95,7 +98,7 @@ public class PackageHelperTests {
         // Broker App can be signed with multiple certificates. It will look
         // all of them
         // until it finds the correct one for ADAL broker.
-        for (Signature signature : info.signatures) {
+        for (final Signature signature : info.signatures) {
             mTestSignature = signature.toByteArray();
             MessageDigest md = MessageDigest.getInstance("SHA");
             md.update(mTestSignature);
@@ -105,7 +108,7 @@ public class PackageHelperTests {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         Logger.getInstance().setExternalLogger(null);
     }
 
@@ -113,10 +116,17 @@ public class PackageHelperTests {
     public void testGetCurrentSignatureForPackage() throws NameNotFoundException,
             IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
             InstantiationException, IllegalAccessException, InvocationTargetException {
-        Context mockContext = getMockContext(new Signature(mTestSignature), mContext.getPackageName(), 0);
-        Object packageHelper = getInstance(mockContext);
-        Method m = ReflectionUtils.getTestMethod(packageHelper, "getCurrentSignatureForPackage",
-                String.class);
+        final Context mockContext = getMockContext(
+                new Signature(mTestSignature),
+                mContext.getPackageName(),
+                0 // calling uid
+        );
+        final Object packageHelper = getInstance(mockContext);
+        final Method m = ReflectionUtils.getTestMethod(
+                packageHelper,
+                "getCurrentSignatureForPackage", // method name
+                String.class
+        );
 
         // act
         String actual = (String) m.invoke(packageHelper, mContext.getPackageName());
@@ -135,10 +145,14 @@ public class PackageHelperTests {
     public void testGetUIDForPackage() throws NameNotFoundException, IllegalArgumentException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException {
-        Context mockContext = getMockContext(new Signature(mTestSignature), mContext.getPackageName(),
+        final Context mockContext = getMockContext(new Signature(mTestSignature), mContext.getPackageName(),
                 TEST_UID);
-        Object packageHelper = getInstance(mockContext);
-        Method m = ReflectionUtils.getTestMethod(packageHelper, "getUIDForPackage", String.class);
+        final Object packageHelper = getInstance(mockContext);
+        final Method m = ReflectionUtils.getTestMethod(
+                packageHelper,
+                "getUIDForPackage", // method name
+                String.class
+        );
 
         // act
         int actual = (Integer) m.invoke(packageHelper, mContext.getPackageName());
@@ -157,32 +171,44 @@ public class PackageHelperTests {
     public void testRedirectUrl() throws NameNotFoundException, IllegalArgumentException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException, UnsupportedEncodingException {
-        Context mockContext = getMockContext(new Signature(mTestSignature), mContext.getPackageName(), 0);
-        Object packageHelper = getInstance(mockContext);
-        Method m = ReflectionUtils.getTestMethod(packageHelper, "getBrokerRedirectUrl",
-                String.class, String.class);
+        final Context mockContext = getMockContext(
+                new Signature(mTestSignature),
+                mContext.getPackageName(),
+                0 // calling uid
+        );
+        final Object packageHelper = getInstance(mockContext);
+        final Method m = ReflectionUtils.getTestMethod(
+                packageHelper,
+                "getBrokerRedirectUrl", // method name
+                String.class,
+                String.class
+        );
 
         // act
-        String actual = (String) m.invoke(packageHelper, mContext.getPackageName(), mTestTag);
+        final String actual = (String) m.invoke(packageHelper, mContext.getPackageName(), mTestTag);
 
         // assert
         assertTrue("should have packagename", actual.contains(mContext.getPackageName()));
         assertTrue("should have signature url encoded",
-                actual.contains(URLEncoder.encode(mTestTag, AuthenticationConstants.ENCODING_UTF8)));
+                actual.contains(
+                        URLEncoder.encode(mTestTag, AuthenticationConstants.ENCODING_UTF8)
+                )
+        );
     }
 
-    private static Object getInstance(Context mockContext) throws IllegalArgumentException,
+    private static Object getInstance(final Context mockContext) throws IllegalArgumentException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException {
-        Class<?> c = Class.forName("com.microsoft.aad.adal.PackageHelper");
-        Constructor<?> constructorParams = c.getDeclaredConstructor(Context.class);
+        final Class<?> c = Class.forName("com.microsoft.identity.common.internal.broker.PackageHelper");
+        final Constructor<?> constructorParams = c.getDeclaredConstructor(PackageManager.class);
         constructorParams.setAccessible(true);
-        return constructorParams.newInstance(mockContext);
+        return constructorParams.newInstance(mockContext.getPackageManager());
     }
 
-    private Context getMockContext(final Signature signature, final String packageName,
+    private Context getMockContext(final Signature signature,
+                                   final String packageName,
                                    final int callingUID) throws NameNotFoundException {
-        Context mockContext = mock(Context.class);
+        final Context mockContext = mock(Context.class);
         // insert packagemanager mocks
         PackageManager mockPackageManager = getPackageManager(signature, packageName, callingUID);
         when(mockContext.getPackageManager()).thenReturn(mockPackageManager);
@@ -191,18 +217,26 @@ public class PackageHelperTests {
     }
 
     @SuppressLint("PackageManagerGetSignatures")
-    private PackageManager getPackageManager(final Signature signature, final String packageName,
+    private PackageManager getPackageManager(final Signature signature,
+                                             final String packageName,
                                              final int callingUID) throws NameNotFoundException {
-        PackageManager mockPackage = mock(PackageManager.class);
-        PackageInfo info = new PackageInfo();
-        Signature[] signatures = new Signature[1];
+        final PackageManager mockPackage = mock(PackageManager.class);
+        final PackageInfo info = new PackageInfo();
+
+        final Signature[] signatures = new Signature[1];
         signatures[0] = signature;
         info.signatures = signatures;
-        ApplicationInfo appInfo = new ApplicationInfo();
+
+        final ApplicationInfo appInfo = new ApplicationInfo();
         appInfo.name = packageName;
         appInfo.uid = callingUID;
-        when(mockPackage.getPackageInfo(packageName, PackageManager.GET_SIGNATURES)).thenReturn(
-                info);
+        when(
+                mockPackage.getPackageInfo(
+                        packageName,
+                        PackageManager.GET_SIGNATURES
+                )
+        ).thenReturn(info);
+
         when(mockPackage.getApplicationInfo(packageName, 0)).thenReturn(appInfo);
         Context mock = mock(Context.class);
         when(mock.getPackageManager()).thenReturn(mockPackage);

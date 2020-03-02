@@ -23,7 +23,7 @@
 
 package com.microsoft.aad.adal;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -91,7 +91,7 @@ public class CacheKeyTests {
     public void testcreateCacheKeyNullItem() {
 
         try {
-            CacheKey.createCacheKey((TokenCacheItem) null);
+            CacheKey.createCacheKey(null);
             Assert.fail("not expected");
         } catch (Exception exc) {
             assertTrue("argument exception", exc instanceof IllegalArgumentException);
@@ -119,7 +119,7 @@ public class CacheKeyTests {
         } catch (Exception exc) {
             assertTrue("argument exception", exc instanceof IllegalArgumentException);
             assertEquals("contains resource", "resource",
-                    ((IllegalArgumentException) exc).getMessage());
+                    exc.getMessage());
         }
 
         // Test resource is null but the cache key is for MRRT. 
@@ -141,7 +141,7 @@ public class CacheKeyTests {
         } catch (Exception exc) {
             assertTrue("argument exception", exc instanceof IllegalArgumentException);
             assertEquals("contains clientId", "both clientId and familyClientId are null",
-                    ((IllegalArgumentException) exc).getMessage());
+                    exc.getMessage());
         }
 
         // Test client id is null but family client id is not null

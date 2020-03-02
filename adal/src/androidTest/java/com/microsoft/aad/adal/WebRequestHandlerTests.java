@@ -23,7 +23,7 @@
 
 package com.microsoft.aad.adal;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
@@ -46,6 +46,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -170,7 +171,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
 
         assertNotNull(httpResponse != null);
         assertTrue("status is 200", httpResponse.getStatusCode() == HttpURLConnection.HTTP_OK);
-        String responseMsg = new String(httpResponse.getBody());
+        String responseMsg = httpResponse.getBody();
         assertTrue("request header check", responseMsg.contains("testabc-value123"));
     }
 
@@ -205,7 +206,8 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
     }
 
     @Test
-    @Ignore // Depending on the operating environment, DNS assistance (ISP supplied) breaks this test
+    @Ignore
+    // Depending on the operating environment, DNS assistance (ISP supplied) breaks this test
     public void testNonExistentUrl() {
         WebRequestHandler request = new WebRequestHandler();
         try {
@@ -234,7 +236,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
                 new HashMap<String, String>());
 
         assertTrue("status is 200", httpResponse.getStatusCode() == HttpURLConnection.HTTP_OK);
-        final String responseMsg = new String(httpResponse.getBody());
+        final String responseMsg = httpResponse.getBody();
         assertTrue("request body check", responseMsg.contains("test get with id"));
     }
 
@@ -255,10 +257,10 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         final WebRequestHandler request = new WebRequestHandler();
         final HttpWebResponse httpResponse = request.sendPost(getUrl(TEST_WEBAPI_URL),
                 new HashMap<String, String>(),
-                json.getBytes(AuthenticationConstants.ENCODING_UTF8), "application/json");
+                json.getBytes(StandardCharsets.UTF_8), "application/json");
 
         assertTrue("status is 200", httpResponse.getStatusCode() == HttpURLConnection.HTTP_OK);
-        final String responseMsg = new String(httpResponse.getBody());
+        final String responseMsg = httpResponse.getBody();
         assertTrue("request body check",
                 responseMsg.contains(message.getAccessToken() + message.getUserName()));
     }

@@ -24,7 +24,10 @@
 package com.microsoft.aad.adal;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.JWSBuilder;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.exception.ClientException;
+import com.microsoft.identity.common.exception.ErrorStrings;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
@@ -40,9 +43,9 @@ class ChallengeResponseBuilder {
 
     private static final String TAG = "ChallengeResponseBuilder";
 
-    private final IJWSBuilder mJWSBuilder;
+    private final JWSBuilder mJWSBuilder;
 
-    ChallengeResponseBuilder(IJWSBuilder jwsBuilder) {
+    ChallengeResponseBuilder(JWSBuilder jwsBuilder) {
         mJWSBuilder = jwsBuilder;
     }
 
@@ -126,25 +129,69 @@ class ChallengeResponseBuilder {
         @SuppressWarnings("unchecked")
         Class<IDeviceCertificate> certClazz = (Class<IDeviceCertificate>) AuthenticationSettings.INSTANCE
                 .getDeviceCertificateProxy();
-        if (certClazz != null) {
 
+        if (certClazz != null) {
             IDeviceCertificate deviceCertProxy = getWPJAPIInstance(certClazz);
+
             if (deviceCertProxy.isValidIssuer(request.mCertAuthorities)
                     || deviceCertProxy.getThumbPrint() != null && deviceCertProxy.getThumbPrint()
                     .equalsIgnoreCase(request.mThumbprint)) {
                 RSAPrivateKey privateKey = deviceCertProxy.getRSAPrivateKey();
+
                 if (privateKey == null) {
                     throw new AuthenticationException(ADALError.KEY_CHAIN_PRIVATE_KEY_EXCEPTION);
                 }
-                String jwt = mJWSBuilder.generateSignedJWT(request.mNonce, request.mSubmitUrl,
-                        privateKey, deviceCertProxy.getRSAPublicKey(),
-                        deviceCertProxy.getCertificate());
-                response.mAuthorizationHeaderValue = String.format(
-                        "%s AuthToken=\"%s\",Context=\"%s\",Version=\"%s\"",
-                        AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE, jwt,
-                        request.mContext, request.mVersion);
-                Logger.v(TAG, "Receive challenge response. ",
-                        "Challenge response:" + response.mAuthorizationHeaderValue, null);
+
+                try {
+                    String jwt = mJWSBuilder.generateSignedJWT(
+                            request.mNonce,
+                            request.mSubmitUrl,
+                            privateKey,
+                            deviceCertProxy.getRSAPublicKey(),
+                            deviceCertProxy.getCertificate()
+                    );
+
+                    response.mAuthorizationHeaderValue = String.format(
+                            "%s AuthToken=\"%s\",Context=\"%s\",Version=\"%s\"",
+                            AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE,
+                            jwt,
+                            request.mContext,
+                            request.mVersion
+                    );
+
+                    Logger.v(
+                            TAG,
+                            "Receive challenge response. ",
+                            "Challenge response:"
+                                    + response.mAuthorizationHeaderValue,
+                            null
+                    );
+                } catch (final ClientException e) {
+                    final String errorCode = e.getErrorCode();
+                    ADALError which;
+
+                    switch (errorCode) {
+                        case ErrorStrings.UNSUPPORTED_ENCODING:
+                            which = ADALError.ENCODING_IS_NOT_SUPPORTED;
+                            break;
+                        case ErrorStrings.CERTIFICATE_ENCODING_ERROR:
+                            which = ADALError.CERTIFICATE_ENCODING_ERROR;
+                            break;
+                        case ErrorStrings.KEY_CHAIN_PRIVATE_KEY_EXCEPTION:
+                            which = ADALError.KEY_CHAIN_PRIVATE_KEY_EXCEPTION;
+                            break;
+                        case ErrorStrings.SIGNATURE_EXCEPTION:
+                            which = ADALError.SIGNATURE_EXCEPTION;
+                            break;
+                        case ErrorStrings.NO_SUCH_ALGORITHM:
+                            which = ADALError.DEVICE_NO_SUCH_ALGORITHM;
+                            break;
+                        default:
+                            which = ADALError.DEVICE_CERTIFICATE_RESPONSE_FAILED;
+                    }
+
+                    throw new AuthenticationException(which, e.getMessage());
+                }
             }
         }
 
