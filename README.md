@@ -20,11 +20,11 @@ ADAL for Android gives you the ability to add support for Work Accounts to your 
 A Work Account is an identity you use to get work done from your organization or school. Anywhere you need to get access to your work life you'll use a Work Account. The Work Account can be tied to an Active Directory server running in your datacenter or live completely in the cloud like when you use Office 365. A Work Account will be how your users know that they are accessing their important documents and data backed my Microsoft security.
 
 ## ADAL for Android 2.0.0 Released!
->Important:<br/>Please note: ADAL 2.0.0 (released March 2020) is neither API-compatible nor cache-compatible the following versions:
-    * 2.0-alpha   (released 2015-07-27)
-    * 2.0.1-alpha (released 2015-09-25)
-    * 2.0.2-alpha (released 2016-05-27)
-    * 2.0.3-alpha (released 2016-06-11)
+>Important:<br/>Please note: ADAL 2.0.0 (released March 2020) is neither API-compatible nor cache-compatible the following versions:<br/>
+    * 2.0-alpha   (released 2015-07-27)<br/>
+    * 2.0.1-alpha (released 2015-09-25)<br/>
+    * 2.0.2-alpha (released 2016-05-27)<br/>
+    * 2.0.3-alpha (released 2016-06-11)<br/>
     * 2.0.4-alpha (released 2017-02-17)
 
 ## Build status
