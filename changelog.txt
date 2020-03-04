@@ -1,5 +1,20 @@
+Version 2.0.0
+-------------
+- Please note: ADAL 2.0.0 (released March 2020) is neither API-compatible nor cache-compatible the following versions:
+    * 2.0-alpha   (released 2015-07-27)
+    * 2.0.1-alpha (released 2015-09-25)
+    * 2.0.2-alpha (released 2016-05-27)
+    * 2.0.3-alpha (released 2016-06-11)
+    * 2.0.4-alpha (released 2017-02-17)
+- First public release with AndroidX support
+- Bugfix: Resolved ADAL/1498
+    * Fixed an issue whereby tokens from a sovereign cloud environment would result in cache-misses
+- Fixes CVE-2019-17195
+    * Connect2id Nimbus JOSE+JWT before v7.9 can throw various uncaught exceptions while parsing a JWT, which could result in an application crash (potential information disclosure) or a potential authentication bypass.
+
 Version 1.16.4
 -------------
+- Please note: release is not available via Maven Central or other package repositories; for AndroidX support, use 2.0.0 or newer
 - AndroidX migration
 - Bugfix : Resolved ADAL/726
     * Fixed a bug where WebView errors are treated as cancel.
