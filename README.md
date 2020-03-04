@@ -21,11 +21,11 @@ A Work Account is an identity you use to get work done from your organization or
 
 ## ADAL for Android 2.0.0 Released!
 >Please note: ADAL 2.0.0 (released March 2020) is neither API-compatible nor cache-compatible the following versions:<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;* 2.0-alpha   (released 2015-07-27)<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;* 2.0.1-alpha (released 2015-09-25)<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;* 2.0.2-alpha (released 2016-05-27)<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;* 2.0.3-alpha (released 2016-06-11)<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;* 2.0.4-alpha (released 2017-02-17)
+&nbsp;&nbsp;&nbsp;&nbsp;- 2.0-alpha   (released 2015-07-27)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- 2.0.1-alpha (released 2015-09-25)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- 2.0.2-alpha (released 2016-05-27)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- 2.0.3-alpha (released 2016-06-11)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- 2.0.4-alpha (released 2017-02-17)
 
 ## Build status
 
