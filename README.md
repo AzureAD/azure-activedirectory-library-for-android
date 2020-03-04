@@ -132,7 +132,7 @@ repositories {
 }
 dependencies {
     // your dependencies here...
-    compile('com.microsoft.aad:adal:1.16.+') {
+    compile('com.microsoft.aad:adal:2.0.0') {
         // if your app includes android support
         // libraries or Gson in its dependencies
         // exclude that groupId from ADAL's compile
@@ -153,7 +153,7 @@ If you are using the m2e plugin in Eclipse, you can specify the dependency in yo
 <dependency>
     <groupId>com.microsoft.aad</groupId>
     <artifactId>adal</artifactId>
-    <version>1.16.3</version>
+    <version>2.0.0</version>
     <type>aar</type>
 </dependency>
 ```
