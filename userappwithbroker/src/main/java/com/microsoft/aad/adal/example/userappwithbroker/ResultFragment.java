@@ -39,6 +39,7 @@ public class ResultFragment extends Fragment {
     static final String ACCESS_TOKEN = "access_token";
     static final String ID_TOKEN = "id_token";
     static final String DISPLAYABLE = "displayable";
+    static final String AUTHORITY = "authority";
 
     private TextView mTextView;
 
@@ -55,8 +56,9 @@ public class ResultFragment extends Fragment {
         final String accessToken = (String) bundle.get(ACCESS_TOKEN);
         final String idToken = (String) bundle.get(ID_TOKEN);
         final String displayable = (String) bundle.get(DISPLAYABLE);
+        final String authority = (String) bundle.get(AUTHORITY);
 
-        mTextView.setText(ACCESS_TOKEN + ": " + accessToken + '\n' + ID_TOKEN + ": " + idToken + '\n' + DISPLAYABLE + ": " + displayable);
+        mTextView.setText(ACCESS_TOKEN + ": " + accessToken + '\n' + ID_TOKEN + ": " + idToken + '\n' + DISPLAYABLE + ": " + displayable + '\n' + AUTHORITY + ": " + authority);
         mTextView.setMovementMethod(new ScrollingMovementMethod());
         return view;
     }

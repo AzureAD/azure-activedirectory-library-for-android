@@ -309,6 +309,12 @@ class TokenCacheAccessor {
             return;
         }
 
+        if (!StringExtensions.isNullOrBlank(result.getAuthority())
+                && !result.getAuthority().equals(mAuthority)) {
+            // If the result authority differs from the authority used to initialize
+            mAuthority = result.getAuthority();
+        }
+
         if (mUseCommonCache && !UrlExtensions.isADFSAuthority(new URL(mAuthority))) {
             updateTokenCacheUsingCommonCache(request, result);
             return;
@@ -331,14 +337,15 @@ class TokenCacheAccessor {
     }
 
     void updateTokenCacheUsingCommonCache(final AuthenticationRequest request, final AuthenticationResult result) throws MalformedURLException {
-
         AzureActiveDirectory ad = new AzureActiveDirectory();
         AzureActiveDirectoryTokenResponse tokenResponse = CoreAdapter.asAadTokenResponse(result);
         AzureActiveDirectoryOAuth2Configuration config = new AzureActiveDirectoryOAuth2Configuration();
         config.setAuthorityHostValidationEnabled(this.isValidateAuthorityHost());
+
         if (null != mAuthority) {
             config.setAuthorityUrl(new URL(mAuthority));
         }
+
         AzureActiveDirectoryOAuth2Strategy strategy = ad.createOAuth2Strategy(config);
 
         AzureActiveDirectoryAuthorizationRequest.Builder aadAuthRequestBuilder = new AzureActiveDirectoryAuthorizationRequest.Builder();

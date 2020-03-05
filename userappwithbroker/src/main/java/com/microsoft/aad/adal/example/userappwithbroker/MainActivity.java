@@ -129,6 +129,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if (mAuthResult != null) {
                 bundle.putString(ResultFragment.ACCESS_TOKEN, mAuthResult.getAccessToken());
                 bundle.putString(ResultFragment.ID_TOKEN, mAuthResult.getIdToken());
+                bundle.putString(ResultFragment.AUTHORITY, mAuthResult.getAuthority());
             }
 
             fragment.setArguments(bundle);
@@ -176,16 +177,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     void prepareRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions) {
         mRequestAuthority = requestOptions.getAuthorityType().getText();
-        final String authority = getAuthorityBasedOnUPN(requestOptions.getLoginHint(), mRequestAuthority);
-        if (null != authority && !authority.isEmpty()) {
-            //Replace the request authority with the preferred authority stored in shared preference
-            mAuthority = authority;
-            mAuthContext = new AuthenticationContext(mApplicationContext, mAuthority, false);
-        } else {
-            //If there is no preferred authority stored, use the type-in authority
-            mAuthority = mRequestAuthority;
-            mAuthContext = new AuthenticationContext(mApplicationContext, mAuthority, true);
-        }
+        mAuthority = mRequestAuthority;
+        mAuthContext = new AuthenticationContext(mApplicationContext, mAuthority, true);
 
         //TODO: We can add UX to set or not set this
         mAuthContext.setClientCapabilites(new ArrayList<>(Arrays.asList("CP1")));
