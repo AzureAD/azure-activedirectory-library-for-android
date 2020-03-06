@@ -10,7 +10,7 @@
 rootProject.name = 'android_auth'
 
 include ':adal', ':msal', ':common', ':AADAuthenticator', ':brokerHost', ':msalTestApp', ':adalTestApp',
-        ':app', ':library', ':NgcProviderLibrary', ':AadRemoteNgcLibrary', ':SharedCoreLibrary', ':AzureSample', ':TestUtilitiesLibrary',
+        ':app', ':NgcProviderLibrary', ':AadRemoteNgcLibrary', ':SharedCoreLibrary', ':AzureSample', ':TestUtilitiesLibrary',
         ':labapi', ':keyvault', ':testutils', ':pop-benchmarker', ':package-inspector'
 project(':common').projectDir = new File('common/common')
 project(':msal').projectDir = new File('msal/msal')
@@ -20,7 +20,6 @@ project(':brokerHost').projectDir = new File('broker/userapp')
 project(':adalTestApp').projectDir = new File('adal/userappwithbroker')
 project(':msalTestApp').projectDir = new File('msal/testapps/testapp')
 project(':app').projectDir = new File('authenticator/PhoneFactor/app')
-project(':library').projectDir = new File('authenticator/PhoneFactor/OpenSourceLibraries/drag-sort-listview/library')
 project(':NgcProviderLibrary').projectDir = new File('authenticator/PhoneFactor/NgcProviderLibrary')
 project(':AadRemoteNgcLibrary').projectDir = new File('authenticator/PhoneFactor/AadRemoteNgcLibrary')
 project(':SharedCoreLibrary').projectDir = new File('authenticator/PhoneFactor/SharedCoreLibrary')
