@@ -23,6 +23,8 @@
 
 package com.microsoft.aad.adal.example.userappwithbroker;
 
+import android.accounts.AuthenticatorException;
+import android.accounts.OperationCanceledException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -38,6 +40,8 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.RelativeLayout;
@@ -48,9 +52,12 @@ import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.IDispatcher;
+import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.PromptBehavior;
 import com.microsoft.aad.adal.Telemetry;
+import com.microsoft.aad.adal.UserInfo;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -170,9 +177,32 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         prepareRequestParameters(requestOptions);
 
-        callAcquireTokenSilent(requestOptions.getDataProfile().getText(),
-                getUserIdBasedOnUPN(requestOptions.getLoginHint(), requestOptions.getAuthority()),
-                requestOptions.getClientId().getText());
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String uId = getUserIdBasedOnUPN(requestOptions.getLoginHint(), requestOptions.getAuthority());
+
+                if (TextUtils.isEmpty(uId)) {
+                    try {
+                        final UserInfo[] userInfos = mAuthContext.getBrokerUsers();
+
+                        for (UserInfo userInfo : userInfos) {
+                            if (userInfo.getDisplayableId().equalsIgnoreCase(requestOptions.getLoginHint())) {
+                                uId = userInfo.getUserId();
+                                break;
+                            }
+                        }
+                    } catch (OperationCanceledException | AuthenticatorException | IOException e) {
+                        Logger.e(TAG, "Unable to getbrokerusers from broker " + e.getMessage());
+                    }
+                }
+
+                callAcquireTokenSilent(requestOptions.getDataProfile().getText(),
+                        uId,
+                        requestOptions.getClientId().getText());
+            }
+        }).start();
+
     }
 
     void prepareRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions) {
