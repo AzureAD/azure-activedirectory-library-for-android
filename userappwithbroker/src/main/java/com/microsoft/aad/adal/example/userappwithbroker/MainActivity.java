@@ -31,28 +31,18 @@ import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.os.Bundle;
 import android.os.Handler;
-import com.google.android.material.navigation.NavigationView;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import com.google.android.material.navigation.NavigationView;
 import com.microsoft.aad.adal.AuthenticationCallback;
 import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.IDispatcher;
-import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.PromptBehavior;
 import com.microsoft.aad.adal.Telemetry;
 import com.microsoft.aad.adal.UserInfo;
@@ -70,6 +60,15 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
+
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 /**
  * Sample for acquiring token via broker.
@@ -143,11 +142,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mAuthResult = null;
         } else if (menuItemId == R.id.nav_log) {
             fragment = new LogFragment();
-            final String logs = ((ADALSampleApp)this.getApplication()).getLogs();
+            final String logs = ((ADALSampleApp) this.getApplication()).getLogs();
             final Bundle bundle = new Bundle();
             bundle.putString(LogFragment.LOG_MSG, logs);
             fragment.setArguments(bundle);
-        }else {
+        } else {
             fragment = null;
         }
 
@@ -193,15 +192,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             }
                         }
 
-                        if(!TextUtils.isEmpty(uId)) {
+                        if (!TextUtils.isEmpty(uId)) {
                             callAcquireTokenSilent(requestOptions.getDataProfile().getText(),
                                     uId,
                                     requestOptions.getClientId().getText());
-                        }else {
+                        } else {
                             showMessage("No uId matching the provided upn, cannot proceed with silent call");
                         }
 
-                    } catch (OperationCanceledException | AuthenticatorException | IOException e) {
+                    } catch (final OperationCanceledException | AuthenticatorException | IOException e) {
                         showMessage("getBrokerUsers call to broker failed: " + e.getMessage());
                     }
                 }
@@ -244,20 +243,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     /**
      * To call broker, you have to ensure the following:
      * 1) You have to call {@link AuthenticationSettings#INSTANCE#setUseBroker(boolean)}
-     *    and the supplied value has to be true
+     * and the supplied value has to be true
      * 2) You have to have to correct set of permissions.
-     *    If target API version is lower than 23:
-     *    i) You have to have GET_ACCOUNTS, USE_CREDENTIAL, MANAGE_ACCOUNTS declared
-     *       in manifest.
-     *    If target API version is 23:
-     *    i)  USE_CREDENTIAL and MANAGE_ACCOUNTS is already deprecated.
-     *    ii) GET_ACCOUNTS permission is now at protection level "dangerous" calling app
-     *        is responsible for requesting it.
+     * If target API version is lower than 23:
+     * i) You have to have GET_ACCOUNTS, USE_CREDENTIAL, MANAGE_ACCOUNTS declared
+     * in manifest.
+     * If target API version is 23:
+     * i)  USE_CREDENTIAL and MANAGE_ACCOUNTS is already deprecated.
+     * ii) GET_ACCOUNTS permission is now at protection level "dangerous" calling app
+     * is responsible for requesting it.
      * 3) If you're talking to the broker app without PRT support, you have to have an
-     *    WPJ account existed in broker(enroll with intune, or register with Azure
-     *    Authentication app).
+     * WPJ account existed in broker(enroll with intune, or register with Azure
+     * Authentication app).
      * 4) The two broker apps(Company Portal or Azure Authenticator) cannot go through
-     *    broker auth.
+     * broker auth.
      */
     private void setUpADALForCallingBroker() {
         // Set the calling app will talk to broker
@@ -333,9 +332,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 final SharedPreferences.Editor prefEditor = mSharedPreference.edit();
                 if (null != authResult.getUserInfo() && null != authResult.getUserInfo().getDisplayableId()) {
                     prefEditor.putString(
-                            (authResult.getUserInfo().getDisplayableId().trim() + ":" + authResult.getAuthority() +  ":authority").toLowerCase(),
+                            (authResult.getUserInfo().getDisplayableId().trim() + ":" + authResult.getAuthority() + ":authority").toLowerCase(),
                             authResult.getAuthority().trim().toLowerCase());
-                }  else {
+                } else {
                     final Toast toast = Toast.makeText(mApplicationContext,
                             "Warning: the result authority is null," +
                                     "Silent auth for Sovereign account will fail. ", Toast.LENGTH_SHORT);
@@ -343,8 +342,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
 
                 if (null != authResult.getUserInfo()
-                    && null != authResult.getUserInfo().getDisplayableId()
-                    && null != authResult.getUserInfo().getUserId()) {
+                        && null != authResult.getUserInfo().getDisplayableId()
+                        && null != authResult.getUserInfo().getUserId()) {
                     prefEditor.putString((authResult.getUserInfo().getDisplayableId().trim() + ":" + authResult.getAuthority() + ":userId").toLowerCase(),
                             authResult.getUserInfo().getUserId().trim().toLowerCase());
                 } else {
@@ -369,8 +368,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     /**
-     * Silent acquire token call. Requires to pass the user unique id. If user unique id is not passed, 
-     * silent call to broker will be skipped. 
+     * Silent acquire token call. Requires to pass the user unique id. If user unique id is not passed,
+     * silent call to broker will be skipped.
      */
     private void callAcquireTokenSilent(final String resource, final String userUniqueId, final String clientId) {
         mAuthContext.acquireTokenSilentAsync(resource, clientId, userUniqueId, new AuthenticationCallback<AuthenticationResult>() {
@@ -394,8 +393,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
 }
+
 class SampleTelemetry implements IDispatcher {
     private static final String TAG = "SampleTelemetry";
+
     @Override
     public void dispatchEvent(final Map<String, String> events) {
         final Iterator iterator = events.entrySet().iterator();
