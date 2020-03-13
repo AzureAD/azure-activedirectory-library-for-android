@@ -1,3 +1,11 @@
+Version 2.0.1
+-------------
+- Uses common version: 2.0.3
+- Bugfix: Resolved ADAL/1513
+    * Fixed an issue whereby the ADAL version was not sent to the /token endpoint, blocking MS-PKAP handshakes
+- Bugfix: Resolved ADAL/1363
+    * Resolves a common memory leak resulting from successful auth requests
+
 Version 2.0.0
 -------------
 - Please note: ADAL 2.0.0 (released March 2020) is neither API-compatible nor cache-compatible with the following versions:
