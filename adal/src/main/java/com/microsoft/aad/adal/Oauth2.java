@@ -652,6 +652,7 @@ class Oauth2 {
 
         try {
             mWebRequestHandler.setRequestCorrelationId(mRequest.getCorrelationId());
+            mWebRequestHandler.setClientVersion(AuthenticationContext.getVersionName());
             ClientMetrics.INSTANCE.beginClientMetricsRecord(authority, mRequest.getCorrelationId(),
                     headers);
             HttpWebResponse response = mWebRequestHandler.sendPost(authority, headers,
