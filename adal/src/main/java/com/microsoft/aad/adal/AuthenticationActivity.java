@@ -33,6 +33,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -40,6 +41,7 @@ import android.security.KeyChain;
 import android.security.KeyChainAliasCallback;
 import android.security.KeyChainException;
 import android.view.MotionEvent;
+import android.view.Surface;
 import android.view.View;
 import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
@@ -49,6 +51,8 @@ import android.webkit.CookieSyncManager;
 import android.webkit.WebView;
 
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.gson.Gson;
@@ -59,6 +63,7 @@ import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
 import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.logging.Logger;
+import com.microsoft.identity.common.internal.ui.DualScreenUtil;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -183,6 +188,50 @@ public class AuthenticationActivity extends Activity {
         }
     }
 
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        adjustLayout();
+    }
+
+    private void adjustLayout(){
+        int rotation = DualScreenUtil.getRotation(this);
+        boolean isAppSpanned = DualScreenUtil.isAppSpanned(this);
+        boolean isHorizontal = rotation == Surface.ROTATION_0 || rotation == Surface.ROTATION_180;
+
+        final ConstraintSet constraintSet = new ConstraintSet();
+        constraintSet.connect(mWebView.getId(), ConstraintSet.LEFT, R.id.activity_authentication, ConstraintSet.LEFT, 0);
+        constraintSet.connect(mWebView.getId(), ConstraintSet.RIGHT, R.id.activity_authentication, ConstraintSet.RIGHT, 0);
+        constraintSet.connect(mWebView.getId(), ConstraintSet.TOP, R.id.activity_authentication, ConstraintSet.TOP, 0);
+        constraintSet.connect(mWebView.getId(), ConstraintSet.BOTTOM, R.id.activity_authentication, ConstraintSet.BOTTOM, 0);
+
+        constraintSet.connect(R.id.authentication_activity_empty_view, ConstraintSet.LEFT, R.id.activity_authentication, ConstraintSet.LEFT, 0);
+        constraintSet.connect(R.id.authentication_activity_empty_view, ConstraintSet.RIGHT, R.id.activity_authentication, ConstraintSet.RIGHT, 0);
+        constraintSet.connect(R.id.authentication_activity_empty_view, ConstraintSet.TOP, R.id.activity_authentication, ConstraintSet.TOP, 0);
+        constraintSet.connect(R.id.authentication_activity_empty_view, ConstraintSet.BOTTOM, R.id.activity_authentication, ConstraintSet.BOTTOM, 0);
+
+        if (isAppSpanned){
+            if (isHorizontal) {
+                // WebView is on the right.
+                constraintSet.connect(mWebView.getId(), ConstraintSet.LEFT, R.id.vertical_guideline, ConstraintSet.RIGHT, 0);
+
+                // Empty view is on the left.
+                constraintSet.connect(R.id.authentication_activity_empty_view, ConstraintSet.RIGHT, R.id.vertical_guideline, ConstraintSet.LEFT, 0);
+            } else {
+                // WebView is on the top.
+                constraintSet.connect(mWebView.getId(), ConstraintSet.BOTTOM, R.id.horizontal_guideline, ConstraintSet.TOP, 0);
+
+                // Empty view is in the bottom.
+                constraintSet.connect(R.id.authentication_activity_empty_view, ConstraintSet.TOP, R.id.horizontal_guideline, ConstraintSet.BOTTOM, 0);
+            }
+        } else {
+            constraintSet.clear(R.id.authentication_activity_empty_view);
+        }
+
+        final ConstraintLayout constraintLayout =  findViewById(R.id.activity_authentication);
+        constraintLayout.setConstraintSet(constraintSet);
+    }
+
     // Turn off the deprecation warning for CookieSyncManager.  It was deprecated in API 21, but
     // is still necessary for API level 20 and below.
     @SuppressLint("SetJavaScriptEnabled")
@@ -190,15 +239,10 @@ public class AuthenticationActivity extends Activity {
     protected void onCreate(final Bundle savedInstanceState) {
         final String methodName = ":onCreate";
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_authentication);
+        mWebView = findViewById(R.id.authentication_activity_webView);
 
-        setContentView(
-                this.getResources()
-                        .getIdentifier(
-                                "activity_authentication",
-                                "layout",
-                                this.getPackageName()
-                        )
-        );
+        adjustLayout();
 
         CookieSyncManager.createInstance(getApplicationContext());
         CookieSyncManager.getInstance().sync();
@@ -250,16 +294,6 @@ public class AuthenticationActivity extends Activity {
         mUIEvent = new UIEvent(EventStrings.UI_EVENT);
         mUIEvent.setRequestId(mAuthRequest.getTelemetryRequestId());
         mUIEvent.setCorrelationId(mAuthRequest.getCorrelationId().toString());
-
-        // Create the Web View to show the page
-        mWebView = findViewById(
-                this.getResources()
-                        .getIdentifier(
-                                "webView1",
-                                "id",
-                                this.getPackageName()
-                        )
-        );
 
         // Disable hardware acceleration in WebView if needed
         if (!AuthenticationSettings.INSTANCE.getDisableWebViewHardwareAcceleration()) {
