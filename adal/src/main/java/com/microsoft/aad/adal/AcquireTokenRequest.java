@@ -31,8 +31,9 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import androidx.annotation.Nullable;
 import android.util.Log;
+
+import androidx.annotation.Nullable;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
@@ -724,6 +725,7 @@ class AcquireTokenRequest {
                 final AuthenticationRequestState waitingRequest;
                 try {
                     waitingRequest = mAuthContext.getWaitingRequest(requestId);
+                    mAuthContext.removeWaitingRequest(requestId); // We have the request, we can now remove it.
                     Logger.v(TAG + methodName, "Waiting request found. " + "RequestId:" + requestId);
                 } catch (final AuthenticationException authenticationException) {
                     Logger.e(TAG + methodName,

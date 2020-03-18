@@ -129,7 +129,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if (mAuthResult != null) {
                 bundle.putString(ResultFragment.ACCESS_TOKEN, mAuthResult.getAccessToken());
                 bundle.putString(ResultFragment.ID_TOKEN, mAuthResult.getIdToken());
-                bundle.putString(ResultFragment.AUTHORITY, mAuthResult.getAuthority());
             }
 
             fragment.setArguments(bundle);
@@ -171,12 +170,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         prepareRequestParameters(requestOptions);
 
         callAcquireTokenSilent(requestOptions.getDataProfile().getText(),
-                getUserIdBasedOnUPN(requestOptions.getLoginHint(), requestOptions.getAuthorityType().getText()),
+                getUserIdBasedOnUPN(requestOptions.getLoginHint(), requestOptions.getAuthority()),
                 requestOptions.getClientId().getText());
     }
 
     void prepareRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions) {
-        mRequestAuthority = requestOptions.getAuthorityType().getText();
+        mRequestAuthority = requestOptions.getAuthority();
         mAuthority = mRequestAuthority;
         mAuthContext = new AuthenticationContext(mApplicationContext, mAuthority, true);
 
@@ -275,7 +274,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                         // Update this user for next call
                         if (authenticationResult.getUserInfo() != null) {
-                            saveUserIdFromAuthenticationResult(authenticationResult, mRequestAuthority);
+                            saveUserIdFromAuthenticationResult(authenticationResult);
                         }
                     }
 
@@ -291,21 +290,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      * for later use.
      * To make the sample app easier, the saved data will be keyed by displayable id.
      */
-    private void saveUserIdFromAuthenticationResult(final AuthenticationResult authResult, final String authority) {
+    private void saveUserIdFromAuthenticationResult(final AuthenticationResult authResult) {
         mSharedPreference = getSharedPreferences(SHARED_PREFERENCE_STORE_USER_UNIQUEID, MODE_PRIVATE);
         if (null != authResult) {
             if (null != authResult.getAuthority()) {
                 final SharedPreferences.Editor prefEditor = mSharedPreference.edit();
                 if (null != authResult.getUserInfo() && null != authResult.getUserInfo().getDisplayableId()) {
-                    if (null != authResult.getUserInfo() && null != authResult.getUserInfo().getIdentityProvider()) {
-                        prefEditor.putString(
-                                (authResult.getUserInfo().getDisplayableId().trim() + ":" + authority.trim() +  ":authority").toLowerCase(),
-                                authResult.getUserInfo().getIdentityProvider().trim().toLowerCase());
-                    } else {
-                       prefEditor.putString(
-                               (authResult.getUserInfo().getDisplayableId().trim() + ":" + authority.trim() +  ":authority").toLowerCase(),
-                               authResult.getAuthority().trim().toLowerCase());
-                    }
+                    prefEditor.putString(
+                            (authResult.getUserInfo().getDisplayableId().trim() + ":" + authResult.getAuthority() +  ":authority").toLowerCase(),
+                            authResult.getAuthority().trim().toLowerCase());
                 }  else {
                     final Toast toast = Toast.makeText(mApplicationContext,
                             "Warning: the result authority is null," +
@@ -316,7 +309,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 if (null != authResult.getUserInfo()
                     && null != authResult.getUserInfo().getDisplayableId()
                     && null != authResult.getUserInfo().getUserId()) {
-                    prefEditor.putString((authResult.getUserInfo().getDisplayableId().trim() + ":" + authority.trim() + ":userId").toLowerCase(), authResult.getUserInfo().getUserId().trim().toLowerCase());
+                    prefEditor.putString((authResult.getUserInfo().getDisplayableId().trim() + ":" + authResult.getAuthority() + ":userId").toLowerCase(),
+                            authResult.getUserInfo().getUserId().trim().toLowerCase());
                 } else {
                     final Toast toast = Toast.makeText(mApplicationContext,
                             "Warning: the result userInfo is null. " +
