@@ -1,5 +1,7 @@
-Version 2.0.1
+Version 3.0.0
 -------------
+- Bumping a major version due to some versioning issue on server side with old preview builds.
+- No breaking API changes on the client side, it can be treated as a bug fix release.
 - Uses common version: 2.0.3
 - Bugfix: Resolved ADAL/1513
     * Fixed an issue whereby the ADAL version was not sent to the /token endpoint, blocking MS-PKAP handshakes
