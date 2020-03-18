@@ -64,12 +64,34 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="2"
+            android:text="@string/other_authority_text" />
+
+        <EditText
+            android:id="@+id/other_authority"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="8"
+            android:textSize="14sp"
+            android:hint="Optional"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="10">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
             android:text="@string/login_hint_text" />
 
         <EditText
             android:id="@+id/loginHint"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:textSize="14sp"
             android:layout_weight="8" />
     </LinearLayout>
 
@@ -195,6 +217,7 @@
                 android:id="@+id/extraQP"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:textSize="14sp"
                 android:layout_weight="8" />
         </LinearLayout>
 

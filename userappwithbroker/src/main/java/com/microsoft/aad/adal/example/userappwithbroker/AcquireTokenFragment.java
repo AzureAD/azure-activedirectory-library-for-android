@@ -43,6 +43,7 @@ import java.util.ArrayList;
  */
 public class AcquireTokenFragment extends Fragment {
     private Spinner mAuthority;
+    private EditText mOtherAuthority;
     private EditText mLoginhint;
     private EditText mExtraQp;
     private Spinner mResource;
@@ -64,6 +65,7 @@ public class AcquireTokenFragment extends Fragment {
         final View view = inflater.inflate(R.layout.fragment_acquire, container, false);
 
         mAuthority = (Spinner) view.findViewById(R.id.authorityType);
+        mOtherAuthority = view.findViewById(R.id.other_authority);
         mLoginhint = (EditText) view.findViewById(R.id.loginHint);
         mClientId = (Spinner) view.findViewById(R.id.client_id);
         mRedirectUri = (Spinner) view.findViewById(R.id.redirect_uri);
@@ -129,18 +131,22 @@ public class AcquireTokenFragment extends Fragment {
     }
 
     RequestOptions getCurrentRequestOptions() {
-        final Constants.AuthorityType authorityType = Constants.AuthorityType.valueOf(mAuthority.getSelectedItem().toString()) ;
+        String authority = mOtherAuthority.getText().toString();
+        if (authority.isEmpty()) {
+            authority = Constants.AuthorityType.valueOf(mAuthority.getSelectedItem().toString()).getText();
+        }
+
         final String loginHint = mLoginhint.getText().toString();
         final String extraQp = mExtraQp.getText().toString();
         final Constants.DataProfile resource = Constants.DataProfile.valueOf(mResource.getSelectedItem().toString());
         final PromptBehavior behavior = PromptBehavior.valueOf(mPromptBehavior.getSelectedItem().toString());
         final Constants.RedirectUri redirectUri = Constants.RedirectUri.valueOf(mRedirectUri.getSelectedItem().toString());
         final Constants.ClientId clientId = Constants.ClientId.valueOf(mClientId.getSelectedItem().toString());
-        return RequestOptions.create(authorityType, loginHint, extraQp, resource, behavior, clientId, redirectUri);
+        return RequestOptions.create(authority, loginHint, extraQp, resource, behavior, clientId, redirectUri);
     }
 
     static class RequestOptions {
-        final Constants.AuthorityType mAuthorityType;
+        final String mAuthority;
         final String mLoginHint;
         final String mExtraQp;
         final Constants.DataProfile mResource;
@@ -148,11 +154,11 @@ public class AcquireTokenFragment extends Fragment {
         final Constants.RedirectUri mRedirectUri;
         final Constants.ClientId mClientId;
 
-        RequestOptions(final Constants.AuthorityType authorityType, final String loginHint,
+        RequestOptions(final String authority, final String loginHint,
                        final String extraQp, final Constants.DataProfile dataProfile,
                        final PromptBehavior behavior, final Constants.ClientId clientId,
                        final Constants.RedirectUri redirectUri) {
-            mAuthorityType = authorityType;
+            mAuthority = authority;
             mLoginHint = loginHint;
             mExtraQp = extraQp;
             mResource = dataProfile;
@@ -161,13 +167,13 @@ public class AcquireTokenFragment extends Fragment {
             mRedirectUri = redirectUri;
         }
 
-        static RequestOptions create(final Constants.AuthorityType authority, final String loginHint, final String extraQp, final Constants.DataProfile dataProfile,
+        static RequestOptions create(final String authority, final String loginHint, final String extraQp, final Constants.DataProfile dataProfile,
                                      final PromptBehavior behavior, final Constants.ClientId clientId, final Constants.RedirectUri redirectUri) {
             return new RequestOptions(authority, loginHint, extraQp, dataProfile, behavior, clientId, redirectUri);
         }
 
-        Constants.AuthorityType getAuthorityType() {
-            return mAuthorityType;
+        String getAuthority() {
+            return mAuthority;
         }
 
         String getLoginHint() {
