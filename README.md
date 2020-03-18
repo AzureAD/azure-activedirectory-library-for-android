@@ -19,7 +19,7 @@ ADAL for Android gives you the ability to add support for Work Accounts to your 
 
 A Work Account is an identity you use to get work done from your organization or school. Anywhere you need to get access to your work life you'll use a Work Account. The Work Account can be tied to an Active Directory server running in your datacenter or live completely in the cloud like when you use Office 365. A Work Account will be how your users know that they are accessing their important documents and data backed my Microsoft security.
 
-## ADAL for Android 2.0.1 Released!
+## ADAL for Android 3.0.0 Released!
 >Please note: Production ADAL 2.0.x releases (first released March 2020) are neither API-compatible nor cache-compatible with the following versions:<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;- 2.0-alpha   (released 2015-07-27)<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;- 2.0.1-alpha (released 2015-09-25)<br/>
@@ -38,7 +38,7 @@ Note: A corpnet account is required to view the VSTS build.
 
 ## Versions
 
-Current version - 2.0.1
+Current version - 3.0.0
 
 Minimum recommended version - 1.15.1-hf1
 
@@ -132,7 +132,7 @@ repositories {
 }
 dependencies {
     // your dependencies here...
-    compile('com.microsoft.aad:adal:2.0.1') {
+    compile('com.microsoft.aad:adal:3.0.0') {
         // if your app includes android support
         // libraries or Gson in its dependencies
         // exclude that groupId from ADAL's compile
@@ -153,7 +153,7 @@ If you are using the m2e plugin in Eclipse, you can specify the dependency in yo
 <dependency>
     <groupId>com.microsoft.aad</groupId>
     <artifactId>adal</artifactId>
-    <version>2.0.1</version>
+    <version>3.0.0</version>
     <type>aar</type>
 </dependency>
 ```
