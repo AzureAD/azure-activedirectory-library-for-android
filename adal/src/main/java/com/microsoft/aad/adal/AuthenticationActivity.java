@@ -27,8 +27,6 @@ import android.accounts.AccountAuthenticatorResponse;
 import android.accounts.AccountManager;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
-import android.app.Activity;
-import android.app.ProgressDialog;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -41,12 +39,12 @@ import android.security.KeyChainAliasCallback;
 import android.security.KeyChainException;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.ClientCertRequest;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import android.webkit.WebView;
+import android.widget.ProgressBar;
 
 import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -59,6 +57,7 @@ import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
 import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.logging.Logger;
+import com.microsoft.identity.common.internal.ui.DualScreenActivity;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -122,7 +121,7 @@ import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.TOKEN_BR
 @SuppressLint({
         "SetJavaScriptEnabled", "ClickableViewAccessibility"
 })
-public class AuthenticationActivity extends Activity {
+public class AuthenticationActivity extends DualScreenActivity {
 
     static final int BACK_PRESSED_CANCEL_DIALOG_STEPS = -2;
 
@@ -130,7 +129,7 @@ public class AuthenticationActivity extends Activity {
     private boolean mRegisterReceiver = false;
     private WebView mWebView;
     private String mStartUrl;
-    private ProgressDialog mSpinner;
+    private ProgressBar mSpinner;
     private String mRedirectUrl;
     private AuthenticationRequest mAuthRequest;
 
@@ -190,15 +189,10 @@ public class AuthenticationActivity extends Activity {
     protected void onCreate(final Bundle savedInstanceState) {
         final String methodName = ":onCreate";
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_authentication);
 
-        setContentView(
-                this.getResources()
-                        .getIdentifier(
-                                "activity_authentication",
-                                "layout",
-                                this.getPackageName()
-                        )
-        );
+        mWebView = findViewById(R.id.authentication_activity_webView);
+        mSpinner = findViewById(R.id.authentication_activity_progressBar);
 
         CookieSyncManager.createInstance(getApplicationContext());
         CookieSyncManager.getInstance().sync();
@@ -250,16 +244,6 @@ public class AuthenticationActivity extends Activity {
         mUIEvent = new UIEvent(EventStrings.UI_EVENT);
         mUIEvent.setRequestId(mAuthRequest.getTelemetryRequestId());
         mUIEvent.setCorrelationId(mAuthRequest.getCorrelationId().toString());
-
-        // Create the Web View to show the page
-        mWebView = findViewById(
-                this.getResources()
-                        .getIdentifier(
-                                "webView1",
-                                "id",
-                                this.getPackageName()
-                        )
-        );
 
         // Disable hardware acceleration in WebView if needed
         if (!AuthenticationSettings.INSTANCE.getDisableWebViewHardwareAcceleration()) {
@@ -635,12 +619,7 @@ public class AuthenticationActivity extends Activity {
         }
 
         mRegisterReceiver = true;
-
-        if (mSpinner != null) {
-            Logger.verbose(TAG + methodName, "Spinner at onPause will dismiss");
-            mSpinner.dismiss();
-        }
-
+        displaySpinner(false);
         hideKeyBoard();
     }
 
@@ -672,20 +651,6 @@ public class AuthenticationActivity extends Activity {
             }
         }
         mRegisterReceiver = false;
-
-        // Spinner dialog to show some message while it is loading
-        mSpinner = new ProgressDialog(this);
-        mSpinner.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        mSpinner.setMessage(
-                this.getText(
-                        this.getResources()
-                                .getIdentifier(
-                                        "app_loading",
-                                        "string",
-                                        this.getPackageName()
-                                )
-                )
-        );
     }
 
     @Override
@@ -782,19 +747,7 @@ public class AuthenticationActivity extends Activity {
                 view.stopLoading();
             } else {
                 Logger.info(TAG + methodName, "It is a broker request");
-
-                displaySpinnerWithMessage(
-                        AuthenticationActivity.this.getText(
-                                AuthenticationActivity.this
-                                        .getResources()
-                                        .getIdentifier(
-                                                "broker_processing",
-                                                "string",
-                                                getPackageName()
-                                        )
-                        )
-                );
-
+                displaySpinner(true);
                 view.stopLoading();
 
                 // do async task and show spinner while exchanging code for
@@ -955,29 +908,15 @@ public class AuthenticationActivity extends Activity {
     private void displaySpinner(final boolean show) {
         final String methodName = ":displaySpinner";
 
-        if (!AuthenticationActivity.this.isFinishing()
-                && !AuthenticationActivity.this.isChangingConfigurations() && mSpinner != null) {
+        if (mSpinner != null) {
             // Used externally to verify web view processing.
             Logger.verbose(
                     TAG + methodName,
                     "DisplaySpinner:" + show
-                            + " showing:" + mSpinner.isShowing()
+                            + " showing:" + (mSpinner.getVisibility() == View.VISIBLE)
             );
 
-            if (show && !mSpinner.isShowing()) {
-                mSpinner.show();
-            }
-
-            if (!show && mSpinner.isShowing()) {
-                mSpinner.dismiss();
-            }
-        }
-    }
-
-    private void displaySpinnerWithMessage(final CharSequence charSequence) {
-        if (!AuthenticationActivity.this.isFinishing() && mSpinner != null) {
-            mSpinner.show();
-            mSpinner.setMessage(charSequence);
+            mSpinner.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
         }
     }
 

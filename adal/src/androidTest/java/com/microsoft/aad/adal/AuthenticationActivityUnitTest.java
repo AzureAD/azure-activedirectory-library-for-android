@@ -163,7 +163,7 @@ public class AuthenticationActivityUnitTest {
     public void testLayout() throws Throwable {
         mActivityRule.launchActivity(mIntentToStartActivity);
         // Webview
-        final WebView webview = mActivityRule.getActivity().findViewById(R.id.webView1);
+        final WebView webview = mActivityRule.getActivity().findViewById(R.id.authentication_activity_webView);
         assertNotNull(webview);
 
         mActivityRule.runOnUiThread(new Runnable() {

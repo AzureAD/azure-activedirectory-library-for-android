@@ -132,6 +132,7 @@ dependencies {
     implementation "androidx.annotation:annotation:$rootProject.ext.annotationVersion"
     implementation "androidx.legacy:legacy-support-v4:$rootProject.ext.legacySupportV4Version"
     implementation "com.nimbusds:nimbus-jose-jwt:$rootProject.ext.nimbusVersion"
+    implementation "androidx.constraintlayout:constraintlayout:$rootProject.ext.constraintLayoutVersion"
 
     // 'local' flavor dependencies
     localApi(project(":common")) {
