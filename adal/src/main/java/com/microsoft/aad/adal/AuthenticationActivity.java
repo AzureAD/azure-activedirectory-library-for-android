@@ -908,14 +908,16 @@ public class AuthenticationActivity extends DualScreenActivity {
     private void displaySpinner(final boolean show) {
         final String methodName = ":displaySpinner";
 
-        // Used externally to verify web view processing.
-        Logger.verbose(
-                TAG + methodName,
-                "DisplaySpinner:" + show
-                        + " showing:" + (mSpinner.getVisibility() == View.VISIBLE)
-        );
+        if (mSpinner != null) {
+            // Used externally to verify web view processing.
+            Logger.verbose(
+                    TAG + methodName,
+                    "DisplaySpinner:" + show
+                            + " showing:" + (mSpinner.getVisibility() == View.VISIBLE)
+            );
 
-        mSpinner.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
+            mSpinner.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
+        }
     }
 
     private void returnResult(final int resultcode, final Intent intent) {
