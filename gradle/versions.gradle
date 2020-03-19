@@ -8,8 +8,17 @@ ext {
     buildToolsVersion = "28.0.3"
 
     // Plugins
-    gradleVersion = '3.3.1'
+    gradleVersion = '3.6.1'
     androidMavenGradlePluginVersion = "1.4.1"
+
+    // AuthApp
+    androidx_work_version = "2.3.3"
+    com_android_installreferrer_installreferrer_version = "1.1.2"
+    com_android_tools_build_gradle_version = "3.6.1"
+    com_google_gms_google_services_version = "4.3.3"
+    com_google_firebase_firebase_core_version = "17.2.3"
+    com_google_firebase_firebase_messaging_version = "20.1.2"
+    kotlin_version = "1.3.70"
 
     // Libraries
     androidxTestCoreVersion = "1.2.0"
