@@ -37,6 +37,7 @@ import androidx.annotation.Nullable;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAuthorizationErrorResponse;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryCloud;
 
@@ -821,6 +822,12 @@ class AcquireTokenRequest {
 
                     waitingRequestOnError(waitingRequest, requestId,
                             new AuthenticationException(ADALError.BROKER_APP_INSTALLATION_STARTED));
+                } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_MDM){
+                    Logger.v(TAG + methodName, "Device needs to be managed, we expect the apps to call us"
+                            + "back when the device is managed");
+
+                    waitingRequestOnError(waitingRequest, requestId,
+                            new AuthenticationException(ADALError.MDM_REQUIRED));
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION) {
                     Serializable authException = extras
                             .getSerializable(AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION);
@@ -852,8 +859,13 @@ class AcquireTokenRequest {
                         final String tenantId = extras.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID);
                         final String authority = extras.getString(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY);
 
-                        AuthenticationException intuneException = new IntuneAppProtectionPolicyRequiredException(message, accountUpn, accountId, tenantId, authority);
+                        final AuthenticationException intuneException = new IntuneAppProtectionPolicyRequiredException(message, accountUpn, accountId, tenantId, authority);
                         waitingRequestOnError(waitingRequest, requestId, intuneException);
+                    } else if (MicrosoftAuthorizationErrorResponse.DEVICE_NEEDS_TO_BE_MANAGED.equalsIgnoreCase(errCode)) {
+                        Logger.v(TAG + methodName, "Device needs to be managed, we expect the apps to call us"
+                                + "back when the device is managed");
+
+                        waitingRequestOnError(waitingRequest, requestId, new AuthenticationException(ADALError.MDM_REQUIRED));
                     } else {
                         waitingRequestOnError(waitingRequest, requestId, new AuthenticationException(
                                 ADALError.SERVER_INVALID_REQUEST, message));
