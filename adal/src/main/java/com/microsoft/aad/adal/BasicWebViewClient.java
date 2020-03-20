@@ -38,12 +38,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.JWSBuilder;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.logging.Logger;
 
 import java.util.HashMap;
 import java.util.Locale;
+
 import java.util.Map;
 
 import static com.microsoft.aad.adal.AuthenticationConstants.Broker.BROWSER_EXT_INSTALL_PREFIX;
@@ -57,8 +59,6 @@ import static com.microsoft.aad.adal.AuthenticationConstants.Browser.RESPONSE_RE
 import static com.microsoft.aad.adal.AuthenticationConstants.OAuth2.CODE;
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION;
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.BROWSER_DEVICE_CA_URL_QUERY_STRING_PARAMETER;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.UIResponse.BROWSER_CODE_MDM;
 
 abstract class BasicWebViewClient extends WebViewClient {
 
@@ -422,10 +422,10 @@ abstract class BasicWebViewClient extends WebViewClient {
 
             view.stopLoading();
 
-            if (url.contains(BROWSER_DEVICE_CA_URL_QUERY_STRING_PARAMETER)) {
+            if (url.contains(AuthenticationConstants.Broker.BROWSER_DEVICE_CA_URL_QUERY_STRING_PARAMETER)) {
                 Logger.warn(TAG + methodName, "Failed to launch Company Portal, falling back to browser.");
-                openLinkInBrowser(url.replace(BROWSER_DEVICE_CA_URL_QUERY_STRING_PARAMETER, ""));
-                sendResponse(BROWSER_CODE_MDM, new Intent());
+                openLinkInBrowser(url.replace(AuthenticationConstants.Broker.BROWSER_DEVICE_CA_URL_QUERY_STRING_PARAMETER, ""));
+                sendResponse(AuthenticationConstants.UIResponse.BROWSER_CODE_MDM, new Intent());
             } else {
                 openLinkInBrowser(url);
                 cancelWebViewRequest(null);
