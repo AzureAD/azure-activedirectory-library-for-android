@@ -424,7 +424,7 @@ abstract class BasicWebViewClient extends WebViewClient {
 
             if (url.contains(AuthenticationConstants.Broker.BROWSER_DEVICE_CA_URL_QUERY_STRING_PARAMETER)) {
                 Logger.warn(TAG + methodName, "Failed to launch Company Portal, falling back to browser.");
-                openLinkInBrowser(url.replace(AuthenticationConstants.Broker.BROWSER_DEVICE_CA_URL_QUERY_STRING_PARAMETER, ""));
+                openLinkInBrowser(url);
                 sendResponse(AuthenticationConstants.UIResponse.BROWSER_CODE_MDM, new Intent());
             } else {
                 openLinkInBrowser(url);
