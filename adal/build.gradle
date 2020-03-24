@@ -142,7 +142,7 @@ dependencies {
     snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '2.0.3', changing: true)
 
     // 'dist' flavor dependencies
-    distApi("com.microsoft.identity:common:2.0.3") {
+    distApi("com.microsoft.identity:common:2.0.4-LauncherAlpha-RC3") {
         transitive = false
     }
 
