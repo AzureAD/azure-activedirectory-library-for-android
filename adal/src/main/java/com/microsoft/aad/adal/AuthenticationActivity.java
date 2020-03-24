@@ -916,7 +916,12 @@ public class AuthenticationActivity extends DualScreenActivity {
                             + " showing:" + (mSpinner.getVisibility() == View.VISIBLE)
             );
 
-            mSpinner.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mSpinner.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
+                }
+            });
         }
     }
 

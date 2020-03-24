@@ -29,8 +29,6 @@ import android.content.res.Resources;
 
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ErrorStrings;
-import com.microsoft.identity.common.exception.ClientException;
-import com.microsoft.identity.common.exception.ServiceException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -650,7 +648,12 @@ public enum ADALError {
     /**
      * Common core to ADAL mapping failed
      */
-    MAPPING_FAILURE("Common core returned an exception code that ADAL cannot parse");
+    MAPPING_FAILURE("Common core returned an exception code that ADAL cannot parse"),
+
+    /**
+     * Device is required to be managed.
+     */
+    MDM_REQUIRED("Device needs to be managed to access the resource");
 
     private String mDescription;
 
