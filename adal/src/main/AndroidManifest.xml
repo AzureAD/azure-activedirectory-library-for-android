@@ -5,7 +5,7 @@
     <application>
         <activity
             android:name="com.microsoft.aad.adal.AuthenticationActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize|screenLayout" />
+            android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize|screenLayout" />
     </application>
 
 </manifest>
