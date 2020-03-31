@@ -215,6 +215,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         //TODO: We can add UX to set or not set this
         mAuthContext.setClientCapabilites(new ArrayList<>(Arrays.asList("CP1")));
+        AuthenticationSettings.INSTANCE.setUseBroker(requestOptions.getUseBroker());
         mLoginhint = requestOptions.getLoginHint();
         mPromptBehavior = requestOptions.getBehavior();
     }
