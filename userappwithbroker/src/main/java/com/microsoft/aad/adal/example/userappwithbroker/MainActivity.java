@@ -190,18 +190,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                 break;
                             }
                         }
-
-                        if (!TextUtils.isEmpty(uId)) {
-                            callAcquireTokenSilent(requestOptions.getDataProfile().getText(),
-                                    uId,
-                                    requestOptions.getClientId().getText());
-                        } else {
-                            showMessage("No uId matching the provided upn, cannot proceed with silent call");
-                        }
-
                     } catch (final OperationCanceledException | AuthenticatorException | IOException e) {
                         showMessage("getBrokerUsers call to broker failed: " + e.getMessage());
                     }
+                }
+
+                if (!TextUtils.isEmpty(uId)) {
+                    callAcquireTokenSilent(requestOptions.getDataProfile().getText(),
+                            uId,
+                            requestOptions.getClientId().getText());
+                } else {
+                    showMessage("No uId matching the provided upn, cannot proceed with silent call");
                 }
             }
         }).start();
