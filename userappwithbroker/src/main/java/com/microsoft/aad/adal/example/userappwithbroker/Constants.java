@@ -26,7 +26,13 @@ package com.microsoft.aad.adal.example.userappwithbroker;
 public class Constants {
     enum AuthorityType {
         AAD_COMMON("https://login.microsoftonline.com/common"),
-        MOONCAKE_COMMON("https://login.chinacloudapi.cn/common"),
+        AAD_MOONCAKE_COMMON("https://login.chinacloudapi.cn/common"),
+        MSID_LAB2("https://login.microsoftonline.com/msidlab2.com"),
+        MSID_LAB3("https://login.microsoftonline.com/msidlab3.com"),
+        MSID_LAB4("https://login.microsoftonline.com/msidlab4.com"),
+        MSID_BLACKFOREST("https://login.microsoftonline.de/blfmsidlab1.onmicrosoft.de"),
+        MSID_FAIRFAX("https://login.microsoftonline.us/ffxmsidlab1.onmicrosoft.com"),
+        MSID_ARLINGTON("https://login.microsoftonline.us/arlmsidlab1.onmicrosoft.us"),
         AAD_WINDOWS_NET("https://login.windows.net/common");
 
         private final String text;
@@ -43,7 +49,11 @@ public class Constants {
     enum DataProfile {
         GRAPH("https://graph.windows.net"),
         MOONCAKE_GRAPH("https://graph.chinacloudapi.cn"),
-        SHAREPOINT("00000003-0000-0ff1-ce00-000000000000");
+        SHAREPOINT_MS_DEV("https://msdevex-my.sharepoint.com"),
+        SHAREPOINT("00000003-0000-0ff1-ce00-000000000000"),
+        OFFICE_ONEDRIVE("6a9b9266-8161-4a7b-913a-a9eda19da220"),
+        SIMPLE("00000002-0000-0000-c000-000000000000");
+
 
         private final String text;
 
@@ -59,7 +69,15 @@ public class Constants {
 
     enum ClientId {
         ADFSV4("4b0db8c2-9f26-4417-8bde-3f0e3656f8e0"),
-        MOONCAKE("920cd637-4ca3-496b-8a6a-f7c6ca1b2b82");
+        MOONCAKE("920cd637-4ca3-496b-8a6a-f7c6ca1b2b82"),
+        ONEDRIVE("af124e86-4e96-495a-b70a-90f90ab96707"),
+        OFFICE("d3590ed6-52b3-4102-aeff-aad2292ab01c"),
+        APPCHECK2_BF("f5d01c1c-abe6-4207-ae2d-5bc9af251724"),
+        GUESTCLIENT("ea5c8087-2476-489c-ae03-ad44a2ac399d"),
+        ADFSV3("68a10fc3-ead9-41b8-ac5e-5b78af044736"),
+        ADFSV2("e3fbd64e-3bdc-4fe9-b531-31660912b944"),
+        PING("6b748729-d940-4482-8724-5eb87a817a10"),
+        SHIBBOLETH("d518483c-c15b-4a00-9f59-cff3ffc1077b");
 
         private final String text;
 
