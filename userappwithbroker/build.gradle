@@ -70,7 +70,7 @@ dependencies {
     implementation "com.google.android.material:material:$rootProject.ext.materialVersion"
 
     localImplementation(project(':adal'))
-    distImplementation("com.microsoft.aad:adal:3.0.1-RC1") {
+    distImplementation("com.microsoft.aad:adal:3.0.1") {
         exclude module: 'support-v4'
         exclude module: 'android'
     }
