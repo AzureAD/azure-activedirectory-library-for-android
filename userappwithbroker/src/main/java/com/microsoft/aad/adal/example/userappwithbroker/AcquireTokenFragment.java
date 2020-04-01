@@ -33,6 +33,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Switch;
 
 import com.microsoft.aad.adal.PromptBehavior;
 
@@ -50,6 +51,7 @@ public class AcquireTokenFragment extends Fragment {
     private Spinner mPromptBehavior;
     private Spinner mClientId;
     private Spinner mRedirectUri;
+    private Switch mUseBroker;
 
     private Button mAcquireToken;
     private Button mAcquireTokenSilent;
@@ -76,6 +78,7 @@ public class AcquireTokenFragment extends Fragment {
         mExtraQp = (EditText) view.findViewById(R.id.extraQP);
         mAcquireToken = (Button) view.findViewById(R.id.btn_acquiretoken);
         mAcquireTokenSilent = (Button) view.findViewById(R.id.btn_acquiretokensilent);
+        mUseBroker = view.findViewById(R.id.use_broker);
 
         bindSpinnerChoice(mAuthority, Constants.AuthorityType.class);
         bindSpinnerChoice(mPromptBehavior, PromptBehavior.class);
@@ -142,7 +145,8 @@ public class AcquireTokenFragment extends Fragment {
         final PromptBehavior behavior = PromptBehavior.valueOf(mPromptBehavior.getSelectedItem().toString());
         final Constants.RedirectUri redirectUri = Constants.RedirectUri.valueOf(mRedirectUri.getSelectedItem().toString());
         final Constants.ClientId clientId = Constants.ClientId.valueOf(mClientId.getSelectedItem().toString());
-        return RequestOptions.create(authority, loginHint, extraQp, resource, behavior, clientId, redirectUri);
+        final boolean useBroker = mUseBroker.isChecked();
+        return RequestOptions.create(authority, loginHint, extraQp, resource, behavior, clientId, redirectUri, useBroker);
     }
 
     static class RequestOptions {
@@ -153,11 +157,13 @@ public class AcquireTokenFragment extends Fragment {
         final PromptBehavior mBehavior;
         final Constants.RedirectUri mRedirectUri;
         final Constants.ClientId mClientId;
+        final boolean mUseBroker;
 
         RequestOptions(final String authority, final String loginHint,
                        final String extraQp, final Constants.DataProfile dataProfile,
                        final PromptBehavior behavior, final Constants.ClientId clientId,
-                       final Constants.RedirectUri redirectUri) {
+                       final Constants.RedirectUri redirectUri,
+                       final boolean useBroker) {
             mAuthority = authority;
             mLoginHint = loginHint;
             mExtraQp = extraQp;
@@ -165,11 +171,12 @@ public class AcquireTokenFragment extends Fragment {
             mBehavior = behavior;
             mClientId = clientId;
             mRedirectUri = redirectUri;
+            mUseBroker = useBroker;
         }
 
         static RequestOptions create(final String authority, final String loginHint, final String extraQp, final Constants.DataProfile dataProfile,
-                                     final PromptBehavior behavior, final Constants.ClientId clientId, final Constants.RedirectUri redirectUri) {
-            return new RequestOptions(authority, loginHint, extraQp, dataProfile, behavior, clientId, redirectUri);
+                                     final PromptBehavior behavior, final Constants.ClientId clientId, final Constants.RedirectUri redirectUri, final boolean useBroker) {
+            return new RequestOptions(authority, loginHint, extraQp, dataProfile, behavior, clientId, redirectUri, useBroker);
         }
 
         String getAuthority() {
@@ -198,6 +205,10 @@ public class AcquireTokenFragment extends Fragment {
 
         Constants.RedirectUri getRedirectUri() {
             return mRedirectUri;
+        }
+
+        boolean getUseBroker() {
+            return mUseBroker;
         }
     }
 

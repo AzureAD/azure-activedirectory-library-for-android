@@ -135,6 +135,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if (mAuthResult != null) {
                 bundle.putString(ResultFragment.ACCESS_TOKEN, mAuthResult.getAccessToken());
                 bundle.putString(ResultFragment.ID_TOKEN, mAuthResult.getIdToken());
+                bundle.putString(ResultFragment.AUTHORITY, mAuthResult.getAuthority());
             }
 
             fragment.setArguments(bundle);
@@ -214,6 +215,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         //TODO: We can add UX to set or not set this
         mAuthContext.setClientCapabilites(new ArrayList<>(Arrays.asList("CP1")));
+        AuthenticationSettings.INSTANCE.setUseBroker(requestOptions.getUseBroker());
         mLoginhint = requestOptions.getLoginHint();
         mPromptBehavior = requestOptions.getBehavior();
     }
