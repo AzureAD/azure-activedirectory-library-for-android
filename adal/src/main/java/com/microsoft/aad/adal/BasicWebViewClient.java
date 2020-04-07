@@ -38,11 +38,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.JWSBuilder;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.internal.logging.Logger;
 
 import java.util.HashMap;
 import java.util.Locale;
+
 import java.util.Map;
 
 import static com.microsoft.aad.adal.AuthenticationConstants.Broker.BROWSER_EXT_INSTALL_PREFIX;
@@ -417,9 +420,17 @@ abstract class BasicWebViewClient extends WebViewClient {
                     "It is an external website request"
             );
 
-            openLinkInBrowser(url);
             view.stopLoading();
-            cancelWebViewRequest(null);
+
+            if (url.contains(AuthenticationConstants.Broker.BROWSER_DEVICE_CA_URL_QUERY_STRING_PARAMETER)) {
+                Logger.warn(TAG + methodName, "Failed to launch Company Portal, falling back to browser.");
+                openLinkInBrowser(url);
+                sendResponse(AuthenticationConstants.UIResponse.BROWSER_CODE_MDM, new Intent());
+            } else {
+                openLinkInBrowser(url);
+                cancelWebViewRequest(null);
+            }
+
             return true;
         } else if (url.startsWith(BROWSER_EXT_INSTALL_PREFIX)) {
             com.microsoft.identity.common.internal.logging.Logger.verbose(
