@@ -404,10 +404,7 @@ If you are using ProGuard, we suggest disabling shrinking and obfuscation of ADA
 To disable obfuscation of ADAL classes:
 
 ```
--keep class com.microsoft.aad.adal.** {
-  *;
-}
--keep class com.microsoft.identity.common.** {
+-keep class com.microsoft.** {
   *;
 }
 ```
