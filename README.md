@@ -38,9 +38,9 @@ Note: A corpnet account is required to view the VSTS build.
 
 ## Versions
 
-Current version - 3.0.0
+Current version - 3.0.1
 
-Minimum recommended version - 1.15.1-hf1
+Minimum recommended version - 1.16.3-hf1
 
 You can find version-to-version differences in the [change log](https://github.com/AzureAD/azure-activedirectory-library-for-android/blob/master/changelog.txt).
 
@@ -132,15 +132,16 @@ repositories {
 }
 dependencies {
     // your dependencies here...
-    compile('com.microsoft.aad:adal:3.0.0') {
+    compile('com.microsoft.aad:adal:3.0.1') {
         // if your app includes android support
-        // libraries or Gson in its dependencies
-        // exclude that groupId from ADAL's compile
-        // task by un-commenting the appropriate
-        // line below
+        // libraries, Gson or Surface Duo SDK 
+        // in its dependencies, exclude that 
+        // groupId from ADAL's compile task by 
+        // un-commenting the appropriate line below
 
         // exclude group: 'com.android.support'
         // exclude group: 'com.google.code.gson'
+        // exclude group: 'com.microsoft.device.display'
     }
 }
 ```
@@ -153,7 +154,7 @@ If you are using the m2e plugin in Eclipse, you can specify the dependency in yo
 <dependency>
     <groupId>com.microsoft.aad</groupId>
     <artifactId>adal</artifactId>
-    <version>3.0.0</version>
+    <version>3.0.1</version>
     <type>aar</type>
 </dependency>
 ```
