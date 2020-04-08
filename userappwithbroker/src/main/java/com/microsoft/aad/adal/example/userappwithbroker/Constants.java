@@ -26,6 +26,7 @@ package com.microsoft.aad.adal.example.userappwithbroker;
 public class Constants {
     enum AuthorityType {
         AAD_COMMON("https://login.microsoftonline.com/common"),
+        AAD_MOONCAKE_COMMON("https://login.chinacloudapi.cn/common"),
         MSID_LAB2("https://login.microsoftonline.com/msidlab2.com"),
         MSID_LAB3("https://login.microsoftonline.com/msidlab3.com"),
         MSID_LAB4("https://login.microsoftonline.com/msidlab4.com"),
@@ -47,6 +48,7 @@ public class Constants {
 
     enum DataProfile {
         GRAPH("https://graph.windows.net"),
+        MOONCAKE_GRAPH("https://graph.chinacloudapi.cn"),
         SHAREPOINT_MS_DEV("https://msdevex-my.sharepoint.com"),
         SHAREPOINT("00000003-0000-0ff1-ce00-000000000000"),
         OFFICE_ONEDRIVE("6a9b9266-8161-4a7b-913a-a9eda19da220"),

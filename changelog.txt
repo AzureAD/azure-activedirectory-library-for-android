@@ -1,3 +1,14 @@
+Version 3.0.1
+-------------
+- Adding dual screen support for Surface Duo.
+  * Please exclude classes under "com.microsoft.device.display" in your proguard file.
+  * For apps that would like to include their own copy of Surface Duo SDK, please exclude the SDK inside ADAL as follows.
+    implementation ("com.microsoft.aad:adal:3.0.1") {
+        exclude group: 'com.microsoft.device.display'
+    }
+- Return ADALError.MDM_REQUIRED after the user interacts with MDM link.
+- Adds support for multiple IdToken lookups in a single call when dual stacking with FoCi (common#871)
+
 Version 3.0.0
 -------------
 - Bumping a major version due to some versioning issue on server side with old preview builds.

@@ -135,6 +135,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if (mAuthResult != null) {
                 bundle.putString(ResultFragment.ACCESS_TOKEN, mAuthResult.getAccessToken());
                 bundle.putString(ResultFragment.ID_TOKEN, mAuthResult.getIdToken());
+                bundle.putString(ResultFragment.AUTHORITY, mAuthResult.getAuthority());
             }
 
             fragment.setArguments(bundle);
@@ -190,18 +191,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                 break;
                             }
                         }
-
-                        if (!TextUtils.isEmpty(uId)) {
-                            callAcquireTokenSilent(requestOptions.getDataProfile().getText(),
-                                    uId,
-                                    requestOptions.getClientId().getText());
-                        } else {
-                            showMessage("No uId matching the provided upn, cannot proceed with silent call");
-                        }
-
                     } catch (final OperationCanceledException | AuthenticatorException | IOException e) {
                         showMessage("getBrokerUsers call to broker failed: " + e.getMessage());
                     }
+                }
+
+                if (!TextUtils.isEmpty(uId)) {
+                    callAcquireTokenSilent(requestOptions.getDataProfile().getText(),
+                            uId,
+                            requestOptions.getClientId().getText());
+                } else {
+                    showMessage("No uId matching the provided upn, cannot proceed with silent call");
                 }
             }
         }).start();
@@ -215,6 +215,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         //TODO: We can add UX to set or not set this
         mAuthContext.setClientCapabilites(new ArrayList<>(Arrays.asList("CP1")));
+        AuthenticationSettings.INSTANCE.setUseBroker(requestOptions.getUseBroker());
         mLoginhint = requestOptions.getLoginHint();
         mPromptBehavior = requestOptions.getBehavior();
     }
