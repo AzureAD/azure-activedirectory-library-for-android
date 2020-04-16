@@ -129,6 +129,10 @@ You can get the binaries from Maven central repo. AAR package can be included as
 ```gradle
 repositories {
     mavenCentral()
+    maven {
+        // Surface Duo SDK dependency.
+        url 'https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed%40Local/maven/v1'
+    }
 }
 dependencies {
     // your dependencies here...
