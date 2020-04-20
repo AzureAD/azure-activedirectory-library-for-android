@@ -522,6 +522,7 @@ class BrokerProxy implements IBrokerProxy {
             UserInfo userinfo = UserInfo.getUserInfoFromBrokerResult(bundleResult);
             final String tenantId = bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID,
                     "");
+            final String idToken = bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_IDTOKEN, "");
 
             final Date expires;
             if (bundleResult.getLong(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE) == 0) {
@@ -540,7 +541,7 @@ class BrokerProxy implements IBrokerProxy {
                     false,
                     userinfo,
                     tenantId,
-                    "",
+                    idToken,
                     null,
                     request.getClientId()
             );
