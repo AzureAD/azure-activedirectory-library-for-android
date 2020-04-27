@@ -1,3 +1,7 @@
+Version 3.0.2
+-------------
+- Returns idToken with a silent broker response (msal#997)
+
 Version 3.0.1
 -------------
 - Adding dual screen support for Surface Duo.
