@@ -139,10 +139,10 @@ dependencies {
         transitive = false
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '2.0.7', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '2.0.7-RC1', changing: true)
 
     // 'dist' flavor dependencies
-    distApi("com.microsoft.identity:common:2.0.7") {
+    distApi("com.microsoft.identity:common:2.0.7-RC1") {
         transitive = false
     }
 
