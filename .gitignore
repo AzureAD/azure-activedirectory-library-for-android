@@ -4,6 +4,9 @@
 # Ignore Gradle build output directory
 build
 
+# Android Studio memory dump file.
+.hprof
+
 # Ignore existing repos held under the same structure
 msal
 adal

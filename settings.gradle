@@ -9,24 +9,32 @@
 
 rootProject.name = 'android_auth'
 
-include ':adal', ':msal', ':common', ':AADAuthenticator', ':brokerHost', ':msalTestApp', ':adalTestApp',
-        ':app', ':NgcProviderLibrary', ':AadRemoteNgcLibrary', ':SharedCoreLibrary', ':AzureSample', ':TestUtilitiesLibrary',
-        ':labapi', ':keyvault', ':testutils', ':pop-benchmarker', ':package-inspector'
-project(':common').projectDir = new File('common/common')
-project(':msal').projectDir = new File('msal/msal')
+// Android DevX Projects
+include ':adal', ':msal', ':common', ':AADAuthenticator',
+        ':brokerHost', ':adalTestApp', ':msalTestApp', ':AzureSample', ':package-inspector', ':pop-benchmarker',
+        ':labapi', ':keyvault', ':testutils'
 project(':adal').projectDir = new File('adal/adal')
+project(':msal').projectDir = new File('msal/msal')
+project(':common').projectDir = new File('common/common')
 project(':AADAuthenticator').projectDir = new File('broker/AADAuthenticator')
 project(':brokerHost').projectDir = new File('broker/userapp')
 project(':adalTestApp').projectDir = new File('adal/userappwithbroker')
 project(':msalTestApp').projectDir = new File('msal/testapps/testapp')
+project(':AzureSample').projectDir = new File('azuresample/app')
+project(':package-inspector').projectDir = new File('msal/package-inspector')
+project(':pop-benchmarker').projectDir = new File('msal/pop-benchmarker')
+project(':labapi').projectDir = new File('common/labapi')
+project(':keyvault').projectDir = new File('common/keyvault')
+project(':testutils').projectDir = new File('common/testutils')
+
+// Authenticator projects
+include ':app', ':NgcProviderLibrary', ':AadRemoteNgcLibrary', ':SharedCoreLibrary', ':TestUtilitiesLibrary',
+        ':3rdparty', ':PortableIdentityCard-ClientSDK', ':CommonUiLibrary'
 project(':app').projectDir = new File('authenticator/PhoneFactor/app')
 project(':NgcProviderLibrary').projectDir = new File('authenticator/PhoneFactor/NgcProviderLibrary')
 project(':AadRemoteNgcLibrary').projectDir = new File('authenticator/PhoneFactor/AadRemoteNgcLibrary')
 project(':SharedCoreLibrary').projectDir = new File('authenticator/PhoneFactor/SharedCoreLibrary')
-project(':AzureSample').projectDir = new File('azuresample/app')
 project(':TestUtilitiesLibrary').projectDir = new File('authenticator/PhoneFactor/TestUtilitiesLibrary')
-project(':keyvault').projectDir = new File('common/keyvault')
-project(':labapi').projectDir = new File('common/labapi')
-project(':testutils').projectDir = new File('common/testutils')
-project(':package-inspector').projectDir = new File('msal/package-inspector')
-project(':pop-benchmarker').projectDir = new File('msal/pop-benchmarker')
+project(':3rdparty').projectDir = new File('authenticator/PhoneFactor/3rdparty')
+project(':PortableIdentityCard-ClientSDK').projectDir = new File('authenticator/PhoneFactor/PortableIdentityCard-ClientSDK-Android/PortableIdentityCard-ClientSDK')
+project(':CommonUiLibrary').projectDir = new File('authenticator/PhoneFactor/CommonUiLibrary')

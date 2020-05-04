@@ -8,25 +8,48 @@ This repository contains a build gradle and git alias commands for building ADAL
 The android related auth projects pull artifacts from public and private package repositories.  The private artifacts are published using Azure DevOps.  You will need to generate
 and store the credentials for the Identity and Aria azure devops instances.
 
-- [Identity](https://identitydivision.visualstudio.com/DevEx/_packaging?_a=feed&feed=AndroidADAL)
+- [Android DevX Dependency Feed](https://identitydivision.visualstudio.com/DevEx/_packaging?_a=feed&feed=AndroidADAL)
+For this, you'll need a Personal Access Token (PAT) under IdentityDivision organization.
+1. Go to https://identitydivision.visualstudio.com/_usersSettings/tokens
+2. Select "New Token"
+3. Select Organization -> IdentityDivision
+4. Set the token expiration date as you see fit
+5. Select Scopes -> Packaging Read
 
-1. Click the "Connect to feed" button.  
-2. Then select gradle.  
-3. Then click the generate credentials button
+- [Authenticator App Dependency Feed](https://msazure.visualstudio.com/One/_packaging?_a=feed&feed=AuthApp)
+For this, you'll need a Personal Access Token (PAT) under msazure organization.
+1. Go to https://msazure.visualstudio.com/_usersSettings/tokens
+2. Select "New Token"
+3. Select Organization -> msazure
+4. Set the token expiration date as you see fit
+5. Select Scopes -> Packaging Read
 
-- [AuthenticatorApp](https://msazure.visualstudio.com/One/_git/AD-MFA-phonefactor-phoneApp-android)
+- [Authenticator App Project](https://msazure.visualstudio.com/One/_git/AD-MFA-phonefactor-phoneApp-android)
 1. Go to //myaccess
 2. Send a request to join "Identity Apps Team - 18174"
 3. Install [Git Credential Manager for Windows](https://github.com/Microsoft/Git-Credential-Manager-for-Windows) or [Git Credential Manager for Mac and Linux](https://github.com/Microsoft/Git-Credential-Manager-for-Mac-and-Linux) and setup with your MSFT credential.
+
+- [Private GitHub Repositories](https://repos.opensource.microsoft.com/)
+1. Go to https://repos.opensource.microsoft.com/. You'll need a github account.
+2. Join 'AzureAD' organization (to get an access to Broker) via https://repos.opensource.microsoft.com/AzureAD/join
+3. Join 'Microsoft' organization (to get an access to Authenticator app's submodule.) via https://repos.opensource.microsoft.com/Microsoft/join
+4. Set up your github credential on your dev machine. 
+    - You can [connect to github with ssh](https://help.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh). (recommended for OSX)
+    - Alternatively, you can create a [Personal Access Token](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line) and use it as a password when prompted in command line.
 
 Then add the following to your gradle properties (in your user folder on windows in the .gradle folder.  You may need to create this file: gradle.properties. Learn more about gradle configuration properties [here](https://docs.gradle.org/current/userguide/build_environment.html#sec:gradle_configuration_properties)) file using the token values from the generate credentials UI:
 
 ```gradle.properties
 vstsUsername=VSTS 
-vstsMavenAccessToken=<InsertIdentityAccessTokenHere>
-versionMajor=6
+vstsMavenAccessToken=[Insert a PAT for the Android DevX Feed here]
+adoMsazureAuthAppAccessToken=[Insert a PAT for the Authenticator App Feed here]
 ```
->NOTE: The sample configuration produced by Azure DevOps changed when the service was renamed from Visual Studio Online to Azure DevOps... the vstsUsername VSTS is still accepted.  
+
+>NOTE: By default, this global gradle.properties is located at
+>1. /Users/<USER_NAME>/.gradle/gradle.properties (OSX)
+>2. C:\Users\<USER_NAME>\.gradle\gradle.properties (Windows)
+
+>NOTE: The sample configuration produced by Azure DevOps changed when the service was renamed from Visual Studio Online to Azure DevOps... the vstsUsername VSTS is still accepted.
 
 ## Install
 
@@ -42,7 +65,7 @@ git droidSetup
 
 3. Open Android Studio and open project from the folder you cloned into (project: android_auth)
 4. Update your build variants to point to use localDebug.  See more in the next section.
-5. Install [Lobmok Plugin](https://plugins.jetbrains.com/plugin/6317-lombok) in Android Studio.
+5. Install [Lombok Plugin](https://plugins.jetbrains.com/plugin/6317-lombok) in Android Studio.
 
 ## Build Variants
 
