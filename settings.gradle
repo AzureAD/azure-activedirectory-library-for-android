@@ -12,7 +12,7 @@ rootProject.name = 'android_auth'
 // Android DevX Projects
 include ':adal', ':msal', ':common', ':AADAuthenticator',
         ':brokerHost', ':adalTestApp', ':msalTestApp', ':AzureSample', ':package-inspector', ':pop-benchmarker',
-        ':labapi', ':keyvault', ':testutils', 'msalautomationapp'
+        ':labapi', ':keyvault', ':testutils', 'msalautomationapp', 'uiautomationutilities'
 project(':adal').projectDir = new File('adal/adal')
 project(':msal').projectDir = new File('msal/msal')
 project(':common').projectDir = new File('common/common')
@@ -27,6 +27,7 @@ project(':labapi').projectDir = new File('common/labapi')
 project(':keyvault').projectDir = new File('common/keyvault')
 project(':testutils').projectDir = new File('common/testutils')
 project(':msalautomationapp').projectDir = new File('msal/msalautomationapp')
+project(':uiautomationutilities').projectDir = new File('common/uiautomationutilities')
 
 // Authenticator projects
 include ':app', ':NgcProviderLibrary', ':AadRemoteNgcLibrary', ':SharedCoreLibrary', ':TestUtilitiesLibrary',
