@@ -714,6 +714,105 @@ public class AuthenticationContext {
     }
 
     /**
+     *
+     * comments
+     *
+    */
+
+    public AuthenticationResult acquireTokenSilentSyncWithAssertion(String assertion, AuthenticationConstants.SamlAssertion.ADAssertionType assertionType,
+        String resource, String clientId, String userId, boolean forceRefresh) throws AuthenticationException, InterruptedException{
+        return(assertion, assertionType, resource, clientId, userId, forceRefresh, null, EventStrings.ACQUIRE_TOKEN_WITH_SAML_ASSERTION);
+    }
+
+
+    public AuthenticationResult acquireTokenSilentSyncWithAssertion(String assertion, AuthenticationConstants.SamlAssertion.ADAssertionType assertionType,
+        String resource, String clientId, String userId, String claims) throws AuthenticationException, InterruptedException{
+        return(assertion, assertionType, resource, clientId, userId, false, claims, EventStrings.ACQUIRE_TOKEN_WITH_SAML_ASSERTION);
+    }
+
+    private AuthenticationResult acquireTokenSilentSyncWithAssertion(final String assertion,
+                                                                     final AuthenticationConstants.SamlAssertion.ADAssertionType assertionType, 
+                                                                     final String resource,
+                                                                     final String clientId,
+                                                                     final String userId,
+                                                                     final boolean forceRefresh,
+                                                                     final String claims,
+                                                                     final String apiEventString)
+            throws AuthenticationException, InterruptedException{
+
+        final String methodName = ":acquireTokenSilentSyncWithAssertion";
+
+        validateClaims(claims);
+        checkPreRequirements(resource, clientId);
+        checkADFSValidationRequirements(null);
+
+        final AtomicReference<AuthenticationResult> authenticationResult = new AtomicReference<>();
+        final AtomicReference<Exception> exception = new AtomicReference<>();
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        final String requestId = Telemetry.registerNewRequest();
+        final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, apiEventString);
+        apiEvent.setPromptBehavior(PromptBehavior.Auto.toString());
+
+        final AuthenticationRequest request = new AuthenticationRequest(assertion, assertionType, mAuthority, resource,
+                clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled(), forceRefresh, claims);
+        request.setSilent(true);
+        request.setPrompt(PromptBehavior.Auto);
+        request.setUserIdentifierType(UserIdentifierType.UniqueId);
+        request.setTelemetryRequestId(requestId);
+        request.setClientCapabilities(mClientCapabilites);
+        setAppInfoToRequest(request);
+
+        final Looper currentLooper = Looper.myLooper();
+        if (currentLooper != null && currentLooper == mContext.getMainLooper()) {
+            Logger.e(TAG + methodName,
+                    "Sync network calls must not be invoked in main thread. "
+                            + "This method will throw android.os.NetworkOnMainThreadException in next major release",
+                    new NetworkOnMainThreadException());
+        }
+        createAcquireTokenRequest(apiEvent).acquireToken(null, false, request,
+                new AuthenticationCallback<AuthenticationResult>() {
+                    @Override
+                    public void onSuccess(AuthenticationResult result) {
+                        authenticationResult.set(result);
+                        latch.countDown();
+                    }
+
+                    @Override
+                    public void onError(Exception exc) {
+                        exception.set(exc);
+                        latch.countDown();
+                    }
+                });
+
+        latch.await();
+
+        Exception e = exception.get();
+        if (e != null) {
+            if (e instanceof AuthenticationException) {
+                throw (AuthenticationException) e;
+            } else if (e instanceof RuntimeException) {
+                throw (RuntimeException) e;
+            }
+            if (e.getCause() != null) {
+                if (e.getCause() instanceof AuthenticationException) {
+                    throw (AuthenticationException) e.getCause();
+                } else if (e.getCause() instanceof RuntimeException) {
+                    throw (RuntimeException) e.getCause();
+                } else {
+                    throw new AuthenticationException(ADALError.ERROR_SILENT_REQUEST, e.getCause()
+                            .getMessage(), e.getCause());
+                }
+            }
+            throw new AuthenticationException(ADALError.ERROR_SILENT_REQUEST, e.getMessage(), e);
+        }
+
+        return authenticationResult.get();
+
+    }
+
+
+    /**
      * The function will first look at the cache and automatically checks for
      * the token expiration. Additionally, if no suitable access token is found
      * in the cache, but refresh token is available, the function will use the

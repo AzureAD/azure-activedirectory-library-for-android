@@ -186,6 +186,8 @@ final class EventStrings {
 
     static final String ACQUIRE_TOKEN_WITH_REFRESH_TOKEN_2 = "5";
 
+    static final String ACQUIRE_TOKEN_WITH_SAML_ASSERTION = "20";    
+
     static final String ACQUIRE_TOKEN_1 = "100";
 
     static final String ACQUIRE_TOKEN_2 = "104";

@@ -88,6 +88,10 @@ class AuthenticationRequest implements Serializable {
 
     private List<String> mClientCapabilities;
 
+    private String mSamlAssertion = null;
+
+    private AuthenticationConstants.SamlAssertion.ADAssertionType mAssertionType;
+
     /**
      * Developer can use acquireToken(with loginhint) or acquireTokenSilent(with
      * userid), so this sets the type of the request.
@@ -178,6 +182,21 @@ class AuthenticationRequest implements Serializable {
         mClaimsChallenge = claimsChallenge;
     }
 
+    AuthenticationRequest(String assertion, AuthenticationConstants.SamlAssertion.ADAssertionType assertionType, String authority, 
+        String resource, String clientid, String userid, UUID correlationId, boolean isExtendedLifetimeEnabled, boolean forceRefresh, 
+        String claimsChallenge) {
+        mSamlAssertion = assertion;
+        mAssertionType = assertionType;
+        mAuthority = authority;
+        mResource = resource;
+        mClientId = clientid;
+        mUserId = userid;
+        mCorrelationId = correlationId;
+        mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
+        mForceRefresh = forceRefresh;
+        mClaimsChallenge = claimsChallenge;
+    }
+
     AuthenticationRequest(String authority, String resource, String clientId,
                           UUID correlationId, boolean isExtendedLifetimeEnabled) {
         mAuthority = authority;
@@ -190,6 +209,14 @@ class AuthenticationRequest implements Serializable {
     public boolean isClaimsChallengePresent() {
         // if developer pass claims down through extra qp, we should also skip cache.
         return !StringExtensions.isNullOrBlank(this.getClaimsChallenge());
+    }
+
+    public String getSamlAssertion() {
+        return mSamlAssertion;
+    }
+
+    public AuthenticationConstants.SamlAssertion.ADAssertionType getAssertionType() {
+        return mAssertionType;
     }
 
     public String getAuthority() {

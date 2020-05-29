@@ -806,6 +806,20 @@ public final class AuthenticationConstants {
     }
 
     /**
+     * Represents the assertion types in SAML assertion.
+     */
+    public static final class SamlAssertion {
+
+        public enum ADAssertionType{
+            /*! Default option. Assumes the assertion provided is of type SAML 1.1. */
+            AD_SAML1_1,
+            
+            /*! Assumes the assertion provided is of type SAML 2. */
+            AD_SAML2,
+        }
+    }
+
+    /**
      * Represents the oauth2 error code.
      */
     protected static final class OAuth2ErrorCode {
