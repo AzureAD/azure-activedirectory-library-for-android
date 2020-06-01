@@ -237,6 +237,8 @@ public final class AuthenticationConstants {
          */
         public static final String SCOPE = com.microsoft.identity.common.adal.internal.AuthenticationConstants.OAuth2.SCOPE;
 
+        public static final String MSID_OAUTH2_SCOPE_OPENID_VALUE = com.microsoft.identity.common.adal.internal.AuthenticationConstants.OAuth2.MSID_OAUTH2_SCOPE_OPENID_VALUE;
+
         /**
          * String of state.
          */
@@ -337,6 +339,17 @@ public final class AuthenticationConstants {
         static final String CLAIMS = com.microsoft.identity.common.adal.internal.AuthenticationConstants.OAuth2.CLAIMS;
 
         static final String CLOUD_INSTANCE_HOST_NAME = com.microsoft.identity.common.adal.internal.AuthenticationConstants.OAuth2.CLOUD_INSTANCE_HOST_NAME;
+        
+        /**
+         * SAML assertion related parameters.
+         */
+
+        public static final String ASSERTION = com.microsoft.identity.common.adal.internal.AuthenticationConstants.OAuth2.ASSERTION;
+
+        public static final String MSID_OAUTH2_SAML11_BEARER_VALUE = com.microsoft.identity.common.adal.internal.AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML11_BEARER_VALUE;
+
+        public static final String MSID_OAUTH2_SAML2_BEARER_VALUE = com.microsoft.identity.common.adal.internal.AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML2_BEARER_VALUE;
+
     }
 
     /**

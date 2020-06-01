@@ -458,8 +458,9 @@ class AcquireTokenRequest {
 
     /**
      * Handles the silent flow. Will always lookup local cache. If there is a valid AT in local cache, will use it. If
-     * AT in local cache is already expired, will try RT in the local cache. If RT requst failed, and if we can switch
-     * to broker for auth, will switch to broker for authentication.
+     * AT in local cache is already expired, will try RT in the local cache. If RT requst failed, then use saml assertion passed in the 
+     * request to acquire RT and AT. If this too fails and if we can switch to broker for auth, 
+     * will switch to broker for authentication.
      */
     private AuthenticationResult acquireTokenSilentFlow(final AuthenticationRequest authenticationRequest)
             throws AuthenticationException {
@@ -477,7 +478,15 @@ class AcquireTokenRequest {
             return authResult;
         }
 
-        //3. We couldn't get locally...If eligible return via broker... otherwise return local result
+        //3. try SAML Assertion
+        if(authenticationRequest.getSamlAssertion()){
+            final AuthenticationResult authResultFromSaml = tryAcquireTokenSilentWithAssertion(authenticationRequest);
+            if (isAccessTokenReturned(authResultFromSaml)) {
+                return authResultFromSaml;
+            }            
+        }
+
+        //4. We couldn't get locally...If eligible return via broker... otherwise return local result
         if (requestEligibleForBroker) {
             return tryAcquireTokenSilentWithBroker(authenticationRequest);
         } else {
@@ -498,6 +507,21 @@ class AcquireTokenRequest {
 
         return acquireTokenSilentHandler.getAccessToken();
     }
+
+    /**
+     * Try acquire token using saml assertion.
+     */
+    private AuthenticationResult tryAcquireTokenSilentWithAssertion(final AuthenticationRequest authenticationRequest)
+            throws AuthenticationException {
+        final String methodName = ":tryAcquireTokenSilentWithAssertion";
+        Logger.v(TAG + methodName, "Try to silently get token using SAML Assertion.");
+        final AcquireTokenSilentHandler acquireTokenSilentHandler = new AcquireTokenSilentHandler(mContext,
+                authenticationRequest, mTokenCacheAccessor);
+        removeTokensForUser(authenticationRequest);
+
+        return acquireTokenSilentHandler.getAccessTokenUsingAssertion();
+    }
+
 
     /**
      * Try acquire token silent with broker.

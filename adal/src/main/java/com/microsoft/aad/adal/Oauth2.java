@@ -338,6 +338,60 @@ class Oauth2 {
         return message;
     }
 
+    public String buildAssertionMessage(String assertion,
+        String assertionType)
+            throws UnsupportedEncodingException {
+        Logger.v(TAG, "Building request message for redeeming token with saml assertion.");
+        String message = String.format("%s=%s&%s=%s&%s=%s&%s=%s&%s=%s",
+                AuthenticationConstants.OAuth2.GRANT_TYPE,
+                StringExtensions.urlFormEncode(assertionType),
+
+                AuthenticationConstants.OAuth2.ASSERTION,
+                Base64.getEncoder().encodeToString(StringExtensions.urlFormEncode(assertion)),
+
+                AuthenticationConstants.OAuth2.CLIENT_ID,
+                StringExtensions.urlFormEncode(mRequest.getClientId()),
+
+                AuthenticationConstants.OAuth2.SCOPE,
+                AuthenticationConstants.OAuth2.MSID_OAUTH2_SCOPE_OPENID_VALUE      
+        );
+
+        if (!StringExtensions.isNullOrBlank(mRequest.getResource())) {
+            message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.AAD.RESOURCE,
+                    StringExtensions.urlFormEncode(mRequest.getResource()));
+        }
+
+        // sending redirect uri for the refresh token request if it's provided
+        if (!StringExtensions.isNullOrBlank(mRequest.getRedirectUri())
+                && !mRequest.getClientId().equalsIgnoreCase(AuthenticationConstants.Broker.BROKER_CLIENT_ID)) {
+            message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.OAuth2.REDIRECT_URI,
+                    StringExtensions.urlFormEncode(mRequest.getRedirectUri()));
+        }
+
+        if (!StringExtensions.isNullOrBlank(mRequest.getClaimsChallenge()) ||
+                mRequest.getClientCapabilities() != null) {
+            message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.OAuth2.CLAIMS,
+                    StringExtensions.urlFormEncode(AuthenticationContext.mergeClaimsWithClientCapabilities(
+                            mRequest.getClaimsChallenge(),
+                            mRequest.getClientCapabilities()
+                            )
+                    )
+            );
+        }
+
+        if (!StringExtensions.isNullOrBlank(mRequest.getAppName())) {
+            message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.AAD.APP_PACKAGE_NAME,
+                    StringExtensions.urlFormEncode(mRequest.getAppName()));
+        }
+
+        if (!StringExtensions.isNullOrBlank(mRequest.getAppVersion())) {
+            message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.AAD.APP_VERSION,
+                    StringExtensions.urlFormEncode(mRequest.getAppVersion()));
+        }
+        return message;
+    }
+
+
     public AuthenticationResult processUIResponseParams(Map<String, String> response) throws AuthenticationException {
 
         final AuthenticationResult result;
@@ -543,6 +597,44 @@ class Oauth2 {
         Logger.v(TAG, "Sending request to redeem token with refresh token.");
         return postMessage(requestMessage, headers);
     }
+
+    public AuthenticationResult samlAssertion(String samlAssertion, 
+        AuthenticationConstants.SamlAssertion.ADAssertionType assertionType) 
+            throws IOException, AuthenticationException {
+        final String requestMessage;
+        if (mWebRequestHandler == null) {
+            Logger.v(TAG, "Web request is not set correctly.");
+            throw new IllegalArgumentException("webRequestHandler is null.");
+        }
+
+        // Token request message using assertion
+        String assertionTypeString;
+        if(assertionType == AuthenticationConstants.SamlAssertion.ADAssertionType.AD_SAML1_1){
+            assertionTypeString = AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML11_BEARER_VALUE;
+        }else{
+            assertionTypeString = AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML2_BEARER_VALUE;
+        }
+        try {
+            requestMessage = buildAssertionMessage(samlAssertion, assertionTypeString);
+        } catch (UnsupportedEncodingException encoding) {
+            Logger.e(TAG,
+                    ADALError.ENCODING_IS_NOT_SUPPORTED.getDescription(),
+                    encoding.getMessage(),
+                    ADALError.ENCODING_IS_NOT_SUPPORTED,
+                    encoding);
+            return null;
+        }
+
+        final Map<String, String> headers = getRequestHeaders();
+
+        // Refresh token endpoint needs to send header field for device
+        // challenge
+        headers.put(AuthenticationConstants.Broker.CHALLENGE_TLS_INCAPABLE,
+                AuthenticationConstants.Broker.CHALLENGE_TLS_INCAPABLE_VERSION);
+        Logger.v(TAG, "Sending request to redeem token with assertion.");
+        return postMessage(requestMessage, headers);
+    }
+
 
     /**
      * parse final url for code(normal flow) or token(implicit flow) and then it

@@ -118,6 +118,76 @@ class AcquireTokenSilentHandler {
         return AuthenticationResult.createResult(accessTokenItem);
     }
 
+    AuthenticationResult getAccessTokenUsingAssertion() throws AuthenticationException {
+        final String methodName = ":getAccessTokenUsingAssertion";
+        final AuthenticationResult result = acquireTokenWithAssertion();
+        
+        if(isAccessTokenReturned(result)){
+            mTokenCacheAccessor.updateCachedItemWithResult(mAuthRequest,result, cachedItem);
+        }
+
+        return result;
+
+    }
+
+    /**
+     * Send token request with grant_type as refresh_token to token endpoint for getting new access token.
+     */
+    AuthenticationResult acquireTokenWithAssertion()
+            throws AuthenticationException {
+        final String methodName = ":acquireTokenWithAssertion";
+        Logger.v(TAG + methodName, "Try to get new access token with the provided assertion.",
+                mAuthRequest.getLogInfo(), null);
+
+        // Check if network is available, if not throw exception. 
+        HttpUtil.throwIfNetworkNotAvailable(mContext);
+
+        final AuthenticationResult result;
+        final String samlAssertion = mAuthRequest.getSamlAssertion();
+        final AuthenticationConstants.SamlAssertion.ADAssertionType assertionType = mAuthRequest.getAssertionType();
+
+        try {
+            final JWSBuilder jwsBuilder = new JWSBuilder();
+            final Oauth2 oauthRequest = new Oauth2(mAuthRequest, mWebRequestHandler, jwsBuilder);
+
+            result = oauthRequest.samlAssertion(samlAssertion, assertionType);
+            if (result != null && StringExtensions.isNullOrBlank(result.getRefreshToken())) {
+                Logger.i(TAG + methodName, "Refresh token is not returned or empty", "");
+                // we have reached this point because we couldnt find the refresh token/use it
+                // so we cant set the refresh token
+            }
+        } catch (final ServerRespondingWithRetryableException exc) {
+
+            Logger.e(TAG + methodName,
+                    "Error in assertion for request. ",
+                    "Request: " + mAuthRequest.getLogInfo()
+                            + " " + ExceptionExtensions.getExceptionMessage(exc)
+                            + " " + Log.getStackTraceString(exc),
+                    ADALError.AUTH_FAILED_NO_TOKEN,
+                    null);
+
+            throw new AuthenticationException(
+                    ADALError.AUTH_FAILED_NO_TOKEN, ExceptionExtensions.getExceptionMessage(exc),
+                    new AuthenticationException(ADALError.SERVER_ERROR, exc.getMessage(), exc));
+        } catch (final IOException | AuthenticationException exc) {
+            // Server side error or similar
+            Logger.e(TAG + methodName,
+                    "Error in assertion for request.",
+                    "Request: " + mAuthRequest.getLogInfo()
+                            + " " + ExceptionExtensions.getExceptionMessage(exc)
+                            + " " + Log.getStackTraceString(exc),
+                    ADALError.AUTH_FAILED_NO_TOKEN,
+                    null);
+
+            throw new AuthenticationException(
+                    ADALError.AUTH_FAILED_NO_TOKEN, ExceptionExtensions.getExceptionMessage(exc),
+                    new AuthenticationException(ADALError.SERVER_ERROR, exc.getMessage(), exc));
+        }
+
+        return result;
+    }
+
+
     /**
      * Send token request with grant_type as refresh_token to token endpoint for getting new access token.
      */
