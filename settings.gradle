@@ -29,7 +29,7 @@ project(':testutils').projectDir = new File('common/testutils')
 
 // Authenticator projects
 include ':app', ':NgcProviderLibrary', ':AadRemoteNgcLibrary', ':SharedCoreLibrary', ':TestUtilitiesLibrary',
-        ':3rdparty', ':PortableIdentityCard-ClientSDK', ':CommonUiLibrary'
+        ':3rdparty', ':PortableIdentityCard-ClientSDK', ':CommonUiLibrary', ':Brooklyn'
 project(':app').projectDir = new File('authenticator/PhoneFactor/app')
 project(':NgcProviderLibrary').projectDir = new File('authenticator/PhoneFactor/NgcProviderLibrary')
 project(':AadRemoteNgcLibrary').projectDir = new File('authenticator/PhoneFactor/AadRemoteNgcLibrary')
@@ -38,3 +38,4 @@ project(':TestUtilitiesLibrary').projectDir = new File('authenticator/PhoneFacto
 project(':3rdparty').projectDir = new File('authenticator/PhoneFactor/3rdparty')
 project(':PortableIdentityCard-ClientSDK').projectDir = new File('authenticator/PhoneFactor/PortableIdentityCard-ClientSDK-Android/PortableIdentityCard-ClientSDK')
 project(':CommonUiLibrary').projectDir = new File('authenticator/PhoneFactor/CommonUiLibrary')
+project(':Brooklyn').projectDir = new File('authenticator/PhoneFactor/Brooklyn')
