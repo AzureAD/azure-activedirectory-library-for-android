@@ -47,7 +47,9 @@ adoMsazureAuthAppAccessToken=[Insert a PAT for the Authenticator App Feed here]
 
 >NOTE: By default, this global gradle.properties is located at
 >1. /Users/<USER_NAME>/.gradle/gradle.properties (OSX)
->2. C:\Users\<USER_NAME>\.gradle\gradle.properties (Windows)
+>2. C:\Users\\<USER_NAME>\\.gradle\gradle.properties (Windows)
+>
+> (The folders could be hidden)
 
 >NOTE: The sample configuration produced by Azure DevOps changed when the service was renamed from Visual Studio Online to Azure DevOps... the vstsUsername VSTS is still accepted.
 
