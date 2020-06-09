@@ -121,9 +121,9 @@ class AcquireTokenSilentHandler {
     AuthenticationResult getAccessTokenUsingAssertion() throws AuthenticationException {
         final String methodName = ":getAccessTokenUsingAssertion";
         final AuthenticationResult result = acquireTokenWithAssertion();
-        
-        if(isAccessTokenReturned(result)){
-            mTokenCacheAccessor.updateCachedItemWithResult(mAuthRequest,result, cachedItem);
+        // result should contain all the needed entries
+        if(result != null && !StringExtensions.isNullOrBlank(result.getAccessToken())) {
+            mTokenCacheAccessor.updateCachedItemWithResult(mAuthRequest,result, null);
         }
 
         return result;
@@ -150,7 +150,7 @@ class AcquireTokenSilentHandler {
             final JWSBuilder jwsBuilder = new JWSBuilder();
             final Oauth2 oauthRequest = new Oauth2(mAuthRequest, mWebRequestHandler, jwsBuilder);
 
-            result = oauthRequest.samlAssertion(samlAssertion, assertionType);
+            result = oauthRequest.refreshTokenUsingAssertion(samlAssertion, assertionType);
             if (result != null && StringExtensions.isNullOrBlank(result.getRefreshToken())) {
                 Logger.i(TAG + methodName, "Refresh token is not returned or empty", "");
                 // we have reached this point because we couldnt find the refresh token/use it

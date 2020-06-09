@@ -302,44 +302,20 @@ class Oauth2 {
                 AuthenticationConstants.OAuth2.CLIENT_INFO,
                 AuthenticationConstants.OAuth2.CLIENT_INFO_TRUE
         );
-
-        if (!StringExtensions.isNullOrBlank(mRequest.getResource())) {
-            message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.AAD.RESOURCE,
-                    StringExtensions.urlFormEncode(mRequest.getResource()));
+        try {
+            message = buildRequestMessage(message);
+        } catch (UnsupportedEncodingException encoding) {
+                Logger.e(TAG,
+                    ADALError.ENCODING_IS_NOT_SUPPORTED.getDescription(),
+                    encoding.getMessage(),
+                    ADALError.ENCODING_IS_NOT_SUPPORTED, encoding);
+            return null;
         }
-
-        // sending redirect uri for the refresh token request if it's provided
-        if (!StringExtensions.isNullOrBlank(mRequest.getRedirectUri())
-                && !mRequest.getClientId().equalsIgnoreCase(AuthenticationConstants.Broker.BROKER_CLIENT_ID)) {
-            message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.OAuth2.REDIRECT_URI,
-                    StringExtensions.urlFormEncode(mRequest.getRedirectUri()));
-        }
-
-        if (!StringExtensions.isNullOrBlank(mRequest.getClaimsChallenge()) ||
-                mRequest.getClientCapabilities() != null) {
-            message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.OAuth2.CLAIMS,
-                    StringExtensions.urlFormEncode(AuthenticationContext.mergeClaimsWithClientCapabilities(
-                            mRequest.getClaimsChallenge(),
-                            mRequest.getClientCapabilities()
-                            )
-                    )
-            );
-        }
-
-        if (!StringExtensions.isNullOrBlank(mRequest.getAppName())) {
-            message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.AAD.APP_PACKAGE_NAME,
-                    StringExtensions.urlFormEncode(mRequest.getAppName()));
-        }
-
-        if (!StringExtensions.isNullOrBlank(mRequest.getAppVersion())) {
-            message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.AAD.APP_VERSION,
-                    StringExtensions.urlFormEncode(mRequest.getAppVersion()));
-        }
+        
         return message;
     }
 
-    public String buildAssertionMessage(String assertion,
-        String assertionType)
+    public String buildAssertionMessage(String assertion, String assertionType)
             throws UnsupportedEncodingException {
         Logger.v(TAG, "Building request message for redeeming token with saml assertion.");
         String message = String.format("%s=%s&%s=%s&%s=%s&%s=%s&%s=%s",
@@ -347,7 +323,7 @@ class Oauth2 {
                 StringExtensions.urlFormEncode(assertionType),
 
                 AuthenticationConstants.OAuth2.ASSERTION,
-                Base64.getEncoder().encodeToString(StringExtensions.urlFormEncode(assertion)),
+                Base64.encodeToString(assertion.getBytes("UTF-8"), Base64.URL_SAFE),
 
                 AuthenticationConstants.OAuth2.CLIENT_ID,
                 StringExtensions.urlFormEncode(mRequest.getClientId()),
@@ -355,6 +331,21 @@ class Oauth2 {
                 AuthenticationConstants.OAuth2.SCOPE,
                 AuthenticationConstants.OAuth2.MSID_OAUTH2_SCOPE_OPENID_VALUE      
         );
+        try {
+            message = buildRequestMessage(message);
+        } catch (UnsupportedEncodingException encoding) {
+                Logger.e(TAG,
+                    ADALError.ENCODING_IS_NOT_SUPPORTED.getDescription(),
+                    encoding.getMessage(),
+                    ADALError.ENCODING_IS_NOT_SUPPORTED, encoding);
+            return null;
+        }
+        
+        return message;
+        
+    }
+
+    public String buildRequestMessage(String message) throws UnsupportedEncodingException {
 
         if (!StringExtensions.isNullOrBlank(mRequest.getResource())) {
             message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.AAD.RESOURCE,
@@ -388,9 +379,8 @@ class Oauth2 {
             message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.AAD.APP_VERSION,
                     StringExtensions.urlFormEncode(mRequest.getAppVersion()));
         }
-        return message;
+        return  message;
     }
-
 
     public AuthenticationResult processUIResponseParams(Map<String, String> response) throws AuthenticationException {
 
@@ -598,8 +588,8 @@ class Oauth2 {
         return postMessage(requestMessage, headers);
     }
 
-    public AuthenticationResult samlAssertion(String samlAssertion, 
-        AuthenticationConstants.SamlAssertion.ADAssertionType assertionType) 
+    public AuthenticationResult refreshTokenUsingAssertion(String samlAssertion, 
+                                                           AuthenticationConstants.SamlAssertion.ADAssertionType assertionType) 
             throws IOException, AuthenticationException {
         final String requestMessage;
         if (mWebRequestHandler == null) {
@@ -609,11 +599,13 @@ class Oauth2 {
 
         // Token request message using assertion
         String assertionTypeString;
-        if(assertionType == AuthenticationConstants.SamlAssertion.ADAssertionType.AD_SAML1_1){
-            assertionTypeString = AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML11_BEARER_VALUE;
-        }else{
-            assertionTypeString = AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML2_BEARER_VALUE;
-        }
+        
+
+        assertionTypeString = (assertionType == AuthenticationConstants.SamlAssertion.ADAssertionType.AD_SAML1_1) ?
+        AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML11_BEARER_VALUE : AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML2_BEARER_VALUE;
+    
+        assertionTypeString = AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML2_BEARER_VALUE;
+    
         try {
             requestMessage = buildAssertionMessage(samlAssertion, assertionTypeString);
         } catch (UnsupportedEncodingException encoding) {

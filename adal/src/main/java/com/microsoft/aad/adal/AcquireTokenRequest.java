@@ -479,7 +479,7 @@ class AcquireTokenRequest {
         }
 
         //3. try SAML Assertion
-        if(authenticationRequest.getSamlAssertion()){
+        if(authenticationRequest.getSamlAssertion() != null) {
             final AuthenticationResult authResultFromSaml = tryAcquireTokenSilentWithAssertion(authenticationRequest);
             if (isAccessTokenReturned(authResultFromSaml)) {
                 return authResultFromSaml;
@@ -517,8 +517,7 @@ class AcquireTokenRequest {
         Logger.v(TAG + methodName, "Try to silently get token using SAML Assertion.");
         final AcquireTokenSilentHandler acquireTokenSilentHandler = new AcquireTokenSilentHandler(mContext,
                 authenticationRequest, mTokenCacheAccessor);
-        removeTokensForUser(authenticationRequest);
-
+        
         return acquireTokenSilentHandler.getAccessTokenUsingAssertion();
     }
 

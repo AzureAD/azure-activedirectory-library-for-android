@@ -26,6 +26,7 @@ package com.microsoft.aad.adal;
 import androidx.annotation.Nullable;
 
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 
 import java.io.Serializable;
 import java.util.List;
