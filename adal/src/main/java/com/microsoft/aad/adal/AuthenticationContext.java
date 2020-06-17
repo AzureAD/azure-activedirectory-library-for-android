@@ -645,26 +645,9 @@ public class AuthenticationContext {
                                                         final String apiEventString)
             throws AuthenticationException, InterruptedException {
         final String methodName = ":acquireTokenSilentSync";
-        return acquireTokenSilentSyncWithAssertion(null, null, resource, clientId, userId, false, claims, EventStrings.ACQUIRE_TOKEN_WITH_SAML_ASSERTION);
+        return acquireTokenSilentSyncWithAssertion(null, null, resource, clientId, userId, forceRefresh, claims);
     }
 
-
-    public AuthenticationResult acquireTokenSilentSyncWithAssertion(String assertion, AuthenticationConstants.SamlAssertion.ADAssertionType assertionType,
-                                                                    String resource, String clientId, String userId, boolean forceRefresh)
-            throws AuthenticationException, InterruptedException {
-
-        return acquireTokenSilentSyncWithAssertion(assertion, assertionType, resource, clientId, userId,
-                forceRefresh, null, EventStrings.ACQUIRE_TOKEN_WITH_SAML_ASSERTION);
-    }
-
-
-    public AuthenticationResult acquireTokenSilentSyncWithAssertion(String assertion, AuthenticationConstants.SamlAssertion.ADAssertionType assertionType,
-                                                                    String resource, String clientId, String userId, String claims)
-            throws AuthenticationException, InterruptedException {
-
-        return acquireTokenSilentSyncWithAssertion(assertion, assertionType, resource, clientId, userId,
-                false, claims, EventStrings.ACQUIRE_TOKEN_WITH_SAML_ASSERTION);
-    }
 
     /**
      *
@@ -677,7 +660,7 @@ public class AuthenticationContext {
      * will return an exception
      *
      *
-     * @param assertion the actuall saml assertion
+     * @param assertion the actual saml assertion
      * @param assertionType version of saml assertion being used
      * @param resource required resource identifier.
      * @param clientId required client identifier.
@@ -694,17 +677,16 @@ public class AuthenticationContext {
      */
 
 
-    private AuthenticationResult acquireTokenSilentSyncWithAssertion(final String assertion,
-                                                                     final AuthenticationConstants.SamlAssertion.ADAssertionType assertionType, 
-                                                                     final String resource,
-                                                                     final String clientId,
-                                                                     final String userId,
-                                                                     final boolean forceRefresh,
-                                                                     final String claims,
-                                                                     final String apiEventString)
+    public AuthenticationResult acquireTokenSilentSyncWithAssertion(final String assertion,
+                                                                    final String assertionType,
+                                                                    final String resource,
+                                                                    final String clientId,
+                                                                    final String userId,
+                                                                    final boolean forceRefresh,
+                                                                    final String claims)
             throws AuthenticationException, InterruptedException{
         final String methodName = ":acquireTokenSilentSyncWithAssertion";
-
+        final String apiEventString = EventStrings.ACQUIRE_TOKEN_WITH_SAML_ASSERTION;
         validateClaims(claims);
         checkPreRequirements(resource, clientId);
         checkADFSValidationRequirements(null);
@@ -717,10 +699,9 @@ public class AuthenticationContext {
         final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, apiEventString);
         apiEvent.setPromptBehavior(PromptBehavior.Auto.toString());
 
-        final AuthenticationRequest request = assertion == null ? new AuthenticationRequest(assertion, assertionType, mAuthority, resource,
-                clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled(), forceRefresh, claims) : 
-                new AuthenticationRequest(mAuthority, resource, clientId, userId, getRequestCorrelationId(), 
-                getExtendedLifetimeEnabled(), forceRefresh, claims);
+        final AuthenticationRequest request = new AuthenticationRequest(assertion, assertionType, mAuthority, resource,
+                clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled(), forceRefresh, claims);
+                
         request.setSilent(true);
         request.setPrompt(PromptBehavior.Auto);
         request.setUserIdentifierType(UserIdentifierType.UniqueId);

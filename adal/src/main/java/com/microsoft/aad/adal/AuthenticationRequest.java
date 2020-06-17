@@ -91,7 +91,7 @@ class AuthenticationRequest implements Serializable {
 
     private String mSamlAssertion = null;
 
-    private AuthenticationConstants.SamlAssertion.ADAssertionType mAssertionType;
+    private String mAssertionType;
 
     /**
      * Developer can use acquireToken(with loginhint) or acquireTokenSilent(with
@@ -183,19 +183,14 @@ class AuthenticationRequest implements Serializable {
         mClaimsChallenge = claimsChallenge;
     }
 
-    AuthenticationRequest(String assertion, AuthenticationConstants.SamlAssertion.ADAssertionType assertionType, String authority, 
-        String resource, String clientid, String userid, UUID correlationId, boolean isExtendedLifetimeEnabled, boolean forceRefresh, 
-        String claimsChallenge) {
+    AuthenticationRequest(String assertion, String assertionType, String authority,
+                          String resource, String clientid, String userid, UUID correlationId, 
+                          boolean isExtendedLifetimeEnabled, boolean forceRefresh, String claimsChallenge) {
+        this(authority, resource, clientid, userid, correlationId, isExtendedLifetimeEnabled,
+                forceRefresh, claimsChallenge);
         mSamlAssertion = assertion;
         mAssertionType = assertionType;
-        mAuthority = authority;
-        mResource = resource;
-        mClientId = clientid;
-        mUserId = userid;
-        mCorrelationId = correlationId;
-        mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
-        mForceRefresh = forceRefresh;
-        mClaimsChallenge = claimsChallenge;
+
     }
 
     AuthenticationRequest(String authority, String resource, String clientId,
@@ -216,7 +211,7 @@ class AuthenticationRequest implements Serializable {
         return mSamlAssertion;
     }
 
-    public AuthenticationConstants.SamlAssertion.ADAssertionType getAssertionType() {
+    public String getAssertionType() {
         return mAssertionType;
     }
 

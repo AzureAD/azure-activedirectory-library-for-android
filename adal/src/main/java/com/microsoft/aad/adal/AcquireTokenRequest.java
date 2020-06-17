@@ -345,7 +345,7 @@ class AcquireTokenRequest {
         // 1) throw AuthenticationException if
         //    a) No access token is returned from local flow and no prompt is allowed
         //    b) Server error or network errors when sending post request to token endpoint with grant_type
-        //       as refresh_token in local flow
+        //       as refresh_token in local flow or with grant type as assertion
         //    c) Broker returns ERROR_CODE_BAD_ARGUMENTS, ACCOUNT_MANAGER_ERROR_CODE_BAD_AUTHENTICATION
         //       or ERROR_CODE_UNSUPPORTED_OPERATION
         // 2) Non-null AuthenticationResult if we could try silent request, and silent request either successfully

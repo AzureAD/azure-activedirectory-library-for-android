@@ -32,8 +32,7 @@ public final class AuthenticationConstants {
      */
     private AuthenticationConstants() {
     }
-
-        
+    
     /**
      * ADAL package name.
      */
@@ -58,22 +57,6 @@ public final class AuthenticationConstants {
      * Default access token expiration time in seconds.
      */
     public static final int DEFAULT_EXPIRATION_TIME_SEC = com.microsoft.identity.common.adal.internal.AuthenticationConstants.DEFAULT_EXPIRATION_TIME_SEC;
-
-
-    /**
-     * Represents the assertion types in SAML assertion.
-     */ 
-    
-    public static final class SamlAssertion {
-
-        public enum ADAssertionType {
-            /*! Default option. Assumes the assertion provided is of type SAML 1.1. */
-            AD_SAML1_1,
-
-            /*! Assumes the assertion provided is of type SAML 2. */
-            AD_SAML2,
-        }
-    }
 
 
     /**
@@ -367,7 +350,6 @@ public final class AuthenticationConstants {
         public static final String MSID_OAUTH2_SAML11_BEARER_VALUE = com.microsoft.identity.common.adal.internal.AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML11_BEARER_VALUE;
 
         public static final String MSID_OAUTH2_SAML2_BEARER_VALUE = com.microsoft.identity.common.adal.internal.AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML2_BEARER_VALUE;
-
     }
 
     /**

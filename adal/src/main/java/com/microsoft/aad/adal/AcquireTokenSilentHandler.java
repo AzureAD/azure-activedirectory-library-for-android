@@ -121,20 +121,23 @@ class AcquireTokenSilentHandler {
     AuthenticationResult getAccessTokenUsingAssertion() throws AuthenticationException {
         final String methodName = ":getAccessTokenUsingAssertion";
         final AuthenticationResult result = acquireTokenWithAssertion();
-        // result should contain all the needed entries
+        
         if(result != null && !StringExtensions.isNullOrBlank(result.getAccessToken())) {
-            mTokenCacheAccessor.updateCachedItemWithResult(mAuthRequest,result, null);
+            try {
+                mTokenCacheAccessor.updateTokenCache(mAuthRequest, result);
+            } catch (MalformedURLException e) {
+                Logger.v(TAG + methodName, "Access token fetched but unable to update token cache");
+                throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e.getMessage(), e);
+            }
         }
 
         return result;
-
     }
 
     /**
-     * Send token request with grant_type as refresh_token to token endpoint for getting new access token.
+     * Send token request with grant_type as assertion to token endpoint for getting new access token.
      */
-    AuthenticationResult acquireTokenWithAssertion()
-            throws AuthenticationException {
+    AuthenticationResult acquireTokenWithAssertion() throws AuthenticationException {
         final String methodName = ":acquireTokenWithAssertion";
         Logger.v(TAG + methodName, "Try to get new access token with the provided assertion.",
                 mAuthRequest.getLogInfo(), null);
@@ -144,7 +147,7 @@ class AcquireTokenSilentHandler {
 
         final AuthenticationResult result;
         final String samlAssertion = mAuthRequest.getSamlAssertion();
-        final AuthenticationConstants.SamlAssertion.ADAssertionType assertionType = mAuthRequest.getAssertionType();
+        final String assertionType = mAuthRequest.getAssertionType();
 
         try {
             final JWSBuilder jwsBuilder = new JWSBuilder();

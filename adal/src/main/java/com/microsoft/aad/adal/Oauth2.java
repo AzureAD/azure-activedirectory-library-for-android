@@ -302,16 +302,8 @@ class Oauth2 {
                 AuthenticationConstants.OAuth2.CLIENT_INFO,
                 AuthenticationConstants.OAuth2.CLIENT_INFO_TRUE
         );
-        try {
-            message = buildRequestMessage(message);
-        } catch (UnsupportedEncodingException encoding) {
-                Logger.e(TAG,
-                    ADALError.ENCODING_IS_NOT_SUPPORTED.getDescription(),
-                    encoding.getMessage(),
-                    ADALError.ENCODING_IS_NOT_SUPPORTED, encoding);
-            return null;
-        }
         
+        message = buildRequestMessage(message);
         return message;
     }
 
@@ -323,24 +315,20 @@ class Oauth2 {
                 StringExtensions.urlFormEncode(assertionType),
 
                 AuthenticationConstants.OAuth2.ASSERTION,
-                Base64.encodeToString(assertion.getBytes("UTF-8"), Base64.URL_SAFE),
+                StringExtensions.urlFormEncode(Base64.encodeToString(assertion.getBytes("UTF-8"), Base64.NO_WRAP)),
 
                 AuthenticationConstants.OAuth2.CLIENT_ID,
                 StringExtensions.urlFormEncode(mRequest.getClientId()),
 
                 AuthenticationConstants.OAuth2.SCOPE,
-                AuthenticationConstants.OAuth2.MSID_OAUTH2_SCOPE_OPENID_VALUE      
+                AuthenticationConstants.OAuth2.MSID_OAUTH2_SCOPE_OPENID_VALUE,
+
+                AuthenticationConstants.OAuth2.CLIENT_INFO,
+                AuthenticationConstants.OAuth2.CLIENT_INFO_TRUE
+              
         );
-        try {
-            message = buildRequestMessage(message);
-        } catch (UnsupportedEncodingException encoding) {
-                Logger.e(TAG,
-                    ADALError.ENCODING_IS_NOT_SUPPORTED.getDescription(),
-                    encoding.getMessage(),
-                    ADALError.ENCODING_IS_NOT_SUPPORTED, encoding);
-            return null;
-        }
         
+        message = buildRequestMessage(message);
         return message;
         
     }
@@ -364,10 +352,7 @@ class Oauth2 {
             message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.OAuth2.CLAIMS,
                     StringExtensions.urlFormEncode(AuthenticationContext.mergeClaimsWithClientCapabilities(
                             mRequest.getClaimsChallenge(),
-                            mRequest.getClientCapabilities()
-                            )
-                    )
-            );
+                            mRequest.getClientCapabilities())));
         }
 
         if (!StringExtensions.isNullOrBlank(mRequest.getAppName())) {
@@ -379,7 +364,7 @@ class Oauth2 {
             message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.AAD.APP_VERSION,
                     StringExtensions.urlFormEncode(mRequest.getAppVersion()));
         }
-        return  message;
+        return message;
     }
 
     public AuthenticationResult processUIResponseParams(Map<String, String> response) throws AuthenticationException {
@@ -588,8 +573,7 @@ class Oauth2 {
         return postMessage(requestMessage, headers);
     }
 
-    public AuthenticationResult refreshTokenUsingAssertion(String samlAssertion, 
-                                                           AuthenticationConstants.SamlAssertion.ADAssertionType assertionType) 
+    public AuthenticationResult refreshTokenUsingAssertion(String samlAssertion, String assertionType)
             throws IOException, AuthenticationException {
         final String requestMessage;
         if (mWebRequestHandler == null) {
@@ -597,17 +581,8 @@ class Oauth2 {
             throw new IllegalArgumentException("webRequestHandler is null.");
         }
 
-        // Token request message using assertion
-        String assertionTypeString;
-        
-
-        assertionTypeString = (assertionType == AuthenticationConstants.SamlAssertion.ADAssertionType.AD_SAML1_1) ?
-        AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML11_BEARER_VALUE : AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML2_BEARER_VALUE;
-    
-        assertionTypeString = AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML2_BEARER_VALUE;
-    
         try {
-            requestMessage = buildAssertionMessage(samlAssertion, assertionTypeString);
+            requestMessage = buildAssertionMessage(samlAssertion, assertionType);
         } catch (UnsupportedEncodingException encoding) {
             Logger.e(TAG,
                     ADALError.ENCODING_IS_NOT_SUPPORTED.getDescription(),
@@ -619,8 +594,7 @@ class Oauth2 {
 
         final Map<String, String> headers = getRequestHeaders();
 
-        // Refresh token endpoint needs to send header field for device
-        // challenge
+        // The endpoint needs to send header field for device challenge
         headers.put(AuthenticationConstants.Broker.CHALLENGE_TLS_INCAPABLE,
                 AuthenticationConstants.Broker.CHALLENGE_TLS_INCAPABLE_VERSION);
         Logger.v(TAG, "Sending request to redeem token with assertion.");
