@@ -325,12 +325,10 @@ class Oauth2 {
 
                 AuthenticationConstants.OAuth2.CLIENT_INFO,
                 AuthenticationConstants.OAuth2.CLIENT_INFO_TRUE
-              
         );
         
         message = buildRequestMessage(message);
         return message;
-        
     }
 
     public String buildRequestMessage(String message) throws UnsupportedEncodingException {
@@ -600,7 +598,6 @@ class Oauth2 {
         Logger.v(TAG, "Sending request to redeem token with assertion.");
         return postMessage(requestMessage, headers);
     }
-
 
     /**
      * parse final url for code(normal flow) or token(implicit flow) and then it

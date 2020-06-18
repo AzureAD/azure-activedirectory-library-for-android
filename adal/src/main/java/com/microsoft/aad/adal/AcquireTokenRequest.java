@@ -479,7 +479,7 @@ class AcquireTokenRequest {
         }
 
         //3. try SAML Assertion
-        if(authenticationRequest.getSamlAssertion() != null) {
+        if (authenticationRequest.getSamlAssertion() != null) {
             final AuthenticationResult authResultFromSaml = tryAcquireTokenSilentWithAssertion(authenticationRequest);
             if (isAccessTokenReturned(authResultFromSaml)) {
                 return authResultFromSaml;
@@ -520,7 +520,6 @@ class AcquireTokenRequest {
         
         return acquireTokenSilentHandler.getAccessTokenUsingAssertion();
     }
-
 
     /**
      * Try acquire token silent with broker.

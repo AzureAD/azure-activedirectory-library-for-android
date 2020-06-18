@@ -58,7 +58,6 @@ public final class AuthenticationConstants {
      */
     public static final int DEFAULT_EXPIRATION_TIME_SEC = com.microsoft.identity.common.adal.internal.AuthenticationConstants.DEFAULT_EXPIRATION_TIME_SEC;
 
-
     /**
      * Holding all the constant value involved in the webview.
      */
@@ -344,7 +343,6 @@ public final class AuthenticationConstants {
         /**
          * SAML assertion related parameters.
          */
-
         public static final String ASSERTION = com.microsoft.identity.common.adal.internal.AuthenticationConstants.OAuth2.ASSERTION;
 
         public static final String MSID_OAUTH2_SAML11_BEARER_VALUE = com.microsoft.identity.common.adal.internal.AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML11_BEARER_VALUE;
@@ -816,10 +814,7 @@ public final class AuthenticationConstants {
              */
             public static final String SPE_RING = com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.SPE_RING;
         }
-
     }
-
-
 
     /**
      * Represents the oauth2 error code.

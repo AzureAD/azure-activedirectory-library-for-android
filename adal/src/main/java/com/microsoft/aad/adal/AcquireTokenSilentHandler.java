@@ -122,7 +122,7 @@ class AcquireTokenSilentHandler {
         final String methodName = ":getAccessTokenUsingAssertion";
         final AuthenticationResult result = acquireTokenWithAssertion();
         
-        if(result != null && !StringExtensions.isNullOrBlank(result.getAccessToken())) {
+        if (result != null && !StringExtensions.isNullOrBlank(result.getAccessToken())) {
             try {
                 mTokenCacheAccessor.updateTokenCache(mAuthRequest, result);
             } catch (MalformedURLException e) {
@@ -189,7 +189,6 @@ class AcquireTokenSilentHandler {
 
         return result;
     }
-
 
     /**
      * Send token request with grant_type as refresh_token to token endpoint for getting new access token.

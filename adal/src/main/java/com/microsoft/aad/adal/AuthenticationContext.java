@@ -645,7 +645,7 @@ public class AuthenticationContext {
                                                         final String apiEventString)
             throws AuthenticationException, InterruptedException {
         final String methodName = ":acquireTokenSilentSync";
-        return acquireTokenSilentSyncWithAssertion(null, null, resource, clientId, userId, forceRefresh, claims);
+        return acquireTokenSilentSync(null, null, resource, clientId, userId, forceRefresh, claims, apiEventString);
     }
 
 
@@ -675,8 +675,6 @@ public class AuthenticationContext {
      * @throws InterruptedException    If the main thread is interrupted before or during the activity.
      *
      */
-
-
     public AuthenticationResult acquireTokenSilentSyncWithAssertion(final String assertion,
                                                                     final String assertionType,
                                                                     final String resource,
@@ -684,9 +682,22 @@ public class AuthenticationContext {
                                                                     final String userId,
                                                                     final boolean forceRefresh,
                                                                     final String claims)
-            throws AuthenticationException, InterruptedException{
+            throws AuthenticationException, InterruptedException {
         final String methodName = ":acquireTokenSilentSyncWithAssertion";
-        final String apiEventString = EventStrings.ACQUIRE_TOKEN_WITH_SAML_ASSERTION;
+        return acquireTokenSilentSync(assertion, assertionType, resource, clientId, userId,
+                forceRefresh, claims, EventStrings.ACQUIRE_TOKEN_WITH_SAML_ASSERTION);
+    }
+
+    private AuthenticationResult acquireTokenSilentSync(final String assertion,
+                                                        final String assertionType,
+                                                        final String resource,
+                                                        final String clientId,
+                                                        final String userId,
+                                                        final boolean forceRefresh,
+                                                        final String claims,
+                                                        final String apiEventString)
+            throws AuthenticationException, InterruptedException {
+        final String methodName = ":acquireTokenSilentSync";
         validateClaims(claims);
         checkPreRequirements(resource, clientId);
         checkADFSValidationRequirements(null);
@@ -698,7 +709,6 @@ public class AuthenticationContext {
         final String requestId = Telemetry.registerNewRequest();
         final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, apiEventString);
         apiEvent.setPromptBehavior(PromptBehavior.Auto.toString());
-
         final AuthenticationRequest request = new AuthenticationRequest(assertion, assertionType, mAuthority, resource,
                 clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled(), forceRefresh, claims);
                 
@@ -754,9 +764,7 @@ public class AuthenticationContext {
         }
 
         return authenticationResult.get();
-
     }
-
 
     /**
      * The function will first look at the cache and automatically checks for
