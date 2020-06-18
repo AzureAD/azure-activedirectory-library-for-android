@@ -648,7 +648,6 @@ public class AuthenticationContext {
         return acquireTokenSilentSync(null, null, resource, clientId, userId, forceRefresh, claims, apiEventString);
     }
 
-
     /**
      *
      * This function tries to acquire token silently. It will first look at the cache
@@ -658,7 +657,6 @@ public class AuthenticationContext {
      * it will use the provided assertion and its type to acquire the same.
      * This method will not show UI for the user. If prompt is needed, the method
      * will return an exception
-     *
      *
      * @param assertion the actual saml assertion
      * @param assertionType version of saml assertion being used
@@ -673,7 +671,6 @@ public class AuthenticationContext {
      * {@link UserInfo}.
      * @throws AuthenticationException If silent request fails to get the token back.
      * @throws InterruptedException    If the main thread is interrupted before or during the activity.
-     *
      */
     public AuthenticationResult acquireTokenSilentSyncWithAssertion(final String assertion,
                                                                     final String assertionType,

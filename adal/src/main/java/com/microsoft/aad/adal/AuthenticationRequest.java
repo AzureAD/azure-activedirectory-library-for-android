@@ -189,7 +189,6 @@ class AuthenticationRequest implements Serializable {
                 forceRefresh, claimsChallenge);
         mSamlAssertion = assertion;
         mAssertionType = assertionType;
-
     }
 
     AuthenticationRequest(String authority, String resource, String clientId,

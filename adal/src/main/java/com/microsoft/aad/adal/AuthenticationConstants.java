@@ -32,7 +32,7 @@ public final class AuthenticationConstants {
      */
     private AuthenticationConstants() {
     }
-    
+
     /**
      * ADAL package name.
      */
