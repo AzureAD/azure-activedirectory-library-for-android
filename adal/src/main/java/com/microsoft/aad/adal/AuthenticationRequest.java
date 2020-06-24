@@ -50,6 +50,8 @@ class AuthenticationRequest implements Serializable {
 
     private String mResource = null;
 
+    private String mScope = null;
+
     private String mClientId = null;
 
     private String mLoginHint = null;
@@ -187,6 +189,16 @@ class AuthenticationRequest implements Serializable {
         mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
     }
 
+    AuthenticationRequest(String authority, String resource, String clientId,
+                          UUID correlationId, boolean isExtendedLifetimeEnabled, String scope) {
+        mAuthority = authority;
+        mClientId = clientId;
+        mResource = resource;
+        mCorrelationId = correlationId;
+        mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
+        mScope = scope;
+    }
+
     public boolean isClaimsChallengePresent() {
         // if developer pass claims down through extra qp, we should also skip cache.
         return !StringExtensions.isNullOrBlank(this.getClaimsChallenge());
@@ -203,7 +215,7 @@ class AuthenticationRequest implements Serializable {
     public String getRedirectUri() {
         return mRedirectUri;
     }
-    
+
     public void setRedirectUri(final String redirectUri) {
         mRedirectUri = redirectUri;
     }
@@ -212,10 +224,14 @@ class AuthenticationRequest implements Serializable {
         return mResource;
     }
 
+    public String getScope() {
+        return mScope;
+    }
+
     public String getClientId() {
         return mClientId;
     }
-    
+
     public void setClientId(final String id) {
         mClientId = id;
     }
@@ -227,7 +243,7 @@ class AuthenticationRequest implements Serializable {
     public UUID getCorrelationId() {
         return this.mCorrelationId;
     }
-    
+
     public void setCorrelationId(UUID correlationId) {
         mCorrelationId = correlationId;
     }
@@ -239,7 +255,7 @@ class AuthenticationRequest implements Serializable {
     public void setExtraQueryParamsAuthentication(String queryParam) {
         mExtraQueryParamsAuthentication = queryParam;
     }
-    
+
     public String getLogInfo() {
         return String.format("Request authority:%s clientid:%s", mAuthority, mClientId);
     }
@@ -278,11 +294,11 @@ class AuthenticationRequest implements Serializable {
         mLoginHint = name;
     }
 
-    public void setUserName(String name){
+    public void setUserName(String name) {
         mLoginHint = name;
         mBrokerAccountName = name;
     }
-    
+
     public String getUserId() {
         return mUserId;
     }
@@ -319,6 +335,10 @@ class AuthenticationRequest implements Serializable {
         this.mResource = resource;
     }
 
+    public void setScope(String scope) {
+        this.mScope = scope;
+    }
+
     public boolean getIsExtendedLifetimeEnabled() {
         return mIsExtendedLifetimeEnabled;
     }
@@ -338,7 +358,7 @@ class AuthenticationRequest implements Serializable {
     public boolean getSkipCache() {
         return mSkipCache;
     }
-    
+
     /**
      * Get either loginhint or user id based what's passed in the request.
      */
@@ -384,11 +404,11 @@ class AuthenticationRequest implements Serializable {
         return mInstanceDiscoveryMetadata;
     }
 
-    public boolean getForceRefresh(){
+    public boolean getForceRefresh() {
         return mForceRefresh;
     }
 
-    public void setForceRefresh(boolean forceRefresh){
+    public void setForceRefresh(boolean forceRefresh) {
         mForceRefresh = forceRefresh;
     }
 

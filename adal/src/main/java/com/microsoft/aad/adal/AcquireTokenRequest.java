@@ -168,11 +168,47 @@ class AcquireTokenRequest {
 
                     final AcquireTokenSilentHandler acquireTokenSilentHandler = new AcquireTokenSilentHandler(mContext,
                             authenticationRequest, mTokenCacheAccessor);
-                    final AuthenticationResult authResult
+                    final AuthenticationResult result
                             = acquireTokenSilentHandler.acquireTokenWithRefreshToken(refreshToken);
+
+                    final String correlationId = String.format(" CorrelationId: %s", authenticationRequest.getCorrelationId().toString());
+
+                    if (result == null) {
+                        Logger.e(TAG + methodName, "Returned result with exchanging auth code for token is null" + correlationId, "",
+                                ADALError.AUTH_REFRESH_FAILED);
+                        throw new AuthenticationException(
+                                ADALError.AUTH_REFRESH_FAILED, correlationId);
+                    }
+
+                    if (!StringExtensions.isNullOrBlank(result.getErrorCode())) {
+                        Logger.e(TAG + methodName, " ErrorCode:" + result.getErrorCode(), " ErrorDescription:" + result.getErrorDescription(), ADALError.AUTH_REFRESH_FAILED);
+                        throw new AuthenticationException(ADALError.AUTH_REFRESH_FAILED,
+                                " ErrorCode:" + result.getErrorCode());
+                    }
+
+                    if (StringExtensions.isNullOrBlank(result.getAccessToken())) {
+                        Logger.e(TAG + methodName, "Access Token not returned from server", "", ADALError.AUTH_FAILED_NO_TOKEN);
+                        throw new AuthenticationException(ADALError.AUTH_FAILED_NO_TOKEN,
+                                " Access Token not returned from server ");
+                    }
+
+                    if (result.getIdToken() != null && !result.isExtendedLifeTimeToken()) {
+                        final String rawIdToken = result.getIdToken();
+                        final IdToken idTokenRecord = new IdToken(rawIdToken);
+                        final UserInfo userInfo = new UserInfo(idTokenRecord);
+
+                        TokenCacheItem tokenCacheItem = new TokenCacheItem();
+                        tokenCacheItem.setRawIdToken(rawIdToken);
+                        tokenCacheItem.setUserInfo(userInfo);
+                        tokenCacheItem.setTenantId(idTokenRecord.getTenantId());
+
+                        mTokenCacheAccessor.updateCachedItemWithResult(authenticationRequest,
+                                result, tokenCacheItem);
+                    }
+
                     mAPIEvent.setWasApiCallSuccessful(true, null);
-                    mAPIEvent.setIdToken(authResult.getIdToken());
-                    callbackHandle.onSuccess(authResult);
+                    mAPIEvent.setIdToken(result.getIdToken());
+                    callbackHandle.onSuccess(result);
                 } catch (final AuthenticationException authenticationException) {
                     mAPIEvent.setWasApiCallSuccessful(false, authenticationException);
                     callbackHandle.onError(authenticationException);
@@ -822,7 +858,7 @@ class AcquireTokenRequest {
 
                     waitingRequestOnError(waitingRequest, requestId,
                             new AuthenticationException(ADALError.BROKER_APP_INSTALLATION_STARTED));
-                } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_MDM){
+                } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_MDM) {
                     Logger.v(TAG + methodName, "Device needs to be managed, we expect the apps to call us"
                             + "back when the device is managed");
 
