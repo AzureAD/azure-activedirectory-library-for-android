@@ -309,6 +309,7 @@ class Oauth2 {
                     StringExtensions.urlFormEncode(mRequest.getResource()));
         }
 
+        // append scope to request if provided
         if (!StringExtensions.isNullOrBlank(mRequest.getScope())) {
             message = String.format(STRING_FORMAT_QUERY_PARAM, message, "scope",
                     StringExtensions.urlFormEncode(mRequest.getScope()));

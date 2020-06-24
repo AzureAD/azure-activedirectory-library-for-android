@@ -189,6 +189,16 @@ class AuthenticationRequest implements Serializable {
         mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
     }
 
+    /**
+     * Create an Authentication Request to obtain a token. This overload also accepts a scope param.
+     *
+     * @param authority                 Authority URL
+     * @param resource                  Resource that is requested
+     * @param clientId                  ClientId for the app
+     * @param correlationId             Correlation Id used for logging & telemetry
+     * @param isExtendedLifetimeEnabled a boolean indicating if extended lifetime enabled
+     * @param scope                     the scope requested
+     */
     AuthenticationRequest(String authority, String resource, String clientId,
                           UUID correlationId, boolean isExtendedLifetimeEnabled, String scope) {
         mAuthority = authority;

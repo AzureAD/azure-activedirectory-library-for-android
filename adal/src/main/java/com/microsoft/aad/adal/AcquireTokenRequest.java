@@ -31,6 +31,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -174,7 +175,7 @@ class AcquireTokenRequest {
                     final String correlationId = String.format(" CorrelationId: %s", authenticationRequest.getCorrelationId().toString());
 
                     if (result == null) {
-                        Logger.e(TAG + methodName, "Returned result with exchanging auth code for token is null" + correlationId, "",
+                        Logger.e(TAG + methodName, "Returned result with exchanging refresh token for access token is null" + correlationId, "",
                                 ADALError.AUTH_REFRESH_FAILED);
                         throw new AuthenticationException(
                                 ADALError.AUTH_REFRESH_FAILED, correlationId);
@@ -192,8 +193,9 @@ class AcquireTokenRequest {
                                 " Access Token not returned from server ");
                     }
 
-                    if (result.getIdToken() != null && !result.isExtendedLifeTimeToken()) {
-                        final String rawIdToken = result.getIdToken();
+                    final String rawIdToken = result.getIdToken();
+
+                    if (!TextUtils.isEmpty(rawIdToken)) {
                         final IdToken idTokenRecord = new IdToken(rawIdToken);
                         final UserInfo userInfo = new UserInfo(idTokenRecord);
 
@@ -202,6 +204,16 @@ class AcquireTokenRequest {
                         tokenCacheItem.setUserInfo(userInfo);
                         tokenCacheItem.setTenantId(idTokenRecord.getTenantId());
 
+                        // This method is used in ADAL to store tokens in cache during a silent aka
+                        // refresh token request. We are going to be using the same method for this
+                        // API as well for consistency.
+                        //
+                        // To get this to work, we created a TokenCacheItem object above and
+                        // populate it with an ID Token and UserInfo object as in this API ADAL does
+                        // not do a cache look up and does not have the ID Token in cache already.
+                        // We got an ID Token from eSTS and will be using that ID Token to create
+                        // a UserInfo object and seed it into the cache along with the other tokens.
+                        // This allows us to achieve SSO for this API.
                         mTokenCacheAccessor.updateCachedItemWithResult(authenticationRequest,
                                 result, tokenCacheItem);
                     }
