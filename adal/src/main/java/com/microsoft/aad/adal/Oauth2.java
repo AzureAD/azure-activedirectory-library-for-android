@@ -25,9 +25,10 @@ package com.microsoft.aad.adal;
 
 import android.net.Uri;
 import android.os.Build;
-import androidx.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Base64;
+
+import androidx.annotation.NonNull;
 
 import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
@@ -306,6 +307,12 @@ class Oauth2 {
         if (!StringExtensions.isNullOrBlank(mRequest.getResource())) {
             message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.AAD.RESOURCE,
                     StringExtensions.urlFormEncode(mRequest.getResource()));
+        }
+
+        // append scope to request if provided
+        if (!StringExtensions.isNullOrBlank(mRequest.getScope())) {
+            message = String.format(STRING_FORMAT_QUERY_PARAM, message, "scope",
+                    StringExtensions.urlFormEncode(mRequest.getScope()));
         }
 
         // sending redirect uri for the refresh token request if it's provided
