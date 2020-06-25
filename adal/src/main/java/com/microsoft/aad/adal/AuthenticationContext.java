@@ -951,7 +951,7 @@ public class AuthenticationContext {
 
         request.setTelemetryRequestId(requestId);
 
-        // Authenticator is not supported if user is managing the cache
+        // Broker is not supported for the Acquire Token By Refresh Token API
         createAcquireTokenRequest(apiEvent).refreshTokenWithoutCache(refreshToken, request, callback);
     }
 
@@ -993,7 +993,7 @@ public class AuthenticationContext {
         apiEvent.setPromptBehavior(PromptBehavior.Auto.toString());
         apiEvent.setIsDeprecated(true);
 
-        // Authenticator is not supported if user is managing the cache
+        // Broker is not supported for the Acquire Token By Refresh Token API
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority,
                 resource, clientId, getRequestCorrelationId(), getExtendedLifetimeEnabled(),
                 AuthenticationConstants.OAuth2Scopes.OPEN_ID_SCOPE

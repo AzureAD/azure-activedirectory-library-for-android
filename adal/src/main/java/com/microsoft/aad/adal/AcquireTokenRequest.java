@@ -146,9 +146,15 @@ class AcquireTokenRequest {
     }
 
     /**
-     * Developer is using refresh token call to do refresh without cache usage.
-     * App context or activity is not needed. Async requests are created, so this
-     * needs to be called at UI thread.
+     * This API allows to obtain a new access token in exchange for a refresh token. The refresh
+     * token must be provided to this API. The tokens obtained via this API may or may not be saved
+     * in ADAL's cache depending on two things: The openid scope was requested in the token, and a
+     * resource was supplied to the {@link AuthenticationRequest}. If both of those conditions are
+     * true, then tokens are saved in the cache, else not.
+     *
+     * @param refreshToken          the refresh token to use when exchanging for an access token
+     * @param authenticationRequest the {@link AuthenticationRequest} to use when requesting token
+     * @param externalCallback      the callback to which the result should be posted
      */
     void refreshTokenWithoutCache(final String refreshToken, final AuthenticationRequest authenticationRequest,
                                   final AuthenticationCallback<AuthenticationResult> externalCallback) {
@@ -178,7 +184,7 @@ class AcquireTokenRequest {
                         Logger.e(TAG + methodName, "Returned result with exchanging refresh token for access token is null" + correlationId, "",
                                 ADALError.AUTH_REFRESH_FAILED);
                         throw new AuthenticationException(
-                                ADALError.AUTH_REFRESH_FAILED, correlationId);
+                                ADALError.AUTH_REFRESH_FAILED, "No result received from refresh token request.");
                     }
 
                     if (!StringExtensions.isNullOrBlank(result.getErrorCode())) {

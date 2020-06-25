@@ -23,6 +23,7 @@
 
 package com.microsoft.aad.adal;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
@@ -199,8 +200,8 @@ class AuthenticationRequest implements Serializable {
      * @param isExtendedLifetimeEnabled a boolean indicating if extended lifetime enabled
      * @param scope                     the scope requested
      */
-    AuthenticationRequest(String authority, String resource, String clientId,
-                          UUID correlationId, boolean isExtendedLifetimeEnabled, String scope) {
+    AuthenticationRequest(@NonNull String authority, @Nullable String resource, @NonNull String clientId,
+                          @NonNull UUID correlationId, boolean isExtendedLifetimeEnabled, @NonNull String scope) {
         mAuthority = authority;
         mClientId = clientId;
         mResource = resource;
