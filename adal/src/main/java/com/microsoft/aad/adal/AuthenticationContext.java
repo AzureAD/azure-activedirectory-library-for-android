@@ -1164,43 +1164,43 @@ public class AuthenticationContext {
      * @param claims input claims passed on acquireToken call
      * @return merged claims with capabilities
      * @throws JSONException if input claims is an invalid JSON
-     *                       <p>
-     *                       Sample input claim :
-     *                       {
-     *                       "userinfo":
-     *                       {
-     *                       "given_name": {"essential": true},
-     *                       "email": {"essential": true},
-     *                       },
-     *                       "id_token":
-     *                       {
-     *                       "auth_time": {"essential": true},
-     *                       }
-     *                       }
-     *                       <p>
-     *                       Sample capabilities list : [CP1, CP2 CP3]
-     *                       <p>
-     *                       Output merged claims :
-     *                       {
-     *                       "userinfo": {
-     *                       "given_name": {
-     *                       "essential": true
-     *                       },
-     *                       "email": {
-     *                       "essential": true
-     *                       }
-     *                       },
-     *                       "id_token": {
-     *                       "auth_time": {
-     *                       "essential": true
-     *                       }
-     *                       },
-     *                       "access_token": {
-     *                       "xms_cc": {
-     *                       "values": ["CP1", "CP2"]
-     *                       }
-     *                       }
-     *                       }
+     *
+     * <pre>
+     Sample input claim :
+        {
+            "userinfo": {
+                "given_name": {"essential": true},
+                "email": {"essential": true},
+            },
+            "id_token": {
+                "auth_time": {"essential": true},
+            }
+        }
+
+    Sample capabilities list : [CP1, CP2 CP3]
+
+    Output merged claims :
+        {
+            "userinfo": {
+                "given_name": {
+                    "essential": true
+                },
+                "email": {
+                    "essential": true
+                }
+            },
+            "id_token": {
+                "auth_time": {
+                    "essential": true
+                }
+            },
+            "access_token": {
+                "xms_cc": {
+                    "values": ["CP1", "CP2"]
+                }
+            }
+        }
+     * </pre>
      */
     public static String mergeClaimsWithClientCapabilities(final String claims,
                                                            final List<String> clientCapabilities) {
