@@ -195,7 +195,14 @@ class AcquireTokenRequest {
 
                     final String rawIdToken = result.getIdToken();
 
-                    if (!TextUtils.isEmpty(rawIdToken)) {
+                    // We will save tokens in cache if we get back an ID Token and also we have a
+                    // resource available.
+                    //
+                    // The ID Token could be null if the caller did not ask for
+                    // the openid scope by not passing it to the Authentication Request,
+                    // whereas the resource could be null if the caller did not specify a resource
+                    // on the AuthenticationRequest.
+                    if (!TextUtils.isEmpty(rawIdToken) && !TextUtils.isEmpty(authenticationRequest.getResource())) {
                         final IdToken idTokenRecord = new IdToken(rawIdToken);
                         final UserInfo userInfo = new UserInfo(idTokenRecord);
 
