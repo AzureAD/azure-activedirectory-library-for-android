@@ -36,9 +36,12 @@ import android.os.NetworkOnMainThreadException;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
 import android.text.TextUtils;
 import android.util.SparseArray;
+
+import androidx.annotation.Nullable;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.googleblog.android_developers.PRNGFixes;
 import com.microsoft.aad.adal.AuthenticationRequest.UserIdentifierType;
@@ -275,7 +278,7 @@ public class AuthenticationContext {
                              AuthenticationCallback<AuthenticationResult> callback) {
 
         acquireToken(resource, clientId, redirectUri, loginHint, PromptBehavior.Auto, null,
-                null , callback, EventStrings.ACQUIRE_TOKEN_1, wrapActivity(activity), false);
+                null, callback, EventStrings.ACQUIRE_TOKEN_1, wrapActivity(activity), false);
     }
 
     /**
@@ -304,7 +307,7 @@ public class AuthenticationContext {
                              AuthenticationCallback<AuthenticationResult> callback) {
 
         acquireToken(resource, clientId, redirectUri, loginHint, PromptBehavior.Auto, extraQueryParameters,
-                null, callback,  EventStrings.ACQUIRE_TOKEN_2, wrapActivity(activity), false);
+                null, callback, EventStrings.ACQUIRE_TOKEN_2, wrapActivity(activity), false);
     }
 
     /**
@@ -387,8 +390,8 @@ public class AuthenticationContext {
     }
 
     /**
-     * acquireToken will start an interactive auth flow to acquire new tokens 
-     * with the requested claims. Bypasses token cache if promptbehavior is not AUTO or claims are passed. 
+     * acquireToken will start an interactive auth flow to acquire new tokens
+     * with the requested claims. Bypasses token cache if promptbehavior is not AUTO or claims are passed.
      *
      * @param activity             Calling activity
      * @param resource             required resource identifier.
@@ -441,8 +444,8 @@ public class AuthenticationContext {
     }
 
     /**
-     * acquireToken will start an interactive auth flow to acquire new tokens 
-     * with the requested claims. Bypasses token cache if promptbehavior is not AUTO or claims are passed. 
+     * acquireToken will start an interactive auth flow to acquire new tokens
+     * with the requested claims. Bypasses token cache if promptbehavior is not AUTO or claims are passed.
      *
      * @param fragment             It accepts both type of fragments.
      * @param resource             required resource identifier.
@@ -467,16 +470,17 @@ public class AuthenticationContext {
     }
 
     /**
-     * acquireToken will authorize an end user to call the specified resource. 
+     * acquireToken will authorize an end user to call the specified resource.
      * The access token returned from the STS will be sent to the {@link AuthenticationCallback}
-     * and can be used to call the specified protected resource. 
-     * By default, acquireToken will attempt to fulfill the request silently, and 
-     * perform an interactive login if needed or explicitly specified in 
-     * the request. This overload uses an 
+     * and can be used to call the specified protected resource.
+     * By default, acquireToken will attempt to fulfill the request silently, and
+     * perform an interactive login if needed or explicitly specified in
+     * the request. This overload uses an
      * [AlertDialog](https://developer.android.com/guide/topics/ui/dialogs)
      * when user interaction is required. This overload does not support any flow
-     * requiring a 
+     * requiring a
      * [token broker](https://github.com/AzureAD/azure-activedirectory-library-for-android/wiki/Broker).
+     *
      * @param resource             required resource identifier.
      * @param clientId             required client identifier.
      * @param redirectUri          Optional. It will use packagename and provided suffix
@@ -497,14 +501,14 @@ public class AuthenticationContext {
     }
 
     /**
-     * acquireToken will authorize an end user to call the specified resource. 
+     * acquireToken will authorize an end user to call the specified resource.
      * The access token returned from the STS will be sent to the {@link AuthenticationCallback}
-     * and can be used to call the specified protected resource. 
-     * Bypasses token cache if @param prompt is not AUTO or claims are passed.  
-     * This overload uses an 
+     * and can be used to call the specified protected resource.
+     * Bypasses token cache if @param prompt is not AUTO or claims are passed.
+     * This overload uses an
      * [AlertDialog](https://developer.android.com/guide/topics/ui/dialogs)
      * when user interaction is required. This overload does not support any flow
-     * requiring a 
+     * requiring a
      * [token broker](https://github.com/AzureAD/azure-activedirectory-library-for-android/wiki/Broker).
      *
      * @param resource             required resource identifier.
@@ -533,7 +537,7 @@ public class AuthenticationContext {
                               @Nullable final String loginHint, @Nullable final PromptBehavior prompt,
                               @Nullable String extraQueryParameters, @Nullable final String claims,
                               final AuthenticationCallback<AuthenticationResult> callback, String apiEventString,
-                              final IWindowComponent fragment, final boolean useDialog){
+                              final IWindowComponent fragment, final boolean useDialog) {
 
         throwIfClaimsInBothExtraQpAndClaimsParameter(claims, extraQueryParameters);
 
@@ -557,7 +561,7 @@ public class AuthenticationContext {
             setAppInfoToRequest(request);
             request.setClientCapabilities(mClientCapabilites);
 
-            if(!StringExtensions.isNullOrBlank(loginHint)) {
+            if (!StringExtensions.isNullOrBlank(loginHint)) {
                 apiEvent.setLoginHint(loginHint);
                 request.setUserIdentifierType(UserIdentifierType.LoginHint);
             }
@@ -622,10 +626,10 @@ public class AuthenticationContext {
      * will use the refresh token automatically. This method will not show UI
      * for the user. If prompt is needed, the method will return an exception
      *
-     * @param resource required resource identifier.
-     * @param clientId required client identifier.
-     * @param userId   UserID obtained from
-     *                 {@link AuthenticationResult #getUserInfo()}
+     * @param resource     required resource identifier.
+     * @param clientId     required client identifier.
+     * @param userId       UserID obtained from
+     *                     {@link AuthenticationResult #getUserInfo()}
      * @param forceRefresh when true, access token is renewed using broker if available; otherwise, uses local refresh token
      * @return A {@link Future} object representing the
      * {@link AuthenticationResult} of the call. It contains Access
@@ -874,13 +878,13 @@ public class AuthenticationContext {
      * refresh token automatically. This method will not show UI for the user.
      * If prompt is needed, the method will return an exception
      *
-     * @param resource required resource identifier.
-     * @param clientId required client identifier.
-     * @param userId   UserId obtained from {@link UserInfo} inside
-     *                 {@link AuthenticationResult}
+     * @param resource     required resource identifier.
+     * @param clientId     required client identifier.
+     * @param userId       UserId obtained from {@link UserInfo} inside
+     *                     {@link AuthenticationResult}
      * @param forceRefresh when true, access token is renewed using broker if available; otherwise, uses local refresh token
-     * @param callback required {@link AuthenticationCallback} object for async
-     *                 call.
+     * @param callback     required {@link AuthenticationCallback} object for async
+     *                     call.
      */
     public void acquireTokenSilentAsync(String resource,
                                         String clientId,
@@ -987,7 +991,6 @@ public class AuthenticationContext {
     }
 
 
-
     /**
      * acquire token using refresh token if cache is not used. Otherwise, use
      * acquireToken to let the ADAL handle the cache lookup and refresh token
@@ -1026,7 +1029,9 @@ public class AuthenticationContext {
         apiEvent.setIsDeprecated(true);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority,
-                null, clientId, getRequestCorrelationId(), getExtendedLifetimeEnabled());
+                null, clientId, getRequestCorrelationId(), getExtendedLifetimeEnabled(),
+                AuthenticationConstants.OAuth2Scopes.OPEN_ID_SCOPE
+        );
 
         // It is not using cache and refresh is not expected to
         // show authentication activity.
@@ -1034,7 +1039,7 @@ public class AuthenticationContext {
 
         request.setTelemetryRequestId(requestId);
 
-        // Authenticator is not supported if user is managing the cache
+        // Broker is not supported for the Acquire Token By Refresh Token API
         createAcquireTokenRequest(apiEvent).refreshTokenWithoutCache(refreshToken, request, callback);
     }
 
@@ -1076,9 +1081,11 @@ public class AuthenticationContext {
         apiEvent.setPromptBehavior(PromptBehavior.Auto.toString());
         apiEvent.setIsDeprecated(true);
 
-        // Authenticator is not supported if user is managing the cache
+        // Broker is not supported for the Acquire Token By Refresh Token API
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority,
-                resource, clientId, getRequestCorrelationId(), getExtendedLifetimeEnabled());
+                resource, clientId, getRequestCorrelationId(), getExtendedLifetimeEnabled(),
+                AuthenticationConstants.OAuth2Scopes.OPEN_ID_SCOPE
+        );
 
         request.setTelemetryRequestId(requestId);
 
@@ -1209,7 +1216,7 @@ public class AuthenticationContext {
         Logger.setCorrelationId(requestCorrelationId);
     }
 
-    private void setAppInfoToRequest(AuthenticationRequest request){
+    private void setAppInfoToRequest(AuthenticationRequest request) {
         String packageName = mContext.getPackageName();
         request.setAppName(packageName);
         try {
@@ -1241,26 +1248,26 @@ public class AuthenticationContext {
 
     /**
      * Util method to merge
+     *
      * @param claims input claims passed on acquireToken call
      * @return merged claims with capabilities
      * @throws JSONException if input claims is an invalid JSON
      *
-     * Sample input claim :
-     *      {
-                "userinfo":
-                {
-                    "given_name": {"essential": true},
-                    "email": {"essential": true},
-                },
-                "id_token":
-                {
-                    "auth_time": {"essential": true},
-                }
+     * <pre>
+     Sample input claim :
+        {
+            "userinfo": {
+                "given_name": {"essential": true},
+                "email": {"essential": true},
+            },
+            "id_token": {
+                "auth_time": {"essential": true},
             }
+        }
 
-     Sample capabilities list : [CP1, CP2 CP3]
+    Sample capabilities list : [CP1, CP2 CP3]
 
-     Output merged claims :
+    Output merged claims :
         {
             "userinfo": {
                 "given_name": {
@@ -1281,6 +1288,7 @@ public class AuthenticationContext {
                 }
             }
         }
+     * </pre>
      */
     public static String mergeClaimsWithClientCapabilities(final String claims,
                                                            final List<String> clientCapabilities) {
@@ -1604,7 +1612,7 @@ public class AuthenticationContext {
         return mClientCapabilites;
     }
 
-    public void setClientCapabilites(List<String> clientCapabilites){
+    public void setClientCapabilites(List<String> clientCapabilites) {
         mClientCapabilites = clientCapabilites;
     }
 
@@ -1651,8 +1659,8 @@ public class AuthenticationContext {
 
     private void validateClaims(final String claims) throws AuthenticationException {
         try {
-            if(!TextUtils.isEmpty(claims)) {
-               new JSONObject(claims);
+            if (!TextUtils.isEmpty(claims)) {
+                new JSONObject(claims);
             }
         } catch (JSONException e) {
             throw new AuthenticationException(ADALError.JSON_PARSE_ERROR, "Invalid claims request parameters", e);
