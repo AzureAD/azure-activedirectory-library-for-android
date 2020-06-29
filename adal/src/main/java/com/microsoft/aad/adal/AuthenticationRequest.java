@@ -26,7 +26,6 @@ package com.microsoft.aad.adal;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.io.Serializable;
@@ -187,7 +186,7 @@ class AuthenticationRequest implements Serializable {
     }
 
     AuthenticationRequest(String assertion, String assertionType, String authority,
-                          String resource, String clientid, String userid, UUID correlationId, 
+                          String resource, String clientid, String userid, UUID correlationId,
                           boolean isExtendedLifetimeEnabled, boolean forceRefresh, String claimsChallenge) {
         this(authority, resource, clientid, userid, correlationId, isExtendedLifetimeEnabled,
                 forceRefresh, claimsChallenge);
@@ -195,7 +194,7 @@ class AuthenticationRequest implements Serializable {
         mSamlAssertion = assertion;
         if (assertionType != AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML11_BEARER_VALUE &&
                 assertionType != AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML2_BEARER_VALUE) {
-           mAssertionType = null;
+            mAssertionType = null;
         } else {
             mLoginHint = userid;
             mAssertionType = assertionType;

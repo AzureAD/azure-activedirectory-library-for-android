@@ -303,19 +303,19 @@ class Oauth2 {
                 AuthenticationConstants.OAuth2.CLIENT_INFO,
                 AuthenticationConstants.OAuth2.CLIENT_INFO_TRUE
         );
-        
+
         message = buildRequestMessage(message);
         return message;
     }
 
-    public String buildAssertionMessage(@NonNull String assertion,@NonNull String assertionType)
+    public String buildAssertionMessage(@NonNull String assertion, @NonNull String assertionType)
             throws UnsupportedEncodingException {
         Logger.v(TAG, "Building request message for redeeming token with saml assertion.");
         String message = String.format("%s=%s&%s=%s&%s=%s&%s=%s&%s=%s",
                 AuthenticationConstants.OAuth2.GRANT_TYPE,
                 StringExtensions.urlFormEncode(assertionType),
 
-                AuthenticationConstants.OAuth2.ASSERTION,
+                com.microsoft.aad.adal.AuthenticationConstants.OAuth2.ASSERTION,
                 StringExtensions.urlFormEncode(Base64.encodeToString(assertion.getBytes("UTF-8"), Base64.NO_WRAP)),
 
                 AuthenticationConstants.OAuth2.CLIENT_ID,
@@ -327,7 +327,7 @@ class Oauth2 {
                 AuthenticationConstants.OAuth2.CLIENT_INFO,
                 AuthenticationConstants.OAuth2.CLIENT_INFO_TRUE
         );
-        
+
         message = buildRequestMessage(message);
         return message;
     }
