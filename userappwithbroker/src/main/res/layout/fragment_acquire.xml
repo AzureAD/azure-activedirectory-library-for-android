@@ -185,6 +185,48 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="2"
+            android:text="Assertion Version" />
+
+        <Spinner
+            android:id="@+id/assertionType"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="8" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="10">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:text="Assertion" />
+
+        <EditText
+            android:id="@+id/assertion"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:layout_weight="8"
+            android:maxLines="1"
+            android:hint="Enter the assertion here"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="10">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
             android:text="Use Broker" />
 
         <Switch
@@ -203,9 +245,11 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
+            android:layout_below="@id/query_param_linear_layout"
             android:gravity="center"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:paddingTop="15dp"
+            android:id="@+id/acquire_token_buttons_layout">
 
             <Button
                 android:id="@+id/btn_acquiretoken"
@@ -224,8 +268,25 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_below="@id/acquire_token_buttons_layout"
+            android:gravity="center"
             android:orientation="horizontal"
-            android:weightSum="10">
+            android:layout_marginTop="10dp">
+
+            <Button
+                android:id="@+id/btn_acquireTokenUsingAssertion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/acquire_token_assertion_button" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="10"
+            android:id="@+id/query_param_linear_layout">
 
             <TextView
                 android:layout_width="0dp"

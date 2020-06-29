@@ -1869,7 +1869,7 @@ public final class AuthenticationContextTest {
         // Call acquire token silent using assertion which will try to fetch refresh token
         AuthenticationResult result = context.acquireTokenSilentSyncWithAssertion("sample assertion",
                 AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML11_BEARER_VALUE, "resource",
-                "clientId", TEST_IDTOKEN_USERID, false, null);
+                "clientId", TEST_IDTOKEN_USERID);
 
         // Check if the access token is present in the result and if its stored in the cache
         assertEquals("Token is same as passed in response", "TokenForSamlAssertionTest", result.getAccessToken());

@@ -466,6 +466,7 @@ class AcquireTokenRequest {
             throws AuthenticationException {
 
         final boolean requestEligibleForBroker = mBrokerProxy.verifyBrokerForSilentRequest(authenticationRequest);
+        final String methodName = ":acquireTokenSilentFlow";
 
         //1. if forceRefresh == true OR claimsChallenge is not null AND the request is eligible for the broker
         if ((authenticationRequest.getForceRefresh() || authenticationRequest.isClaimsChallengePresent()) && requestEligibleForBroker) {
@@ -479,11 +480,14 @@ class AcquireTokenRequest {
         }
 
         //3. try SAML Assertion
-        if (authenticationRequest.getSamlAssertion() != null) {
+        if (authenticationRequest.getSamlAssertion() != null && authenticationRequest.getAssertionType() != null) {
             final AuthenticationResult authResultFromSaml = tryAcquireTokenSilentWithAssertion(authenticationRequest);
             if (isAccessTokenReturned(authResultFromSaml)) {
+                Logger.v(TAG + methodName, "Access token has been acquired using the saml assertion.");
                 return authResultFromSaml;
-            }            
+            } else {
+                Logger.w(TAG + methodName, "Failed to acquire tokens using saml assertion.");
+            }
         }
 
         //4. We couldn't get locally...If eligible return via broker... otherwise return local result

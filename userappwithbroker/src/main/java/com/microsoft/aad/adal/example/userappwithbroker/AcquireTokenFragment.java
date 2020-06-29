@@ -51,10 +51,13 @@ public class AcquireTokenFragment extends Fragment {
     private Spinner mPromptBehavior;
     private Spinner mClientId;
     private Spinner mRedirectUri;
+    private Spinner mAssertionType;
+    private EditText mAssertion;
     private Switch mUseBroker;
 
     private Button mAcquireToken;
     private Button mAcquireTokenSilent;
+    private Button mAcquireTokenWithAssertion;
 
     private OnFragmentInteractionListener mOnFragmentInteractionListener;
 
@@ -72,12 +75,14 @@ public class AcquireTokenFragment extends Fragment {
         mClientId = (Spinner) view.findViewById(R.id.client_id);
         mRedirectUri = (Spinner) view.findViewById(R.id.redirect_uri);
         mResource = (Spinner) view.findViewById(R.id.data_profile);
-
+        mAssertionType = (Spinner) view.findViewById(R.id.assertionType);
+        mAssertion = (EditText) view.findViewById(R.id.assertion);
         mPromptBehavior = (Spinner) view.findViewById(R.id.prompt_behavior);
 
         mExtraQp = (EditText) view.findViewById(R.id.extraQP);
         mAcquireToken = (Button) view.findViewById(R.id.btn_acquiretoken);
         mAcquireTokenSilent = (Button) view.findViewById(R.id.btn_acquiretokensilent);
+        mAcquireTokenWithAssertion = (Button) view.findViewById(R.id.btn_acquireTokenUsingAssertion);
         mUseBroker = view.findViewById(R.id.use_broker);
 
         bindSpinnerChoice(mAuthority, Constants.AuthorityType.class);
@@ -85,6 +90,7 @@ public class AcquireTokenFragment extends Fragment {
         bindSpinnerChoice(mResource, Constants.DataProfile.class);
         bindSpinnerChoice(mClientId, Constants.ClientId.class);
         bindSpinnerChoice(mRedirectUri, Constants.RedirectUri.class);
+        bindSpinnerChoice(mAssertionType, Constants.AssertionVersion.class);
 
         mAcquireToken.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -97,6 +103,13 @@ public class AcquireTokenFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 mOnFragmentInteractionListener.onAcquireTokenSilentClicked(getCurrentRequestOptions());
+            }
+        });
+
+        mAcquireTokenWithAssertion.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mOnFragmentInteractionListener.onAcquireTokenWithAssertionClicked(getCurrentRequestOptions());
             }
         });
 
@@ -146,7 +159,9 @@ public class AcquireTokenFragment extends Fragment {
         final Constants.RedirectUri redirectUri = Constants.RedirectUri.valueOf(mRedirectUri.getSelectedItem().toString());
         final Constants.ClientId clientId = Constants.ClientId.valueOf(mClientId.getSelectedItem().toString());
         final boolean useBroker = mUseBroker.isChecked();
-        return RequestOptions.create(authority, loginHint, extraQp, resource, behavior, clientId, redirectUri, useBroker);
+        final Constants.AssertionVersion assertionVersion = Constants.AssertionVersion.valueOf(mAssertionType.getSelectedItem().toString());
+        final String assertion = mAssertion.getText().toString();
+        return RequestOptions.create(authority, loginHint, extraQp, resource, behavior, clientId, redirectUri, useBroker, assertion, assertionVersion);
     }
 
     static class RequestOptions {
@@ -158,12 +173,14 @@ public class AcquireTokenFragment extends Fragment {
         final Constants.RedirectUri mRedirectUri;
         final Constants.ClientId mClientId;
         final boolean mUseBroker;
+        final String mAssertion;
+        final Constants.AssertionVersion mAssertionType;
 
         RequestOptions(final String authority, final String loginHint,
                        final String extraQp, final Constants.DataProfile dataProfile,
                        final PromptBehavior behavior, final Constants.ClientId clientId,
                        final Constants.RedirectUri redirectUri,
-                       final boolean useBroker) {
+                       final boolean useBroker, final String assertion, final Constants.AssertionVersion assertionType) {
             mAuthority = authority;
             mLoginHint = loginHint;
             mExtraQp = extraQp;
@@ -172,11 +189,14 @@ public class AcquireTokenFragment extends Fragment {
             mClientId = clientId;
             mRedirectUri = redirectUri;
             mUseBroker = useBroker;
+            mAssertion = assertion;
+            mAssertionType = assertionType;
         }
 
         static RequestOptions create(final String authority, final String loginHint, final String extraQp, final Constants.DataProfile dataProfile,
-                                     final PromptBehavior behavior, final Constants.ClientId clientId, final Constants.RedirectUri redirectUri, final boolean useBroker) {
-            return new RequestOptions(authority, loginHint, extraQp, dataProfile, behavior, clientId, redirectUri, useBroker);
+                                     final PromptBehavior behavior, final Constants.ClientId clientId, final Constants.RedirectUri redirectUri,
+                                     final boolean useBroker, final String assertion, final Constants.AssertionVersion assertionType) {
+            return new RequestOptions(authority, loginHint, extraQp, dataProfile, behavior, clientId, redirectUri, useBroker, assertion, assertionType);
         }
 
         String getAuthority() {
@@ -207,6 +227,10 @@ public class AcquireTokenFragment extends Fragment {
             return mRedirectUri;
         }
 
+        String getAssertion() { return mAssertion;}
+
+        Constants.AssertionVersion getAssertionType() { return mAssertionType;}
+
         boolean getUseBroker() {
             return mUseBroker;
         }
@@ -217,5 +241,7 @@ public class AcquireTokenFragment extends Fragment {
         void onAcquireTokenClicked(final RequestOptions requestOptions);
 
         void onAcquireTokenSilentClicked(final RequestOptions requestOptions);
+
+        void onAcquireTokenWithAssertionClicked(final RequestOptions requestOptions);
     }
 }

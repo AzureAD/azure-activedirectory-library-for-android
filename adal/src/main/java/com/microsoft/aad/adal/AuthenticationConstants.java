@@ -237,8 +237,6 @@ public final class AuthenticationConstants {
          */
         public static final String SCOPE = com.microsoft.identity.common.adal.internal.AuthenticationConstants.OAuth2.SCOPE;
 
-        public static final String MSID_OAUTH2_SCOPE_OPENID_VALUE = com.microsoft.identity.common.adal.internal.AuthenticationConstants.OAuth2.MSID_OAUTH2_SCOPE_OPENID_VALUE;
-
         /**
          * String of state.
          */

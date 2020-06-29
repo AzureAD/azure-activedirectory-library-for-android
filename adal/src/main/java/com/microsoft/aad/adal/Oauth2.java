@@ -321,7 +321,7 @@ class Oauth2 {
                 StringExtensions.urlFormEncode(mRequest.getClientId()),
 
                 AuthenticationConstants.OAuth2.SCOPE,
-                AuthenticationConstants.OAuth2.MSID_OAUTH2_SCOPE_OPENID_VALUE,
+                AuthenticationConstants.OAuth2Scopes.OPEN_ID_SCOPE,
 
                 AuthenticationConstants.OAuth2.CLIENT_INFO,
                 AuthenticationConstants.OAuth2.CLIENT_INFO_TRUE
@@ -571,7 +571,8 @@ class Oauth2 {
         return postMessage(requestMessage, headers);
     }
 
-    public AuthenticationResult refreshTokenUsingAssertion(String samlAssertion, String assertionType)
+    public AuthenticationResult refreshTokenUsingAssertion(@NonNull final String samlAssertion,
+                                                           @NonNull final String assertionType)
             throws IOException, AuthenticationException {
         final String requestMessage;
         if (mWebRequestHandler == null) {
