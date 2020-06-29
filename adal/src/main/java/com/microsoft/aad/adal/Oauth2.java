@@ -308,7 +308,7 @@ class Oauth2 {
         return message;
     }
 
-    public String buildAssertionMessage(String assertion, String assertionType)
+    public String buildAssertionMessage(@NonNull String assertion,@NonNull String assertionType)
             throws UnsupportedEncodingException {
         Logger.v(TAG, "Building request message for redeeming token with saml assertion.");
         String message = String.format("%s=%s&%s=%s&%s=%s&%s=%s&%s=%s",

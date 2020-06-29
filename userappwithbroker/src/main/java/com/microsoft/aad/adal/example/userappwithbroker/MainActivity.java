@@ -219,12 +219,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             public void run() {
                 String uId = requestOptions.getLoginHint();
 
-                if(requestOptions.getAssertionType().getText() == null){
+                if(requestOptions.getAssertionType().getAssertionVersion() == null){
                     showMessage("Assertion type is selected as None");
                 } else if(TextUtils.isEmpty(uId)) {
                     showMessage("No uId has been provided, cannot proceed with silent call");
                 } else {
-                    callAcquireTokenSilentWithAssertion(requestOptions.getAssertion(), requestOptions.getAssertionType().getText(),
+                    callAcquireTokenSilentWithAssertion(requestOptions.getAssertion(), requestOptions.getAssertionType().getAssertionVersion(),
                             requestOptions.getDataProfile().getText(), uId,
                             requestOptions.getClientId().getText());
                 }

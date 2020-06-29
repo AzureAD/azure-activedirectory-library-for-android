@@ -116,14 +116,14 @@ public class Constants {
         Version1_1(AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML11_BEARER_VALUE),
         Version2(AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML2_BEARER_VALUE);
 
-        private final String text;
+        private final String assertionVersion;
 
-        AssertionVersion(String s) {
-            text = s;
+        AssertionVersion(String selectedAssertionVersion) {
+            assertionVersion = selectedAssertionVersion;
         }
 
-        public String getText() {
-            return text;
+        public String getAssertionVersion() {
+            return assertionVersion;
         }
     }
 }
