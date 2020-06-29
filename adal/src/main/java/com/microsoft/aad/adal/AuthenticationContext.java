@@ -586,7 +586,7 @@ public class AuthenticationContext {
      * @throws InterruptedException    If the main thread is interrupted before or during the activity.
      */
     public AuthenticationResult acquireTokenSilentSync(String resource, String clientId, String userId)
-            throws AuthenticationException, InterruptedException, IllegalArgumentException {
+            throws AuthenticationException, InterruptedException {
         return acquireTokenSilentSync(resource, clientId, userId, false, null, EventStrings.ACQUIRE_TOKEN_SILENT_SYNC);
     }
 
@@ -611,7 +611,7 @@ public class AuthenticationContext {
      * @throws InterruptedException    If the main thread is interrupted before or during the activity.
      */
     public AuthenticationResult acquireTokenSilentSync(String resource, String clientId, String userId, @Nullable String claims)
-            throws AuthenticationException, InterruptedException, IllegalArgumentException {
+            throws AuthenticationException, InterruptedException {
         return acquireTokenSilentSync(resource, clientId, userId, false, claims, EventStrings.ACQUIRE_TOKEN_SILENT_SYNC_CLAIMS_CHALLENGE);
     }
 
@@ -635,7 +635,7 @@ public class AuthenticationContext {
      * @throws InterruptedException    If the main thread is interrupted before or during the activity.
      */
     public AuthenticationResult acquireTokenSilentSync(String resource, String clientId, String userId, boolean forceRefresh)
-            throws AuthenticationException, InterruptedException, IllegalArgumentException {
+            throws AuthenticationException, InterruptedException {
         return acquireTokenSilentSync(resource, clientId, userId, forceRefresh, null, EventStrings.ACQUIRE_TOKEN_SILENT_SYNC_FORCE_REFRESH);
     }
 
@@ -645,10 +645,10 @@ public class AuthenticationContext {
                                                         final boolean forceRefresh,
                                                         final String claims,
                                                         final String apiEventString)
-            throws AuthenticationException, InterruptedException, IllegalArgumentException {
+            throws AuthenticationException, InterruptedException {
         final String methodName = ":acquireTokenSilentSync";
         return acquireTokenSilentSync(null, null, resource, clientId, userId,
-                forceRefresh, claims, apiEventString, UserIdentifierType.UniqueId);
+                UserIdentifierType.UniqueId, forceRefresh, claims, apiEventString);
     }
 
     /**
@@ -679,9 +679,9 @@ public class AuthenticationContext {
                                                                     @NonNull final String resource,
                                                                     @NonNull final String clientId,
                                                                     @NonNull final String userId)
-            throws AuthenticationException, InterruptedException, IllegalArgumentException {
-        return acquireTokenSilentSync(assertion, assertionType, resource, clientId, userId,false,
-                null, EventStrings.ACQUIRE_TOKEN_WITH_SAML_ASSERTION, UserIdentifierType.LoginHint);
+            throws AuthenticationException, InterruptedException {
+        return acquireTokenSilentSync(assertion, assertionType, resource, clientId, userId, UserIdentifierType.LoginHint,
+                false, null, EventStrings.ACQUIRE_TOKEN_WITH_SAML_ASSERTION);
     }
 
     private AuthenticationResult acquireTokenSilentSync(@Nullable final String assertion,
@@ -689,11 +689,11 @@ public class AuthenticationContext {
                                                         @NonNull final String resource,
                                                         @NonNull final String clientId,
                                                         final String userId,
+                                                        final UserIdentifierType identifier,
                                                         final boolean forceRefresh,
                                                         final String claims,
-                                                        final String apiEventString,
-                                                        final UserIdentifierType identifier)
-            throws AuthenticationException, InterruptedException, IllegalArgumentException {
+                                                        final String apiEventString)
+            throws AuthenticationException, InterruptedException {
         final String methodName = ":acquireTokenSilentSync";
         validateClaims(claims);
         checkPreRequirements(resource, clientId);
@@ -863,9 +863,8 @@ public class AuthenticationContext {
                                         String clientId,
                                         String userId,
                                         AuthenticationCallback<AuthenticationResult> callback) {
-        acquireTokenSilentAsync(null, null, resource, clientId, userId,
-                false, null, EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC,
-                UserIdentifierType.UniqueId, callback);
+        acquireTokenSilentAsync(null, null, resource, clientId, userId, UserIdentifierType.UniqueId,
+                false, null, EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC, callback);
     }
 
     /**
@@ -888,9 +887,8 @@ public class AuthenticationContext {
                                         String userId,
                                         boolean forceRefresh,
                                         AuthenticationCallback<AuthenticationResult> callback) {
-        acquireTokenSilentAsync(null, null, resource, clientId, userId,
-                forceRefresh, null, EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC_FORCE_REFRESH,
-                UserIdentifierType.UniqueId, callback);
+        acquireTokenSilentAsync(null, null, resource, clientId, userId, UserIdentifierType.UniqueId,
+                forceRefresh, null, EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC_FORCE_REFRESH, callback);
     }
 
     /**
@@ -914,9 +912,8 @@ public class AuthenticationContext {
                                         String userId,
                                         @Nullable String claims,
                                         AuthenticationCallback<AuthenticationResult> callback) {
-        acquireTokenSilentAsync(null, null, resource, clientId, userId, false,
-                claims, EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC_CLAIMS_CHALLENGE,
-                UserIdentifierType.UniqueId, callback);
+        acquireTokenSilentAsync(null, null, resource, clientId, userId, UserIdentifierType.UniqueId,
+                false, claims, EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC_CLAIMS_CHALLENGE, callback);
     }
 
     /**
@@ -944,8 +941,8 @@ public class AuthenticationContext {
                                                      final String clientId,
                                                      final String userId,
                                                      AuthenticationCallback<AuthenticationResult> callback) {
-        acquireTokenSilentAsync(assertion, assertionType, resource, clientId, userId, false,
-                null, EventStrings.ACQUIRE_TOKEN_WITH_SAML_ASSERTION, UserIdentifierType.LoginHint, callback);
+        acquireTokenSilentAsync(assertion, assertionType, resource, clientId, userId, UserIdentifierType.LoginHint,
+                false, null, EventStrings.ACQUIRE_TOKEN_WITH_SAML_ASSERTION, callback);
     }
 
     private void acquireTokenSilentAsync(final String assertion,
@@ -953,10 +950,10 @@ public class AuthenticationContext {
                                          final String resource,
                                          final String clientId,
                                          final String userId,
+                                         final UserIdentifierType identifierType,
                                          final boolean forceRefresh,
                                          final String claims,
                                          final String apiEventString,
-                                         final UserIdentifierType identifierType,
                                          final AuthenticationCallback<AuthenticationResult> callback) {
 
         if (!checkPreRequirements(resource, clientId, callback) || !checkADFSValidationRequirements(null, callback)) {

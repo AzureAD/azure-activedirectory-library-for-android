@@ -188,14 +188,15 @@ class AuthenticationRequest implements Serializable {
                           boolean isExtendedLifetimeEnabled, boolean forceRefresh, String claimsChallenge) {
         this(authority, resource, clientid, userid, correlationId, isExtendedLifetimeEnabled,
                 forceRefresh, claimsChallenge);
+
         mSamlAssertion = assertion;
         if (assertionType != AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML11_BEARER_VALUE &&
                 assertionType != AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML2_BEARER_VALUE) {
-           assertionType = null;
+           mAssertionType = null;
         } else {
             mLoginHint = userid;
+            mAssertionType = assertionType;
         }
-        mAssertionType = assertionType;
 
     }
 
