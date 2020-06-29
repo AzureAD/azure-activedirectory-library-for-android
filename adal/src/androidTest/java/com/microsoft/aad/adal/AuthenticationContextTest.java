@@ -1830,6 +1830,56 @@ public final class AuthenticationContextTest {
         clearCache(context);
     }
 
+    /**
+     * Test acquire token silent sync using assertion call.
+     *
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws AuthenticationException
+     */
+    @Test
+    public void testAcquireTokenSilentSyncWithAssertionPositive() throws IOException, AuthenticationException,
+            InterruptedException {
+
+        final FileMockContext mockContext = new FileMockContext(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext());
+        final ITokenCacheStore mockCache = new DefaultTokenCacheStore(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext());
+        final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
+
+        final MockActivity testActivity = new MockActivity();
+        final CountDownLatch signal = new CountDownLatch(1);
+        testActivity.mSignal = signal;
+
+        final String response = "{\"id_token\":\"" + TEST_IDTOKEN
+                + "\",\"access_token\":\"TokenForSamlAssertionTest\","
+                + "\"token_type\":\"Bearer\","
+                + "\"expires_in\":\"3600\","
+                + "\"expires_on\":\"1368768616\","
+                + "\"refresh_token\":\"refresh112\","
+                + "\"scope\":\"*\", "
+                + "\"client_info\":\"" + Util.TEST_CLIENT_INFO + "\""
+                +"}";
+
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
+        Util.prepareMockedUrlConnection(mockedConnection);
+        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response));
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
+
+        // Call acquire token silent using assertion which will try to fetch refresh token
+        AuthenticationResult result = context.acquireTokenSilentSyncWithAssertion("sample assertion",
+                com.microsoft.aad.adal.AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML11_BEARER_VALUE, "resource",
+                "clientId", TEST_IDTOKEN_USERID);
+
+        // Check if the access token is present in the result and if its stored in the cache
+        assertEquals("Token is same as passed in response", "TokenForSamlAssertionTest", result.getAccessToken());
+        assertNotNull("Cache is NOT empty for passed userid for regular token",
+                mockCache.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientId",
+                        TEST_IDTOKEN_USERID)));
+
+        clearCache(context);
+    }
+
     @Test
     public void testSilentRequestTokenItemNotContainRT() throws InterruptedException {
         final FileMockContext mockContext = new FileMockContext(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext());

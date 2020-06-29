@@ -406,7 +406,7 @@ class AcquireTokenRequest {
         // 1) throw AuthenticationException if
         //    a) No access token is returned from local flow and no prompt is allowed
         //    b) Server error or network errors when sending post request to token endpoint with grant_type
-        //       as refresh_token in local flow
+        //       as refresh_token in local flow or with grant type as assertion
         //    c) Broker returns ERROR_CODE_BAD_ARGUMENTS, ACCOUNT_MANAGER_ERROR_CODE_BAD_AUTHENTICATION
         //       or ERROR_CODE_UNSUPPORTED_OPERATION
         // 2) Non-null AuthenticationResult if we could try silent request, and silent request either successfully
@@ -519,13 +519,15 @@ class AcquireTokenRequest {
 
     /**
      * Handles the silent flow. Will always lookup local cache. If there is a valid AT in local cache, will use it. If
-     * AT in local cache is already expired, will try RT in the local cache. If RT requst failed, and if we can switch
-     * to broker for auth, will switch to broker for authentication.
+     * AT in local cache is already expired, will try RT in the local cache. If RT requst failed, then use saml assertion passed in the 
+     * request to acquire RT and AT. If this too fails and if we can switch to broker for auth, 
+     * will switch to broker for authentication.
      */
     private AuthenticationResult acquireTokenSilentFlow(final AuthenticationRequest authenticationRequest)
             throws AuthenticationException {
 
         final boolean requestEligibleForBroker = mBrokerProxy.verifyBrokerForSilentRequest(authenticationRequest);
+        final String methodName = ":acquireTokenSilentFlow";
 
         //1. if forceRefresh == true OR claimsChallenge is not null AND the request is eligible for the broker
         if ((authenticationRequest.getForceRefresh() || authenticationRequest.isClaimsChallengePresent()) && requestEligibleForBroker) {
@@ -538,7 +540,18 @@ class AcquireTokenRequest {
             return authResult;
         }
 
-        //3. We couldn't get locally...If eligible return via broker... otherwise return local result
+        //3. try SAML Assertion
+        if (authenticationRequest.getSamlAssertion() != null && authenticationRequest.getAssertionType() != null) {
+            final AuthenticationResult authResultFromSaml = tryAcquireTokenSilentWithAssertion(authenticationRequest);
+            if (isAccessTokenReturned(authResultFromSaml)) {
+                Logger.v(TAG + methodName, "Access token has been acquired using the saml assertion.");
+                return authResultFromSaml;
+            } else {
+                Logger.w(TAG + methodName, "Failed to acquire tokens using saml assertion.");
+            }
+        }
+
+        //4. We couldn't get locally...If eligible return via broker... otherwise return local result
         if (requestEligibleForBroker) {
             return tryAcquireTokenSilentWithBroker(authenticationRequest);
         } else {
@@ -558,6 +571,19 @@ class AcquireTokenRequest {
                 authenticationRequest, mTokenCacheAccessor);
 
         return acquireTokenSilentHandler.getAccessToken();
+    }
+
+    /**
+     * Try acquire token using saml assertion.
+     */
+    private AuthenticationResult tryAcquireTokenSilentWithAssertion(final AuthenticationRequest authenticationRequest)
+            throws AuthenticationException {
+        final String methodName = ":tryAcquireTokenSilentWithAssertion";
+        Logger.v(TAG + methodName, "Try to silently get token using SAML Assertion.");
+        final AcquireTokenSilentHandler acquireTokenSilentHandler = new AcquireTokenSilentHandler(mContext,
+                authenticationRequest, mTokenCacheAccessor);
+        
+        return acquireTokenSilentHandler.getAccessTokenUsingAssertion();
     }
 
     /**

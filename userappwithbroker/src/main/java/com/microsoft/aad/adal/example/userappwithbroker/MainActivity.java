@@ -40,6 +40,7 @@ import android.widget.Toast;
 import com.google.android.material.navigation.NavigationView;
 import com.microsoft.aad.adal.AuthenticationCallback;
 import com.microsoft.aad.adal.AuthenticationContext;
+import com.microsoft.aad.adal.AuthenticationException;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.IDispatcher;
@@ -202,6 +203,30 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             requestOptions.getClientId().getText());
                 } else {
                     showMessage("No uId matching the provided upn, cannot proceed with silent call");
+                }
+            }
+        }).start();
+
+    }
+
+    @Override
+    public void onAcquireTokenWithAssertionClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
+
+        prepareRequestParameters(requestOptions);
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String uId = requestOptions.getLoginHint();
+
+                if(requestOptions.getAssertionType().getAssertionVersion() == null){
+                    showMessage("Assertion type is selected as None");
+                } else if(TextUtils.isEmpty(uId)) {
+                    showMessage("No uId has been provided, cannot proceed with silent call");
+                } else {
+                    callAcquireTokenSilentWithAssertion(requestOptions.getAssertion(), requestOptions.getAssertionType().getAssertionVersion(),
+                            requestOptions.getDataProfile().getText(), uId,
+                            requestOptions.getClientId().getText());
                 }
             }
         }).start();
@@ -385,6 +410,30 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 showMessage("Error occurred when acquiring token silently: " + exc.getMessage());
             }
         });
+    }
+
+    /**
+     * Silent acquire token call. Requires to pass the user unique id. If user unique id is not passed,
+     * silent call to broker will be skipped. If the assertion is passed then token acquisition using
+     * assertion will be called.
+     */
+    private void callAcquireTokenSilentWithAssertion(final String assertion, final String version, final String resource,
+                                        final String userUniqueId, final String clientId) {
+        String messageException = "";
+
+        try {
+            mAuthResult = mAuthContext.acquireTokenSilentSyncWithAssertion(assertion, version, resource, clientId, userUniqueId);
+        } catch (final AuthenticationException authenticationException) {
+            messageException += "Authentication Exception";
+        } catch (final InterruptedException InterruptedException) {
+            messageException += "Interrupted Exception";
+        }
+
+        if (mAuthResult == null) {
+            showMessage("NULL Authentication Result, Exception : " + messageException);
+        } else {
+            showMessage("Response " + mAuthResult.getAccessToken());
+        }
     }
 
     private String getAuthorityBasedOnUPN(final String upn, final String requestAuthority) {
