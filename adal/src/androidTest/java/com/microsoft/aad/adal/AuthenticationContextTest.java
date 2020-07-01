@@ -1857,7 +1857,7 @@ public final class AuthenticationContextTest {
                 + "\"refresh_token\":\"refresh112\","
                 + "\"scope\":\"*\", "
                 + "\"client_info\":\"" + Util.TEST_CLIENT_INFO + "\""
-                +"}";
+                + "}";
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
@@ -2200,33 +2200,6 @@ public final class AuthenticationContextTest {
 
         // act
         authContext.onActivityResult(requestCode, resultCode, null);
-
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        // assert
-        assertTrue(logResponse.getMessage().contains(msgToCheck));
-    }
-
-    @Test
-    public void testOnActivityResultMissingCallbackRequestId() {
-        ITokenCacheStore cache = mock(ITokenCacheStore.class);
-        FileMockContext mockContext = new FileMockContext(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext());
-        final AuthenticationContext authContext = getAuthenticationContext(mockContext,
-                VALID_AUTHORITY, false, cache);
-        int requestCode = AuthenticationConstants.UIRequest.BROWSER_FLOW;
-        int resultCode = AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE;
-        Intent data = new Intent();
-        data.putExtra("Test", "value");
-        TestLogResponse logResponse = new TestLogResponse();
-        String msgToCheck = "onActivityResult did not find the waiting request. ";
-        logResponse.listenLogForMessageSegments(msgToCheck);
-
-        // act
-        authContext.onActivityResult(requestCode, resultCode, data);
 
         try {
             Thread.sleep(1000);
