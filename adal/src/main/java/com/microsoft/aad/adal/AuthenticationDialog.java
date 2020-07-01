@@ -34,6 +34,7 @@ import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.ProgressBar;
 
@@ -135,13 +136,14 @@ class AuthenticationDialog {
                     Logger.d(TAG + methodName, "Hardware acceleration is disabled in WebView");
                 }
 
-                mWebView.getSettings().setJavaScriptEnabled(true);
-                mWebView.getSettings().setAllowContentAccess(false);
+                final WebSettings webSettings = mWebView.getSettings();
+                webSettings.setJavaScriptEnabled(true);
+                webSettings.setAllowContentAccess(false);
                 mWebView.requestFocus(View.FOCUS_DOWN);
-                String userAgent = mWebView.getSettings().getUserAgentString();
-                mWebView.getSettings().setUserAgentString(
+                String userAgent = webSettings.getUserAgentString();
+                webSettings.setUserAgentString(
                         userAgent + AuthenticationConstants.Broker.CLIENT_TLS_NOT_SUPPORTED);
-                userAgent = mWebView.getSettings().getUserAgentString();
+                userAgent = webSettings.getUserAgentString();
                 Logger.v(TAG + methodName, "UserAgent:" + userAgent);
                 // Set focus to the view for touch event
                 mWebView.setOnTouchListener(new View.OnTouchListener() {
@@ -156,10 +158,10 @@ class AuthenticationDialog {
                     }
                 });
 
-                mWebView.getSettings().setLoadWithOverviewMode(true);
-                mWebView.getSettings().setDomStorageEnabled(true);
-                mWebView.getSettings().setUseWideViewPort(true);
-                mWebView.getSettings().setBuiltInZoomControls(true);
+                webSettings.setLoadWithOverviewMode(true);
+                webSettings.setDomStorageEnabled(true);
+                webSettings.setUseWideViewPort(true);
+                webSettings.setBuiltInZoomControls(true);
 
                 try {
                     Oauth2 oauth = new Oauth2(mRequest);
