@@ -121,16 +121,14 @@ class AuthenticationDialog {
                     mAcquireTokenRequest.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW,
                             AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
 
-                    if (mHandlerInView != null) {
-                        mHandlerInView.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (mDialog != null && mDialog.isShowing()) {
-                                    mDialog.dismiss();
-                                }
+                    mHandlerInView.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (mDialog != null && mDialog.isShowing()) {
+                                mDialog.dismiss();
                             }
-                        });
-                    }
+                        }
+                    });
                     return;
                 }
 
@@ -149,6 +147,7 @@ class AuthenticationDialog {
                         userAgent + AuthenticationConstants.Broker.CLIENT_TLS_NOT_SUPPORTED);
                 userAgent = webSettings.getUserAgentString();
                 Logger.v(TAG + methodName, "UserAgent:" + userAgent);
+
                 // Set focus to the view for touch event
                 mWebView.setOnTouchListener(new View.OnTouchListener() {
                     @Override
@@ -199,9 +198,10 @@ class AuthenticationDialog {
         });
     }
 
-    private void cancelFlow(@Nullable Intent errorIntent) {
+    private void cancelFlow(@Nullable final Intent errorIntent) {
         Logger.i(TAG, "Cancelling dialog", "");
         Intent resultIntent = errorIntent;
+
         int resultCode;
         if (resultIntent == null) {
             resultIntent = new Intent();
@@ -228,8 +228,9 @@ class AuthenticationDialog {
 
     class DialogWebViewClient extends BasicWebViewClient {
 
-        DialogWebViewClient(Context ctx, String stopRedirect,
-                            AuthenticationRequest request) {
+        DialogWebViewClient(final Context ctx,
+                            final String stopRedirect,
+                            final AuthenticationRequest request) {
             super(ctx, stopRedirect, request, null);
         }
 
@@ -253,18 +254,21 @@ class AuthenticationDialog {
             }
         }
 
-        public void sendResponse(int returnCode, Intent responseIntent) {
+        public void sendResponse(int returnCode, final Intent responseIntent) {
             // Close this dialog
             mDialog.dismiss();
-            mAcquireTokenRequest.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW,
-                    returnCode, responseIntent);
+            mAcquireTokenRequest.onActivityResult(
+                    AuthenticationConstants.UIRequest.BROWSER_FLOW,
+                    returnCode,
+                    responseIntent
+            );
         }
 
         public void postRunnable(Runnable item) {
             mHandlerInView.post(item);
         }
 
-        public void processRedirectUrl(final WebView view, String url) {
+        public void processRedirectUrl(final WebView view, final String url) {
             Intent resultIntent = new Intent();
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, url);
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO, mRequest);
@@ -275,7 +279,7 @@ class AuthenticationDialog {
         }
 
         @Override
-        public void cancelWebViewRequest(@Nullable Intent errorIntent) {
+        public void cancelWebViewRequest(@Nullable final Intent errorIntent) {
             cancelFlow(errorIntent);
         }
 
