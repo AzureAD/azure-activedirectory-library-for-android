@@ -337,6 +337,15 @@ public final class AuthenticationConstants {
         static final String CLAIMS = com.microsoft.identity.common.adal.internal.AuthenticationConstants.OAuth2.CLAIMS;
 
         static final String CLOUD_INSTANCE_HOST_NAME = com.microsoft.identity.common.adal.internal.AuthenticationConstants.OAuth2.CLOUD_INSTANCE_HOST_NAME;
+        
+        /**
+         * SAML assertion related parameters.
+         */
+        public static final String ASSERTION = "assertion";
+
+        public static final String MSID_OAUTH2_SAML11_BEARER_VALUE = "urn:ietf:params:oauth:grant-type:saml1_1-bearer";
+
+        public static final String MSID_OAUTH2_SAML2_BEARER_VALUE = "urn:ietf:params:oauth:grant-type:saml2-bearer";
     }
 
     /**

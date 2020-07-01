@@ -23,6 +23,7 @@
 
 package com.microsoft.aad.adal;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
@@ -49,6 +50,8 @@ class AuthenticationRequest implements Serializable {
     private String mRedirectUri = null;
 
     private String mResource = null;
+
+    private String mScope = null;
 
     private String mClientId = null;
 
@@ -87,6 +90,10 @@ class AuthenticationRequest implements Serializable {
     private String mAppVersion;
 
     private List<String> mClientCapabilities;
+
+    private String mSamlAssertion = null;
+
+    private String mAssertionType;
 
     /**
      * Developer can use acquireToken(with loginhint) or acquireTokenSilent(with
@@ -178,6 +185,23 @@ class AuthenticationRequest implements Serializable {
         mClaimsChallenge = claimsChallenge;
     }
 
+    AuthenticationRequest(String assertion, String assertionType, String authority,
+                          String resource, String clientid, String userid, UUID correlationId,
+                          boolean isExtendedLifetimeEnabled, boolean forceRefresh, String claimsChallenge) {
+        this(authority, resource, clientid, userid, correlationId, isExtendedLifetimeEnabled,
+                forceRefresh, claimsChallenge);
+
+        mSamlAssertion = assertion;
+        if (assertionType != AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML11_BEARER_VALUE &&
+                assertionType != AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML2_BEARER_VALUE) {
+            mAssertionType = null;
+        } else {
+            mLoginHint = userid;
+            mAssertionType = assertionType;
+        }
+
+    }
+
     AuthenticationRequest(String authority, String resource, String clientId,
                           UUID correlationId, boolean isExtendedLifetimeEnabled) {
         mAuthority = authority;
@@ -187,9 +211,37 @@ class AuthenticationRequest implements Serializable {
         mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
     }
 
+    /**
+     * Create an Authentication Request to obtain a token. This overload also accepts a scope param.
+     *
+     * @param authority                 Authority URL
+     * @param resource                  Resource that is requested
+     * @param clientId                  ClientId for the app
+     * @param correlationId             Correlation Id used for logging & telemetry
+     * @param isExtendedLifetimeEnabled a boolean indicating if extended lifetime enabled
+     * @param scope                     the scope requested
+     */
+    AuthenticationRequest(@NonNull String authority, @Nullable String resource, @NonNull String clientId,
+                          @NonNull UUID correlationId, boolean isExtendedLifetimeEnabled, @NonNull String scope) {
+        mAuthority = authority;
+        mClientId = clientId;
+        mResource = resource;
+        mCorrelationId = correlationId;
+        mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
+        mScope = scope;
+    }
+
     public boolean isClaimsChallengePresent() {
         // if developer pass claims down through extra qp, we should also skip cache.
         return !StringExtensions.isNullOrBlank(this.getClaimsChallenge());
+    }
+
+    public String getSamlAssertion() {
+        return mSamlAssertion;
+    }
+
+    public String getAssertionType() {
+        return mAssertionType;
     }
 
     public String getAuthority() {
@@ -203,7 +255,7 @@ class AuthenticationRequest implements Serializable {
     public String getRedirectUri() {
         return mRedirectUri;
     }
-    
+
     public void setRedirectUri(final String redirectUri) {
         mRedirectUri = redirectUri;
     }
@@ -212,10 +264,14 @@ class AuthenticationRequest implements Serializable {
         return mResource;
     }
 
+    public String getScope() {
+        return mScope;
+    }
+
     public String getClientId() {
         return mClientId;
     }
-    
+
     public void setClientId(final String id) {
         mClientId = id;
     }
@@ -227,7 +283,7 @@ class AuthenticationRequest implements Serializable {
     public UUID getCorrelationId() {
         return this.mCorrelationId;
     }
-    
+
     public void setCorrelationId(UUID correlationId) {
         mCorrelationId = correlationId;
     }
@@ -239,7 +295,7 @@ class AuthenticationRequest implements Serializable {
     public void setExtraQueryParamsAuthentication(String queryParam) {
         mExtraQueryParamsAuthentication = queryParam;
     }
-    
+
     public String getLogInfo() {
         return String.format("Request authority:%s clientid:%s", mAuthority, mClientId);
     }
@@ -278,11 +334,11 @@ class AuthenticationRequest implements Serializable {
         mLoginHint = name;
     }
 
-    public void setUserName(String name){
+    public void setUserName(String name) {
         mLoginHint = name;
         mBrokerAccountName = name;
     }
-    
+
     public String getUserId() {
         return mUserId;
     }
@@ -319,6 +375,10 @@ class AuthenticationRequest implements Serializable {
         this.mResource = resource;
     }
 
+    public void setScope(String scope) {
+        this.mScope = scope;
+    }
+
     public boolean getIsExtendedLifetimeEnabled() {
         return mIsExtendedLifetimeEnabled;
     }
@@ -338,7 +398,7 @@ class AuthenticationRequest implements Serializable {
     public boolean getSkipCache() {
         return mSkipCache;
     }
-    
+
     /**
      * Get either loginhint or user id based what's passed in the request.
      */
@@ -384,11 +444,11 @@ class AuthenticationRequest implements Serializable {
         return mInstanceDiscoveryMetadata;
     }
 
-    public boolean getForceRefresh(){
+    public boolean getForceRefresh() {
         return mForceRefresh;
     }
 
-    public void setForceRefresh(boolean forceRefresh){
+    public void setForceRefresh(boolean forceRefresh) {
         mForceRefresh = forceRefresh;
     }
 

@@ -23,6 +23,8 @@
 
 package com.microsoft.aad.adal.example.userappwithbroker;
 
+import com.microsoft.aad.adal.AuthenticationConstants;
+
 public class Constants {
     enum AuthorityType {
         AAD_COMMON("https://login.microsoftonline.com/common"),
@@ -106,6 +108,22 @@ public class Constants {
 
         public String getText() {
             return text;
+        }
+    }
+
+    enum AssertionVersion {
+        None(null),
+        Version1_1(AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML11_BEARER_VALUE),
+        Version2(AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML2_BEARER_VALUE);
+
+        private final String assertionVersion;
+
+        AssertionVersion(String selectedAssertionVersion) {
+            assertionVersion = selectedAssertionVersion;
+        }
+
+        public String getAssertionVersion() {
+            return assertionVersion;
         }
     }
 }

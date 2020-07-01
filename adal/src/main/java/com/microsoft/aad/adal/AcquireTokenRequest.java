@@ -31,6 +31,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -145,9 +146,15 @@ class AcquireTokenRequest {
     }
 
     /**
-     * Developer is using refresh token call to do refresh without cache usage.
-     * App context or activity is not needed. Async requests are created, so this
-     * needs to be called at UI thread.
+     * This API allows to obtain a new access token in exchange for a refresh token. The refresh
+     * token must be provided to this API. The tokens obtained via this API may or may not be saved
+     * in ADAL's cache depending on two things: The openid scope was requested in the token, and a
+     * resource was supplied to the {@link AuthenticationRequest}. If both of those conditions are
+     * true, then tokens are saved in the cache, else not.
+     *
+     * @param refreshToken          the refresh token to use when exchanging for an access token
+     * @param authenticationRequest the {@link AuthenticationRequest} to use when requesting token
+     * @param externalCallback      the callback to which the result should be posted
      */
     void refreshTokenWithoutCache(final String refreshToken, final AuthenticationRequest authenticationRequest,
                                   final AuthenticationCallback<AuthenticationResult> externalCallback) {
@@ -168,11 +175,65 @@ class AcquireTokenRequest {
 
                     final AcquireTokenSilentHandler acquireTokenSilentHandler = new AcquireTokenSilentHandler(mContext,
                             authenticationRequest, mTokenCacheAccessor);
-                    final AuthenticationResult authResult
+                    final AuthenticationResult result
                             = acquireTokenSilentHandler.acquireTokenWithRefreshToken(refreshToken);
+
+                    final String correlationId = String.format(" CorrelationId: %s", authenticationRequest.getCorrelationId().toString());
+
+                    if (result == null) {
+                        Logger.e(TAG + methodName, "Returned result with exchanging refresh token for access token is null" + correlationId, "",
+                                ADALError.AUTH_REFRESH_FAILED);
+                        throw new AuthenticationException(
+                                ADALError.AUTH_REFRESH_FAILED, "No result received from refresh token request.");
+                    }
+
+                    if (!StringExtensions.isNullOrBlank(result.getErrorCode())) {
+                        Logger.e(TAG + methodName, " ErrorCode:" + result.getErrorCode(), " ErrorDescription:" + result.getErrorDescription(), ADALError.AUTH_REFRESH_FAILED);
+                        throw new AuthenticationException(ADALError.AUTH_REFRESH_FAILED,
+                                " ErrorCode:" + result.getErrorCode());
+                    }
+
+                    if (StringExtensions.isNullOrBlank(result.getAccessToken())) {
+                        Logger.e(TAG + methodName, "Access Token not returned from server", "", ADALError.AUTH_FAILED_NO_TOKEN);
+                        throw new AuthenticationException(ADALError.AUTH_FAILED_NO_TOKEN,
+                                " Access Token not returned from server ");
+                    }
+
+                    final String rawIdToken = result.getIdToken();
+
+                    // We will save tokens in cache if we get back an ID Token and also we have a
+                    // resource available.
+                    //
+                    // The ID Token could be null if the caller did not ask for
+                    // the openid scope by not passing it to the Authentication Request,
+                    // whereas the resource could be null if the caller did not specify a resource
+                    // on the AuthenticationRequest.
+                    if (!TextUtils.isEmpty(rawIdToken) && !TextUtils.isEmpty(authenticationRequest.getResource())) {
+                        final IdToken idTokenRecord = new IdToken(rawIdToken);
+                        final UserInfo userInfo = new UserInfo(idTokenRecord);
+
+                        TokenCacheItem tokenCacheItem = new TokenCacheItem();
+                        tokenCacheItem.setRawIdToken(rawIdToken);
+                        tokenCacheItem.setUserInfo(userInfo);
+                        tokenCacheItem.setTenantId(idTokenRecord.getTenantId());
+
+                        // This method is used in ADAL to store tokens in cache during a silent aka
+                        // refresh token request. We are going to be using the same method for this
+                        // API as well for consistency.
+                        //
+                        // To get this to work, we created a TokenCacheItem object above and
+                        // populate it with an ID Token and UserInfo object as in this API ADAL does
+                        // not do a cache look up and does not have the ID Token in cache already.
+                        // We got an ID Token from eSTS and will be using that ID Token to create
+                        // a UserInfo object and seed it into the cache along with the other tokens.
+                        // This allows us to achieve SSO for this API.
+                        mTokenCacheAccessor.updateCachedItemWithResult(authenticationRequest,
+                                result, tokenCacheItem);
+                    }
+
                     mAPIEvent.setWasApiCallSuccessful(true, null);
-                    mAPIEvent.setIdToken(authResult.getIdToken());
-                    callbackHandle.onSuccess(authResult);
+                    mAPIEvent.setIdToken(result.getIdToken());
+                    callbackHandle.onSuccess(result);
                 } catch (final AuthenticationException authenticationException) {
                     mAPIEvent.setWasApiCallSuccessful(false, authenticationException);
                     callbackHandle.onError(authenticationException);
@@ -345,7 +406,7 @@ class AcquireTokenRequest {
         // 1) throw AuthenticationException if
         //    a) No access token is returned from local flow and no prompt is allowed
         //    b) Server error or network errors when sending post request to token endpoint with grant_type
-        //       as refresh_token in local flow
+        //       as refresh_token in local flow or with grant type as assertion
         //    c) Broker returns ERROR_CODE_BAD_ARGUMENTS, ACCOUNT_MANAGER_ERROR_CODE_BAD_AUTHENTICATION
         //       or ERROR_CODE_UNSUPPORTED_OPERATION
         // 2) Non-null AuthenticationResult if we could try silent request, and silent request either successfully
@@ -458,13 +519,15 @@ class AcquireTokenRequest {
 
     /**
      * Handles the silent flow. Will always lookup local cache. If there is a valid AT in local cache, will use it. If
-     * AT in local cache is already expired, will try RT in the local cache. If RT requst failed, and if we can switch
-     * to broker for auth, will switch to broker for authentication.
+     * AT in local cache is already expired, will try RT in the local cache. If RT requst failed, then use saml assertion passed in the 
+     * request to acquire RT and AT. If this too fails and if we can switch to broker for auth, 
+     * will switch to broker for authentication.
      */
     private AuthenticationResult acquireTokenSilentFlow(final AuthenticationRequest authenticationRequest)
             throws AuthenticationException {
 
         final boolean requestEligibleForBroker = mBrokerProxy.verifyBrokerForSilentRequest(authenticationRequest);
+        final String methodName = ":acquireTokenSilentFlow";
 
         //1. if forceRefresh == true OR claimsChallenge is not null AND the request is eligible for the broker
         if ((authenticationRequest.getForceRefresh() || authenticationRequest.isClaimsChallengePresent()) && requestEligibleForBroker) {
@@ -477,7 +540,18 @@ class AcquireTokenRequest {
             return authResult;
         }
 
-        //3. We couldn't get locally...If eligible return via broker... otherwise return local result
+        //3. try SAML Assertion
+        if (authenticationRequest.getSamlAssertion() != null && authenticationRequest.getAssertionType() != null) {
+            final AuthenticationResult authResultFromSaml = tryAcquireTokenSilentWithAssertion(authenticationRequest);
+            if (isAccessTokenReturned(authResultFromSaml)) {
+                Logger.v(TAG + methodName, "Access token has been acquired using the saml assertion.");
+                return authResultFromSaml;
+            } else {
+                Logger.w(TAG + methodName, "Failed to acquire tokens using saml assertion.");
+            }
+        }
+
+        //4. We couldn't get locally...If eligible return via broker... otherwise return local result
         if (requestEligibleForBroker) {
             return tryAcquireTokenSilentWithBroker(authenticationRequest);
         } else {
@@ -497,6 +571,19 @@ class AcquireTokenRequest {
                 authenticationRequest, mTokenCacheAccessor);
 
         return acquireTokenSilentHandler.getAccessToken();
+    }
+
+    /**
+     * Try acquire token using saml assertion.
+     */
+    private AuthenticationResult tryAcquireTokenSilentWithAssertion(final AuthenticationRequest authenticationRequest)
+            throws AuthenticationException {
+        final String methodName = ":tryAcquireTokenSilentWithAssertion";
+        Logger.v(TAG + methodName, "Try to silently get token using SAML Assertion.");
+        final AcquireTokenSilentHandler acquireTokenSilentHandler = new AcquireTokenSilentHandler(mContext,
+                authenticationRequest, mTokenCacheAccessor);
+        
+        return acquireTokenSilentHandler.getAccessTokenUsingAssertion();
     }
 
     /**
@@ -822,7 +909,7 @@ class AcquireTokenRequest {
 
                     waitingRequestOnError(waitingRequest, requestId,
                             new AuthenticationException(ADALError.BROKER_APP_INSTALLATION_STARTED));
-                } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_MDM){
+                } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_MDM) {
                     Logger.v(TAG + methodName, "Device needs to be managed, we expect the apps to call us"
                             + "back when the device is managed");
 

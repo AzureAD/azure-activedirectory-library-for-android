@@ -23,6 +23,7 @@ ext {
     gsonVersion = "2.8.5"
     junitVersion = "4.12"
     legacySupportV4Version = "1.0.0"
+    lombokVersion = "1.18.12"
     localBroadcastManagerVersion = "1.0.0"
     materialVersion = "1.0.0"
     mockitoCoreVersion = "2.18.3"
@@ -32,7 +33,7 @@ ext {
     nimbusVersion = "8.2"
     runnerVersion = "1.2.0"
     rulesVersion = "1.2.0"
-    robolectricVersion = "4.0"
+    robolectricVersion = "4.3.1"
 
     // TODO: adal automation test app.
     supportLibraryVersion = "27.1.+"

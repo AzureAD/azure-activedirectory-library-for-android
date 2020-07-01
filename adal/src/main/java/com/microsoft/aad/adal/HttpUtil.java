@@ -35,7 +35,7 @@ class HttpUtil {
 
     static void throwIfNetworkNotAvailable(final Context context) throws AuthenticationException {
         try {
-            com.microsoft.identity.common.adal.internal.net.HttpWebRequest.throwIfNetworkNotAvailable(context);
+            com.microsoft.identity.common.adal.internal.net.HttpWebRequest.throwIfNetworkNotAvailable(context, false);
         } catch (final ClientException e) {
             final String errorCode = e.getErrorCode();
             final String errorMessage = e.getMessage();

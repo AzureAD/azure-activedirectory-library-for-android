@@ -25,9 +25,10 @@ package com.microsoft.aad.adal;
 
 import android.net.Uri;
 import android.os.Build;
-import androidx.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Base64;
+
+import androidx.annotation.NonNull;
 
 import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
@@ -303,9 +304,45 @@ class Oauth2 {
                 AuthenticationConstants.OAuth2.CLIENT_INFO_TRUE
         );
 
+        message = buildRequestMessage(message);
+        return message;
+    }
+
+    public String buildAssertionMessage(@NonNull String assertion, @NonNull String assertionType)
+            throws UnsupportedEncodingException {
+        Logger.v(TAG, "Building request message for redeeming token with saml assertion.");
+        String message = String.format("%s=%s&%s=%s&%s=%s&%s=%s&%s=%s",
+                AuthenticationConstants.OAuth2.GRANT_TYPE,
+                StringExtensions.urlFormEncode(assertionType),
+
+                com.microsoft.aad.adal.AuthenticationConstants.OAuth2.ASSERTION,
+                StringExtensions.urlFormEncode(Base64.encodeToString(assertion.getBytes("UTF-8"), Base64.NO_WRAP)),
+
+                AuthenticationConstants.OAuth2.CLIENT_ID,
+                StringExtensions.urlFormEncode(mRequest.getClientId()),
+
+                AuthenticationConstants.OAuth2.SCOPE,
+                AuthenticationConstants.OAuth2Scopes.OPEN_ID_SCOPE,
+
+                AuthenticationConstants.OAuth2.CLIENT_INFO,
+                AuthenticationConstants.OAuth2.CLIENT_INFO_TRUE
+        );
+
+        message = buildRequestMessage(message);
+        return message;
+    }
+
+    public String buildRequestMessage(String message) throws UnsupportedEncodingException {
+
         if (!StringExtensions.isNullOrBlank(mRequest.getResource())) {
             message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.AAD.RESOURCE,
                     StringExtensions.urlFormEncode(mRequest.getResource()));
+        }
+
+        // append scope to request if provided
+        if (!StringExtensions.isNullOrBlank(mRequest.getScope())) {
+            message = String.format(STRING_FORMAT_QUERY_PARAM, message, "scope",
+                    StringExtensions.urlFormEncode(mRequest.getScope()));
         }
 
         // sending redirect uri for the refresh token request if it's provided
@@ -320,10 +357,7 @@ class Oauth2 {
             message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.OAuth2.CLAIMS,
                     StringExtensions.urlFormEncode(AuthenticationContext.mergeClaimsWithClientCapabilities(
                             mRequest.getClaimsChallenge(),
-                            mRequest.getClientCapabilities()
-                            )
-                    )
-            );
+                            mRequest.getClientCapabilities())));
         }
 
         if (!StringExtensions.isNullOrBlank(mRequest.getAppName())) {
@@ -541,6 +575,35 @@ class Oauth2 {
         headers.put(AuthenticationConstants.Broker.CHALLENGE_TLS_INCAPABLE,
                 AuthenticationConstants.Broker.CHALLENGE_TLS_INCAPABLE_VERSION);
         Logger.v(TAG, "Sending request to redeem token with refresh token.");
+        return postMessage(requestMessage, headers);
+    }
+
+    public AuthenticationResult refreshTokenUsingAssertion(@NonNull final String samlAssertion,
+                                                           @NonNull final String assertionType)
+            throws IOException, AuthenticationException {
+        final String requestMessage;
+        if (mWebRequestHandler == null) {
+            Logger.v(TAG, "Web request is not set correctly.");
+            throw new IllegalArgumentException("webRequestHandler is null.");
+        }
+
+        try {
+            requestMessage = buildAssertionMessage(samlAssertion, assertionType);
+        } catch (UnsupportedEncodingException encoding) {
+            Logger.e(TAG,
+                    ADALError.ENCODING_IS_NOT_SUPPORTED.getDescription(),
+                    encoding.getMessage(),
+                    ADALError.ENCODING_IS_NOT_SUPPORTED,
+                    encoding);
+            return null;
+        }
+
+        final Map<String, String> headers = getRequestHeaders();
+
+        // The endpoint needs to send header field for device challenge
+        headers.put(AuthenticationConstants.Broker.CHALLENGE_TLS_INCAPABLE,
+                AuthenticationConstants.Broker.CHALLENGE_TLS_INCAPABLE_VERSION);
+        Logger.v(TAG, "Sending request to redeem token with assertion.");
         return postMessage(requestMessage, headers);
     }
 
