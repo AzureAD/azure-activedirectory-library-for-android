@@ -256,7 +256,7 @@ class AuthenticationDialog {
             }
         }
 
-        public void sendResponse(int returnCode, final Intent responseIntent) {
+        public void sendResponse(final int returnCode, final Intent responseIntent) {
             // Close this dialog
             mDialog.dismiss();
             mAcquireTokenRequest.onActivityResult(
