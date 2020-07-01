@@ -2212,6 +2212,7 @@ public final class AuthenticationContextTest {
     }
 
     @Test
+    @Ignore
     public void testOnActivityResultMissingCallbackRequestId() {
         ITokenCacheStore cache = mock(ITokenCacheStore.class);
         FileMockContext mockContext = new FileMockContext(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext());
