@@ -62,15 +62,17 @@ class AuthenticationDialog {
 
     private WebView mWebView;
 
-    AuthenticationDialog(Handler handler, Context context, final AcquireTokenRequest acquireTokenRequest,
-                         AuthenticationRequest request) {
+    AuthenticationDialog(final Handler handler,
+                         final Context context,
+                         final AcquireTokenRequest acquireTokenRequest,
+                         final AuthenticationRequest request) {
         mHandlerInView = handler;
         mContext = context;
         mAcquireTokenRequest = acquireTokenRequest;
         mRequest = request;
     }
 
-    private int getResourceId(String name, String type) {
+    private int getResourceId(final String name, final String type) {
         return mContext.getResources().getIdentifier(name, type, mContext.getPackageName());
     }
 
@@ -91,12 +93,11 @@ class AuthenticationDialog {
                 //Need to be sure that the resource id is actually found
                 int dialogAuthenticationResourceId = getResourceId("dialog_authentication", "layout");
 
-
                 View webviewInDialog = null;
                 // using static layout
                 try {
                     webviewInDialog = inflater.inflate(dialogAuthenticationResourceId, null);
-                } catch (InflateException e) {
+                } catch (final InflateException e) {
                     //This code was added to debug a threading issue; however there could be other cases when this would occur... so leaving in.
                     //NOTE: With the threading issue even though the exception was caught the test app still interrupted (looks like a crash)... presumably because of
                     //The Android System Webview (Chromium) crashed; however the app does continue after Android restarts the system web view
@@ -104,9 +105,11 @@ class AuthenticationDialog {
                 }
 
                 if (webviewInDialog != null) {
-                    mWebView = (WebView) webviewInDialog.findViewById(getResourceId(
-                            "com_microsoft_aad_adal_webView1", "id"));
+                    mWebView = (WebView) webviewInDialog.findViewById(
+                            getResourceId("com_microsoft_aad_adal_webView1", "id")
+                    );
                 }
+
                 if (mWebView == null) {
                     Logger.e(
                             TAG + methodName,
@@ -117,6 +120,7 @@ class AuthenticationDialog {
                             mRequest.getRequestId());
                     mAcquireTokenRequest.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW,
                             AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
+
                     if (mHandlerInView != null) {
                         mHandlerInView.post(new Runnable() {
                             @Override
