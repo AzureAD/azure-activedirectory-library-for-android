@@ -434,6 +434,7 @@ public class AuthenticationActivity extends DualScreenActivity {
 
     private void setupWebView() {
         mWebView.getSettings().setJavaScriptEnabled(true);
+        mWebView.getSettings().setAllowContentAccess(false);
         mWebView.requestFocus(View.FOCUS_DOWN);
 
         // Set focus to the view for touch event
