@@ -63,7 +63,7 @@ class AuthenticationDialog {
     private WebView mWebView;
 
     AuthenticationDialog(Handler handler, Context context, final AcquireTokenRequest acquireTokenRequest,
-            AuthenticationRequest request) {
+                         AuthenticationRequest request) {
         mHandlerInView = handler;
         mContext = context;
         mAcquireTokenRequest = acquireTokenRequest;
@@ -96,14 +96,14 @@ class AuthenticationDialog {
                 // using static layout
                 try {
                     webviewInDialog = inflater.inflate(dialogAuthenticationResourceId, null);
-                }catch(InflateException e){
+                } catch (InflateException e) {
                     //This code was added to debug a threading issue; however there could be other cases when this would occur... so leaving in.
                     //NOTE: With the threading issue even though the exception was caught the test app still interrupted (looks like a crash)... presumably because of
                     //The Android System Webview (Chromium) crashed; however the app does continue after Android restarts the system web view
                     Logger.e(TAG, "Failed to inflate authentication dialog", "", ADALError.DEVELOPER_DIALOG_INFLATION_ERROR, e);
                 }
 
-                if(webviewInDialog != null) {
+                if (webviewInDialog != null) {
                     mWebView = (WebView) webviewInDialog.findViewById(getResourceId(
                             "com_microsoft_aad_adal_webView1", "id"));
                 }
@@ -225,7 +225,7 @@ class AuthenticationDialog {
     class DialogWebViewClient extends BasicWebViewClient {
 
         DialogWebViewClient(Context ctx, String stopRedirect,
-                AuthenticationRequest request) {
+                            AuthenticationRequest request) {
             super(ctx, stopRedirect, request, null);
         }
 
