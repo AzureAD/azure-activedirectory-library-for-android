@@ -136,6 +136,7 @@ class AuthenticationDialog {
                 }
 
                 mWebView.getSettings().setJavaScriptEnabled(true);
+                mWebView.getSettings().setAllowContentAccess(false);
                 mWebView.requestFocus(View.FOCUS_DOWN);
                 String userAgent = mWebView.getSettings().getUserAgentString();
                 mWebView.getSettings().setUserAgentString(
