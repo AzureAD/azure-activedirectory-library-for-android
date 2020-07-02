@@ -34,6 +34,7 @@ import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.ProgressBar;
 
@@ -61,15 +62,17 @@ class AuthenticationDialog {
 
     private WebView mWebView;
 
-    AuthenticationDialog(Handler handler, Context context, final AcquireTokenRequest acquireTokenRequest,
-            AuthenticationRequest request) {
+    AuthenticationDialog(final Handler handler,
+                         final Context context,
+                         final AcquireTokenRequest acquireTokenRequest,
+                         final AuthenticationRequest request) {
         mHandlerInView = handler;
         mContext = context;
         mAcquireTokenRequest = acquireTokenRequest;
         mRequest = request;
     }
 
-    private int getResourceId(String name, String type) {
+    private int getResourceId(final String name, final String type) {
         return mContext.getResources().getIdentifier(name, type, mContext.getPackageName());
     }
 
@@ -90,22 +93,23 @@ class AuthenticationDialog {
                 //Need to be sure that the resource id is actually found
                 int dialogAuthenticationResourceId = getResourceId("dialog_authentication", "layout");
 
-
                 View webviewInDialog = null;
                 // using static layout
                 try {
                     webviewInDialog = inflater.inflate(dialogAuthenticationResourceId, null);
-                }catch(InflateException e){
+                } catch (final InflateException e) {
                     //This code was added to debug a threading issue; however there could be other cases when this would occur... so leaving in.
                     //NOTE: With the threading issue even though the exception was caught the test app still interrupted (looks like a crash)... presumably because of
                     //The Android System Webview (Chromium) crashed; however the app does continue after Android restarts the system web view
                     Logger.e(TAG, "Failed to inflate authentication dialog", "", ADALError.DEVELOPER_DIALOG_INFLATION_ERROR, e);
                 }
 
-                if(webviewInDialog != null) {
-                    mWebView = (WebView) webviewInDialog.findViewById(getResourceId(
-                            "com_microsoft_aad_adal_webView1", "id"));
+                if (webviewInDialog != null) {
+                    mWebView = (WebView) webviewInDialog.findViewById(
+                            getResourceId("com_microsoft_aad_adal_webView1", "id")
+                    );
                 }
+
                 if (mWebView == null) {
                     Logger.e(
                             TAG + methodName,
@@ -116,16 +120,15 @@ class AuthenticationDialog {
                             mRequest.getRequestId());
                     mAcquireTokenRequest.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW,
                             AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
-                    if (mHandlerInView != null) {
-                        mHandlerInView.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (mDialog != null && mDialog.isShowing()) {
-                                    mDialog.dismiss();
-                                }
+
+                    mHandlerInView.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (mDialog != null && mDialog.isShowing()) {
+                                mDialog.dismiss();
                             }
-                        });
-                    }
+                        }
+                    });
                     return;
                 }
 
@@ -135,13 +138,16 @@ class AuthenticationDialog {
                     Logger.d(TAG + methodName, "Hardware acceleration is disabled in WebView");
                 }
 
-                mWebView.getSettings().setJavaScriptEnabled(true);
+                final WebSettings webSettings = mWebView.getSettings();
+                webSettings.setJavaScriptEnabled(true);
+                webSettings.setAllowContentAccess(false);
                 mWebView.requestFocus(View.FOCUS_DOWN);
-                String userAgent = mWebView.getSettings().getUserAgentString();
-                mWebView.getSettings().setUserAgentString(
+                String userAgent = webSettings.getUserAgentString();
+                webSettings.setUserAgentString(
                         userAgent + AuthenticationConstants.Broker.CLIENT_TLS_NOT_SUPPORTED);
-                userAgent = mWebView.getSettings().getUserAgentString();
+                userAgent = webSettings.getUserAgentString();
                 Logger.v(TAG + methodName, "UserAgent:" + userAgent);
+
                 // Set focus to the view for touch event
                 mWebView.setOnTouchListener(new View.OnTouchListener() {
                     @Override
@@ -155,10 +161,10 @@ class AuthenticationDialog {
                     }
                 });
 
-                mWebView.getSettings().setLoadWithOverviewMode(true);
-                mWebView.getSettings().setDomStorageEnabled(true);
-                mWebView.getSettings().setUseWideViewPort(true);
-                mWebView.getSettings().setBuiltInZoomControls(true);
+                webSettings.setLoadWithOverviewMode(true);
+                webSettings.setDomStorageEnabled(true);
+                webSettings.setUseWideViewPort(true);
+                webSettings.setBuiltInZoomControls(true);
 
                 try {
                     Oauth2 oauth = new Oauth2(mRequest);
@@ -192,9 +198,10 @@ class AuthenticationDialog {
         });
     }
 
-    private void cancelFlow(@Nullable Intent errorIntent) {
+    private void cancelFlow(@Nullable final Intent errorIntent) {
         Logger.i(TAG, "Cancelling dialog", "");
         Intent resultIntent = errorIntent;
+
         int resultCode;
         if (resultIntent == null) {
             resultIntent = new Intent();
@@ -221,8 +228,9 @@ class AuthenticationDialog {
 
     class DialogWebViewClient extends BasicWebViewClient {
 
-        DialogWebViewClient(Context ctx, String stopRedirect,
-                AuthenticationRequest request) {
+        DialogWebViewClient(final Context ctx,
+                            final String stopRedirect,
+                            final AuthenticationRequest request) {
             super(ctx, stopRedirect, request, null);
         }
 
@@ -246,18 +254,21 @@ class AuthenticationDialog {
             }
         }
 
-        public void sendResponse(int returnCode, Intent responseIntent) {
+        public void sendResponse(final int returnCode, final Intent responseIntent) {
             // Close this dialog
             mDialog.dismiss();
-            mAcquireTokenRequest.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW,
-                    returnCode, responseIntent);
+            mAcquireTokenRequest.onActivityResult(
+                    AuthenticationConstants.UIRequest.BROWSER_FLOW,
+                    returnCode,
+                    responseIntent
+            );
         }
 
         public void postRunnable(Runnable item) {
             mHandlerInView.post(item);
         }
 
-        public void processRedirectUrl(final WebView view, String url) {
+        public void processRedirectUrl(final WebView view, final String url) {
             Intent resultIntent = new Intent();
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, url);
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO, mRequest);
@@ -268,7 +279,7 @@ class AuthenticationDialog {
         }
 
         @Override
-        public void cancelWebViewRequest(@Nullable Intent errorIntent) {
+        public void cancelWebViewRequest(@Nullable final Intent errorIntent) {
             cancelFlow(errorIntent);
         }
 

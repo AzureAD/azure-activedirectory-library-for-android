@@ -43,6 +43,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.webkit.ClientCertRequest;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.ProgressBar;
 
@@ -433,7 +434,9 @@ public class AuthenticationActivity extends DualScreenActivity {
     }
 
     private void setupWebView() {
-        mWebView.getSettings().setJavaScriptEnabled(true);
+        final WebSettings webSettings = mWebView.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+        webSettings.setAllowContentAccess(false);
         mWebView.requestFocus(View.FOCUS_DOWN);
 
         // Set focus to the view for touch event
@@ -450,10 +453,10 @@ public class AuthenticationActivity extends DualScreenActivity {
 
         });
 
-        mWebView.getSettings().setLoadWithOverviewMode(true);
-        mWebView.getSettings().setDomStorageEnabled(true);
-        mWebView.getSettings().setUseWideViewPort(true);
-        mWebView.getSettings().setBuiltInZoomControls(true);
+        webSettings.setLoadWithOverviewMode(true);
+        webSettings.setDomStorageEnabled(true);
+        webSettings.setUseWideViewPort(true);
+        webSettings.setBuiltInZoomControls(true);
         mWebView.setWebViewClient(new CustomWebViewClient());
         mWebView.setVisibility(View.INVISIBLE);
     }
