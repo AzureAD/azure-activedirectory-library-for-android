@@ -1,3 +1,8 @@
+Version 3.1.0
+-------------
+- Save tokens in cache for AcquireTokenByRefreshToken API (if resource and openid scope provided)
+- Changes to acquire token via SAML assertion
+
 Version 3.0.2
 -------------
 - Returns idToken with a silent broker response (msal#997)
