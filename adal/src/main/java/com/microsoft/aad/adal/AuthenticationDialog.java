@@ -139,8 +139,7 @@ class AuthenticationDialog {
                 }
 
                 final WebSettings webSettings = mWebView.getSettings();
-                // Explicitly set false, may be true for older devices (ICS MR1 & earlier)
-                webSettings.setAllowUniversalAccessFromFileURLs(false);
+                webSettings.setAllowFileAccess(false);
                 webSettings.setJavaScriptEnabled(true);
                 webSettings.setAllowContentAccess(false);
                 mWebView.requestFocus(View.FOCUS_DOWN);
