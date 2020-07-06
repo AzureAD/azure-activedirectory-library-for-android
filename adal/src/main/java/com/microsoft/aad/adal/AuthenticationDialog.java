@@ -139,6 +139,7 @@ class AuthenticationDialog {
                 }
 
                 final WebSettings webSettings = mWebView.getSettings();
+                webSettings.setAllowFileAccess(false);
                 webSettings.setJavaScriptEnabled(true);
                 webSettings.setAllowContentAccess(false);
                 mWebView.requestFocus(View.FOCUS_DOWN);

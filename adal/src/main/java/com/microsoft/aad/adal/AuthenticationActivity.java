@@ -436,6 +436,7 @@ public class AuthenticationActivity extends DualScreenActivity {
     private void setupWebView() {
         final WebSettings webSettings = mWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
+        webSettings.setAllowFileAccess(false);
         webSettings.setAllowContentAccess(false);
         mWebView.requestFocus(View.FOCUS_DOWN);
 
