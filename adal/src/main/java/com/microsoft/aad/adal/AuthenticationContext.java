@@ -650,7 +650,6 @@ public class AuthenticationContext {
                                                         final String claims,
                                                         final String apiEventString)
             throws AuthenticationException, InterruptedException {
-        final String methodName = ":acquireTokenSilentSync";
         return acquireTokenSilentSync(null, null, resource, clientId, userId,
                 UserIdentifierType.UniqueId, forceRefresh, claims, apiEventString);
     }
