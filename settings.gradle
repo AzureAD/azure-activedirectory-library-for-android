@@ -32,7 +32,7 @@ project(':brokerautomationapp').projectDir = new File('broker/brokerautomationap
 
 // Authenticator projects
 include ':app', ':NgcProviderLibrary', ':AadRemoteNgcLibrary', ':SharedCoreLibrary', ':TestUtilitiesLibrary',
-        ':3rdparty', ':VerifiableCredential-SDK', ':CommonUiLibrary', ':Brooklyn'
+        ':3rdparty', ':VerifiableCredential-SDK', ':CommonUiLibrary', ':ReactNativeLibrary', ':GraphClient', ':Brooklyn'
 project(':app').projectDir = new File('authenticator/PhoneFactor/app')
 project(':NgcProviderLibrary').projectDir = new File('authenticator/PhoneFactor/NgcProviderLibrary')
 project(':AadRemoteNgcLibrary').projectDir = new File('authenticator/PhoneFactor/AadRemoteNgcLibrary')
@@ -41,4 +41,6 @@ project(':TestUtilitiesLibrary').projectDir = new File('authenticator/PhoneFacto
 project(':3rdparty').projectDir = new File('authenticator/PhoneFactor/3rdparty')
 project(':VerifiableCredential-SDK').projectDir = new File('authenticator/PhoneFactor/PortableIdentityCard-ClientSDK-Android/sdk')
 project(':CommonUiLibrary').projectDir = new File('authenticator/PhoneFactor/CommonUiLibrary')
+project(':ReactNativeLibrary').projectDir = new File('authenticator/PhoneFactor/ReactNativeLibrary')
+project(':GraphClient').projectDir = new File('authenticator/PhoneFactor/GraphClient')
 project(':Brooklyn').projectDir = new File('authenticator/PhoneFactor/Brooklyn')
