@@ -45,6 +45,7 @@ import com.microsoft.identity.common.internal.providers.microsoft.azureactivedir
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryOAuth2Configuration;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryOAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryTokenResponse;
+import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -443,7 +444,7 @@ class TokenCacheAccessor {
         final List<TokenCacheItem> mrrtsMatchingRequest = new ArrayList<>();
         while (allItems.hasNext()) {
             final TokenCacheItem tokenCacheItem = allItems.next();
-            if (tokenCacheItem.getAuthority().equalsIgnoreCase(mAuthority) && tokenCacheItem.getClientId().equalsIgnoreCase(clientId)
+            if (StringUtil.equalsIgnoreCase(tokenCacheItem.getAuthority(), mAuthority) && StringUtil.equalsIgnoreCase(tokenCacheItem.getClientId(), clientId)
                     && (tokenCacheItem.getIsMultiResourceRefreshToken() || StringExtensions.isNullOrBlank(tokenCacheItem.getResource()))) {
                 mrrtsMatchingRequest.add(tokenCacheItem);
             }

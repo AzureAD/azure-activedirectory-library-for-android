@@ -26,9 +26,9 @@ package com.microsoft.aad.adal;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * tokenCacheItem is not persisted. Memory cache does not keep static items.
@@ -42,9 +42,7 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
 
     private static final String TAG = "MemoryTokenCacheStore";
 
-    private final Map<String, TokenCacheItem> mCache = new HashMap<>();
-
-    private transient Object mCacheLock = new Object();
+    private final Map<String, TokenCacheItem> mCache = new ConcurrentHashMap<>(16, 0.75f, 1);
 
     /**
      * Creates MemoryTokenCacheStore.
@@ -59,9 +57,7 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
         }
 
         Logger.i(TAG, "Get Item from cache. ", "Key:" + key);
-        synchronized (mCacheLock) {
-            return mCache.get(key);
-        }
+        return mCache.get(key);
     }
 
     @Override
@@ -75,9 +71,7 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
         }
 
         Logger.i(TAG, "Set Item to cache. ", "Key: " + key);
-        synchronized (mCacheLock) {
-            mCache.put(key, item);
-        }
+        mCache.put(key, item);
     }
 
     @Override
@@ -87,17 +81,13 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
         }
 
         Logger.i(TAG, "Remove Item from cache. ", "Key:" + key.hashCode());
-        synchronized (mCacheLock) {
-            mCache.remove(key);
-        }
+        mCache.remove(key);
     }
 
     @Override
     public void removeAll() {
         Logger.v(TAG, "Remove all items from cache.");
-        synchronized (mCacheLock) {
-            mCache.clear();
-        }
+        mCache.clear();
     }
 
     private synchronized void writeObject(ObjectOutputStream out) throws IOException {
@@ -108,7 +98,6 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
             ClassNotFoundException {
         inputStream.defaultReadObject();
 
-        mCacheLock = new Object();
     }
 
     @Override
@@ -118,16 +107,12 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
         }
 
         Logger.i(TAG, "contains Item from cache.", "Key: " + key);
-        synchronized (mCacheLock) {
-            return mCache.get(key) != null;
-        }
+        return mCache.get(key) != null;
     }
 
     @Override
     public Iterator<TokenCacheItem> getAll() {
         Logger.v(TAG, "Retrieving all items from cache. ");
-        synchronized (mCacheLock) {
-            return mCache.values().iterator();
-        }
+        return mCache.values().iterator();
     }
 }

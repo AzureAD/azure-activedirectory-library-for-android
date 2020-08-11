@@ -727,7 +727,7 @@ class AcquireTokenRequest {
             throw new UsageAuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, "The redirectUri is null or blank.");
         }
 
-        if (inputUri.equalsIgnoreCase(AuthenticationConstants.Broker.BROKER_REDIRECT_URI)) {
+        if (AuthenticationConstants.Broker.BROKER_REDIRECT_URI.equalsIgnoreCase(inputUri)) {
             // TODO: Clean this up once we migrate all Logger functions to the common one.
             com.microsoft.identity.common.internal.logging.Logger.info(TAG + methodName, "This is a broker redirectUri. Bypass the check.");
             return;
