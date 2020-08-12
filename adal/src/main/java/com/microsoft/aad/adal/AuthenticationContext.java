@@ -156,13 +156,17 @@ public class AuthenticationContext {
         if (appContext == null) {
             throw new IllegalArgumentException("appContext");
         }
+
         if (authority == null) {
             throw new IllegalArgumentException("authority");
         }
+
         mBrokerProxy = new BrokerProxy(appContext);
+
         if (!defaultCache && !mBrokerProxy.canUseLocalCache(authority)) {
             throw new UnsupportedOperationException("Local cache is not supported for broker usage");
         }
+
         mContext = appContext;
         checkInternetPermission();
         mAuthority = extractAuthority(authority);
