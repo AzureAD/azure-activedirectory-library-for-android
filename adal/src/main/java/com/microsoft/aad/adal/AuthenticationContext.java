@@ -33,13 +33,10 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Looper;
 import android.os.NetworkOnMainThreadException;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 import android.text.TextUtils;
 import android.util.SparseArray;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
