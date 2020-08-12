@@ -652,7 +652,6 @@ public class AuthenticationContext {
     }
 
     /**
-     *
      * This function tries to acquire token silently. It will first look at the cache
      * and automatically checks for the token expiration. Additionally, if no suitable
      * access token is found in the cache, but refresh token is available, the function
@@ -661,12 +660,12 @@ public class AuthenticationContext {
      * This method will not show UI for the user. If prompt is needed, the method
      * will return an exception
      *
-     * @param assertion the actual saml assertion
+     * @param assertion     the actual saml assertion
      * @param assertionType version of saml assertion being used
-     * @param resource required resource identifier.
-     * @param clientId required client identifier.
-     * @param userId   UserID obtained from
-     *                 {@link AuthenticationResult #getUserInfo()}
+     * @param resource      required resource identifier.
+     * @param clientId      required client identifier.
+     * @param userId        UserID obtained from
+     *                      {@link AuthenticationResult #getUserInfo()}
      * @return A {@link Future} object representing the
      * {@link AuthenticationResult} of the call. It contains Access
      * Token,the Access Token's expiration time, Refresh token, and
@@ -917,7 +916,6 @@ public class AuthenticationContext {
     }
 
     /**
-     *
      * This function tries to acquire token silently. It will first look at the cache
      * and automatically checks for the token expiration. Additionally, if no suitable
      * access token is found in the cache, but refresh token is available, the function
@@ -926,14 +924,14 @@ public class AuthenticationContext {
      * This method will not show UI for the user. If prompt is needed, the method
      * will return an exception
      *
-     * @param assertion the actual saml assertion
+     * @param assertion     the actual saml assertion
      * @param assertionType version of saml assertion being used
-     * @param resource required resource identifier.
-     * @param clientId required client identifier.
-     * @param userId   UserID obtained from
-     *                 {@link AuthenticationResult #getUserInfo()}
-     * @param callback required {@link AuthenticationCallback} object for async
-     *                 call.
+     * @param resource      required resource identifier.
+     * @param clientId      required client identifier.
+     * @param userId        UserID obtained from
+     *                      {@link AuthenticationResult #getUserInfo()}
+     * @param callback      required {@link AuthenticationCallback} object for async
+     *                      call.
      */
     public void acquireTokenSilentAsyncWithAssertion(@NonNull final String assertion,
                                                      @NonNull final String assertionType,
@@ -972,7 +970,7 @@ public class AuthenticationContext {
                 apiEventString);
         apiEvent.setPromptBehavior(PromptBehavior.Auto.toString());
 
-        final AuthenticationRequest request = new AuthenticationRequest(assertion,assertionType, mAuthority, resource,
+        final AuthenticationRequest request = new AuthenticationRequest(assertion, assertionType, mAuthority, resource,
                 clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled(), forceRefresh, claims);
         request.setSilent(true);
         request.setPrompt(PromptBehavior.Auto);
@@ -1244,11 +1242,6 @@ public class AuthenticationContext {
 
     /**
      * Util method to merge
-     *
-     * @param claims input claims passed on acquireToken call
-     * @return merged claims with capabilities
-     * @throws JSONException if input claims is an invalid JSON
-     *
      * <pre>
      * Sample input claim :
      *   {
@@ -1285,6 +1278,9 @@ public class AuthenticationContext {
      *       }
      *   }
      * </pre>
+     * * @param claims input claims passed on acquireToken call
+     * * @return merged claims with capabilities
+     * * @throws JSONException if input claims is an invalid JSON
      */
     public static String mergeClaimsWithClientCapabilities(final String claims,
                                                            final List<String> clientCapabilities) {
