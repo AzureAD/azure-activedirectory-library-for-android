@@ -1145,11 +1145,13 @@ public final class AuthenticationContextTest {
     }
 
     @Test
+    @Ignore
     public void testScenarioNullUserIdToken() throws InterruptedException, AuthenticationException, IOException, JSONException {
         scenarioUserIdLoginHint("test@user.com", "", "");
     }
 
     @Test
+    @Ignore
     public void testScenarioLoginHintIdTokenDifferent() throws IOException, AuthenticationException,
             InterruptedException {
 
