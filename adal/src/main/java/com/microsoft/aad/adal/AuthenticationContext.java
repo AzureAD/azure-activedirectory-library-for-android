@@ -112,7 +112,7 @@ public class AuthenticationContext {
      */
     public AuthenticationContext(@NonNull final Context appContext,
                                  @NonNull final String authority,
-                                 boolean validateAuthority) {
+                                 final boolean validateAuthority) {
         // Fixes are required for SDK 16-18
         // The fixes need to be applied before any use of Java Cryptography
         // Architecture primitives. Default cache uses encryption
@@ -131,7 +131,7 @@ public class AuthenticationContext {
      */
     public AuthenticationContext(@NonNull final Context appContext,
                                  @NonNull final String authority,
-                                 boolean validateAuthority,
+                                 final boolean validateAuthority,
                                  @Nullable final ITokenCacheStore tokenCacheStore) {
         initialize(appContext, authority, tokenCacheStore, validateAuthority, false);
     }
@@ -154,8 +154,8 @@ public class AuthenticationContext {
     private void initialize(@NonNull final Context appContext,
                             @NonNull final String authority,
                             @Nullable final ITokenCacheStore tokenCacheStore,
-                            boolean validateAuthority,
-                            boolean defaultCache) {
+                            final boolean validateAuthority,
+                            final boolean defaultCache) {
         if (appContext == null) {
             throw new IllegalArgumentException("appContext");
         }
