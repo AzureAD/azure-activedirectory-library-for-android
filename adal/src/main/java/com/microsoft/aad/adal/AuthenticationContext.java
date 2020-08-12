@@ -183,32 +183,32 @@ public class AuthenticationContext {
     private ITokenCacheStore wrapCache(@NonNull final ITokenCacheStore originalCache) {
         return new ITokenCacheStore() {
             @Override
-            public TokenCacheItem getItem(final String key) {
+            public synchronized TokenCacheItem getItem(final String key) {
                 return originalCache.getItem(key);
             }
 
             @Override
-            public Iterator<TokenCacheItem> getAll() {
+            public synchronized Iterator<TokenCacheItem> getAll() {
                 return originalCache.getAll();
             }
 
             @Override
-            public boolean contains(final String key) {
+            public synchronized boolean contains(final String key) {
                 return originalCache.contains(key);
             }
 
             @Override
-            public void setItem(final String key, final TokenCacheItem item) {
+            public synchronized void setItem(final String key, final TokenCacheItem item) {
                 originalCache.setItem(key, item);
             }
 
             @Override
-            public void removeItem(final String key) {
+            public synchronized void removeItem(final String key) {
                 originalCache.removeItem(key);
             }
 
             @Override
-            public void removeAll() {
+            public synchronized void removeAll() {
                 // Clear our original cache
                 originalCache.removeAll();
 
