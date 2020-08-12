@@ -290,20 +290,6 @@ public final class AuthenticationContextTest {
     }
 
     @Test
-    public void testConstructorWithCache() throws NoSuchAlgorithmException, NoSuchPaddingException,
-            UsageAuthenticationException {
-        String authority = "https://github.com/MSOpenTech";
-        DefaultTokenCacheStore expected = new DefaultTokenCacheStore(getInstrumentation().getContext());
-        AuthenticationContext context = new AuthenticationContext(getInstrumentation().getContext(), authority, false,
-                expected);
-        assertEquals("Cache object is expected to be same", expected, context.getCache());
-
-        AuthenticationContext contextDefaultCache = new AuthenticationContext(getInstrumentation().getContext(),
-                authority, false);
-        assertNotNull(contextDefaultCache.getCache());
-    }
-
-    @Test
     public void testConstructorInternetPermission() throws NoSuchAlgorithmException,
             NoSuchPaddingException {
         String authority = "https://github.com/MSOpenTech";
