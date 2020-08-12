@@ -52,6 +52,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -59,6 +60,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static com.microsoft.aad.adal.TokenCacheAccessor.getMsalOAuth2TokenCache;
 
 /**
  * ADAL context to get access token, refresh token, and lookup from cache.
@@ -171,7 +174,45 @@ public class AuthenticationContext {
         checkInternetPermission();
         mAuthority = extractAuthority(authority);
         mValidateAuthority = validateAuthority;
-        mTokenCacheStore = tokenCacheStore;
+        mTokenCacheStore = wrapCache(tokenCacheStore);
+    }
+
+    private ITokenCacheStore wrapCache(@NonNull final ITokenCacheStore originalCache) {
+        return new ITokenCacheStore() {
+            @Override
+            public TokenCacheItem getItem(final String key) {
+                return originalCache.getItem(key);
+            }
+
+            @Override
+            public Iterator<TokenCacheItem> getAll() {
+                return originalCache.getAll();
+            }
+
+            @Override
+            public boolean contains(final String key) {
+                return originalCache.contains(key);
+            }
+
+            @Override
+            public void setItem(final String key, final TokenCacheItem item) {
+                originalCache.setItem(key, item);
+            }
+
+            @Override
+            public void removeItem(final String key) {
+                originalCache.removeItem(key);
+            }
+
+            @Override
+            public void removeAll() {
+                // Clear our original cache
+                originalCache.removeAll();
+
+                // clear our replica cache
+                getMsalOAuth2TokenCache(mContext).clearAll();
+            }
+        };
     }
 
     /**
