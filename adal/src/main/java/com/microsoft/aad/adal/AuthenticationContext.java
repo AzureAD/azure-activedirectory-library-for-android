@@ -1250,40 +1250,40 @@ public class AuthenticationContext {
      * @throws JSONException if input claims is an invalid JSON
      *
      * <pre>
-     Sample input claim :
-        {
-            "userinfo": {
-                "given_name": {"essential": true},
-                "email": {"essential": true},
-            },
-            "id_token": {
-                "auth_time": {"essential": true},
-            }
-        }
-
-    Sample capabilities list : [CP1, CP2 CP3]
-
-    Output merged claims :
-        {
-            "userinfo": {
-                "given_name": {
-                    "essential": true
-                },
-                "email": {
-                    "essential": true
-                }
-            },
-            "id_token": {
-                "auth_time": {
-                    "essential": true
-                }
-            },
-            "access_token": {
-                "xms_cc": {
-                    "values": ["CP1", "CP2"]
-                }
-            }
-        }
+     * Sample input claim :
+     *   {
+     *       "userinfo": {
+     *           "given_name": {"essential": true},
+     *           "email": {"essential": true},
+     *       },
+     *       "id_token": {
+     *           "auth_time": {"essential": true},
+     *       }
+     *   }
+     *
+     * Sample capabilities list : [CP1, CP2 CP3]
+     *
+     * Output merged claims :
+     *   {
+     *       "userinfo": {
+     *           "given_name": {
+     *               "essential": true
+     *           },
+     *           "email": {
+     *               "essential": true
+     *           }
+     *       },
+     *       "id_token": {
+     *           "auth_time": {
+     *               "essential": true
+     *           }
+     *       },
+     *       "access_token": {
+     *           "xms_cc": {
+     *               "values": ["CP1", "CP2"]
+     *           }
+     *       }
+     *   }
      * </pre>
      */
     public static String mergeClaimsWithClientCapabilities(final String claims,
