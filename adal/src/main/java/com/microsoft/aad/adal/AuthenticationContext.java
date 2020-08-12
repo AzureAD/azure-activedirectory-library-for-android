@@ -132,7 +132,7 @@ public class AuthenticationContext {
     public AuthenticationContext(@NonNull final Context appContext,
                                  @NonNull final String authority,
                                  boolean validateAuthority,
-                                 @NonNull final ITokenCacheStore tokenCacheStore) {
+                                 @Nullable final ITokenCacheStore tokenCacheStore) {
         initialize(appContext, authority, tokenCacheStore, validateAuthority, false);
     }
 
@@ -147,13 +147,13 @@ public class AuthenticationContext {
      */
     public AuthenticationContext(@NonNull final Context appContext,
                                  @NonNull final String authority,
-                                 @NonNull final ITokenCacheStore tokenCacheStore) {
+                                 @Nullable final ITokenCacheStore tokenCacheStore) {
         initialize(appContext, authority, tokenCacheStore, true, false);
     }
 
     private void initialize(@NonNull final Context appContext,
                             @NonNull final String authority,
-                            @NonNull final ITokenCacheStore tokenCacheStore,
+                            @Nullable final ITokenCacheStore tokenCacheStore,
                             boolean validateAuthority,
                             boolean defaultCache) {
         if (appContext == null) {
@@ -174,7 +174,10 @@ public class AuthenticationContext {
         checkInternetPermission();
         mAuthority = extractAuthority(authority);
         mValidateAuthority = validateAuthority;
-        mTokenCacheStore = wrapCache(tokenCacheStore);
+
+        if (null != tokenCacheStore) {
+            mTokenCacheStore = wrapCache(tokenCacheStore);
+        }
     }
 
     private ITokenCacheStore wrapCache(@NonNull final ITokenCacheStore originalCache) {
