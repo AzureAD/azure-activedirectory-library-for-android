@@ -107,7 +107,9 @@ public class AuthenticationContext {
      * @param authority         Authority url to send code and token requests
      * @param validateAuthority validate authority before sending token request
      */
-    public AuthenticationContext(Context appContext, String authority, boolean validateAuthority) {
+    public AuthenticationContext(@NonNull final Context appContext,
+                                 @NonNull final String authority,
+                                 boolean validateAuthority) {
         // Fixes are required for SDK 16-18
         // The fixes need to be applied before any use of Java Cryptography
         // Architecture primitives. Default cache uses encryption
@@ -124,8 +126,10 @@ public class AuthenticationContext {
      * @param validateAuthority true/false for validation
      * @param tokenCacheStore   Set to null if you don't want cache.
      */
-    public AuthenticationContext(Context appContext, String authority, boolean validateAuthority,
-                                 ITokenCacheStore tokenCacheStore) {
+    public AuthenticationContext(@NonNull final Context appContext,
+                                 @NonNull final String authority,
+                                 boolean validateAuthority,
+                                 @NonNull final ITokenCacheStore tokenCacheStore) {
         initialize(appContext, authority, tokenCacheStore, validateAuthority, false);
     }
 
@@ -138,13 +142,17 @@ public class AuthenticationContext {
      * @param tokenCacheStore Cache {@link ITokenCacheStore} used to store
      *                        tokens. Set to null if you don't want cache.
      */
-    public AuthenticationContext(Context appContext, String authority,
-                                 ITokenCacheStore tokenCacheStore) {
+    public AuthenticationContext(@NonNull final Context appContext,
+                                 @NonNull final String authority,
+                                 @NonNull final ITokenCacheStore tokenCacheStore) {
         initialize(appContext, authority, tokenCacheStore, true, false);
     }
 
-    private void initialize(Context appContext, String authority, ITokenCacheStore tokenCacheStore,
-                            boolean validateAuthority, boolean defaultCache) {
+    private void initialize(@NonNull final Context appContext,
+                            @NonNull final String authority,
+                            @NonNull final ITokenCacheStore tokenCacheStore,
+                            boolean validateAuthority,
+                            boolean defaultCache) {
         if (appContext == null) {
             throw new IllegalArgumentException("appContext");
         }
