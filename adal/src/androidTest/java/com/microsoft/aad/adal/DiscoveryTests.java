@@ -384,23 +384,6 @@ public class DiscoveryTests extends AndroidTestHelper {
         }
     }
 
-    @Test
-    @SdkSuppress(minSdkVersion = Build.VERSION_CODES.M)
-    public void testValidateAuthorityFailedInDozeMode() throws IOException {
-        final FileMockContext context = new FileMockContext(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext());
-        final Discovery discovery = new Discovery(context);
-        context.setDeviceInIdleMode();
-        final URL endpointFull = new URL("https://login.invalidlogin.net/common/oauth2/authorize");
-
-        try {
-            discovery.validateAuthority(endpointFull);
-            fail();
-        } catch (AuthenticationException e) {
-            assertNotNull(e);
-            assertTrue(e.getCode().equals(ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION));
-        }
-    }
-
     static String getDiscoveryResponse() {
         final Map<String, String> discoveryResponse = AuthorityValidationMetadataCacheTest.getDiscoveryResponse();
         final JSONObject discoveryResponseJsonObject = new JSONObject(discoveryResponse);
