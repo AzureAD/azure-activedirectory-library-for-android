@@ -289,7 +289,7 @@ public class AuthenticationParameters {
         /**
          * Regex sequence to parse schemes from WWW-Authenticate header values.
          */
-        private static final String REGEX_STRING_TOKEN_WITH_SCHEME = "^([^\\s|^=]+)[\\s|\\t]+([^=]*=[^=]*)+$";
+        private static final Pattern REGEX_STRING_TOKEN_WITH_SCHEME = Pattern.compile("^([^\\s|^=]+)[\\s|\\t]+([^=]*=[^=]*)+$");
 
         /**
          * Comma+space suffix used to preserve formatting during parsing.
@@ -601,8 +601,7 @@ public class AuthenticationParameters {
             }
 
             Logger.i(TAG + methodName, "Testing token contains scheme", "input[" + token + "]");
-            final Pattern startWithScheme = Pattern.compile(REGEX_STRING_TOKEN_WITH_SCHEME);
-            final Matcher matcher = startWithScheme.matcher(token);
+            final Matcher matcher = REGEX_STRING_TOKEN_WITH_SCHEME.matcher(token);
             final boolean match = matcher.matches();
             Logger.i(TAG + methodName, "Testing String contains scheme", "Matches? [" + match + "]");
             return match;
