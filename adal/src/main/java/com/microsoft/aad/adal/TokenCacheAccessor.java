@@ -24,6 +24,8 @@ package com.microsoft.aad.adal;
 
 import android.content.Context;
 
+import androidx.annotation.NonNull;
+
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
@@ -87,24 +89,11 @@ class TokenCacheAccessor {
         mAuthority = authority;
         mTelemetryRequestId = telemetryRequestId;
 
-        //Setup common cache implementation
+        // Setup common cache implementation
         List<IShareSingleSignOnState<MicrosoftAccount, MicrosoftRefreshToken>> sharedSSOCaches = new ArrayList<>();
 
-        // Set up the MsalAuth2TokenCache
-        final IAccountCredentialCache accountCredentialCache = new SharedPreferencesAccountCredentialCache(
-                new CacheKeyValueDelegate(),
-                new SharedPreferencesFileManager(
-                        appContext,
-                        DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
-                        new StorageHelper(appContext)
-                )
-        );
-        final MsalOAuth2TokenCache msalOAuth2TokenCache =
-                new MsalOAuth2TokenCache(
-                        appContext,
-                        accountCredentialCache,
-                        new MicrosoftStsAccountCredentialAdapter()
-                );
+        // Set up the MsalOAuth2TokenCache
+        final MsalOAuth2TokenCache msalOAuth2TokenCache = getMsalOAuth2TokenCache(appContext);
 
         sharedSSOCaches.add(msalOAuth2TokenCache);
         mCommonCache = new ADALOAuth2TokenCache(appContext, sharedSSOCaches);
@@ -114,6 +103,23 @@ class TokenCacheAccessor {
             //If not using default token cache then sharing SSO state between ADAL & MSAL cache implementations will not be possible anyway
             mUseCommonCache = true;
         }
+    }
+
+    static MsalOAuth2TokenCache getMsalOAuth2TokenCache(@NonNull final Context appContext) {
+        final IAccountCredentialCache accountCredentialCache = new SharedPreferencesAccountCredentialCache(
+                new CacheKeyValueDelegate(),
+                new SharedPreferencesFileManager(
+                        appContext,
+                        DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
+                        new StorageHelper(appContext)
+                )
+        );
+
+        return new MsalOAuth2TokenCache(
+                appContext,
+                accountCredentialCache,
+                new MicrosoftStsAccountCredentialAdapter()
+        );
     }
 
     public boolean isValidateAuthorityHost() {

@@ -33,13 +33,10 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Looper;
 import android.os.NetworkOnMainThreadException;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 import android.text.TextUtils;
 import android.util.SparseArray;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
@@ -55,6 +52,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -62,6 +60,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static com.microsoft.aad.adal.TokenCacheAccessor.getMsalOAuth2TokenCache;
 
 /**
  * ADAL context to get access token, refresh token, and lookup from cache.
@@ -110,7 +110,9 @@ public class AuthenticationContext {
      * @param authority         Authority url to send code and token requests
      * @param validateAuthority validate authority before sending token request
      */
-    public AuthenticationContext(Context appContext, String authority, boolean validateAuthority) {
+    public AuthenticationContext(@NonNull final Context appContext,
+                                 @NonNull final String authority,
+                                 final boolean validateAuthority) {
         // Fixes are required for SDK 16-18
         // The fixes need to be applied before any use of Java Cryptography
         // Architecture primitives. Default cache uses encryption
@@ -127,8 +129,10 @@ public class AuthenticationContext {
      * @param validateAuthority true/false for validation
      * @param tokenCacheStore   Set to null if you don't want cache.
      */
-    public AuthenticationContext(Context appContext, String authority, boolean validateAuthority,
-                                 ITokenCacheStore tokenCacheStore) {
+    public AuthenticationContext(@NonNull final Context appContext,
+                                 @NonNull final String authority,
+                                 final boolean validateAuthority,
+                                 @Nullable final ITokenCacheStore tokenCacheStore) {
         initialize(appContext, authority, tokenCacheStore, validateAuthority, false);
     }
 
@@ -141,28 +145,77 @@ public class AuthenticationContext {
      * @param tokenCacheStore Cache {@link ITokenCacheStore} used to store
      *                        tokens. Set to null if you don't want cache.
      */
-    public AuthenticationContext(Context appContext, String authority,
-                                 ITokenCacheStore tokenCacheStore) {
+    public AuthenticationContext(@NonNull final Context appContext,
+                                 @NonNull final String authority,
+                                 @Nullable final ITokenCacheStore tokenCacheStore) {
         initialize(appContext, authority, tokenCacheStore, true, false);
     }
 
-    private void initialize(Context appContext, String authority, ITokenCacheStore tokenCacheStore,
-                            boolean validateAuthority, boolean defaultCache) {
+    private void initialize(@NonNull final Context appContext,
+                            @NonNull final String authority,
+                            @Nullable final ITokenCacheStore tokenCacheStore,
+                            final boolean validateAuthority,
+                            final boolean defaultCache) {
         if (appContext == null) {
             throw new IllegalArgumentException("appContext");
         }
+
         if (authority == null) {
             throw new IllegalArgumentException("authority");
         }
+
         mBrokerProxy = new BrokerProxy(appContext);
+
         if (!defaultCache && !mBrokerProxy.canUseLocalCache(authority)) {
             throw new UnsupportedOperationException("Local cache is not supported for broker usage");
         }
+
         mContext = appContext;
         checkInternetPermission();
         mAuthority = extractAuthority(authority);
         mValidateAuthority = validateAuthority;
-        mTokenCacheStore = tokenCacheStore;
+
+        if (null != tokenCacheStore) {
+            mTokenCacheStore = wrapCache(tokenCacheStore);
+        }
+    }
+
+    private ITokenCacheStore wrapCache(@NonNull final ITokenCacheStore originalCache) {
+        return new ITokenCacheStore() {
+            @Override
+            public synchronized TokenCacheItem getItem(final String key) {
+                return originalCache.getItem(key);
+            }
+
+            @Override
+            public synchronized Iterator<TokenCacheItem> getAll() {
+                return originalCache.getAll();
+            }
+
+            @Override
+            public synchronized boolean contains(final String key) {
+                return originalCache.contains(key);
+            }
+
+            @Override
+            public synchronized void setItem(final String key, final TokenCacheItem item) {
+                originalCache.setItem(key, item);
+            }
+
+            @Override
+            public synchronized void removeItem(final String key) {
+                originalCache.removeItem(key);
+            }
+
+            @Override
+            public synchronized void removeAll() {
+                // Clear our original cache
+                originalCache.removeAll();
+
+                // clear our replica cache
+                getMsalOAuth2TokenCache(mContext).clearAll();
+            }
+        };
     }
 
     /**
@@ -650,13 +703,11 @@ public class AuthenticationContext {
                                                         final String claims,
                                                         final String apiEventString)
             throws AuthenticationException, InterruptedException {
-        final String methodName = ":acquireTokenSilentSync";
         return acquireTokenSilentSync(null, null, resource, clientId, userId,
                 UserIdentifierType.UniqueId, forceRefresh, claims, apiEventString);
     }
 
     /**
-     *
      * This function tries to acquire token silently. It will first look at the cache
      * and automatically checks for the token expiration. Additionally, if no suitable
      * access token is found in the cache, but refresh token is available, the function
@@ -665,12 +716,12 @@ public class AuthenticationContext {
      * This method will not show UI for the user. If prompt is needed, the method
      * will return an exception
      *
-     * @param assertion the actual saml assertion
+     * @param assertion     the actual saml assertion
      * @param assertionType version of saml assertion being used
-     * @param resource required resource identifier.
-     * @param clientId required client identifier.
-     * @param userId   UserID obtained from
-     *                 {@link AuthenticationResult #getUserInfo()}
+     * @param resource      required resource identifier.
+     * @param clientId      required client identifier.
+     * @param userId        UserID obtained from
+     *                      {@link AuthenticationResult #getUserInfo()}
      * @return A {@link Future} object representing the
      * {@link AuthenticationResult} of the call. It contains Access
      * Token,the Access Token's expiration time, Refresh token, and
@@ -921,7 +972,6 @@ public class AuthenticationContext {
     }
 
     /**
-     *
      * This function tries to acquire token silently. It will first look at the cache
      * and automatically checks for the token expiration. Additionally, if no suitable
      * access token is found in the cache, but refresh token is available, the function
@@ -930,14 +980,14 @@ public class AuthenticationContext {
      * This method will not show UI for the user. If prompt is needed, the method
      * will return an exception
      *
-     * @param assertion the actual saml assertion
+     * @param assertion     the actual saml assertion
      * @param assertionType version of saml assertion being used
-     * @param resource required resource identifier.
-     * @param clientId required client identifier.
-     * @param userId   UserID obtained from
-     *                 {@link AuthenticationResult #getUserInfo()}
-     * @param callback required {@link AuthenticationCallback} object for async
-     *                 call.
+     * @param resource      required resource identifier.
+     * @param clientId      required client identifier.
+     * @param userId        UserID obtained from
+     *                      {@link AuthenticationResult #getUserInfo()}
+     * @param callback      required {@link AuthenticationCallback} object for async
+     *                      call.
      */
     public void acquireTokenSilentAsyncWithAssertion(@NonNull final String assertion,
                                                      @NonNull final String assertionType,
@@ -976,7 +1026,7 @@ public class AuthenticationContext {
                 apiEventString);
         apiEvent.setPromptBehavior(PromptBehavior.Auto.toString());
 
-        final AuthenticationRequest request = new AuthenticationRequest(assertion,assertionType, mAuthority, resource,
+        final AuthenticationRequest request = new AuthenticationRequest(assertion, assertionType, mAuthority, resource,
                 clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled(), forceRefresh, claims);
         request.setSilent(true);
         request.setPrompt(PromptBehavior.Auto);
@@ -1248,47 +1298,45 @@ public class AuthenticationContext {
 
     /**
      * Util method to merge
-     *
-     * @param claims input claims passed on acquireToken call
-     * @return merged claims with capabilities
-     * @throws JSONException if input claims is an invalid JSON
-     *
      * <pre>
-     Sample input claim :
-        {
-            "userinfo": {
-                "given_name": {"essential": true},
-                "email": {"essential": true},
-            },
-            "id_token": {
-                "auth_time": {"essential": true},
-            }
-        }
-
-    Sample capabilities list : [CP1, CP2 CP3]
-
-    Output merged claims :
-        {
-            "userinfo": {
-                "given_name": {
-                    "essential": true
-                },
-                "email": {
-                    "essential": true
-                }
-            },
-            "id_token": {
-                "auth_time": {
-                    "essential": true
-                }
-            },
-            "access_token": {
-                "xms_cc": {
-                    "values": ["CP1", "CP2"]
-                }
-            }
-        }
+     * Sample input claim :
+     *   {
+     *       "userinfo": {
+     *           "given_name": {"essential": true},
+     *           "email": {"essential": true},
+     *       },
+     *       "id_token": {
+     *           "auth_time": {"essential": true},
+     *       }
+     *   }
+     *
+     * Sample capabilities list : [CP1, CP2 CP3]
+     *
+     * Output merged claims :
+     *   {
+     *       "userinfo": {
+     *           "given_name": {
+     *               "essential": true
+     *           },
+     *           "email": {
+     *               "essential": true
+     *           }
+     *       },
+     *       "id_token": {
+     *           "auth_time": {
+     *               "essential": true
+     *           }
+     *       },
+     *       "access_token": {
+     *           "xms_cc": {
+     *               "values": ["CP1", "CP2"]
+     *           }
+     *       }
+     *   }
      * </pre>
+     * * @param claims input claims passed on acquireToken call
+     * * @return merged claims with capabilities
+     * * @throws JSONException if input claims is an invalid JSON
      */
     public static String mergeClaimsWithClientCapabilities(final String claims,
                                                            final List<String> clientCapabilities) {

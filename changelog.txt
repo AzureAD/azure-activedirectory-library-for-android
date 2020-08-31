@@ -1,3 +1,10 @@
+Version 3.1.1
+-------------
+- Fix ADAL/1073 - Explicitly disable Content Provider access from WebViews
+- Fix ADAL/1074 - Set WebSettings#setAllowFileAccess(false)
+- Fix ADAL/1354 - Close FileInputStream in getVersionProps in version_tasks.gradle
+- Clear the MSAL cache replica if the ADAL cache is cleared
+
 Version 3.1.0
 -------------
 - Save tokens in cache for AcquireTokenByRefreshToken API (if resource and openid scope provided)
