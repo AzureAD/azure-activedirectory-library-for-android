@@ -38,6 +38,9 @@ allprojects {
         google()
         jcenter()
         maven {
+            url 'https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed/maven/v1'
+        }
+        maven {
             // msazure and aria are consumed via upstream sources of the AndroidADAL feed.
             name "vsts-maven-adal-android"
             url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
