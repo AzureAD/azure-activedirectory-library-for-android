@@ -131,7 +131,7 @@ repositories {
     mavenCentral()
     maven {
         // Surface Duo SDK dependency.
-        url 'https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed%40Local/maven/v1'
+        url 'https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed/maven/v1'
     }
 }
 dependencies {
