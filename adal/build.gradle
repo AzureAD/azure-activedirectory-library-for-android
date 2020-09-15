@@ -1,5 +1,5 @@
 apply plugin: 'com.android.library'
-apply plugin: 'findbugs'
+//apply plugin: 'findbugs'
 apply plugin: 'pmd'
 apply plugin: 'checkstyle'
 apply plugin: 'maven-publish'
@@ -42,7 +42,6 @@ buildscript {
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
 
     defaultConfig {
         minSdkVersion rootProject.ext.minSdkVersion
@@ -298,6 +297,7 @@ artifacts {
     archives sourcesJar
 }
 
+/*
 findbugs {
     ignoreFailures = false
     reportsDir = file("$project.buildDir/outputs/")
@@ -320,6 +320,7 @@ task findbugs(type: FindBugs) {
         html.enabled = true
     }
 }
+*/
 
 pmd {
     ignoreFailures = false
