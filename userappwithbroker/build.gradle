@@ -18,7 +18,6 @@ allprojects {
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
 
     defaultConfig {
         applicationId "com.microsoft.aad.adal.userappwithbroker"
