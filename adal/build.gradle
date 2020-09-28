@@ -3,7 +3,6 @@ apply plugin: 'pmd'
 apply plugin: 'checkstyle'
 apply plugin: 'maven-publish'
 apply from: 'versioning/version_tasks.gradle'
-apply plugin: 'maven'
 
 group = 'com.microsoft.aad'
 
@@ -155,7 +154,7 @@ dependencies {
 task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
     classifier = 'sources'
-    destinationDir = reporting.file("$project.buildDir/outputs/jar/")
+    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
 }
 
 task javadoc(type: Javadoc) {
@@ -180,7 +179,7 @@ task javadoc(type: Javadoc) {
 task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
     from javadoc.destinationDir
-    destinationDir = reporting.file("$project.buildDir/outputs/jar/")
+    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
 }
 
 // For publishing to the remote maven repo.

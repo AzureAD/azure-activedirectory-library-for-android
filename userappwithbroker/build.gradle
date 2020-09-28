@@ -60,7 +60,9 @@ android {
 
     buildTypes {
         debug {
+            minifyEnabled false
             buildConfigField("String", "REGULAR_REDIDRECT_URI", "\"msauth://com.microsoft.aad.adal.userappwithbroker/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D\"")
+            proguardFiles getDefaultProguardFile('proguard-android.txt')
         }
         release {
             signingConfig signingConfigs.release
