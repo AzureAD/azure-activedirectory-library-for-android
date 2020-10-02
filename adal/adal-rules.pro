@@ -24,7 +24,8 @@
 -keep, includedescriptorclasses class com.microsoft.identity.innternal.logging.* { *; }
 -keep, includedescriptorclasses class com.microsoft.identity.common.internal.providers.* { *; }
 -keep, includedescriptorclasses class com.microsort.identity.common.internal.telemtery.* { *; }
--keep, includedescriptorclasses class com.microsoft.identity.common.internal.ui,* { *; }
+-keep, includedescriptorclasses class com.microsoft.identity.common.internal.ui.* { *; }
+-keep, includedescriptorclasses class com.microsoft.device.display.* { *; }
 
 ##---------------Begin: proguard configuration for Nimbus  ----------
 # Intentionally blank, left to consumers of common to implement.
