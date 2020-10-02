@@ -36,7 +36,7 @@ project(':tsl').projectDir = new File('tsl/tokenshare')
 
 // Authenticator projects
 include ':app', ':NgcProviderLibrary', ':AadRemoteNgcLibrary', ':SharedCoreLibrary', ':TestUtilitiesLibrary',
-        ':3rdparty', ':VerifiableCredential-SDK', ':CommonUiLibrary', ':ReactNativeLibrary', ':GraphClient', ':LocationLibrary',':Brooklyn'
+      ':3rdparty', ':VerifiableCredential-SDK', ':CommonUiLibrary', ':ReactNativeLibrary', ':GraphClient', ':LocationLibrary',':Brooklyn'
 project(':app').projectDir = new File('authenticator/PhoneFactor/app')
 project(':NgcProviderLibrary').projectDir = new File('authenticator/PhoneFactor/NgcProviderLibrary')
 project(':AadRemoteNgcLibrary').projectDir = new File('authenticator/PhoneFactor/AadRemoteNgcLibrary')
