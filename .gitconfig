@@ -9,6 +9,8 @@
 		git clone -b dev https://github.com/AzureAD/ad-accounts-for-android.git broker; \
 		git clone -b working https://msazure.visualstudio.com/DefaultCollection/One/_git/AD-MFA-phonefactor-phoneApp-android authenticator; \
         git clone -b dev https://github.com/Azure-Samples/ms-identity-android-java.git azuresample; \
+        git clone -b dev https://office.visualstudio.com/DefaultCollection/OneAuth/_git/OneAuth oneauth; \
+        git clone -b master https://onedrive.visualstudio.com/DefaultCollection/SkyDrive/_git/AndroidTokenShare tsl; \
 		cd msal; git submodule init; git submodule update; cd ..; \
 		cd adal; git submodule init; git submodule update; cd ..; \
 		cd broker; git submodule init; git submodule update; cd ..; \
@@ -34,6 +36,8 @@
             cd $workDir/broker/; printf "${RED}BROKER${NC}"; printf ": "; git fetch origin; git status; \
             cd $workDir/common/; printf "${RED}COMMON${NC}"; printf ": "; git fetch origin; git status; \
             cd $workDir/azuresample/; printf "${RED}AZURESAMPLE${NC}"; printf ": "; git fetch origin; git status; \
+            cd $workDir/oneauth/; printf "${RED}ONEAUTH${NC}"; printf ": "; git fetch origin; git status; \
+            cd $workDir/tsl/; printf "${RED}TSL${NC}"; printf ": "; git fetch origin; git status; \
         }; f"
     droidNewFeature = "!f() { \
             workDir=$(git config --get androidcomplete.workDir); \
