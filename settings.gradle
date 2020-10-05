@@ -13,7 +13,7 @@ rootProject.name = 'android_auth'
 include ':adal', ':msal', ':common', ':AADAuthenticator',
         ':brokerHost', ':adalTestApp', ':msalTestApp', ':AzureSample', ':package-inspector', ':pop-benchmarker',
         ':labapi', ':keyvault', ':testutils', 'msalautomationapp', 'uiautomationutilities', 'brokerautomationapp',
-        ':oneauth', ':oneauthtestapp', ':tsl'
+        ':oneauth', ':oneauthtestapp'//, ':tsl'
 project(':adal').projectDir = new File('adal/adal')
 project(':msal').projectDir = new File('msal/msal')
 project(':common').projectDir = new File('common/common')
@@ -32,7 +32,7 @@ project(':uiautomationutilities').projectDir = new File('common/uiautomationutil
 project(':brokerautomationapp').projectDir = new File('broker/brokerautomationapp')
 project(':oneauth').projectDir = new File('oneauth/sources/android/gradle')
 project(':oneauthtestapp').projectDir = new File('oneauth/testapps/android/oneauthtestapp/app')
-project(':tsl').projectDir = new File('tsl/tokenshare')
+//project(':tsl').projectDir = new File('tsl/tokenshare')
 
 // Authenticator projects
 include ':app', ':NgcProviderLibrary', ':AadRemoteNgcLibrary', ':SharedCoreLibrary', ':TestUtilitiesLibrary',
