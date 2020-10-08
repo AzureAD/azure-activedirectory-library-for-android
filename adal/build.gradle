@@ -4,6 +4,7 @@ apply plugin: 'checkstyle'
 apply plugin: 'maven-publish'
 apply from: 'versioning/version_tasks.gradle'
 apply plugin: 'maven'
+apply plugin: 'jacoco'
 
 group = 'com.microsoft.aad'
 
@@ -53,11 +54,12 @@ android {
     }
     buildTypes {
         debug {
-            testCoverageEnabled false
+            testCoverageEnabled true
             debuggable true
 
         }
         release {
+            testCoverageEnabled true
             minifyEnabled false
             debuggable false
             proguardFiles getDefaultProguardFile('proguard-android.txt')
@@ -181,6 +183,31 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
     from javadoc.destinationDir
     destinationDir = reporting.file("$project.buildDir/outputs/jar/")
+}
+
+task createAdalJacocoReportTask() {
+    group = "Reporting"
+    description = "Generate AndroidTests Coverage Report tasks for every build Flavour"
+
+    def buildTypes = android.buildTypes.collect { type ->
+        type.name
+    }
+    def productFlavors = android.productFlavors.collect { flavor ->
+        flavor.name
+    }
+    // When no product flavors defined, use empty string
+    if (!productFlavors) productFlavors.add('')
+    productFlavors.each { productFlavorName ->
+        buildTypes.each { buildTypeName ->
+            def sourceName = "${productFlavorName}${buildTypeName.capitalize()}"
+
+            // Tasks for generation AndroidTests Coverage reports for every sourceName
+            task "${sourceName}AdalCoverageReport" (type:JacocoReport, dependsOn: ["create${sourceName.capitalize()}CoverageReport"]) {
+                group = "Reporting"
+                description = "Generate Adal AndroidTests Coverage Reports on the ${sourceName.capitalize()} build."
+            }
+        }
+    }
 }
 
 // For publishing to the remote maven repo.
