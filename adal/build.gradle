@@ -185,7 +185,7 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
     destinationDir = reporting.file("$project.buildDir/outputs/jar/")
 }
 
-task createAdalJacocoReportTask() {
+task createAdalCoverageReportTask() {
     group = "Reporting"
     description = "Generate AndroidTests Coverage Report tasks for every build Flavour"
 
