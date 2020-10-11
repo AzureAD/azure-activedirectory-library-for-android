@@ -11,9 +11,9 @@ rootProject.name = 'android_auth'
 
 // Android DevX Projects
 include ':adal', ':msal', ':common', ':AADAuthenticator',
-        ':brokerHost', ':adalTestApp', ':msalTestApp', ':AzureSample', ':package-inspector', ':pop-benchmarker',
+        ':brokerHost', ':adalTestApp', ':msalTestApp', ':package-inspector', ':pop-benchmarker',
         ':labapi', ':keyvault', ':testutils', 'msalautomationapp', 'uiautomationutilities', 'brokerautomationapp',
-        ':oneauth', ':oneauthtestapp'//, ':tsl'
+        ':oneauth', ':oneauthtestapp', ':msalcpp', ':msalcpptestapp', ':msalcpptesthost'//, ':tsl', ':AzureSample',
 project(':adal').projectDir = new File('adal/adal')
 project(':msal').projectDir = new File('msal/msal')
 project(':common').projectDir = new File('common/common')
@@ -21,7 +21,7 @@ project(':AADAuthenticator').projectDir = new File('broker/AADAuthenticator')
 project(':brokerHost').projectDir = new File('broker/userapp')
 project(':adalTestApp').projectDir = new File('adal/userappwithbroker')
 project(':msalTestApp').projectDir = new File('msal/testapps/testapp')
-project(':AzureSample').projectDir = new File('azuresample/app')
+//project(':AzureSample').projectDir = new File('azuresample/app')
 project(':package-inspector').projectDir = new File('msal/package-inspector')
 project(':pop-benchmarker').projectDir = new File('msal/pop-benchmarker')
 project(':labapi').projectDir = new File('common/labapi')
@@ -32,6 +32,9 @@ project(':uiautomationutilities').projectDir = new File('common/uiautomationutil
 project(':brokerautomationapp').projectDir = new File('broker/brokerautomationapp')
 project(':oneauth').projectDir = new File('oneauth/sources/android/gradle')
 project(':oneauthtestapp').projectDir = new File('oneauth/testapps/android/oneauthtestapp/app')
+project(':msalcpp').projectDir = new File('msalcpp/source/android/msal/app')
+project(':msalcpptestapp').projectDir = new File('msalcpp/source/android/msal/testapp')
+project(':msalcpptesthost').projectDir = new File('msalcpp/test/android/testhost/app')
 //project(':tsl').projectDir = new File('tsl/tokenshare')
 
 // Authenticator projects
