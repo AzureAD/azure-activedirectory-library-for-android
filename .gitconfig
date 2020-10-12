@@ -36,7 +36,6 @@
             cd $workDir/msal/; printf "${RED}MSAL${NC}"; printf ": "; git fetch origin; git status; \
             cd $workDir/broker/; printf "${RED}BROKER${NC}"; printf ": "; git fetch origin; git status; \
             cd $workDir/common/; printf "${RED}COMMON${NC}"; printf ": "; git fetch origin; git status; \
-            cd $workDir/azuresample/; printf "${RED}AZURESAMPLE${NC}"; printf ": "; git fetch origin; git status; \
             cd $workDir/oneauth/; printf "${RED}ONEAUTH${NC}"; printf ": "; git fetch origin; git status; \
             cd $workDir/msalcpp/; printf "${RED}MSALCPP${NC}"; printf ": "; git fetch origin; git status; \
             cd $workDir/tsl/; printf "${RED}TSL${NC}"; printf ": "; git fetch origin; git status; \
@@ -47,6 +46,7 @@
             cd $workDir/msal/; git checkout -b $1 dev; \
             cd $workDir/broker/; git checkout -b $1 dev; \
             cd $workDir/common/; git checkout -b $1 dev; \
+            cd $workDir/msalcpp/; git checkout -b $1 develop; \
         }; f"
     droidCheckout = "!f() { \
           workDir=$(git config --get androidcomplete.workDir); \
@@ -54,6 +54,7 @@
           cd $workDir/msal/; git checkout $1; \
           cd $workDir/broker/; git checkout $1; \
           cd $workDir/common/; git checkout $1; \
+          cd $workDir/msalcpp/; git checkout $1; \
       }; f"
     droidPull = "!f() { \
               workDir=$(git config --get androidcomplete.workDir); \
@@ -61,6 +62,7 @@
               cd $workDir/msal/; git pull; \
               cd $workDir/broker/; git pull; \
               cd $workDir/common/; git pull; \
+              cd $workDir/msalcpp/; git pull; \
           }; f"
     droidStash = "!f() { \
             workDir=$(git config --get androidcomplete.workDir); \
@@ -68,4 +70,32 @@
             cd $workDir/msal/; git stash $1; \
             cd $workDir/broker/; git stash $1; \
             cd $workDir/common/; git stash $1; \
+            cd $workDir/msalcpp/; git stash $1; \
+        }; f"
+    droidUpdateVersionsGradle = "!f() { \
+            workDir=$(git config --get androidcomplete.workDir); \
+            git droidNewFeature android/update-versions-gradle; \
+            cp $workDir/gradle/versions.gradle $workDir/adal/gradle; \
+            cp $workDir/gradle.properties $workDir/adal; \
+            cp $workDir/gradle/wrapper/gradle-wrapper.properties $workDir/adal/gradle/wrapper; \
+            cp $workDir/gradle/versions.gradle $workDir/broker/gradle; \
+            cp $workDir/gradle.properties $workDir/broker; \
+            cp $workDir/gradle/wrapper/gradle-wrapper.properties $workDir/broker/gradle/wrapper; \
+            cp $workDir/gradle/versions.gradle $workDir/common/gradle; \
+            cp $workDir/gradle.properties $workDir/common; \
+            cp $workDir/gradle/wrapper/gradle-wrapper.properties $workDir/common/gradle/wrapper; \
+            cp $workDir/gradle/versions.gradle $workDir/msal/gradle; \
+            cp $workDir/gradle.properties $workDir/msal; \
+            cp $workDir/gradle/wrapper/gradle-wrapper.properties $workDir/msal/gradle/wrapper; \
+            cp $workDir/gradle/versions.gradle $workDir/msalcpp/source/android/msal/gradle; \
+            cp $workDir/gradle.properties $workDir/msalcpp/source/android/msal; \
+            cp $workDir/gradle/wrapper/gradle-wrapper.properties $workDir/msalcpp/source/android/msal/gradle/wrapper; \
+        }; f"
+    droidAssembleAllRootProjects = "!f() { \
+            workDir=$(git config --get androidcomplete.workDir); \
+            cd $workDir/adal; gradle assemble; \
+            cd $workDir/broker; gradle assemble; \
+            cd $workDir/common; gradle assemble; \
+            cd $workDir/msal; gradle assemble; \
+            cd $workDir/msalcpp/source/android/msal; gradle assemble; \
         }; f"
