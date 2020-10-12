@@ -93,9 +93,9 @@
         }; f"
     droidAssembleAllRootProjects = "!f() { \
             workDir=$(git config --get androidcomplete.workDir); \
-            cd $workDir/adal; gradle assemble; \
-            cd $workDir/broker; gradle assemble; \
-            cd $workDir/common; gradle assemble; \
-            cd $workDir/msal; gradle assemble; \
-            cd $workDir/msalcpp/source/android/msal; gradle assemble; \
+            cd $workDir/adal; ./gradlew.bat assemble; \
+            cd $workDir/broker; ./gradlew.bat assemble; \
+            cd $workDir/common; ./gradlew.bat assemble; \
+            cd $workDir/msal; ./gradlew.bat assemble --PabiSelection=x86; \
+            cd $workDir/msalcpp/source/android/msal; ./gradlew.bat assemble; \
         }; f"
