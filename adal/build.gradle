@@ -186,26 +186,15 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 }
 
 task createAdalCoverageReportTask() {
-    group = "Reporting"
+    group = "Adal Reporting"
     description = "Generate AndroidTests Coverage Report tasks for every build Flavour"
+    android.libraryVariants.all { variant ->
+        def buildVariant = variant.name
 
-    def buildTypes = android.buildTypes.collect { type ->
-        type.name
-    }
-    def productFlavors = android.productFlavors.collect { flavor ->
-        flavor.name
-    }
-    // When no product flavors defined, use empty string
-    if (!productFlavors) productFlavors.add('')
-    productFlavors.each { productFlavorName ->
-        buildTypes.each { buildTypeName ->
-            def sourceName = "${productFlavorName}${buildTypeName.capitalize()}"
-
-            // Tasks for generation AndroidTests Coverage reports for every sourceName
-            task "${sourceName}AdalCoverageReport" (type:JacocoReport, dependsOn: ["create${sourceName.capitalize()}CoverageReport"]) {
-                group = "Reporting"
-                description = "Generate Adal AndroidTests Coverage Reports on the ${sourceName.capitalize()} build."
-            }
+        // Tasks for generating Coverage reports for every buildVariant
+        task "${buildVariant}AdalCoverageReport" (type:JacocoReport, dependsOn: ["create${buildVariant.capitalize()}CoverageReport"]) {
+            group = "Adal Reporting"
+            description = "Generate Adal AndroidTests Coverage Reports on the ${buildVariant.capitalize()}"
         }
     }
 }
