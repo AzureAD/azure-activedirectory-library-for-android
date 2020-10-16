@@ -50,7 +50,7 @@ android {
         project.archivesBaseName = "adal"
         project.version = android.defaultConfig.versionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles 'consumer-rules.pro'
+        consumerProguardFiles 'adal-rules.pro'
     }
     buildTypes {
         debug {
