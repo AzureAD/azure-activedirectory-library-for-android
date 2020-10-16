@@ -50,6 +50,7 @@ android {
         project.archivesBaseName = "adal"
         project.version = android.defaultConfig.versionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles 'consumer-rules.pro'
     }
     buildTypes {
         debug {
@@ -333,3 +334,6 @@ tasks.whenTaskAdded { task ->
     }
 }
 
+tasks.withType(proguard.gradle.ProGuardTask) {
+  libraryJars libraryjars configurations.findByName('runtimeClasspath').getFiles()
+}
