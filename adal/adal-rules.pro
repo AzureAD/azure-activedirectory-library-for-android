@@ -18,14 +18,14 @@
 
 ##---------------Begin: proguard configuration for Common  --------
 -keep, includedescriptorclasses class com.microsoft.identity.common.exception.** { *; }
--keep, includedescriptorclasses class com.microsoft.identity.common.internal.broker,* { *; }
--keep, includedescriptorclasses class com.microsoft.identity.common.internal.cache.* { *; }
--keep, includedescriptorclasses class com.microsoft.identity.logging.internal.dto.* { *; }
--keep, includedescriptorclasses class com.microsoft.identity.innternal.logging.* { *; }
--keep, includedescriptorclasses class com.microsoft.identity.common.internal.providers.* { *; }
--keep, includedescriptorclasses class com.microsort.identity.common.internal.telemtery.* { *; }
--keep, includedescriptorclasses class com.microsoft.identity.common.internal.ui.* { *; }
--keep, includedescriptorclasses class com.microsoft.device.display.* { *; }
+-keep, includedescriptorclasses class com.microsoft.identity.common.internal.broker.** { *; }
+-keep, includedescriptorclasses class com.microsoft.identity.common.internal.cache.** { *; }
+-keep, includedescriptorclasses class com.microsoft.identity.logging.internal.dto.** { *; }
+-keep, includedescriptorclasses class com.microsoft.identity.innternal.logging.** { *; }
+-keep, includedescriptorclasses class com.microsoft.identity.common.internal.providers.** { *; }
+-keep, includedescriptorclasses class com.microsort.identity.common.internal.telemtery.** { *; }
+-keep, includedescriptorclasses class com.microsoft.identity.common.internal.ui.** { *; }
+-keep, includedescriptorclasses class com.microsoft.device.display.** { *; }
 -keep, includedescriptorclasses class org.apache.harmony.xnet.provider.jsse.NativeCrypto { *; }
 
 ##---------------Begin: proguard configuration for Nimbus  ----------
