@@ -31,6 +31,7 @@
 -keep,includedescriptorclasses class com.microsoft.device.display.** { *; }
 -keep,includedescriptorclasses class org.apache.harmony.xnet.provider.jsse.NativeCrypto { *; }
 
+##---------------Begin: proguard configuration for crypto classes  --------
 -keep,includedescriptorclasses class com.google.crypto.tink.subtle.Ed25519Sign { *; }
 -keep,includedescriptorclasses class com.google.crypto.tink.subtle.Ed25519Sign$KeyPair { *; }
 -keep,includedescriptorclasses class com.google.crypto.tink.subtle.Ed25519Verify { *; }
@@ -76,7 +77,7 @@
 
 
 ##---------------Begin: proguard configuration for Nimbus  ----------
-# Intentionally blank, left to consumers of common to implement.
+# Intentionally blank, left to consumers of ADAL to implement.
 
 ##---------------Begin: proguard configuration for Lombok  ----------
 -dontwarn lombok.**
