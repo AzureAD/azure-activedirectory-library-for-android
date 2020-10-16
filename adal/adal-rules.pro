@@ -26,6 +26,7 @@
 -keep, includedescriptorclasses class com.microsort.identity.common.internal.telemtery.* { *; }
 -keep, includedescriptorclasses class com.microsoft.identity.common.internal.ui.* { *; }
 -keep, includedescriptorclasses class com.microsoft.device.display.* { *; }
+-keep, includedescriptorclasses class org.apache.harmony.xnet.provider.jsse.NativeCrypto { *; }
 
 ##---------------Begin: proguard configuration for Nimbus  ----------
 # Intentionally blank, left to consumers of common to implement.
