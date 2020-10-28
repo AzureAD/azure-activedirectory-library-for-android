@@ -141,7 +141,6 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$rootProject.ext.androidxJunitVersion"
     androidTestImplementation "androidx.test:runner:$rootProject.ext.runnerVersion"
     androidTestImplementation "androidx.test:rules:$rootProject.ext.rulesVersion"
-    androidTestImplementation "org.mockito:mockito-core:$rootProject.ext.mockitoCoreVersion"
     androidTestImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
 
     // Test Dependencies
