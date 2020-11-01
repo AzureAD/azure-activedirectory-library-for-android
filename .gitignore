@@ -16,6 +16,7 @@ authenticator
 azuresample
 oneauth
 tsl
+msalcpp
 
 # Gradle files
 .gradle/
