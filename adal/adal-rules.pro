@@ -30,6 +30,7 @@
 -keep,includedescriptorclasses class com.microsoft.identity.common.internal.ui.** { *; }
 -dontwarn com.microsoft.identity.common.internal.ui.**
 -keep,includedescriptorclasses class com.microsoft.device.display.** { *; }
+-keep,includedescriptorclasses class com.microsoft.workaccount.** { *; }
 
 ##---------------Begin: proguard configuration for Nimbus  ----------
 # Intentionally blank, left to consumers of ADAL to implement.
