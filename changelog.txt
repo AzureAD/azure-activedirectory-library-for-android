@@ -1,3 +1,7 @@
+v.Next
+-------------
+- Add proguard rules for consumers of common.
+
 Version 3.1.1
 -------------
 - Fix ADAL/1073 - Explicitly disable Content Provider access from WebViews
