@@ -62,12 +62,12 @@ android {
         debug {
             minifyEnabled true
             buildConfigField("String", "REGULAR_REDIDRECT_URI", "\"msauth://com.microsoft.aad.adal.userappwithbroker/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D\"")
-            proguardFiles getDefaultProguardFile('proguard-android.txt')
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'userapp-rules.pro'
         }
         release {
             signingConfig signingConfigs.release
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt')
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'userapp-rules.pro'
             buildConfigField("String", "REGULAR_REDIDRECT_URI", "\"msauth://com.microsoft.aad.adal.userappwithbroker/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D\"")
         }
     }
