@@ -105,3 +105,17 @@ OneAuth has multiple gradle root projects which refer to the OneAuthAndroid feed
 You can use an Azure DevOps feeds to cache packages from publich maven repositories.  This provides caching for public maven feeds that may not be reliable. 
 
 > Note: We have not currently configured this.
+
+# Troubleshooting
+
+## Package not found
+
+This is the most likely error that you are to encounter.  When you encouter it's likely to be one of 2 things.
+
+### Sychronization
+
+It's possible when publishing a new package or a new version of a package that it may take some time to be available in your feed.  Recall that feed synchronization is not under our control and happens every 3-6 hours.  You can verify whether a package is available in your feed by going to the feed and searching for the package.  If not found you can open the feed settings, click on the "Upstream sources" tab and check when the source of the feed was last synchronized.
+
+### Package not tagged
+
+As mentioned previously if a package is not tagged as release or pre-release it will not be available via upstream sources.  Verify that the package in it's original feed is marked as release or pre-release.
