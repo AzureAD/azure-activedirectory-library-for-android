@@ -82,7 +82,8 @@ All Android Identity feeds are published to Azure DevOps Organizations that are 
 
 # Gradle Root Project - Feed references
 
-Each gradle root project references 1 azrue devops feed which in turn references other feeds as an upstream source.  This enables each gradle project to only require a single personal access token to be generated per project.  
+Each gradle root project references 1 azure devops feed which in turn references other feeds as an upstream source.  This enables each gradle project to only require a single personal access token to be generated per project.  
+
 
 ## Android Identity Core:
 
