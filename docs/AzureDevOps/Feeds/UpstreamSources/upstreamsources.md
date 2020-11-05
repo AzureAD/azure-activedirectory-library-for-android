@@ -93,3 +93,15 @@ Android-Complete (This project): Refers to the AndroidADAL feed as do:
 ## OneAuth
 
 OneAuth has multiple gradle root projects which refer to the OneAuthAndroid feed
+
+# Upstream Sources Quirks
+
+- Only packages that are tagged as release or pre-release are visible via upstream sources
+- SNAPSHOT releases are not visibile via upstream sources
+- Synchronization between a feed and an upstream feed occurs approximately every 3-6 hours, but is not under our control
+
+# Upstream sources for open source projects public maven
+
+You can use an Azure DevOps feeds to cache packages from publich maven repositories.  This provides caching for public maven feeds that may not be reliable. 
+
+> Note: We have not currently configured this.
