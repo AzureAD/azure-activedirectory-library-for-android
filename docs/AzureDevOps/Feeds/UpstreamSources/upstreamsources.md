@@ -95,10 +95,16 @@ Android-Complete (This project): Refers to the AndroidADAL feed as do:
 
 OneAuth has multiple gradle root projects which refer to the OneAuthAndroid feed
 
+# SNAPSHOT
+
+SNAPSHOT builds are maven packages that represent the latest code.  Unfortunately Azure DevOps does not currently support using upstream sources relative to packages that have the SNAPSHOT suffix.  
+
+You can read more about SNAPSHOT versions as part of the maven documentaion here: [https://maven.apache.org/guides/getting-started/index.html#What_is_a_SNAPSHOT_version](https://maven.apache.org/guides/getting-started/index.html#What_is_a_SNAPSHOT_version)
+
 # Upstream Sources Quirks
 
 - Only packages that are tagged as release or pre-release are visible via upstream sources
-- SNAPSHOT releases are not visibile via upstream sources
+- SNAPSHOT releases are not visibile via upstream sources see note in the following: [https://docs.microsoft.com/en-us/azure/devops/artifacts/maven/upstream-sources?view=azure-devops](https://docs.microsoft.com/en-us/azure/devops/artifacts/maven/upstream-sources?view=azure-devops)
 - Synchronization between a feed and an upstream feed occurs approximately every 3-6 hours, but is not under our control
 
 # Upstream sources for open source projects public maven
