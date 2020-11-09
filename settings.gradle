@@ -38,8 +38,10 @@ project(':msalcpptesthost').projectDir = new File('msalcpp/test/android/testhost
 //project(':tsl').projectDir = new File('tsl/tokenshare')
 
 // Authenticator projects
-include ':app', ':NgcProviderLibrary', ':AadRemoteNgcLibrary', ':SharedCoreLibrary', ':TestUtilitiesLibrary',
-      ':3rdparty', ':VerifiableCredential-SDK', ':VerifiableCredential-Wallet', ':CommonUiLibrary', ':ReactNativeLibrary', ':GraphClient', ':LocationLibrary',':Brooklyn', ':MsaAccountLibrary'
+include ':app', ':NgcProviderLibrary', ':AadRemoteNgcLibrary', ':SharedCoreLibrary',
+        ':TestUtilitiesLibrary', ':3rdparty', ':VerifiableCredential-SDK',
+        ':VerifiableCredential-Wallet', ':CommonUiLibrary', ':ReactNativeLibrary', ':GraphClient',
+        ':LocationLibrary', ':Brooklyn', ':MsaAccountLibrary', 'RootDetectionLibrary'
 project(':app').projectDir = new File('authenticator/PhoneFactor/app')
 project(':NgcProviderLibrary').projectDir = new File('authenticator/PhoneFactor/NgcProviderLibrary')
 project(':AadRemoteNgcLibrary').projectDir = new File('authenticator/PhoneFactor/AadRemoteNgcLibrary')
@@ -54,3 +56,4 @@ project(':ReactNativeLibrary').projectDir = new File('authenticator/PhoneFactor/
 project(':GraphClient').projectDir = new File('authenticator/PhoneFactor/GraphClient')
 project(':LocationLibrary').projectDir = new File('authenticator/PhoneFactor/LocationLibrary')
 project(':Brooklyn').projectDir = new File('authenticator/PhoneFactor/Brooklyn')
+project(':RootDetectionLibrary').projectDir = new File('authenticator/PhoneFactor/RootDetectionLibrary')
