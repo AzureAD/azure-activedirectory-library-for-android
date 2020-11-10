@@ -23,7 +23,7 @@
 -keep,includedescriptorclasses class com.microsoft.identity.common.internal.broker.** { *; }
 -keep,includedescriptorclasses class com.microsoft.identity.common.internal.cache.** { *; }
 -keep,includedescriptorclasses class com.microsoft.identity.logging.internal.dto.** { *; }
--keep,includedescriptorclasses class com.microsoft.identity.internal.logging.** { *; }
+-keep,includedescriptorclasses class com.microsoft.identity.common.internal.logging.** { *; }
 -keep,includedescriptorclasses class com.microsoft.identity.common.internal.providers.** { *; }
 -keep,includedescriptorclasses class com.microsort.identity.common.internal.telemtery.** { *; }
 -keep,includedescriptorclasses class com.microsoft.identity.common.adal.internal.** { *;}
