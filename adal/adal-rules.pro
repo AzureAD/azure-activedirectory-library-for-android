@@ -19,6 +19,7 @@
 -dontskipnonpubliclibraryclasses
 
 ##---------------Begin: proguard configuration for Common  --------
+-keep,includedescriptorclasses class com.microsoft.aad.adal.** { *; }
 -keep,includedescriptorclasses class com.microsoft.identity.common.exception.** { *; }
 -keep,includedescriptorclasses class com.microsoft.identity.common.internal.broker.** { *; }
 -keep,includedescriptorclasses class com.microsoft.identity.common.internal.cache.** { *; }
