@@ -22,12 +22,11 @@
 -keep,includedescriptorclasses class com.microsoft.identity.common.exception.** { *; }
 -keep,includedescriptorclasses class com.microsoft.identity.common.internal.broker.** { *; }
 -keep,includedescriptorclasses class com.microsoft.identity.common.internal.cache.** { *; }
--keep,includedescriptorclasses class com.microsoft.identity.common.logging.internal.dto.** { *; }
+-keep,includedescriptorclasses class com.microsoft.identity.common.internal.dto.** { *; }
 -keep,includedescriptorclasses class com.microsoft.identity.common.internal.logging.** { *; }
 -keep,includedescriptorclasses class com.microsoft.identity.common.internal.providers.** { *; }
 -keep,includedescriptorclasses class com.microsort.identity.common.internal.telemtery.** { *; }
 -keep,includedescriptorclasses class com.microsoft.identity.common.adal.internal.** { *;}
--keep,includedescriptorclasses class com.microsoft.identity.common.internal.ui.** { *; }
 -dontwarn com.microsoft.identity.common.internal.ui.**
 -keep,includedescriptorclasses class com.microsoft.device.display.** { *; }
 -keep,includedescriptorclasses class com.microsoft.workaccount.** { *; }
