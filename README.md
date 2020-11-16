@@ -38,7 +38,7 @@ Note: A corpnet account is required to view the VSTS build.
 
 ## Versions
 
-Current version - 3.1.1
+Current version - 3.1.2
 
 Minimum recommended version - 1.16.3-hf1
 

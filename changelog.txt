@@ -1,3 +1,9 @@
+Version 3.1.2
+-------------
+- Android changes for SDK30, see [the android developers notice](https://android-developers.googleblog.com/2020/07/preparing-your-build-for-package-visibility-in-android-11.html).
+- Updates common dependency to 3.0.6
+    * Provides Android 11 support fixes; see common@3.0.6 changelog for details.
+
 Version 3.1.1
 -------------
 - Fix ADAL/1073 - Explicitly disable Content Provider access from WebViews
@@ -364,4 +370,3 @@ Version 1.0.3
 Release Date: 10-3-2014
 * Dismiss spinner to resolve some UI issues
 * Use broker signature and authenticator type for checks. Get broker package from authenticator.
-

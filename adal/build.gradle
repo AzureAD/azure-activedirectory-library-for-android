@@ -1,5 +1,4 @@
 apply plugin: 'com.android.library'
-apply plugin: 'findbugs'
 apply plugin: 'pmd'
 apply plugin: 'checkstyle'
 apply plugin: 'maven-publish'
@@ -42,7 +41,6 @@ buildscript {
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
 
     defaultConfig {
         minSdkVersion rootProject.ext.minSdkVersion
@@ -118,13 +116,6 @@ android {
 }
 
 dependencies {
-    // Dependencies required only at compile time
-    compileOnly 'com.google.code.findbugs:annotations:3.0.1', {
-        // Need to exclude these, or build is broken by:
-        //   com.android.dex.DexException: Multiple dex files define Ljavax/annotation/CheckForNull
-        exclude module: 'jsr305'
-        exclude module: 'jcip-annotations'
-    }
 
     // Dependencies
     implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
@@ -139,10 +130,10 @@ dependencies {
         transitive = false
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '2.1.1', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.0.6', changing: true)
 
     // 'dist' flavor dependencies
-    distApi("com.microsoft.identity:common:2.1.1") {
+    distApi("com.microsoft.identity:common:3.0.6") {
         transitive = false
     }
 
@@ -298,29 +289,6 @@ artifacts {
     archives sourcesJar
 }
 
-findbugs {
-    ignoreFailures = false
-    reportsDir = file("$project.buildDir/outputs/")
-    reportLevel = "medium"
-    effort = "max"
-}
-
-task findbugs(type: FindBugs) {
-    description 'Run findbugs'
-    group 'verification'
-
-    classes = fileTree("$project.buildDir/intermediates/classes/local/debug/")
-    source = fileTree('src/main/java')
-    classpath = files()
-    effort = 'max'
-    excludeFilter = file("../config/findbugs/exclude.xml")
-
-    reports {
-        xml.enabled = false
-        html.enabled = true
-    }
-}
-
 pmd {
     ignoreFailures = false
     reportsDir = file("$project.buildDir/outputs/")
@@ -361,7 +329,6 @@ task checkstyle(type: Checkstyle) {
 tasks.whenTaskAdded { task ->
     if (task.name == 'assembleDebug' || task.name == 'assembleRelease') {
         task.dependsOn 'checkstyle', 'pmd', 'lint'
-        task.finalizedBy 'findbugs'
     }
 }
 
