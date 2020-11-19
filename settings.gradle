@@ -41,13 +41,14 @@ project(':msalcpptesthost').projectDir = new File('msalcpp/test/android/testhost
 include ':app', ':NgcProviderLibrary', ':AadRemoteNgcLibrary', ':SharedCoreLibrary',
         ':TestUtilitiesLibrary', ':3rdparty', ':VerifiableCredential-SDK',
         ':VerifiableCredential-Wallet', ':CommonUiLibrary', ':ReactNativeLibrary', ':GraphClient',
-        ':LocationLibrary', ':Brooklyn', ':MsaAccountLibrary', 'RootDetectionLibrary'
+        ':LocationLibrary', ':Brooklyn', ':MsaAccountLibrary', 'RootDetectionLibrary', ":MfaLibrary"
 project(':app').projectDir = new File('authenticator/PhoneFactor/app')
 project(':NgcProviderLibrary').projectDir = new File('authenticator/PhoneFactor/NgcProviderLibrary')
 project(':AadRemoteNgcLibrary').projectDir = new File('authenticator/PhoneFactor/AadRemoteNgcLibrary')
 project(':SharedCoreLibrary').projectDir = new File('authenticator/PhoneFactor/SharedCoreLibrary')
 project(':TestUtilitiesLibrary').projectDir = new File('authenticator/PhoneFactor/TestUtilitiesLibrary')
 project(':3rdparty').projectDir = new File('authenticator/PhoneFactor/3rdparty')
+project(':MfaLibrary').projectDir = new File('authenticator/PhoneFactor/MfaLibrary')
 project(':MsaAccountLibrary').projectDir = new File('authenticator/PhoneFactor/MsaAccountLibrary/')
 project(':VerifiableCredential-SDK').projectDir = new File('authenticator/PhoneFactor/VerifiableCredential-SDK/sdk')
 project(':VerifiableCredential-Wallet').projectDir = new File('authenticator/PhoneFactor/VerifiableCredential-WALLET')
