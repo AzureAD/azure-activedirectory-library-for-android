@@ -7,8 +7,8 @@ sudo: true
 # Build Variables
 env:
   global:
-    - BUILD_TOOLS_VERSION=28.0.3
-    - COMPILE_SDK_VERSION=28
+    - BUILD_TOOLS_VERSION=29.0.3
+    - COMPILE_SDK_VERSION=29
     - EMULATOR_API_VERSION=21
 
     # This is to guarantee a clean gradle log
@@ -31,6 +31,15 @@ android:
 
 before_install:
   - chmod +x gradlew
+  - yes | $ANDROID_BIN/sdkmanager --install "tools" --sdk_root=$ANDROID_HOME --no_https --verbose | grep -v = || true
+  - yes | $ANDROID_BIN/sdkmanager --install "platforms;android-29" --sdk_root=$ANDROID_HOME --no_https --verbose | grep -v = || true
+  - yes | $ANDROID_BIN/sdkmanager --install "build-tools;29.0.3" --sdk_root=$ANDROID_HOME --no_https --verbose | grep -v = || true
+  - yes | $ANDROID_BIN/sdkmanager --install "system-images;android-29;default;x86_64" --sdk_root=$ANDROID_HOME --no_https --verbose | grep -v = || true
+  - $ANDROID_BIN/sdkmanager --update --sdk_root=$ANDROID_HOME --no_https --verbose
+  - travis_retry sudo -E apt-get -yq --no-install-suggests --no-install-recommends install bridge-utils libpulse0 libvirt-bin qemu-kvm virtinst ubuntu-vm-builder
+  - sudo adduser $USER libvirt
+  - sudo adduser $USER kvm
+
 
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
