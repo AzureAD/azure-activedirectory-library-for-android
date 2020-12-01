@@ -5,6 +5,7 @@ buildscript {
         google()
         jcenter()
     }
+
     dependencies {
         classpath "com.android.tools.build:gradle:$rootProject.ext.gradleVersion"
         classpath "net.serenity-bdd:serenity-gradle-plugin:1.9.6"
