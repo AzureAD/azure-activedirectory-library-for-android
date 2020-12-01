@@ -143,6 +143,7 @@ dependencies {
     androidTestImplementation "androidx.test:rules:$rootProject.ext.rulesVersion"
     androidTestImplementation "org.mockito:mockito-core:$rootProject.ext.mockitoCoreVersion"
     androidTestImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
+    testImplementation "org.jacoco:jacoco-maven-plugin:0.7.9"
 
     // Test Dependencies
     testImplementation "junit:junit:$rootProject.ext.junitVersion"
