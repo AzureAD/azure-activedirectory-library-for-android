@@ -1,12 +1,11 @@
 buildscript {
     apply from: rootProject.file("gradle/versions.gradle")
-    println rootProject
 
     repositories {
         google()
         jcenter()
     }
-    println "com.android.tools.build:gradle:$rootProject.ext.gradleVersion"
+
     dependencies {
         classpath "com.android.tools.build:gradle:$rootProject.ext.gradleVersion"
         classpath "net.serenity-bdd:serenity-gradle-plugin:1.9.6"
