@@ -33,6 +33,9 @@ build/
 gradle.properties
 local.properties
 
+#nodejs
+node_modules
+
 # OSX file
 .DS_Store
 

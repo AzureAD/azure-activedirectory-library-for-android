@@ -1,0 +1,71 @@
+#
+# THIS IS A GENERATED-FILE.  DO NOT EDIT DIRECTLY
+#
+FROM {{dockerBaseImage}} as BASE
+USER root
+ENV SDK_URL="{{androidCommandLineUtilsUrl}}" \
+    ANDROID_HOME="/usr/local/android-sdk" \
+    CMAKE_BIN_URL="{{cmakeBinUrl}}{{cmakeBinFile}}" \
+    CMAKE_TAR_FILE="{{cmakeBinFile}}" \
+    CMAKE_HOME="/usr/local/cmake" \
+    CMAKE_HOME_BIN="/usr/local/cmake/{{cmakeBinFolder}}/bin" \
+    NINJA_BIN_URL="{{ninjaBinUrl}}" \
+    NINJA_ZIP_FILE="{{ninjaZipFile}}"
+RUN cd ~/.gradle \
+    && touch gradle.properties \
+    && printf "vstsUsername=VSTS\n" >> gradle.properties \
+    && printf "vstsMavenAccessToken=mz3rbwtljuo7g5dt3l4nprqsbtnciuxezzslkuzv6267qka5zv4q\n" >> gradle.properties
+RUN apt-get update \
+    &&  apt-get -y install build-essential
+# Download Android SDK and Fix SDKManager for JDK 11
+RUN mkdir "$ANDROID_HOME" .android \
+    && cd "$ANDROID_HOME" \
+    && curl -o sdk.zip $SDK_URL \
+    && unzip sdk.zip \
+    && rm sdk.zip \
+    && mkdir "$ANDROID_HOME/licenses" || true \
+    && echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > "$ANDROID_HOME/licenses/android-sdk-license"
+RUN cd "$ANDROID_HOME"/tools \
+    && mkdir jaxb_lib \ 
+    && wget https://repo1.maven.org/maven2/javax/activation/activation/1.1.1/activation-1.1.1.jar -O jaxb_lib/activation.jar \
+    && wget https://repo1.maven.org/maven2/com/sun/xml/bind/jaxb-impl/2.3.3/jaxb-impl-2.3.3.jar -O jaxb_lib/jaxb-impl.jar \
+    && wget https://repo1.maven.org/maven2/com/sun/istack/istack-commons-runtime/3.0.11/istack-commons-runtime-3.0.11.jar -O jaxb_lib/istack-commons-runtime.jar \
+    && wget https://repo1.maven.org/maven2/org/glassfish/jaxb/jaxb-xjc/2.3.3/jaxb-xjc-2.3.3.jar -O jaxb_lib/jaxb-xjc.jar \
+    && wget https://repo1.maven.org/maven2/org/glassfish/jaxb/jaxb-core/2.3.0.1/jaxb-core-2.3.0.1.jar -O jaxb_lib/jaxb-core.jar \
+    && wget https://repo1.maven.org/maven2/org/glassfish/jaxb/jaxb-jxc/2.3.3/jaxb-jxc-2.3.3.jar -O jaxb_lib/jaxb-jxc.jar \
+    && wget https://repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.3.1/jaxb-api-2.3.1.jar -O jaxb_lib/jaxb-api.jar \
+    && sed -ie 's%^CLASSPATH=.*%\0:$APP_HOME/jaxb_lib/*%' bin/sdkmanager bin/avdmanager
+RUN apt install -yq --no-install-suggests --no-install-recommends qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils
+# GET CMAKE and NINJA
+RUN wget -nv $CMAKE_BIN_URL
+RUN mkdir $CMAKE_HOME
+RUN tar -zxf $CMAKE_TAR_FILE --directory $CMAKE_HOME
+RUN wget $NINJA_BIN_URL
+RUN unzip $NINJA_ZIP_FILE
+RUN cp ninja $CMAKE_HOME_BIN/ninja
+
+FROM BASE as DBI_UNIT
+USER root
+ENV PATH="/usr/local/cmake/{{cmakeBinFolder}}/bin:/usr/local/android-sdk/emulator:/usr/local/android-sdk/tools:/usr/local/android-sdk/tools/bin:/usr/local/android-sdk/platform-tools:${PATH}" \
+    ANDROID_HOME="/usr/local/android-sdk" \
+    ANDROID_VERSION={{androidApiLevel}} \
+    ANDROID_BUILD_TOOLS_VERSION={{androidBuildToolsVersion}} \
+    ANDROID_NDK_VERSION={{androidNdkVersion}}
+# Install Android Build Tool and Libraries
+RUN $ANDROID_HOME/tools/bin/sdkmanager --update
+RUN touch /root/.android/repositories.cfg
+RUN $ANDROID_HOME/tools/bin/sdkmanager "build-tools;${ANDROID_BUILD_TOOLS_VERSION}" \
+    "platforms;android-${ANDROID_VERSION}" \
+    "platform-tools" \
+    "${ANDROID_NDK_VERSION}" \
+    "emulator" 
+
+FROM DBI_UNIT as DBI_INSTRUMENTED
+USER root
+ENV ANDROID_HOME="/usr/local/android-sdk" \
+    SYSTEM_IMAGE="system-images;android-{{androidApiLevel}};{{androidImageVariant}};{{androidImageAbi}}" \
+    SYSTEM_IMAGE_TAG="{{androidImageVariant}}"
+RUN apt-get -y install qt5-default
+RUN $ANDROID_HOME/tools/bin/sdkmanager "emulator"
+RUN yes | $ANDROID_HOME/tools/bin/sdkmanager $SYSTEM_IMAGE
+RUN echo no | $ANDROID_HOME/tools/bin/avdmanager create avd --force -g $SYSTEM_IMAGE_TAG -n test -k $SYSTEM_IMAGE

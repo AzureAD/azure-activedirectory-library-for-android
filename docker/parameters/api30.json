@@ -1,0 +1,14 @@
+{
+    "dockerBaseImage": "gradle:6.7.1-jdk11",
+    "androidCommandLineUtilsUrl": "https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip",
+    "androidApiLevel": "30",
+    "androidBuildToolsVersion": "30.0.2",
+    "androidNdkVersion": "ndk;21.1.6352462",
+    "androidImageVariant": "google_apis",
+    "androidImageAbi": "x86_64",
+    "cmakeBinUrl": "https://github.com/Kitware/CMake/releases/download/v3.18.5/",
+    "cmakeBinFile": "cmake-3.18.5-Linux-x86_64.tar.gz",
+    "cmakeBinFolder": "cmake-3.18.5-Linux-x86_64",
+    "ninjaBinUrl": "https://github.com/ninja-build/ninja/releases/download/v1.10.2/ninja-linux.zip",
+    "ninjaZipFile": "ninja-linux.zip"
+}
