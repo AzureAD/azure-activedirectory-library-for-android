@@ -9,6 +9,8 @@ pool:
 workspace:
   clean: all
 steps:
+- checkout: self
+  submodules: true
 - script: |
     docker --version
     echo =============================================
