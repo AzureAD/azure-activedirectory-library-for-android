@@ -9,5 +9,5 @@ gradle -version
 echo =============================================
 echo Running instrumented tests
 echo =============================================
-gradle adal:connectedDebugAndroidTest -i
+gradle adal:connectedLocalDebugAndroidTest -i
 
