@@ -40,9 +40,19 @@ buildscript {
 }
 
 android {
+
+    compileOptions {
+        // Flag to enable support for the new language APIs
+        coreLibraryDesugaringEnabled true
+        // Sets Java compatibility to Java 8
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
     compileSdkVersion rootProject.ext.compileSdkVersion
 
     defaultConfig {
+        multiDexEnabled true
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode getAppVersionCode()
@@ -55,12 +65,14 @@ android {
         debug {
             testCoverageEnabled false
             debuggable true
+            buildConfigField("String", "VERSION_NAME", "\"${versionName}\"")
 
         }
         release {
             minifyEnabled false
             debuggable false
             proguardFiles getDefaultProguardFile('proguard-android.txt')
+            buildConfigField("String", "VERSION_NAME", "\"${versionName}\"")
         }
     }
 
@@ -117,6 +129,8 @@ android {
 
 dependencies {
 
+    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
+
     // Dependencies
     implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
@@ -141,7 +155,6 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$rootProject.ext.androidxJunitVersion"
     androidTestImplementation "androidx.test:runner:$rootProject.ext.runnerVersion"
     androidTestImplementation "androidx.test:rules:$rootProject.ext.rulesVersion"
-    androidTestImplementation "org.mockito:mockito-core:$rootProject.ext.mockitoCoreVersion"
     androidTestImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
 
     // Test Dependencies
