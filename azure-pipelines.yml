@@ -10,7 +10,7 @@ workspace:
   clean: all
 steps:
 - checkout: self
-  submodules: true
+  submodules: recursive
 - script: |
     docker --version
     echo =============================================
