@@ -10,6 +10,9 @@ ext {
     // Plugins
     gradleVersion = '4.1.0'
     androidMavenGradlePluginVersion = "1.4.1"
+    
+    //Java Language Support
+    coreLibraryDesugaringVersion = "1.0.9"
 
     // Libraries
     androidxTestRunnerVersion = "1.2.0"
