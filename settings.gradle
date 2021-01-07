@@ -13,7 +13,7 @@ rootProject.name = 'android_auth'
 include ':adal', ':msal', ':common', ':AADAuthenticator',
         ':brokerHost', ':adalTestApp', ':msalTestApp', ':package-inspector', ':pop-benchmarker',
         ':labapi', ':keyvault', ':testutils', 'msalautomationapp', 'uiautomationutilities', 'brokerautomationapp',
-        ':oneauth', ':oneauthtestapp', ':msalcpp', ':msalcpptestapp', ':msalcpptesthost'//, ':tsl', ':AzureSample',
+        ':oneauth', ':oneauthtestapp', ':msalcpptesthost'//, ':tsl', ':AzureSample',
 project(':adal').projectDir = new File('adal/adal')
 project(':msal').projectDir = new File('msal/msal')
 project(':common').projectDir = new File('common/common')
@@ -32,12 +32,11 @@ project(':uiautomationutilities').projectDir = new File('common/uiautomationutil
 project(':brokerautomationapp').projectDir = new File('broker/brokerautomationapp')
 project(':oneauth').projectDir = new File('oneauth/sources/android/gradle')
 project(':oneauthtestapp').projectDir = new File('oneauth/testapps/android/oneauthtestapp/app')
-project(':msalcpp').projectDir = new File('msalcpp/source/android/msal/app')
-project(':msalcpptestapp').projectDir = new File('msalcpp/source/android/msal/testapp')
 project(':msalcpptesthost').projectDir = new File('msalcpp/test/android/testhost/app')
 //project(':tsl').projectDir = new File('tsl/tokenshare')
 
 // Authenticator projects
+/*
 include ':app', ':NgcProviderLibrary', ':AadRemoteNgcLibrary', ':SharedCoreLibrary',
         ':TestUtilitiesLibrary', ':3rdparty', ':VerifiableCredential-SDK',
         ':VerifiableCredential-Wallet', ':CommonUiLibrary', ':ReactNativeLibrary', ':GraphClient',
@@ -58,3 +57,4 @@ project(':GraphClient').projectDir = new File('authenticator/PhoneFactor/GraphCl
 project(':LocationLibrary').projectDir = new File('authenticator/PhoneFactor/LocationLibrary')
 project(':Brooklyn').projectDir = new File('authenticator/PhoneFactor/Brooklyn')
 project(':RootDetectionLibrary').projectDir = new File('authenticator/PhoneFactor/RootDetectionLibrary')
+*/
