@@ -113,10 +113,6 @@ ENV SDK_URL="{{androidCommandLineUtilsUrl}}" \
     CMAKE_HOME_BIN="/usr/local/cmake/{{cmakeBinFolder}}/bin" \
     NINJA_BIN_URL="{{ninjaBinUrl}}" \
     NINJA_ZIP_FILE="{{ninjaZipFile}}"
-RUN cd ~/.gradle \
-    && touch gradle.properties \
-    && printf "vstsUsername=VSTS\n" >> gradle.properties \
-    && printf "vstsMavenAccessToken=mz3rbwtljuo7g5dt3l4nprqsbtnciuxezzslkuzv6267qka5zv4q\n" >> gradle.properties
 RUN apt-get update \
     &&  apt-get -y install build-essential
 # Download Android SDK and Fix SDKManager for JDK 11
