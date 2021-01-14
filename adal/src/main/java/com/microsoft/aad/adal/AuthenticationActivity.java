@@ -57,6 +57,7 @@ import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
 import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.ui.DualScreenActivity;
 
@@ -89,7 +90,6 @@ import static com.microsoft.aad.adal.AuthenticationConstants.Broker.ACCOUNT_USER
 import static com.microsoft.aad.adal.AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID;
 import static com.microsoft.aad.adal.AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID;
 import static com.microsoft.aad.adal.AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE;
-import static com.microsoft.aad.adal.AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_SIGNATURE;
 import static com.microsoft.aad.adal.AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
 import static com.microsoft.aad.adal.AuthenticationConstants.Broker.BROKER_REQUEST;
 import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CALLER_CACHEKEY_PREFIX;
@@ -399,19 +399,9 @@ public class AuthenticationActivity extends DualScreenActivity {
                 return true;
             }
 
-            final String signature = info.getCurrentSignatureForPackage(packageName);
+            final BrokerValidator brokerValidator = new BrokerValidator(this);
 
-            Logger.verbose(TAG + methodName, "Checking broker signature.");
-            Logger.verbosePII(
-                    TAG + methodName,
-                    "Check signature for " + packageName
-                            + " signature:" + signature
-                            + " brokerSignature:" + AuthenticationSettings.INSTANCE.getBrokerSignature()
-            );
-
-            return signature.equals(AuthenticationSettings.INSTANCE.getBrokerSignature())
-                    || signature
-                    .equals(AZURE_AUTHENTICATOR_APP_SIGNATURE);
+            return brokerValidator.verifySignature(packageName);
         }
 
         return false;
