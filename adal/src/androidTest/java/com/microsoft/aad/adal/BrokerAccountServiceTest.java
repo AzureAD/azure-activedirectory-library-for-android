@@ -49,6 +49,7 @@ import junit.framework.Assert;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -187,6 +188,7 @@ public final class BrokerAccountServiceTest {
         latch.await();
     }
 
+    @Ignore
     @Test
     public void testGetAuthTokenVerifyNoNetwork() throws InterruptedException, AuthenticatorException, OperationCanceledException, IOException {
         final CountDownLatch latch = new CountDownLatch(1);

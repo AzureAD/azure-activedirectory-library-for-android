@@ -35,6 +35,7 @@ import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 import junit.framework.Assert;
 
 import org.json.JSONException;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -151,6 +152,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
                 .getAuthority().trim());
     }
 
+    @Ignore
     @Test
     public void testParseResponsePositive() throws ClassNotFoundException,
             IllegalArgumentException, IllegalAccessException, InvocationTargetException {
