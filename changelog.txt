@@ -1,3 +1,7 @@
+v.Next
+----------
+- Fixes for MFA setup using Authenticator app.(#1579)
+
 Version 3.1.2
 -------------
 - Android changes for SDK30, see [the android developers notice](https://android-developers.googleblog.com/2020/07/preparing-your-build-for-package-visibility-in-android-11.html).
