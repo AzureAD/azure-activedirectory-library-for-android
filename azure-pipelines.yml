@@ -24,6 +24,10 @@ steps:
   displayName: 'Build and test inside docker container'
 - script: |
     echo =============================================
+    echo Kill all running containers if existing
+    echo =============================================
+    docker container kill $(docker ps -q)
+    echo =============================================
     echo Cleaning up build output that is owned by docker user rather than agent user
     echo =============================================
     docker run --privileged --cpus="3" --memory="12g" -v "$PWD":/home/gradle/ -w /home/gradle/ authclient.azurecr.io/samples/dbi-instrumented-api30 gradle clean
