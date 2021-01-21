@@ -160,7 +160,6 @@ abstract class BasicWebViewClient extends WebViewClient {
                                 final int errorCode,
                                 @NonNull final String description,
                                 @NonNull final String failingUrl) {
-        super.onReceivedError(view, errorCode, description, failingUrl);
         sendErrorResponse(errorCode, description);
     }
 
@@ -169,7 +168,6 @@ abstract class BasicWebViewClient extends WebViewClient {
     public void onReceivedError(@NonNull final WebView view,
                                 @NonNull final WebResourceRequest request,
                                 @NonNull WebResourceError error) {
-        super.onReceivedError(view, request, error);
         sendErrorResponse(error.getErrorCode(), error.getDescription().toString());
     }
 
