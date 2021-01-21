@@ -466,11 +466,12 @@ abstract class BasicWebViewClient extends WebViewClient {
             view.stopLoading();
             if (!(url.startsWith(PLAY_STORE_INSTALL_PREFIX + COMPANY_PORTAL_PROD_APP_PACKAGE_NAME))
                     && !(url.startsWith(PLAY_STORE_INSTALL_PREFIX + AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME))) {
+                Logger.info(TAG + methodName, "The URI is either trying to open an unknown application or contains unknown query parameters");
                 return false;
             }
             final String appPackageName = (url.contains(COMPANY_PORTAL_PROD_APP_PACKAGE_NAME) ?
                     COMPANY_PORTAL_PROD_APP_PACKAGE_NAME : AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME);
-            Logger.verbose(TAG + methodName, "Request to open PlayStore.");
+            Logger.verbose(TAG + methodName, "Request to open PlayStore to install : '" + appPackageName + "'");
 
             try {
                 final Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_STORE_INSTALL_PREFIX + appPackageName));
@@ -484,7 +485,7 @@ abstract class BasicWebViewClient extends WebViewClient {
             return true;
         } else if (url.toLowerCase(Locale.US).startsWith(AuthenticationConstants.Broker.AUTHENTICATOR_MFA_LINKING)) {
 
-            Logger.verbose(TAG + methodName, "Linking Account in Broker for MFA.");
+            Logger.verbose(TAG + methodName, "Linking Account in Authenticator to complete MFA setup.");
             try {
                 final Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                 intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
