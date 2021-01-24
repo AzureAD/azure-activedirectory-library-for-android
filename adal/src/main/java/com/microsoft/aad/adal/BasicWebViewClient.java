@@ -27,15 +27,19 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.net.http.SslError;
+import android.os.Build;
 import android.text.TextUtils;
 import android.view.View;
 import android.webkit.HttpAuthHandler;
 import android.webkit.SslErrorHandler;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 
 import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
@@ -152,11 +156,23 @@ abstract class BasicWebViewClient extends WebViewClient {
     }
 
     @Override
-    public void onReceivedError(final WebView view,
+    public void onReceivedError(@NonNull final WebView view,
                                 final int errorCode,
-                                final String description,
-                                final String failingUrl) {
-        super.onReceivedError(view, errorCode, description, failingUrl);
+                                @NonNull final String description,
+                                @NonNull final String failingUrl) {
+        sendErrorResponse(errorCode, description);
+    }
+
+    @Override
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    public void onReceivedError(@NonNull final WebView view,
+                                @NonNull final WebResourceRequest request,
+                                @NonNull WebResourceError error) {
+        sendErrorResponse(error.getErrorCode(), error.getDescription().toString());
+    }
+
+    private void sendErrorResponse(final int errorCode,
+                                   @NonNull final String description) {
         showSpinner(false);
 
         com.microsoft.identity.common.internal.logging.Logger.errorPII(

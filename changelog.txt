@@ -1,5 +1,6 @@
-v.Next
-----------
+vNext
+-------------
+- Adds API23 WebViewClient#onReceivedError overload (#1580)
 - Changes to Broker Validation to allow setting whether to trust debug brokers (prod brokers are always trusted).
 
 Version 3.1.2
