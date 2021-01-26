@@ -68,6 +68,7 @@ git droidSetup
 3. Open Android Studio and open project from the folder you cloned into (project: android_auth)
 4. Update your build variants to point to use localDebug.  See more in the next section.
 5. Install [Lombok Plugin](https://plugins.jetbrains.com/plugin/6317-lombok) in Android Studio.
+6. (OSX only) Install [Powershell](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-core-on-macos?view=powershell-7.1)
 
 ## Build Variants
 
