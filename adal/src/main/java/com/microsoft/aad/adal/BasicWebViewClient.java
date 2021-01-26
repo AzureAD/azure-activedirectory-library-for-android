@@ -483,12 +483,12 @@ abstract class BasicWebViewClient extends WebViewClient {
             }
 
             return true;
-        } else if (url.toLowerCase(Locale.US).startsWith(AuthenticationConstants.Broker.AUTHENTICATOR_MFA_LINKING)) {
+        } else if (url.toLowerCase(Locale.US).startsWith(AuthenticationConstants.Broker.AUTHENTICATOR_MFA_LINKING_PREFIX)) {
 
             Logger.verbose(TAG + methodName, "Linking Account in Authenticator to complete MFA setup.");
             try {
                 final Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 mCallingContext.startActivity(intent);
             } catch (android.content.ActivityNotFoundException e) {
                 Logger.error(TAG, "Failed to open the Authenticator application.", e);
