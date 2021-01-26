@@ -94,26 +94,26 @@ We already have an application registered in the Microsoft directory and that ap
 After following the lab setup steps declared earlier in this doc, you should be able to run all the tests that use the Lab Api. If you encounter any issues with the certificate, it is possible that the certificate has expired. Read through the below steps to get a new certificate.
 
 **How to check certificate information about a registered application:**
-	1. Go to Azure Portal: https://portal.azure.com/ and login with MS credentials
-	2. Switch to the Microsoft directory (if not already there)
-	3. Go the App Registrations and search for your app (in this case search for AutomationRunner)
-	4. Click into the AutomationRunner app to view details
-	5. In the left pane, under manage, click on Certificates & secrets
-	6. You should see all certificates for this app. Based on the expiration date, you will know if a cert has expired.
-	7. If a cert has expired, you can delete that one and upload a new one (Read below on how to create a new certificate)
+1. Go to Azure Portal: https://portal.azure.com/ and login with MS credentials
+2. Switch to the Microsoft directory (if not already there)
+3. Go the App Registrations and search for your app (in this case search for AutomationRunner)
+4. Click into the AutomationRunner app to view details
+5. In the left pane, under manage, click on Certificates & secrets
+6. You should see all certificates for this app. Based on the expiration date, you will know if a cert has expired.
+7. If a cert has expired, you can delete that one and upload a new one (Read below on how to create a new certificate)
 
 **How to create a new certificate for Lab Api via Azure Portal (preferred way):**
-	1. Go to Azure Portal: https://portal.azure.com/ and login with MS credentials
-	2. Switch to the Microsoft directory (if not already there)
-	3. Search for the KeyVault named "AdalTestInfo" (be sure to select "all" for the subcription, location etc filters) (see screenshot below)
-	4. Click into the AdalTestInfo keyvault (if you don't see this KeyVault, make sure you follow the above steps to get access to the KeyVault)
-	5. Under settings, click on certificates
-	6. Click on Generate/Import
-	7. Choose Generate as method of creation
-	8. Enter a certificate name (could be any name but pick a name relevant to its purpose)
-	9. For Subject, enter: "CN=AutomationRunner"
-	10. Leave the rest of the settings as is and click create.
-	11. Now download this certificate in the PFX/PEM format and upload it to the AutomationRunner application. 
+1. Go to Azure Portal: https://portal.azure.com/ and login with MS credentials
+2. Switch to the Microsoft directory (if not already there)
+3. Search for the KeyVault named "AdalTestInfo" (be sure to select "all" for the subcription, location etc filters) (see screenshot below)
+4. Click into the AdalTestInfo keyvault (if you don't see this KeyVault, make sure you follow the above steps to get access to the KeyVault)
+5. Under settings, click on certificates
+6. Click on Generate/Import
+7. Choose Generate as method of creation
+8. Enter a certificate name (could be any name but pick a name relevant to its purpose)
+9. For Subject, enter: "CN=AutomationRunner"
+10. Leave the rest of the settings as is and click create.
+11. Now download this certificate in the PFX/PEM format and upload it to the AutomationRunner application. 
 
 **How to create a new certificate for Lab Api via Powershell:**
 
