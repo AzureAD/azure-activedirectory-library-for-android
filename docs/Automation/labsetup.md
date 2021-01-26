@@ -121,12 +121,12 @@ After following the lab setup steps declared earlier in this doc, you should be 
     `$cert=New-SelfSignedCertificate -Subject "CN=AutomationRunner" -CertStoreLocation "Cert:\CurrentUser\My"  -KeyExportPolicy Exportable -KeySpec Signature`
 2. The certificate should be created in the user certificate store. 
 3. Export the certificate
-	a. Go to Control Panel
-	b. Manage User Certificates
-	c. Personal -> Certificates
-	d. Right click on certificate created in step 1 (AutomationRunner in this case)
-	e. Click on All Tasks -> Export
-	f. Go through the wizard to export the cert and store locally in some folder
+    a. Go to Control Panel
+    b. Manage User Certificates
+    c. Personal -> Certificates
+    d. Right click on certificate created in step 1 (AutomationRunner in this case)
+    e. Click on All Tasks -> Export
+    f. Go through the wizard to export the cert and store locally in some folder
 4. Now go back to Azure Portal and upload this cert to the AutomationRunner application
 
 **How to upload a new certificate for a registered application (AutomationRunner app in our case):**
