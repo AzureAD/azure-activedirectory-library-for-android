@@ -19,7 +19,7 @@ There are two ways to make a client credential grant request:
 
 We support either of these mechanism to authenticate against KeyVault and Lab Api, however, the cert is not suitable for running on Android device is the Security Provider that was used to create it is not available on the device, and therefore the client secret will work in all cases.
 
-**NOTE:** Please note that you must be a Microsoft employee and part of the relevant groups to be able to acquire credentials that are necessary for authenticating against the LAB API. In other words, the LAB API and the tests that utilize it are only going to run successfully if you have the right permissions.
+**NOTE:** Please note that you must be a Microsoft employee and part of the relevant groups to be able to acquire credentials that are necessary for authenticating against the LAB API. In other words, the LAB API and the tests that utilize it are only going to run successfully if supplied with required lab credentials.
 
 ### With Secret - (Recommended for Instrumented Tests)
 
