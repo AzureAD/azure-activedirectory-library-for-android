@@ -51,9 +51,13 @@ import java.security.cert.X509Certificate;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.AUTHENTICATOR_MFA_LINKING_PREFIX;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.COMPANY_PORTAL_PROD_APP_PACKAGE_NAME;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.PLAY_STORE_INSTALL_PREFIX;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Browser.RESPONSE_ERROR_CODE;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -62,6 +66,7 @@ public class BasicWebViewClientTests {
 
     private static final String NONCE = "123123-123213-123";
     private static final String CONTEXT = "ABcdeded";
+    private static final String TEST_REDIRECT_URI = "abc12";
     private static final String TEST_PKEY_AUTH_URL = AuthenticationConstants.Broker.PKEYAUTH_REDIRECT
             + "?Nonce="
             + NONCE
@@ -75,6 +80,14 @@ public class BasicWebViewClientTests {
             AuthenticationConstants.Broker.BROWSER_EXT_PREFIX + "https://graph.microsoft.io";
     private static final String TEST_INSTALL_REQUEST_URL =
             AuthenticationConstants.Broker.BROWSER_EXT_INSTALL_PREFIX + "url";
+    private static final String TEST_PLAY_STORE_INSTALL_AUTH_APP_URL =
+            PLAY_STORE_INSTALL_PREFIX + AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME;
+    private static final String TEST_PLAY_STORE_INSTALL_CP_URL =
+            PLAY_STORE_INSTALL_PREFIX + COMPANY_PORTAL_PROD_APP_PACKAGE_NAME;
+    private static final String TEST_PLAY_STORE_INSTALL_INVALID_APP =
+            PLAY_STORE_INSTALL_PREFIX + "com.azure.xyz";
+    private static final String AUTHENTICATOR_MFA_LINKING_INVALID_URI =
+            AUTHENTICATOR_MFA_LINKING_PREFIX + "xyz";
 
     private WebView mMockWebView;
 
@@ -134,6 +147,50 @@ public class BasicWebViewClientTests {
             }
         };
     }
+
+    @UiThreadTest
+    @Test
+    public void testUrlOverrideHandlesPlayStoreRedirect() {
+        final BasicWebViewClient basicWebViewClient =
+                setUpWebViewClient(
+                        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext(),
+                        TEST_REDIRECT_URI, //not to be set as empty for this testcase.
+                        new AuthenticationRequest(
+                                "NA", // authority
+                                "NA", // resource
+                                "NA", // client
+                                "NA", // redirect
+                                "user", // loginhint,
+                                false
+                        ),
+                        new UIEvent("")
+                );
+        assertTrue(basicWebViewClient.shouldOverrideUrlLoading(mMockWebView, TEST_PLAY_STORE_INSTALL_AUTH_APP_URL));
+        assertTrue(basicWebViewClient.shouldOverrideUrlLoading(mMockWebView,TEST_PLAY_STORE_INSTALL_CP_URL));
+        assertFalse(basicWebViewClient.shouldOverrideUrlLoading(mMockWebView,TEST_PLAY_STORE_INSTALL_INVALID_APP));
+    }
+
+    @UiThreadTest
+    @Test
+    public void testUrlOverrideHandlesAuthMFALinking() {
+        final BasicWebViewClient basicWebViewClient =
+                setUpWebViewClient(
+                        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext(),
+                        TEST_REDIRECT_URI, //not to be set as empty for this testcase.
+                        new AuthenticationRequest(
+                                "NA", // authority
+                                "NA", // resource
+                                "NA", // client
+                                "NA", // redirect
+                                "user", // loginhint,
+                                false
+                        ),
+                        new UIEvent("")
+                );
+        assertTrue(basicWebViewClient.shouldOverrideUrlLoading(mMockWebView, AUTHENTICATOR_MFA_LINKING_INVALID_URI));
+    }
+
+
 
     @UiThreadTest
     @Test

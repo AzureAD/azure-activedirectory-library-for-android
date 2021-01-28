@@ -1,6 +1,7 @@
-vNext
--------------
+v.Next
+----------
 - Adds API23 WebViewClient#onReceivedError overload (#1580)
+- Fixes for MFA setup using Authenticator app.(#1579)
 
 Version 3.1.2
 -------------
