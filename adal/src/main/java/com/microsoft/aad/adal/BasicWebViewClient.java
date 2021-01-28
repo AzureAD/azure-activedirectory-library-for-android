@@ -500,7 +500,6 @@ abstract class BasicWebViewClient extends WebViewClient {
 
             return true;
         } else if (url.toLowerCase(Locale.US).startsWith(AuthenticationConstants.Broker.AUTHENTICATOR_MFA_LINKING_PREFIX)) {
-
             Logger.verbose(TAG + methodName, "Linking Account in Authenticator to complete MFA setup.");
             try {
                 final Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
