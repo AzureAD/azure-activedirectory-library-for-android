@@ -8,6 +8,10 @@ Android MSAL / Broker End-to-End tests that hit the network use the Lab API prov
 
 The code for this swagger client is located here: https://github.com/AzureAD/microsoft-authentication-library-common-for-android/tree/dev/labapi
 
+## How to get access to LAB API
+
+Please visit this URL to learn the process of getting access to the LAB API: https://docs.msidlab.com/labinfo/labaccess.html
+
 ## Authentication
 
 The Lab Api is a protected Api and we need an access token to be able to make request against the Lab Api. Since we use the Lab Api as part of our automated tests, we need to programmatically access the Lab Api as an application (without any context of a user) and thus we need to make a client credentials grant request to the ESTS to obtain an access token for our application that has been given permission to the use the Lab Api. You can find the details about programmatic access here: https://docs.msidlab.com/labapi/intro.html?q=client
