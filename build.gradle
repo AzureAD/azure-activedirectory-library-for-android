@@ -5,6 +5,7 @@ buildscript {
 
     // Authenticator is setting versions of their dependencies in their gradle.properties file.
     // We'll load and merge the values we don't have in our properties file.
+    /*
     Properties props = new Properties()
     props.load(new FileInputStream("authenticator/PhoneFactor/gradle.properties"))
     props.each { prop ->
@@ -12,7 +13,8 @@ buildscript {
             project.ext.set(prop.key, prop.value)
         }
     }
-    
+    */
+
     repositories {
         google()
         jcenter()
@@ -20,11 +22,11 @@ buildscript {
 
     dependencies {
         classpath "com.android.tools.build:gradle:${rootProject.ext.gradleVersion}"
-        classpath "net.serenity-bdd:serenity-gradle-plugin:1.9.6"
-        classpath 'com.google.gms:google-services:3.2.1'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "androidx.navigation:navigation-safe-args-gradle-plugin:${project.ext.get('androidx_navigation_version')}"
-        classpath 'com.google.dagger:hilt-android-gradle-plugin:2.28-alpha'
+    //    classpath "net.serenity-bdd:serenity-gradle-plugin:1.9.6"
+    //    classpath 'com.google.gms:google-services:3.2.1'
+    //    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    //    classpath "androidx.navigation:navigation-safe-args-gradle-plugin:${project.ext.get('androidx_navigation_version')}"
+    //    classpath 'com.google.dagger:hilt-android-gradle-plugin:2.28-alpha'
     }
 }
 
