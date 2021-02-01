@@ -8,7 +8,7 @@ We've written automated tests that can be run to validate our code prior to doin
 
 ### MSAL Release
 
-Run the [MSAL Release Automation Script](https://github.com/AzureAD/android-complete/blob/shahzaibj/msal-release-automation-script/MsalReleaseAutomation.ps1) located in Android-Complete project. 
+Run the [MSAL Release Automation Script](../../MsalReleaseAutomation.ps1) located in Android-Complete project. 
 
 The script can be run as follows:
 
@@ -17,11 +17,11 @@ The script can be run as follows:
 The script takes two arguments as follows:
 
 - **msalVersion** - this is msal version number (typically an RC build) that we are trying to test
-- **labSecret** - the secret required to use LAB API. More details here: [LabSetup.md](https://github.com/AzureAD/android-complete/blob/shahzaibj/msal-release-automation-script/docs/Automation/labsetup.md)
+- **labSecret** - the secret required to use LAB API. More details here: [LabSetup.md](labsetup.md)
 
 ### Broker Release
 
-Run the [Broker Release Automation Script](https://github.com/AzureAD/android-complete/blob/shahzaibj/msal-release-automation-script/BrokerReleaseAutomation.ps1) located in Android-Complete project. 
+Run the [Broker Release Automation Script](../../BrokerReleaseAutomation.ps1) located in Android-Complete project. 
 
 The script can be run as follows:
 
@@ -29,6 +29,6 @@ The script can be run as follows:
 
 The script takes two arguments as follows:
 
-- **labSecret** - the secret required to use LAB API. More details here: [LabSetup.md](https://github.com/AzureAD/android-complete/blob/shahzaibj/msal-release-automation-script/docs/Automation/labsetup.md)
+- **labSecret** - the secret required to use LAB API. More details here: [LabSetup.md](labsetup.md)
 - **authenticatorApkPath** - the path to Authenticator APK pointing to broker version (typically an RC build) that we are trying to test
 - **companyPortalApkPath** - the path to Company Portal APK pointing to broker version (typically an RC build) that we are trying to test
