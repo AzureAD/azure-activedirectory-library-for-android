@@ -63,6 +63,8 @@ import static com.microsoft.aad.adal.AuthenticationConstants.Browser.RESPONSE_RE
 import static com.microsoft.aad.adal.AuthenticationConstants.OAuth2.CODE;
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION;
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.COMPANY_PORTAL_PROD_APP_PACKAGE_NAME;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.PLAY_STORE_INSTALL_PREFIX;
 
 abstract class BasicWebViewClient extends WebViewClient {
 
@@ -474,6 +476,39 @@ abstract class BasicWebViewClient extends WebViewClient {
 
             openLinkInBrowser(parameters.get(INSTALL_URL_KEY));
             view.stopLoading();
+            return true;
+        } else if (url.toLowerCase(Locale.US).startsWith(PLAY_STORE_INSTALL_PREFIX)) {
+
+            view.stopLoading();
+            if (!(url.startsWith(PLAY_STORE_INSTALL_PREFIX + COMPANY_PORTAL_PROD_APP_PACKAGE_NAME))
+                    && !(url.startsWith(PLAY_STORE_INSTALL_PREFIX + AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME))) {
+                Logger.info(TAG + methodName, "The URI is either trying to open an unknown application or contains unknown query parameters");
+                return false;
+            }
+            final String appPackageName = (url.contains(COMPANY_PORTAL_PROD_APP_PACKAGE_NAME) ?
+                    COMPANY_PORTAL_PROD_APP_PACKAGE_NAME : AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME);
+            Logger.verbose(TAG + methodName, "Request to open PlayStore to install : '" + appPackageName + "'");
+
+            try {
+                final Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_STORE_INSTALL_PREFIX + appPackageName));
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                mCallingContext.startActivity(intent);
+            } catch (android.content.ActivityNotFoundException e) {
+                //if GooglePlay is not present on the device.
+                Logger.error(TAG + methodName, "Failed to launch the PlayStore.", e);
+            }
+
+            return true;
+        } else if (url.toLowerCase(Locale.US).startsWith(AuthenticationConstants.Broker.AUTHENTICATOR_MFA_LINKING_PREFIX)) {
+            Logger.verbose(TAG + methodName, "Linking Account in Authenticator to complete MFA setup.");
+            try {
+                final Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                mCallingContext.startActivity(intent);
+            } catch (android.content.ActivityNotFoundException e) {
+                Logger.error(TAG, "Failed to open the Authenticator application.", e);
+            }
+
             return true;
         }
 
