@@ -43,7 +43,6 @@ import android.text.TextUtils;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-import com.microsoft.identity.common.internal.broker.BrokerData;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 
@@ -824,7 +823,7 @@ class BrokerProxy implements IBrokerProxy {
             );
         }
 
-        if (request.getForceRefresh() || request.isClaimsChallengePresent()){
+        if (request.getForceRefresh() || request.isClaimsChallengePresent()) {
             // set force refresh to true if claims challenge is present, ad-accounts and adal-unity consumes this parameter
             // to refresh token if claims is present on Request.
             // Note: Even though client capabilities are sent as claims, they should not be treated as claims set to request and
@@ -893,20 +892,17 @@ class BrokerProxy implements IBrokerProxy {
                 Account[] accountList = mAcctManager
                         .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
 
-                final BrokerValidator brokerValidator = new BrokerValidator(mContext);
-
                 // For new broker with PRT support, both company portal and
                 // azure authenticator will be able to support multi-user.
-                for (final BrokerData brokerData : brokerValidator.getValidBrokers()) {
-                    if (authenticator.packageName.equalsIgnoreCase(brokerData.packageName)) {
-                        // Existing broker logic only connects to broker for token
-                        // requests if account exists. New version can allow to
-                        // add accounts through Adal.
-                        if (hasSupportToAddUserThroughBroker(authenticator.packageName)) {
-                            return true;
-                        } else if (accountList.length > 0) {
-                            return verifyAccount(accountList, username, uniqueId);
-                        }
+                final BrokerValidator brokerValidator = new BrokerValidator(mContext);
+                if (brokerValidator.isValidBrokerPackage(authenticator.packageName)) {
+                    // Existing broker logic only connects to broker for token
+                    // requests if account exists. New version can allow to
+                    // add accounts through Adal.
+                    if (hasSupportToAddUserThroughBroker(authenticator.packageName)) {
+                        return true;
+                    } else if (accountList.length > 0) {
+                        return verifyAccount(accountList, username, uniqueId);
                     }
                 }
             }
