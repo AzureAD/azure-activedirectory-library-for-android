@@ -49,7 +49,6 @@ import com.microsoft.identity.common.internal.logging.Logger;
 
 import java.util.HashMap;
 import java.util.Locale;
-
 import java.util.Map;
 
 import static com.microsoft.aad.adal.AuthenticationConstants.Broker.BROWSER_EXT_INSTALL_PREFIX;
@@ -63,7 +62,7 @@ import static com.microsoft.aad.adal.AuthenticationConstants.Browser.RESPONSE_RE
 import static com.microsoft.aad.adal.AuthenticationConstants.OAuth2.CODE;
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION;
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.COMPANY_PORTAL_PROD_APP_PACKAGE_NAME;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.PLAY_STORE_INSTALL_PREFIX;
 
 abstract class BasicWebViewClient extends WebViewClient {
@@ -480,13 +479,13 @@ abstract class BasicWebViewClient extends WebViewClient {
         } else if (url.toLowerCase(Locale.US).startsWith(PLAY_STORE_INSTALL_PREFIX)) {
 
             view.stopLoading();
-            if (!(url.startsWith(PLAY_STORE_INSTALL_PREFIX + COMPANY_PORTAL_PROD_APP_PACKAGE_NAME))
+            if (!(url.startsWith(PLAY_STORE_INSTALL_PREFIX + COMPANY_PORTAL_APP_PACKAGE_NAME))
                     && !(url.startsWith(PLAY_STORE_INSTALL_PREFIX + AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME))) {
                 Logger.info(TAG + methodName, "The URI is either trying to open an unknown application or contains unknown query parameters");
                 return false;
             }
-            final String appPackageName = (url.contains(COMPANY_PORTAL_PROD_APP_PACKAGE_NAME) ?
-                    COMPANY_PORTAL_PROD_APP_PACKAGE_NAME : AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME);
+            final String appPackageName = (url.contains(COMPANY_PORTAL_APP_PACKAGE_NAME) ?
+                    COMPANY_PORTAL_APP_PACKAGE_NAME : AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME);
             Logger.verbose(TAG + methodName, "Request to open PlayStore to install : '" + appPackageName + "'");
 
             try {
