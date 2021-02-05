@@ -106,7 +106,7 @@ public final class BrokerAccountServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        AuthenticationSettings.INSTANCE.setBrokerSignature(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_SIGNATURE);
+        AuthenticationSettings.INSTANCE.setBrokerSignature(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_RELEASE_SIGNATURE);
         AuthenticationSettings.INSTANCE.setUseBroker(false);
     }
 
