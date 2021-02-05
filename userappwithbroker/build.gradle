@@ -16,6 +16,17 @@ allprojects {
     }
 }
 
+def adalVersion = "3.1.2"
+def commonVersion = "0.0.+"
+
+if (project.hasProperty("distAdalVersion")) {
+    adalVersion = distAdalVersion
+}
+
+if (project.hasProperty("distCommonVersion")) {
+    commonVersion = distCommonVersion
+}
+
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
 
@@ -36,23 +47,17 @@ android {
 
     signingConfigs {
         debug {
-            def debugKeyFile = rootProject.file("gradle/debug.keystore")
-            if(debugKeyFile.exists()){
-                storeFile rootProject.file("gradle/debug.keystore")
-                storePassword "android"
-                keyAlias "androiddebugkey"
-                keyPassword "android"
-            }
+            storeFile file("./debug.keystore")
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
         }
 
         release {
-            def debugKeyFile = rootProject.file("gradle/debug.keystore")
-            if(debugKeyFile.exists()){
-                storeFile rootProject.file("gradle/debug.keystore")
-                storePassword "android"
-                keyAlias "androiddebugkey"
-                keyPassword "android"
-            }
+            storeFile file("./debug.keystore")
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
         }
     }
 
@@ -91,9 +96,15 @@ dependencies {
     // Compile Dependencies
     implementation "com.google.android.material:material:$rootProject.ext.materialVersion"
 
-    localImplementation(project(':adal'))
-    distImplementation("com.microsoft.aad:adal:3.1.0") {
+    localImplementation(project(':adal')) {
+        exclude module: 'common'
+    }
+    distApi(group: 'com.microsoft.aad', name: 'adal', version: "${adalVersion}") {
         exclude module: 'support-v4'
         exclude module: 'android'
+        exclude module: 'common'
     }
+
+    localApi(project(':common'))
+    distApi(group: 'com.microsoft.identity', name: 'common', version: "${commonVersion}")
 }
