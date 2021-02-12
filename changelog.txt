@@ -1,7 +1,8 @@
 v.Next
 ----------
-- Adds API23 WebViewClient#onReceivedError overload (#1580)
-- Fixes for MFA setup using Authenticator app.(#1579)
+- [MINOR] Adds API23 WebViewClient#onReceivedError overload (#1580)
+- [MINOR] Fixes for MFA setup using Authenticator app.(#1579)
+- [MINOR] Update common dependency to 3.1.0
 
 Version 3.1.2
 -------------
