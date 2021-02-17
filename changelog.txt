@@ -1,8 +1,9 @@
 v.Next
 ----------
-- Adds API23 WebViewClient#onReceivedError overload (#1580)
-- Changes to Broker Validation to allow setting whether to trust debug brokers (prod brokers are always trusted).
-- Fixes for MFA setup using Authenticator app.(#1579)
+- [PATCH] Adds API23 WebViewClient#onReceivedError overload (#1580)
+- [PATCH] Fixes for MFA setup using Authenticator app.(#1579)
+- [MINOR] Changes to Broker Validation to allow setting whether to trust debug brokers (prod brokers are always trusted).
+- [PATCH] Update common dependency to 3.1.0 (#1583)
 
 Version 3.1.2
 -------------
