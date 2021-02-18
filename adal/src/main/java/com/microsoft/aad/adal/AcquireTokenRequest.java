@@ -35,6 +35,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
+import androidx.core.content.pm.PackageInfoCompat;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
@@ -498,18 +499,18 @@ class AcquireTokenRequest {
      */
     private boolean checkIfBrokerHasLltChanges() {
         PackageManager packageManager = mContext.getPackageManager();
-        int authVersionCode = Integer.MAX_VALUE;
-        int cpVersionCode = Integer.MAX_VALUE;
+        long authVersionCode = Long.MAX_VALUE;
+        long cpVersionCode = Long.MAX_VALUE;
 
         try {
             PackageInfo authPackageInfo = packageManager.getPackageInfo(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, 0);
-            authVersionCode = authPackageInfo.versionCode;
+            authVersionCode = PackageInfoCompat.getLongVersionCode(authPackageInfo);
         } catch (PackageManager.NameNotFoundException ignored) {
         }
 
         try {
             PackageInfo cpPackageInfo = packageManager.getPackageInfo(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME, 0);
-            cpVersionCode = cpPackageInfo.versionCode;
+            cpVersionCode = PackageInfoCompat.getLongVersionCode(cpPackageInfo);
         } catch (PackageManager.NameNotFoundException ignored) {
         }
 
