@@ -304,6 +304,7 @@ public final class BrokerAccountServiceTest {
      * {@link BrokerProxy#canSwitchToBroker(String)} will return true.
      */
     @Test
+    @Ignore
     public void testBrokerProxySwitchBrokerPermissionNotGranted()
             throws PackageManager.NameNotFoundException, NoSuchAlgorithmException {
         final Context context = getMockContext();
@@ -326,6 +327,7 @@ public final class BrokerAccountServiceTest {
      * {@link BrokerProxy#canSwitchToBroker(String)} will return false if there is no valid broker app exists.
      */
     @Test
+    @Ignore
     public void testBrokerProxySwitchToBrokerInvalidBrokerPackageName()
             throws PackageManager.NameNotFoundException, NoSuchAlgorithmException {
         final Context context = getMockContext();
