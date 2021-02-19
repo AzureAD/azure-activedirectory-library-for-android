@@ -41,6 +41,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 
+import androidx.core.content.pm.PackageInfoCompat;
+
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
@@ -781,7 +783,7 @@ class BrokerProxy implements IBrokerProxy {
     public String getBrokerAppVersion(final String brokerAppPackageName) throws NameNotFoundException {
         final PackageInfo packageInfo = mContext.getPackageManager().getPackageInfo(brokerAppPackageName, 0);
 
-        return "VersionName=" + packageInfo.versionName + ";VersonCode=" + packageInfo.versionCode + ".";
+        return "VersionName=" + packageInfo.versionName + ";VersonCode=" + PackageInfoCompat.getLongVersionCode(packageInfo) + ".";
     }
 
     private Bundle getBrokerOptions(final AuthenticationRequest request) {
