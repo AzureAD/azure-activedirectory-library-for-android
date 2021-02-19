@@ -24,8 +24,6 @@ package com.microsoft.aad.adal;
 
 import android.content.Context;
 import android.content.Intent;
-import android.net.http.SslError;
-import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
 
 import androidx.annotation.Nullable;
@@ -40,19 +38,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
-import java.io.IOException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.AUTHENTICATOR_MFA_LINKING_PREFIX;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.COMPANY_PORTAL_PROD_APP_PACKAGE_NAME;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.PLAY_STORE_INSTALL_PREFIX;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Browser.RESPONSE_ERROR_CODE;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE;
@@ -83,7 +73,7 @@ public class BasicWebViewClientTests {
     private static final String TEST_PLAY_STORE_INSTALL_AUTH_APP_URL =
             PLAY_STORE_INSTALL_PREFIX + AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME;
     private static final String TEST_PLAY_STORE_INSTALL_CP_URL =
-            PLAY_STORE_INSTALL_PREFIX + COMPANY_PORTAL_PROD_APP_PACKAGE_NAME;
+            PLAY_STORE_INSTALL_PREFIX + COMPANY_PORTAL_APP_PACKAGE_NAME;
     private static final String TEST_PLAY_STORE_INSTALL_INVALID_APP =
             PLAY_STORE_INSTALL_PREFIX + "com.azure.xyz";
     private static final String AUTHENTICATOR_MFA_LINKING_INVALID_URI =
@@ -166,8 +156,8 @@ public class BasicWebViewClientTests {
                         new UIEvent("")
                 );
         assertTrue(basicWebViewClient.shouldOverrideUrlLoading(mMockWebView, TEST_PLAY_STORE_INSTALL_AUTH_APP_URL));
-        assertTrue(basicWebViewClient.shouldOverrideUrlLoading(mMockWebView,TEST_PLAY_STORE_INSTALL_CP_URL));
-        assertFalse(basicWebViewClient.shouldOverrideUrlLoading(mMockWebView,TEST_PLAY_STORE_INSTALL_INVALID_APP));
+        assertTrue(basicWebViewClient.shouldOverrideUrlLoading(mMockWebView, TEST_PLAY_STORE_INSTALL_CP_URL));
+        assertFalse(basicWebViewClient.shouldOverrideUrlLoading(mMockWebView, TEST_PLAY_STORE_INSTALL_INVALID_APP));
     }
 
     @UiThreadTest
@@ -189,7 +179,6 @@ public class BasicWebViewClientTests {
                 );
         assertTrue(basicWebViewClient.shouldOverrideUrlLoading(mMockWebView, AUTHENTICATOR_MFA_LINKING_INVALID_URI));
     }
-
 
 
     @UiThreadTest

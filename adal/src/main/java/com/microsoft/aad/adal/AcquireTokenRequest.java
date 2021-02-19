@@ -498,30 +498,39 @@ class AcquireTokenRequest {
      * and retain the old behavior.
      */
     private boolean checkIfBrokerHasLltChanges() {
-        PackageManager packageManager = mContext.getPackageManager();
+        final PackageManager packageManager = mContext.getPackageManager();
         long authVersionCode = Long.MAX_VALUE;
         long cpVersionCode = Long.MAX_VALUE;
+        long brokerHostVersionCode = Integer.MAX_VALUE;
 
         try {
-            PackageInfo authPackageInfo = packageManager.getPackageInfo(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, 0);
+            final PackageInfo authPackageInfo = packageManager.getPackageInfo(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, 0);
             authVersionCode = PackageInfoCompat.getLongVersionCode(authPackageInfo);
-        } catch (PackageManager.NameNotFoundException ignored) {
+        } catch (final PackageManager.NameNotFoundException ignored) {
         }
 
         try {
-            PackageInfo cpPackageInfo = packageManager.getPackageInfo(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME, 0);
+            final PackageInfo cpPackageInfo = packageManager.getPackageInfo(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME, 0);
             cpVersionCode = PackageInfoCompat.getLongVersionCode(cpPackageInfo);
-        } catch (PackageManager.NameNotFoundException ignored) {
+        } catch (final PackageManager.NameNotFoundException ignored) {
         }
 
-        return authVersionCode >= AUTHENTICATOR_LLT_VERSION_CODE && cpVersionCode >= CP_LLT_VERSION_CODE;
+        try {
+            final PackageInfo brokerHostPackageInfo = packageManager.getPackageInfo(AuthenticationConstants.Broker.BROKER_HOST_APP_PACKAGE_NAME, 0);
+            brokerHostVersionCode = PackageInfoCompat.getLongVersionCode(brokerHostPackageInfo);
+        } catch (final PackageManager.NameNotFoundException ignored) {
+        }
+
+        return authVersionCode >= AUTHENTICATOR_LLT_VERSION_CODE
+                && cpVersionCode >= CP_LLT_VERSION_CODE
+                && brokerHostVersionCode >= CP_LLT_VERSION_CODE;
 
     }
 
     /**
      * Handles the silent flow. Will always lookup local cache. If there is a valid AT in local cache, will use it. If
-     * AT in local cache is already expired, will try RT in the local cache. If RT requst failed, then use saml assertion passed in the 
-     * request to acquire RT and AT. If this too fails and if we can switch to broker for auth, 
+     * AT in local cache is already expired, will try RT in the local cache. If RT requst failed, then use saml assertion passed in the
+     * request to acquire RT and AT. If this too fails and if we can switch to broker for auth,
      * will switch to broker for authentication.
      */
     private AuthenticationResult acquireTokenSilentFlow(final AuthenticationRequest authenticationRequest)
@@ -583,7 +592,7 @@ class AcquireTokenRequest {
         Logger.v(TAG + methodName, "Try to silently get token using SAML Assertion.");
         final AcquireTokenSilentHandler acquireTokenSilentHandler = new AcquireTokenSilentHandler(mContext,
                 authenticationRequest, mTokenCacheAccessor);
-        
+
         return acquireTokenSilentHandler.getAccessTokenUsingAssertion();
     }
 
