@@ -69,6 +69,7 @@ public enum AuthenticationSettings {
      *
      * @return byte[] secret data
      */
+    @Deprecated
     public byte[] getSecretKeyData() {
         return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.getSecretKeyData();
     }
@@ -79,6 +80,7 @@ public enum AuthenticationSettings {
      *
      * @param rawKey App related key to use in encrypt/decrypt
      */
+    @Deprecated
     public void setSecretKey(byte[] rawKey) {
         com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.setSecretKey(rawKey);
     }
