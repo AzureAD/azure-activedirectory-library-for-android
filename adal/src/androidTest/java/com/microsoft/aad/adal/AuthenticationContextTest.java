@@ -52,6 +52,7 @@ import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryCloud;
+import com.microsoft.identity.common.internal.util.SignUtil;
 
 import junit.framework.Assert;
 
@@ -200,7 +201,7 @@ public final class AuthenticationContextTest {
         // Broker App can be signed with multiple certificates. It will look
         // all of them
         // until it finds the correct one for ADAL broker.
-        for (Signature signature : info.signatures) {
+        for (Signature signature : SignUtil.getSignatures(info)) {
             final byte[] testSignature = signature.toByteArray();
             MessageDigest md = MessageDigest.getInstance("SHA");
             md.update(testSignature);

@@ -33,6 +33,7 @@ import android.util.Base64;
 import androidx.test.core.app.ApplicationProvider;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.internal.util.SignUtil;
 
 import org.junit.Before;
 
@@ -77,7 +78,7 @@ public class HttpDialogTests {
         // Broker App can be signed with multiple certificates. It will look
         // all of them
         // until it finds the correct one for ADAL broker.
-        for (Signature signature : info.signatures) {
+        for (Signature signature : SignUtil.getSignatures(info)) {
             mTestSignature = signature.toByteArray();
             MessageDigest md = MessageDigest.getInstance("SHA");
             md.update(mTestSignature);

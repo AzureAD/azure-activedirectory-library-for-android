@@ -34,7 +34,9 @@ import android.util.Base64;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import com.microsoft.identity.common.Util;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.internal.util.SignUtil;
 
 import org.junit.After;
 import org.junit.Before;
@@ -98,7 +100,7 @@ public class PackageHelperTests {
         // Broker App can be signed with multiple certificates. It will look
         // all of them
         // until it finds the correct one for ADAL broker.
-        for (final Signature signature : info.signatures) {
+        for (final Signature signature : SignUtil.getSignatures(info)) {
             mTestSignature = signature.toByteArray();
             MessageDigest md = MessageDigest.getInstance("SHA");
             md.update(mTestSignature);
@@ -221,11 +223,7 @@ public class PackageHelperTests {
                                              final String packageName,
                                              final int callingUID) throws NameNotFoundException {
         final PackageManager mockPackage = mock(PackageManager.class);
-        final PackageInfo info = new PackageInfo();
-
-        final Signature[] signatures = new Signature[1];
-        signatures[0] = signature;
-        info.signatures = signatures;
+        final PackageInfo info = Util.addSignatures(new PackageInfo(), new Signature[]{signature});
 
         final ApplicationInfo appInfo = new ApplicationInfo();
         appInfo.name = packageName;
