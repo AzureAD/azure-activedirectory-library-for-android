@@ -5,6 +5,7 @@ v.Next
 - [MINOR] Changes to Broker Validation to allow setting whether to trust debug brokers (prod brokers are always trusted).
 - [PATCH] Update common dependency to 3.1.0 (#1583)
 - [PATCH] Replaced deprecated PackageInfo.versionCode with PackageInfoCompat.getLongVersionCode(packageInfo) (#1584)
+- [PATCH] Fixes deprecated PackageInfo.signatures (#1587)
 
 Version 3.1.2
 -------------
