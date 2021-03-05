@@ -1,0 +1,190 @@
+# 'Allow scripts to access the OAuth token' was selected in pipeline.  Add the following YAML to any steps requiring access:
+#       env:
+#           MY_ACCESS_TOKEN: $(System.AccessToken)
+# Variable 'AdalVersion' was defined in the Variables tab
+# Variable 'android:serverUrl' was defined in the Variables tab
+# Variable 'test_repo_branch' was defined in the Variables tab
+# Variable 'test_repo_dir' was defined in the Variables tab
+variables:
+- name: BuildParameters.cmdLineArgs
+  value: /F:$(Build.SourcesDirectory)+"\adal\src\" /T:9 /O:\"PoliCheck.xml\"
+- name: BuildParameters.inputType
+  value: Basic
+name: $(date:yyyyMMdd)$(rev:.r)
+resources:
+  repositories:
+  - repository: self
+    type: git
+    ref: master
+jobs:
+- job: Phase_1
+  displayName: SDL and Maven Build
+  cancelTimeoutInMinutes: 1
+  pool:
+    name: Hosted Windows 2019 with VS2019
+  steps:
+  - checkout: self
+    clean: true
+    submodules: true
+    persistCredentials: True
+  - task: CredScan@2
+    name: CredScan_1
+    displayName: Run CredScan
+    inputs:
+      debugMode: false
+      folderSuppression: false
+  - task: PoliCheck@1
+    name: PoliCheck_2
+    displayName: Run PoliCheck
+    inputs:
+      inputType: $(BuildParameters.inputType)
+      cmdLineArgs: $(BuildParameters.cmdLineArgs)
+      importEx: 0
+      optionsFC: 1
+      optionsXS: 1
+      optionsSEV: 1|2
+      optionsPE: 1|2|3|4
+  - task: PublishSecurityAnalysisLogs@2
+    name: PublishSecurityAnalysisLogs15
+    displayName: Publish Security Analysis Logs
+  - task: Gradle@1
+    name: Gradle1
+    displayName: Assemble Release
+    inputs:
+      tasks: adal:clean adal:assembleDist adal:javadocJar
+      publishJUnitResults: false
+      jdkArchitecture: x86
+      sqAnalysisBreakBuildIfQualityGateFailed: false
+  - task: Gradle@1
+    displayName: Generate Pom
+    inputs:
+      tasks: adal:generatePomFileForAdalPublication
+      publishJUnitResults: false
+      jdkArchitecture: x86
+      sqAnalysisBreakBuildIfQualityGateFailed: false
+  - task: CopyFiles@2
+    name: CopyPom
+    displayName: Copy Pom to Artifact Staging Directory
+    inputs:
+      SourceFolder: C:\Temp\s\adal\publications\adal\
+      Contents: '**/*.xml'
+      TargetFolder: $(build.artifactstagingdirectory)
+  - task: CopyFiles@2
+    name: CopyFiles1
+    displayName: Copy aar to Artifact Staging Directory
+    inputs:
+      SourceFolder: C:\Temp\s\adal\outputs\aar\
+      Contents: '**/*.aar'
+      TargetFolder: $(build.artifactstagingdirectory)
+  - task: CopyFiles@2
+    displayName: Copy jars to Artifact Staging Directory
+    inputs:
+      SourceFolder: C:\Temp\s\adal\outputs\jar\
+      Contents: '**/*.jar'
+      TargetFolder: $(build.artifactstagingdirectory)
+  - task: PublishBuildArtifacts@1
+    name: PublishBuildArtifacts1
+    displayName: 'Publish Artifact: Build Outputs'
+    inputs:
+      ArtifactName: build_outputs
+      TargetPath: '\\my\share\$(Build.DefinitionName)\$(Build.BuildNumber)'
+- job: Phase_2
+  displayName: GPG Signing
+  cancelTimeoutInMinutes: 1
+  dependsOn: Phase_1
+  pool:
+    name: Hosted Ubuntu 1604
+  steps:
+  - checkout: self
+    clean: true
+    submodules: true
+  - task: DownloadBuildArtifacts@0
+    displayName: Download Build Artifacts
+    inputs:
+      artifactName: build_outputs
+  - task: DownloadSecureFile@1
+    name: private
+    displayName: Download private key
+    inputs:
+      secureFile: 6bf3563e-522d-4925-a26b-c21e42c56cdc
+      retryCount: 5
+  - task: DownloadSecureFile@1
+    name: public
+    displayName: Download public key
+    inputs:
+      secureFile: 1c445e2b-6df6-40a3-850f-216cb1acaaf1
+      retryCount: 5
+  - task: DownloadSecureFile@1
+    name: passphrase
+    displayName: Download passphrase
+    inputs:
+      secureFile: 689283a4-7bdd-4867-9ca1-3d48fecff1b2
+      retryCount: 5
+  - task: Bash@3
+    displayName: GPG Signing
+    inputs:
+      targetType: inline
+      script: "#!/bin/bash\n\nsudo apt-get update\nsudo apt-get install -y gnupg2\n\nGPG_TTY=$(tty)\nexport GPG_TTY\n\ngpg --import $(public.secureFilePath)\ngpg --import $(private.secureFilePath)\n\n\n\ngpg --batch --no-use-agent --passphrase-file $(passphrase.secureFilePath) --armor --detach-sign $(System.ArtifactsDirectory)/build_outputs/adal-$(AdalVersion).aar\n\ngpg --batch --no-use-agent --passphrase-file $(passphrase.secureFilePath) --armor --detach-sign $(System.ArtifactsDirectory)/build_outputs/adal-$(AdalVersion)-javadoc.jar\n\ngpg --batch --no-use-agent --passphrase-file $(passphrase.secureFilePath) --armor --detach-sign $(System.ArtifactsDirectory)/build_outputs/adal-$(AdalVersion)-sources.jar\n\ngpg --batch --no-use-agent --passphrase-file $(passphrase.secureFilePath) --armor --detach-sign $(System.ArtifactsDirectory)/build_outputs/pom-default.xml\n\ncd $(System.ArtifactsDirectory)/build_outputs/ &&\nfor file in *; do\n if [[ -f \"$file\" ]]; then\n     md5sum -- \"$file\" > \"${file}.md5\"\n fi \n if [[ -f \"$file\" ]]; then\n     shasum -- \"$file\" > \"${file}.sha1\"\n fi\ndone\n\nmkdir  -p $(System.ArtifactsDirectory)/adal/$(AdalVersion)\n\nmv $(System.ArtifactsDirectory)/build_outputs/*.jar $(System.ArtifactsDirectory)/adal/$(AdalVersion)\nmv $(System.ArtifactsDirectory)/build_outputs/*.asc $(System.ArtifactsDirectory)/adal/$(AdalVersion)\nmv $(System.ArtifactsDirectory)/build_outputs/*.aar $(System.ArtifactsDirectory)/adal/$(AdalVersion)\nmv $(System.ArtifactsDirectory)/build_outputs/*.xml $(System.ArtifactsDirectory)/adal/$(AdalVersion)\nmv $(System.ArtifactsDirectory)/build_outputs/*.md5 $(System.ArtifactsDirectory)/adal/$(AdalVersion)\nmv $(System.ArtifactsDirectory)/build_outputs/*.sha1 $(System.ArtifactsDirectory)/adal/$(AdalVersion)\n\n\n\n"
+  - task: CmdLine@2
+    displayName: Download Python Requests Library
+    inputs:
+      script: pip install requests
+  - task: DownloadSecureFile@1
+    name: credentials
+    displayName: Download Nexus Sonatype Login Credentials
+    inputs:
+      secureFile: e1dca8d8-adae-49fd-a4dc-b4155affcea6
+      retryCount: 5
+  - task: PythonScript@0
+    displayName: Upload to Nexus Sonatype Staging Directory
+    inputs:
+      scriptSource: inline
+      script: >-
+        import requests
+
+        from xml.dom import minidom
+
+        import sys
+
+        import os
+
+        import json
+
+
+        headers = {
+            'Content-Type': 'application/xml',
+        }
+
+
+        data = '<promoteRequest><data><description>adal</description></data></promoteRequest>'
+
+
+        credentialsdirectory = os.environ["CREDENTIALS_SECUREFILEPATH"]
+
+        with open(credentialsdirectory) as f:
+            credentials = json.load(f)
+
+        response = requests.post('https://oss.sonatype.org/service/local/staging/profiles/4ac616f169d24a/start', headers=headers, data=data, verify=False, auth=(credentials["username"], credentials["password"]))
+
+
+        xmldoc = minidom.parseString(response.content)
+
+        repository_id = xmldoc.getElementsByTagName('stagedRepositoryId')[0].firstChild.nodeValue
+
+
+        adalVersion = os.environ["ADALVERSION"]
+
+        directory =os.environ["SYSTEM_ARTIFACTSDIRECTORY"] + "/adal/" + adalVersion
+
+        for filename in os.listdir(directory):
+            repo_name = filename
+            if filename.startswith("pom-default.xml"):
+                new_string = "adal-" + adalVersion + ".pom"
+                repo_name = filename.replace("pom-default.xml", new_string)
+            print(filename)
+            url = "https://oss.sonatype.org/service/local/staging/deployByRepositoryId/" + repository_id + "/com/microsoft/aad/adal/" + adalVersion + "/" + repo_name
+            print(url)
+
+            with open(directory + "/" + filename, 'rb') as f:
+                requests.post(url, data=f, verify=False, auth=(credentials["username"], credentials["password"]))
+...

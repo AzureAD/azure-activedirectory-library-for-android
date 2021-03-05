@@ -1,0 +1,97 @@
+# 'Allow scripts to access the OAuth token' was selected in pipeline.  Add the following YAML to any steps requiring access:
+#       env:
+#           MY_ACCESS_TOKEN: $(System.AccessToken)
+# Variable 'android:serverUrl' was defined in the Variables tab
+# Variable 'ENV_VSTS_MVN_ANDROIDADAL_USERNAME' was defined in the Variables tab
+# Variable 'test_repo_branch' was defined in the Variables tab
+# Variable 'test_repo_dir' was defined in the Variables tab
+# Variable Group 'Android Common Variables' was defined in the Variables tab
+# Cron Schedules have been converted using UTC Time Zone and may need to be updated for your location
+variables:
+- name: BuildParameters.cmdLineArgs
+  value: /F:$(Build.SourcesDirectory)+"\adal\src\" /T:9 /O:\"PoliCheck.xml\"
+- name: BuildParameters.inputType
+  value: Basic
+schedules:
+- cron: 30 22 * * *
+  branches:
+    include:
+    - dev
+  always: true
+name: $(date:yyyyMMdd)$(rev:.r)
+resources:
+  repositories:
+  - repository: self
+    type: git
+    ref: dev
+jobs:
+- job: Phase_1
+  displayName: Phase 1
+  cancelTimeoutInMinutes: 1
+  pool:
+    name: Hosted Windows 2019 with VS2019
+  steps:
+  - checkout: self
+    clean: true
+    submodules: recursive
+    persistCredentials: True
+  - task: CredScan@2
+    name: CredScan_1
+    displayName: Run CredScan
+    inputs:
+      debugMode: false
+      folderSuppression: false
+  - task: CmdLine@1
+    displayName: Set MVN Access Token in Environment
+    inputs:
+      filename: echo
+      arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN]$(mvn_access_token)'
+  - task: PoliCheck@1
+    name: PoliCheck_2
+    displayName: Run PoliCheck
+    inputs:
+      inputType: $(BuildParameters.inputType)
+      cmdLineArgs: $(BuildParameters.cmdLineArgs)
+      importEx: 0
+      optionsFC: 1
+      optionsXS: 1
+      optionsSEV: 1|2
+      optionsPE: 1|2|3|4
+  - task: PublishSecurityAnalysisLogs@2
+    name: PublishSecurityAnalysisLogs15
+    displayName: Publish Security Analysis Logs
+  - task: TSAUpload@1
+    displayName: TSA upload
+    enabled: False
+    inputs:
+      tsaStamp: Azure
+      codeBaseName: ADALAndroid_master
+      uploadAPIScan: false
+      uploadBinSkim: false
+      uploadFortifySCA: false
+      uploadFxCop: false
+      uploadModernCop: false
+      uploadPREfast: false
+      uploadRoslyn: false
+      uploadTSLint: false
+  - task: Gradle@2
+    displayName: Snapshot version update
+    inputs:
+      tasks: versionSnapshot
+      publishJUnitResults: false
+  - task: Gradle@1
+    name: Gradle1
+    displayName: Assemble Release
+    inputs:
+      tasks: clean adal:assembleSnapshot
+      publishJUnitResults: false
+      jdkArchitecture: x86
+      sqAnalysisBreakBuildIfQualityGateFailed: false
+  - task: Gradle@2
+    displayName: Publish to VSTS
+    inputs:
+      tasks: adal:publish
+      publishJUnitResults: false
+  - task: ComponentGovernanceComponentDetection@0
+    displayName: Component Detection
+...
