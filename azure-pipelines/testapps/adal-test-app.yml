@@ -33,34 +33,10 @@ jobs:
     inputs:
       filename: echo
       arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN]$(mvnAccessToken)'
-  - task: AzureKeyVault@1
-    displayName: 'Azure Key Vault: Download Cert for Automation'
-    enabled: False
-    inputs:
-      ConnectedServiceName: 52f0b8f0-fbe7-4c1b-8169-25886eb6bab4
-      KeyVaultName: ADALTestInfo
-      SecretsFilter: AndroidAutomationRunner
-  - task: PowerShell@2
-    displayName: Install Automation Cert
-    enabled: False
-    inputs:
-      targetType: inline
-      script: >
-        $kvSecretBytes = [System.Convert]::FromBase64String('$(AndroidAutomationRunner)')
-
-        $certCollection = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2Collection
-
-        $certCollection.Import($kvSecretBytes, $null, [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable)
-
-
-        $protectedCertificateBytes = $certCollection.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Pkcs12)
-
-        $pfxPath = '$(Build.SourcesDirectory)' + "\TestCert.pfx"
-
-        [System.IO.File]::WriteAllBytes($pfxPath, $protectedCertificateBytes)
-
-
-        Import-PfxCertificate -FilePath $pfxPath -CertStoreLocation Cert:\CurrentUser\My
+  # Automation cert disabled
+  #- template: ../templates/steps/automation-cert.yml
+  #  parameters:
+  #    env-vsts-mvn-at: ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN
   - task: PowerShell@2
     displayName: Generate Assemble Task for ADAL Test App
     inputs:
