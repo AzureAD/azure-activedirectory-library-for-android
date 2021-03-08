@@ -27,7 +27,7 @@ jobs:
     persistCredentials: True
   - template: ../templates/steps/credscan-policheck.yml
     parameters:
-      policheck-cmdlineargs-dir: adal
+      policheckCmdLineArgsDir: adal
   - task: CmdLine@1
     displayName: Set MVN Access Token in Environment
     inputs:
@@ -36,7 +36,7 @@ jobs:
   # Automation cert disabled
   #- template: ../templates/steps/automation-cert.yml
   #  parameters:
-  #    env-vsts-mvn-at: ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN
+  #    envVstsMvnAt: ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN
   - task: PowerShell@2
     displayName: Generate Assemble Task for ADAL Test App
     inputs:

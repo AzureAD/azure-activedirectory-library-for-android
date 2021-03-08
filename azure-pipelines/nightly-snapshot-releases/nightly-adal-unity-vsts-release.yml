@@ -31,7 +31,7 @@ jobs:
     persistCredentials: True
   - template: ../templates/steps/credscan-policheck.yml
     parameters:
-      policheck-cmdlineargs-dir: adal
+      policheckCmdLineArgsDir: adal
   - task: TSAUpload@1
     displayName: TSA upload
     enabled: False
