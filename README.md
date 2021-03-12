@@ -492,6 +492,7 @@ Fiddler is the easiest HTTP tracing tool.  Use the following links to setup it u
 acquireToken method without activity supports dialog prompt.
 
 ### Encryption
+>Important! Providing custom secret keys to ADAL is **deprecated**. Consumers of ADAL are advised to avoid setting their own keys. As no API is currently provided to transition off of custom secret key usage, this API remains available for use only in backwards compatibility scenarios.
 
 ADAL encrypts the tokens and store in SharedPreferences by default. You can look at the StorageHelper class to see the details. ADAL uses AndroidKeyStore for 4.3(API18) and above for secure storage of private keys. If you want to use ADAL for lower SDK versions, you need to **provide secret key at AuthenticationSettings.INSTANCE.setSecretKey**
 
