@@ -93,14 +93,11 @@ public class PackageHelperTests {
 
         AuthenticationSettings.INSTANCE.setBrokerPackageName("invalid_do_not_switch");
         AuthenticationSettings.INSTANCE.setBrokerSignature("invalid_do_not_switch");
-        // ADAL is set to this signature for now
-        PackageInfo info = mContext.getPackageManager().getPackageInfo(mContext.getPackageName(),
-                PackageManager.GET_SIGNATURES);
 
         // Broker App can be signed with multiple certificates. It will look
         // all of them
         // until it finds the correct one for ADAL broker.
-        for (final Signature signature : SignUtil.getSignatures(info)) {
+        for (final Signature signature : SignUtil.getSignatures(mContext)) {
             mTestSignature = signature.toByteArray();
             MessageDigest md = MessageDigest.getInstance("SHA");
             md.update(mTestSignature);
@@ -231,7 +228,7 @@ public class PackageHelperTests {
         when(
                 mockPackage.getPackageInfo(
                         packageName,
-                        PackageManager.GET_SIGNATURES
+                        SignUtil.getPackageManagerFlag()
                 )
         ).thenReturn(info);
 

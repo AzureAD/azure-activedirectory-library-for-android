@@ -196,7 +196,7 @@ public final class AuthenticationContextTest {
         AuthenticationSettings.INSTANCE.setUseBroker(false);
         // ADAL is set to this signature for now
         PackageInfo info = getInstrumentation().getContext().getPackageManager()
-                .getPackageInfo(getInstrumentation().getContext().getPackageName(), PackageManager.GET_SIGNATURES);
+                .getPackageInfo(getInstrumentation().getContext().getPackageName(), SignUtil.getPackageManagerFlag());
 
         // Broker App can be signed with multiple certificates. It will look
         // all of them
