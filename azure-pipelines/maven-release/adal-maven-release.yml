@@ -65,8 +65,8 @@ jobs:
       SourceFolder: C:\Temp\s\adal\outputs\jar\
       Contents: '**/*.jar'
       TargetFolder: $(build.artifactstagingdirectory)
-  - task: PublishBuildArtifacts@1
-    name: PublishBuildArtifacts1
+  - task: PublishPipelineArtifact@1
+    name: PublishPipelineArtifact
     displayName: 'Publish Artifact: Build Outputs'
     inputs:
       ArtifactName: build_outputs
@@ -81,8 +81,8 @@ jobs:
   - checkout: self
     clean: true
     submodules: true
-  - task: DownloadBuildArtifacts@0
-    displayName: Download Build Artifacts
+  - task: DownloadPipelineArtifact@2
+    displayName: Download Pipeline Artifact
     inputs:
       artifactName: build_outputs
   - task: DownloadSecureFile@1

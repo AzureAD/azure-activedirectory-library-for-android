@@ -69,7 +69,7 @@ jobs:
       publishJUnitResults: false
       jdkArchitecture: x86
       sqAnalysisBreakBuildIfQualityGateFailed: false
-  - task: PublishBuildArtifacts@1
+  - task: PublishPipelineArtifact@1
     displayName: Publish ADAL Test App APK
     inputs:
       PathtoPublish: c:/temp/adal/userappwithbroker/outputs/apk/dist/release/userappwithbroker-dist-release.apk
