@@ -46,7 +46,7 @@ adoMsazureAuthAppAccessToken=[Insert a PAT for the Authenticator App Feed here]
 ```
 
 >NOTE: By default, this global gradle.properties is located at
->1. /Users/<USER_NAME>/.gradle/gradle.properties (OSX)
+>1. ~/.gradle/gradle.properties (OSX)
 >2. C:\Users\\<USER_NAME>\\.gradle\gradle.properties (Windows)
 >
 > (The folders could be hidden)
