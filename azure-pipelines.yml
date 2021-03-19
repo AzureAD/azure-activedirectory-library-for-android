@@ -16,7 +16,7 @@ resources:
 variables:
   # Container registry service connection established during pipeline creation
   dockerRegistryServiceConnection: '94bfc8c4-2d8e-4523-b370-3edf4b3d966e'
-  imageRepository: 'dbi-instrumented-api$(ANDROIDAPILEVEL)2'
+  imageRepository: 'samples/dbi-instrumented-api$(ANDROIDAPILEVEL)'
   containerRegistry: 'authclient.azurecr.io'
   dockerfilePath: '$(Build.SourcesDirectory)/docker/api29/Dockerfile'
   tag: '$(Build.BuildId)'
