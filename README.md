@@ -13,6 +13,9 @@ This library, ADAL for Android, will no longer receive new feature improvements.
 
 ---
 
+| [Documentation](https://github.com/AzureAD/azure-activedirectory-library-for-android/wiki#documentation) | [Code Samples](https://github.com/azure-samples?utf8=✓&q=active-directory-android) | [Developer Guide](https://aka.ms/aaddev) | [Feedback](https://forms.office.com/r/Xx9tB8g8R4) |
+| --- | --- | --- | --- |
+
 # Microsoft Azure Active Directory Authentication Library (ADAL) for Android
 
 ADAL for Android gives you the ability to add support for Work Accounts to your application. This SDK gives your application the full functionality of Microsoft Azure AD, including industry standard protocol support for OAuth2, Web API integration with user level consent, and two-factor authentication support. Best of all, it’s FOSS (Free and Open Source Software) so that you can participate in the development process as we build these libraries.
@@ -64,6 +67,9 @@ Looking for [Xamarin](https://github.com/AzureADSamples/NativeClient-Xamarin-And
 ## Community Help and Support
 
 We leverage [Stack Overflow](https://stackoverflow.com/questions/tagged/adal) to work with the community on supporting Azure Active Directory and its SDKs, including this one! We highly recommend you ask your questions on Stack Overflow (we're all on there!) Also browse existing issues to see if someone has had your question before.
+
+## Submit Feedback
+We'd like your thoughts on this library. Please complete [this short survey.](https://forms.office.com/r/Xx9tB8g8R4)
 
 ## SSO and Conditional Access Support
 
