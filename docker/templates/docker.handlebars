@@ -1,7 +1,7 @@
 #
 # THIS IS A GENERATED-FILE.  DO NOT EDIT DIRECTLY
 #
-FROM {{dockerBaseImage}} as BASE
+FROM {{dockerBaseImage}} as base
 USER root
 ENV SDK_URL="{{androidCommandLineUtilsUrl}}" \
     ANDROID_HOME="/usr/local/android-sdk" \
@@ -40,7 +40,7 @@ RUN wget $NINJA_BIN_URL
 RUN unzip $NINJA_ZIP_FILE
 RUN cp ninja $CMAKE_HOME_BIN/ninja
 
-FROM BASE as DBI_UNIT
+FROM base as dbi_unit
 USER root
 ENV PATH="/usr/local/cmake/{{cmakeBinFolder}}/bin:/usr/local/android-sdk/emulator:/usr/local/android-sdk/tools:/usr/local/android-sdk/tools/bin:/usr/local/android-sdk/platform-tools:${PATH}" \
     ANDROID_HOME="/usr/local/android-sdk" \
@@ -56,7 +56,7 @@ RUN $ANDROID_HOME/tools/bin/sdkmanager "build-tools;${ANDROID_BUILD_TOOLS_VERSIO
     "${ANDROID_NDK_VERSION}" \
     "emulator" 
 
-FROM DBI_UNIT as DBI_INSTRUMENTED
+FROM dbi_unit as dbi_instrumented
 USER root
 ENV ANDROID_HOME="/usr/local/android-sdk" \
     SYSTEM_IMAGE="system-images;android-{{androidApiLevel}};{{androidImageVariant}};{{androidImageAbi}}" \

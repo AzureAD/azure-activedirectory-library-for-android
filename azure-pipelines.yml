@@ -1,0 +1,70 @@
+# Variable 'dockerBaseImage' https://hub.docker.com/_/gradle?tab=tags&page=1&ordering=last_updated
+# Variable 'androidCommandLineUtilsUrl' https://developer.android.com/studio/index.html#command-tools
+# Variable 'androidApiLevel' https://developer.android.com/studio/releases/platforms
+# Variable 'androidBuildToolsVersion' https://developer.android.com/studio/releases/platform-tools
+# Variable 'androidNdkVersion' https://developer.android.com/ndk/downloads
+# Variable 'androidImageVariant' google_apis
+# Variable 'androidImageAbi' x86_64
+# Variable 'cmakeBinUrl' https://github.com/Kitware/CMake/releases/
+# Variable 'cmakeBinFile'
+# Variable 'cmakeBinFolder'
+# Variable 'ninjaBinUrl' https://github.com/ninja-build/ninja/releases/
+# Variable 'ninjaZipFile' ninja-linux.zip
+
+
+name: Build and Publish Docker Image
+trigger:
+  - none
+  
+pool:
+  vmImage: 'ubuntu-latest'
+
+resources:
+  repositories:
+  - repository: self
+    type: git
+    ref: pedroro/build-publish-docker
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '12.x'
+  displayName: 'Install Node.js'
+- script: |
+    npm install yargs
+    npm install handlebars
+  displayName: 'npm install and build'
+- script: |
+    mkdir $(Build.SourcesDirectory)/resources
+    cat >$(Build.SourcesDirectory)/resources/$(ANDROIDAPILEVEL)api.json <<EOL
+    {
+      "dockerBaseImage": "$(DOCKERBASEIMAGE)",
+      "androidCommandLineUtilsUrl": "$(ANDROIDCOMMANDLINEUTILSURL)",
+      "androidApiLevel": "$(ANDROIDAPILEVEL)",
+      "androidBuildToolsVersion": "$(ANDROIDBUILDTOOLSVERSION)",
+      "androidNdkVersion": "ndk;$(ANDROIDNDKVERSION)",
+      "androidImageVariant": "$(ANDROIDIMAGEVARIANT)",
+      "androidImageAbi": "$(ANDROIDIMAGEABI)",
+      "cmakeBinUrl": "$(CMAKEBINURL)",
+      "cmakeBinFile": "$(CMAKEBINFILE)",
+      "cmakeBinFolder": "$(CMAKEBINFOLDER)",
+      "ninjaBinUrl": "$(NINJABINURL)",
+      "ninjaZipFile": "$(NINJAZIPFILE)"
+    }
+    ... 
+    EOL
+  displayName: 'Create configuration API file'
+- script: node docker/scripts/generate.js generate --params "$(Build.SourcesDirectory)/resources/$(ANDROIDAPILEVEL)api.json" --outputPath "$(Build.SourcesDirectory)/resources"
+  displayName: 'Create Docker file'
+- task: CopyFiles@2
+  inputs:
+    sourceFolder: '$(Build.SourcesDirectory)/resources'
+    contents: '*' 
+    targetFolder: $(Build.ArtifactStagingDirectory)
+  displayName: 'Copy resources'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: Resources
+  displayName: 'Publish Docker and API configuration files'
