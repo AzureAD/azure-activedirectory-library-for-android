@@ -54,7 +54,8 @@ steps:
     ... 
     EOL
   displayName: 'Create configuration API file'
-- script: node docker/scripts/generate.js generate --params "$(Build.SourcesDirectory)/resources/$(ANDROIDAPILEVEL)api.json" --outputPath "$(Build.SourcesDirectory)/resources"
+- script: node ./generate.js generate --params "$(Build.SourcesDirectory)/resources/$(ANDROIDAPILEVEL)api.json" --outputPath "$(Build.SourcesDirectory)/resources"
+  workingDirectory: ./docker/scripts
   displayName: 'Create Docker file'
 - task: CopyFiles@2
   inputs:
