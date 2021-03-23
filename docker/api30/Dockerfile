@@ -62,16 +62,7 @@ USER root
 ENV ANDROID_HOME="/usr/local/android-sdk" \
     SYSTEM_IMAGE="system-images;android-30;google_apis;x86_64" \
     SYSTEM_IMAGE_TAG="google_apis"
-RUN apt-get -y install qt5-default \
-    &&  apt-get -y install git
+RUN apt-get -y install qt5-default
 RUN $ANDROID_HOME/tools/bin/sdkmanager "emulator"
 RUN yes | $ANDROID_HOME/tools/bin/sdkmanager $SYSTEM_IMAGE
 RUN echo no | $ANDROID_HOME/tools/bin/avdmanager create avd --force -g $SYSTEM_IMAGE_TAG -n test -k $SYSTEM_IMAGE
-RUN WORKDIR /home
-RUN git clone https://github.com/AzureAD/android-complete
-RUN WORKDIR android-complete
-RUN git config --local include.path ../.gitconfig
-RUN git droidSetup
-RUN gradle dependencies
-RUN WORKDIR /home
-RUN rm -rf android-complete
