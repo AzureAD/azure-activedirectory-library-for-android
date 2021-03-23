@@ -16,7 +16,7 @@ For this, you'll need a Personal Access Token (PAT) under IdentityDivision organ
 4. Set the token expiration date as you see fit
 5. Select Scopes -> Packaging Read
 
-- [Authenticator App Dependency Feed](https://msazure.visualstudio.com/One/_packaging?_a=feed&feed=AuthApp)
+- (Optional) [Authenticator App Dependency Feed](https://msazure.visualstudio.com/One/_packaging?_a=feed&feed=AuthApp)
 For this, you'll need a Personal Access Token (PAT) under msazure organization.
 1. Go to https://msazure.visualstudio.com/_usersSettings/tokens
 2. Select "New Token"
@@ -24,7 +24,7 @@ For this, you'll need a Personal Access Token (PAT) under msazure organization.
 4. Set the token expiration date as you see fit
 5. Select Scopes -> Packaging Read
 
-- [Authenticator App Project](https://msazure.visualstudio.com/One/_git/AD-MFA-phonefactor-phoneApp-android)
+- (Optional) [Authenticator App Project](https://msazure.visualstudio.com/One/_git/AD-MFA-phonefactor-phoneApp-android)
 1. Go to //myaccess
 2. Send a request to join "Identity Apps Team - 18174"
 3. Install [Git Credential Manager for Windows](https://github.com/Microsoft/Git-Credential-Manager-for-Windows) or [Git Credential Manager for Mac and Linux](https://github.com/Microsoft/Git-Credential-Manager-for-Mac-and-Linux) and setup with your MSFT credential.
@@ -42,7 +42,7 @@ Then add the following to your gradle properties (in your user folder on windows
 ```gradle.properties
 vstsUsername=VSTS 
 vstsMavenAccessToken=[Insert a PAT for the Android DevX Feed here]
-adoMsazureAuthAppAccessToken=[Insert a PAT for the Authenticator App Feed here]
+adoMsazureAuthAppAccessToken=[Insert a PAT for the Authenticator App Feed here] (Only needed if you set up Authenticator App Dependency Feed)
 ```
 
 >NOTE: By default, this global gradle.properties is located at
