@@ -16,6 +16,14 @@ For this, you'll need a Personal Access Token (PAT) under IdentityDivision organ
 4. Set the token expiration date as you see fit
 5. Select Scopes -> Packaging Read
 
+- [Private GitHub Repositories](https://repos.opensource.microsoft.com/)
+1. Go to https://repos.opensource.microsoft.com/. You'll need a github account.
+2. Join 'AzureAD' organization (to get an access to Broker) via https://repos.opensource.microsoft.com/AzureAD/join
+3. Join 'Microsoft' organization (to get an access to Authenticator app's submodule.) via https://repos.opensource.microsoft.com/Microsoft/join
+4. Set up your github credential on your dev machine. 
+    - You can [connect to github with ssh](https://help.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh). (recommended for OSX)
+    - Alternatively, you can create a [Personal Access Token](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line) and use it as a password when prompted in command line.
+
 - (Optional) [Authenticator App Dependency Feed](https://msazure.visualstudio.com/One/_packaging?_a=feed&feed=AuthApp)
 For this, you'll need a Personal Access Token (PAT) under msazure organization.
 1. Go to https://msazure.visualstudio.com/_usersSettings/tokens
@@ -28,14 +36,6 @@ For this, you'll need a Personal Access Token (PAT) under msazure organization.
 1. Go to //myaccess
 2. Send a request to join "Identity Apps Team - 18174"
 3. Install [Git Credential Manager for Windows](https://github.com/Microsoft/Git-Credential-Manager-for-Windows) or [Git Credential Manager for Mac and Linux](https://github.com/Microsoft/Git-Credential-Manager-for-Mac-and-Linux) and setup with your MSFT credential.
-
-- [Private GitHub Repositories](https://repos.opensource.microsoft.com/)
-1. Go to https://repos.opensource.microsoft.com/. You'll need a github account.
-2. Join 'AzureAD' organization (to get an access to Broker) via https://repos.opensource.microsoft.com/AzureAD/join
-3. Join 'Microsoft' organization (to get an access to Authenticator app's submodule.) via https://repos.opensource.microsoft.com/Microsoft/join
-4. Set up your github credential on your dev machine. 
-    - You can [connect to github with ssh](https://help.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh). (recommended for OSX)
-    - Alternatively, you can create a [Personal Access Token](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line) and use it as a password when prompted in command line.
 
 Then add the following to your gradle properties (in your user folder on windows in the .gradle folder.  You may need to create this file: gradle.properties. Learn more about gradle configuration properties [here](https://docs.gradle.org/current/userguide/build_environment.html#sec:gradle_configuration_properties)) file using the token values from the generate credentials UI:
 
