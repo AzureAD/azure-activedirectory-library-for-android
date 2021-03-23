@@ -66,11 +66,11 @@ RUN apt-get -y install qt5-default \
 RUN $ANDROID_HOME/tools/bin/sdkmanager "emulator"
 RUN yes | $ANDROID_HOME/tools/bin/sdkmanager $SYSTEM_IMAGE
 RUN echo no | $ANDROID_HOME/tools/bin/avdmanager create avd --force -g $SYSTEM_IMAGE_TAG -n test -k $SYSTEM_IMAGE
-RUN WORKDIR /home
+WORKDIR /home
 RUN git clone https://github.com/AzureAD/android-complete
-RUN WORKDIR android-complete
+WORKDIR android-complete
 RUN git config --local include.path ../.gitconfig
 RUN git droidSetup
 RUN gradle dependencies
-RUN WORKDIR /home
+WORKDIR /home
 RUN rm -rf android-complete
