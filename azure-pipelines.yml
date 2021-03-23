@@ -22,18 +22,18 @@ variables:
   tag: '$(Build.BuildId)'
   vmImageName: 'ubuntu-latest'
   nodeversion: '12.x'
-  #dockerBaseImage: https://hub.docker.com/_/gradle?tab=tags&page=1&ordering=last_updated
-  #androidCommandLineUtilsUrl: https://developer.android.com/studio/index.html#command-tools
-  #androidApiLevel: https://developer.android.com/studio/releases/platforms
-  #androidBuildToolsVersion: https://developer.android.com/studio/releases/platform-tools
-  #androidNdkVersion: https://developer.android.com/ndk/downloads
-  #androidImageVariant: google_apis
-  #androidImageAbi: x86_64
-  #cmakeBinUrl: https://github.com/Kitware/CMake/releases/
-  #cmakeBinFile:
-  #cmakeBinFolder:
-  #ninjaBinUr: https://github.com/ninja-build/ninja/releases/
-  #ninjaZipFile: ninja-linux.zip
+  # dockerBaseImage: https://hub.docker.com/_/gradle?tab=tags&page=1&ordering=last_updated
+  # androidCommandLineUtilsUrl: https://developer.android.com/studio/index.html#command-tools
+  # androidApiLevel: https://developer.android.com/studio/releases/platforms
+  # androidBuildToolsVersion: https://developer.android.com/studio/releases/platform-tools
+  # androidNdkVersion: https://developer.android.com/ndk/downloads
+  # androidImageVariant: google_apis
+  # androidImageAbi: x86_64
+  # cmakeBinUrl: https://github.com/Kitware/CMake/releases/
+  # cmakeBinFile:
+  # cmakeBinFolder:
+  # ninjaBinUr: https://github.com/ninja-build/ninja/releases/
+  # ninjaZipFile: ninja-linux.zip
 
 stages:
 - stage: Build
@@ -86,7 +86,7 @@ stages:
     - task: CopyFiles@2
       inputs:
         sourceFolder: '$(Build.SourcesDirectory)/resources'
-        contents: '*' 
+        contents: '*'
         targetFolder: $(Build.ArtifactStagingDirectory)
       displayName: 'Copy resources'
     - task: PublishBuildArtifacts@1
