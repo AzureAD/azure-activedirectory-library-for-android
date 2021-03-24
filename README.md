@@ -86,6 +86,10 @@ Where "local" is the name of the variant and "Debug" is the build type.
 
 For MSAuthenticator, please use "devDebug" to test against PROD, and "integrationDebug" to test against INT.
 
+## Projects Properties (Command Line Build flags)
+
+We support a number of different project properties as command line flags across some of our modules. Please read the doc on [Gradle Project Properties](./docs/ProjectBuild/gradle_project_properties.md) to learn more about them.
+
 ## Usage - Custom git commands
 
 Running droidSetup will clone ADAL, MSAL, Broker (AD Accounts) and Common into sub-folders.  Each of these folders is a separate git repo.
