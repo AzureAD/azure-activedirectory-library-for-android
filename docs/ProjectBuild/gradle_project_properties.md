@@ -29,7 +29,7 @@ We currently support the following gradle properties via command line across the
 | Property               | Declaring Module                              | Description                                                  |
 | ---------------------- | --------------------------------------------- | ------------------------------------------------------------ |
 | labSecret              | testutils                                     | Enables access to [Lab Api](../Automation/labsetup.md) to get test accounts |
-| brokerSource           | uiautomationutilities                         | Determines whether to install broker app (Authenticator, CP) from PlayStore vs a Local Apk file sideloaded |
+| brokerSource           | uiautomationutilities                         | Determines whether to install broker app (Authenticator, CP) from PlayStore vs a Local Apk file sideloaded. Possible values: "PlayStore", "LocalApk" - the casing doesn't matter |
 | preferPreInstalledApks | uiautomationutilities                         | Determines if automation code should just use whatever app is already installed on the device (currently can be used for Auth app, CP, BrokerHost, AzureSample) |
 | slice                  | common                                        | Send all ESTS requests to specific slice                     |
 | dc                     | common                                        | Send all ESTS requests to specific DC                        |
