@@ -72,19 +72,19 @@ RUN git clone -b dev https://github.com/AzureAD/microsoft-authentication-library
 RUN git clone -b dev https://github.com/AzureAD/azure-activedirectory-library-for-android.git adal
 RUN git clone -b master https://github.com/Azure-Samples/ms-identity-android-java.git azuresample
 WORKDIR /home/android-repositories/msal
-RUN git submodule init \
-    && git submodule update \
-    && echo "sdk.dir=$ANDROID_HOME" > local.properties \
-    && gradle assemble
+RUN git submodule init
+RUN git submodule update
+RUN echo "sdk.dir=$ANDROID_HOME" > local.properties
+RUN gradle msal:assemble
 WORKDIR /home/android-repositories/common
-RUN git submodule init \
-    && git submodule update \
-    && echo "sdk.dir=$ANDROID_HOME" > local.properties \
-    && gradle assemble
+RUN git submodule init
+RUN git submodule update
+RUN echo "sdk.dir=$ANDROID_HOME" > local.properties
+RUN gradle common:assemble
 WORKDIR /home/android-repositories/adal
-RUN git submodule init \
-    && git submodule update \
-    && echo "sdk.dir=$ANDROID_HOME" > local.properties \
-    && gradle assemble
+RUN git submodule init
+RUN git submodule update
+RUN echo "sdk.dir=$ANDROID_HOME" > local.properties
+RUN gradle adal:assembleLocal
 WORKDIR /home
 RUN rm -rf android-repositories
