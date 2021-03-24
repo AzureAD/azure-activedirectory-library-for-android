@@ -66,11 +66,25 @@ RUN apt-get -y install qt5-default \
 RUN $ANDROID_HOME/tools/bin/sdkmanager "emulator"
 RUN yes | $ANDROID_HOME/tools/bin/sdkmanager $SYSTEM_IMAGE
 RUN echo no | $ANDROID_HOME/tools/bin/avdmanager create avd --force -g $SYSTEM_IMAGE_TAG -n test -k $SYSTEM_IMAGE
+WORKDIR /home/android-repositories
+RUN git clone -b dev https://github.com/AzureAD/microsoft-authentication-library-for-android.git msal
+RUN git clone -b dev https://github.com/AzureAD/microsoft-authentication-library-common-for-android.git common
+RUN git clone -b dev https://github.com/AzureAD/azure-activedirectory-library-for-android.git adal
+RUN git clone -b master https://github.com/Azure-Samples/ms-identity-android-java.git azuresample
+WORKDIR /home/android-repositories/msal
+RUN git submodule init \
+    && git submodule update \
+    && echo "sdk.dir=$ANDROID_HOME" > local.properties \
+    && gradle assemble
+WORKDIR /home/android-repositories/common
+RUN git submodule init \
+    && git submodule update \
+    && echo "sdk.dir=$ANDROID_HOME" > local.properties \
+    && gradle assemble
+WORKDIR /home/android-repositories/adal
+RUN git submodule init \
+    && git submodule update \
+    && echo "sdk.dir=$ANDROID_HOME" > local.properties \
+    && gradle assemble
 WORKDIR /home
-RUN git clone https://github.com/AzureAD/android-complete
-WORKDIR android-complete
-RUN git config --local include.path ../.gitconfig
-RUN git droidSetupDevexOnly
-RUN gradle dependencies
-WORKDIR /home
-RUN rm -rf android-complete
+RUN rm -rf android-repositories
