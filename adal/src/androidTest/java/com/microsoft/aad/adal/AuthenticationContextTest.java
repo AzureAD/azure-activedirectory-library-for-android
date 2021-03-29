@@ -45,8 +45,6 @@ import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
 import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
 import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
-import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentialAdapter;
-import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
@@ -254,9 +252,10 @@ public final class AuthenticationContextTest {
         // Create an instance of the MSAL cache, populate it with some data
         final IAccountCredentialCache accountCredentialCache = new SharedPreferencesAccountCredentialCache(
                 new CacheKeyValueDelegate(),
-                new SharedPreferencesFileManager(
+                SharedPreferencesFileManager.getSharedPreferences(
                         context,
                         DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
+                        -1,
                         new StorageHelper(context)
                 )
         );
@@ -3077,7 +3076,7 @@ public final class AuthenticationContextTest {
         // assert
         assertTrue("should have packagename", actual.contains(TEST_PACKAGE_NAME));
         assertTrue("should have signature url encoded",
-                actual.contains(URLEncoder.encode(mTestTag, AuthenticationConstants.ENCODING_UTF8)));
+                actual.contains(URLEncoder.encode(mTestTag, AuthenticationConstants.CHARSET_UTF8)));
     }
 
     private AuthenticationContext getAuthenticationContext(Context mockContext, String authority,

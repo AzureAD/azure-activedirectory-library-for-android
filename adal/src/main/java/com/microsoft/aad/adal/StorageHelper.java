@@ -184,8 +184,8 @@ public class StorageHelper {
         mHMACKey = getHMacKey(mKey);
 
         Logger.i(TAG + methodName, "", "Encrypt version:" + mBlobVersion);
-        final byte[] blobVersion = mBlobVersion.getBytes(AuthenticationConstants.ENCODING_UTF8);
-        final byte[] bytes = clearText.getBytes(AuthenticationConstants.ENCODING_UTF8);
+        final byte[] blobVersion = mBlobVersion.getBytes(AuthenticationConstants.CHARSET_UTF8);
+        final byte[] bytes = clearText.getBytes(AuthenticationConstants.CHARSET_UTF8);
 
         // IV: Initialization vector that is needed to start CBC
         final byte[] iv = new byte[DATA_KEY_LENGTH];
@@ -220,7 +220,7 @@ public class StorageHelper {
                 + encrypted.length + iv.length, macDigest.length);
 
         final String encryptedText = new String(Base64.encode(blobVerAndEncryptedDataAndIVAndMacDigest,
-                Base64.NO_WRAP), AuthenticationConstants.ENCODING_UTF8);
+                Base64.NO_WRAP), AuthenticationConstants.CHARSET_UTF8);
         Logger.v(TAG + methodName, "Finished encryption");
 
         return getEncodeVersionLengthPrefix() + ENCODE_VERSION + encryptedText;
@@ -261,7 +261,7 @@ public class StorageHelper {
         // get key version used for this data. If user upgraded to different
         // API level, data needs to be updated
         final String keyVersion = new String(bytes, 0, KEY_VERSION_BLOB_LENGTH,
-                AuthenticationConstants.ENCODING_UTF8);
+                AuthenticationConstants.CHARSET_UTF8);
         Logger.i(TAG + methodName, "", "Encrypt version:" + keyVersion);
 
         final SecretKey secretKey = getKey(keyVersion);
@@ -296,7 +296,7 @@ public class StorageHelper {
 
         // Decrypt data bytes from 0 to ivindex
         final String decrypted = new String(cipher.doFinal(bytes, KEY_VERSION_BLOB_LENGTH,
-                encryptedLength), AuthenticationConstants.ENCODING_UTF8);
+                encryptedLength), AuthenticationConstants.CHARSET_UTF8);
         Logger.v(TAG + methodName, "Finished decryption");
         return decrypted;
     }

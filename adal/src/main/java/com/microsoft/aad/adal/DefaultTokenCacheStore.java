@@ -99,7 +99,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
             }
         }
 
-        mPrefs = new SharedPreferencesFileManager(mContext, SHARED_PREFERENCE_NAME);
+        mPrefs = SharedPreferencesFileManager.getSharedPreferences(mContext, SHARED_PREFERENCE_NAME, -1, null);
 
         // Check upfront when initializing DefaultTokenCacheStore. 
         // If it's under API 18 and secretkey is not provided, we should fail upfront to inform 

@@ -108,9 +108,10 @@ class TokenCacheAccessor {
     static MsalOAuth2TokenCache getMsalOAuth2TokenCache(@NonNull final Context appContext) {
         final IAccountCredentialCache accountCredentialCache = new SharedPreferencesAccountCredentialCache(
                 new CacheKeyValueDelegate(),
-                new SharedPreferencesFileManager(
+                SharedPreferencesFileManager.getSharedPreferences(
                         appContext,
                         DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
+                        -1,
                         new StorageHelper(appContext)
                 )
         );

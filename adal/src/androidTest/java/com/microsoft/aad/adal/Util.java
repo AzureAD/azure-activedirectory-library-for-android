@@ -176,7 +176,7 @@ final class Util {
     }
 
     static String urlFormEncode(String source) throws UnsupportedEncodingException {
-        return URLEncoder.encode(source, AuthenticationConstants.ENCODING_UTF8);
+        return URLEncoder.encode(source, AuthenticationConstants.CHARSET_UTF8);
     }
 
     static AuthenticationResult getAuthenticationResult(final boolean isMRRT, final String displayableId,

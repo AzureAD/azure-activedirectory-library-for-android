@@ -628,7 +628,8 @@ class BrokerProxy implements IBrokerProxy {
             return;
         }
 
-        SharedPreferencesFileManager prefs = new SharedPreferencesFileManager(mContext, KEY_SHARED_PREF_ACCOUNT_LIST);
+        SharedPreferencesFileManager prefs = SharedPreferencesFileManager.getSharedPreferences(
+                mContext, KEY_SHARED_PREF_ACCOUNT_LIST, -1, null);
         String accountList = prefs.getString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL);
         accountList = null != accountList ? accountList : "";
         if (!accountList.contains(KEY_ACCOUNT_LIST_DELIM + accountName)) {

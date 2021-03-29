@@ -1325,7 +1325,7 @@ public final class AcquireTokenRequestTest {
                         + "/"
                         + URLEncoder.encode(
                         AuthenticationConstants.Broker.COMPANY_PORTAL_APP_RELEASE_SIGNATURE,
-                        AuthenticationConstants.ENCODING_UTF8
+                        AuthenticationConstants.CHARSET_UTF8
                 );
 
         final TestAuthCallback callback = new TestAuthCallback();

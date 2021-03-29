@@ -719,7 +719,7 @@ class Oauth2 {
             ClientMetrics.INSTANCE.beginClientMetricsRecord(authority, mRequest.getCorrelationId(),
                     headers);
             HttpWebResponse response = mWebRequestHandler.sendPost(authority, headers,
-                    requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
+                    requestMessage.getBytes(AuthenticationConstants.CHARSET_UTF8),
                     "application/x-www-form-urlencoded");
 
             httpEvent.setResponseCode(response.getStatusCode());
@@ -755,7 +755,7 @@ class Oauth2 {
                                     challengeResponse.getAuthorizationHeaderValue());
                             Logger.v(TAG + methodName, "Sending request with challenge response.");
                             response = mWebRequestHandler.sendPost(authority, headers,
-                                    requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
+                                    requestMessage.getBytes(AuthenticationConstants.CHARSET_UTF8),
                                     "application/x-www-form-urlencoded");
                             challengeHttpEvent.setResponseCode(response.getStatusCode());
                             challengeHttpEvent.setCorrelationId(mRequest.getCorrelationId().toString());

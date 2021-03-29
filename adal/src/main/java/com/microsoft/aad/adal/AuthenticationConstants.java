@@ -23,10 +23,13 @@
 
 package com.microsoft.aad.adal;
 
+import java.nio.charset.Charset;
+
 /**
  * {@link AuthenticationConstants} contains all the constant value the SDK is using.
  */
 public final class AuthenticationConstants {
+
     /**
      * Private constructor to prevent an utility class from being initiated.
      */
@@ -47,6 +50,11 @@ public final class AuthenticationConstants {
      * The Constant ENCODING_UTF8.
      */
     public static final String ENCODING_UTF8 = com.microsoft.identity.common.adal.internal.AuthenticationConstants.ENCODING_UTF8;
+
+    /**
+     * The Constant ENCODING_UTF8.
+     */
+    public static final Charset UTF8_AS_CHARSET = com.microsoft.identity.common.adal.internal.AuthenticationConstants.CHARSET_UTF8;
 
     /**
      * Bundle message.

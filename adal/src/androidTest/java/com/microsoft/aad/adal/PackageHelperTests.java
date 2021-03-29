@@ -191,7 +191,7 @@ public class PackageHelperTests {
         assertTrue("should have packagename", actual.contains(mContext.getPackageName()));
         assertTrue("should have signature url encoded",
                 actual.contains(
-                        URLEncoder.encode(mTestTag, AuthenticationConstants.ENCODING_UTF8)
+                        URLEncoder.encode(mTestTag, AuthenticationConstants.CHARSET_UTF8)
                 )
         );
     }
