@@ -1,10 +1,9 @@
 v.Next
 ----------
-- [PATCH] Update common dependency to 3.2.0 (#1591)
+- Picks up common@3.2.0
 - [PATCH] Adds API23 WebViewClient#onReceivedError overload (#1580)
 - [PATCH] Fixes for MFA setup using Authenticator app.(#1579)
 - [MINOR] Changes to Broker Validation to allow setting whether to trust debug brokers (prod brokers are always trusted).
-- [PATCH] Update common dependency to 3.1.0 (#1583)
 - [PATCH] Replaced deprecated PackageInfo.versionCode with PackageInfoCompat.getLongVersionCode(packageInfo) (#1584)
 - [PATCH] Deprecated ADAL namespaced AuthenticationSettings#setSecretKey(), #getSecretKey() (#1586)
 
