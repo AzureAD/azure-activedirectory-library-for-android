@@ -36,7 +36,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.microsoft.identity.common.Util;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.internal.util.SignUtil;
+import com.microsoft.identity.common.internal.broker.PackageHelper;
 
 import org.junit.After;
 import org.junit.Before;
@@ -97,7 +97,7 @@ public class PackageHelperTests {
         // Broker App can be signed with multiple certificates. It will look
         // all of them
         // until it finds the correct one for ADAL broker.
-        for (final Signature signature : SignUtil.getSignatures(mContext)) {
+        for (final Signature signature : PackageHelper.getSignatures(mContext)) {
             mTestSignature = signature.toByteArray();
             MessageDigest md = MessageDigest.getInstance("SHA");
             md.update(mTestSignature);
@@ -228,7 +228,7 @@ public class PackageHelperTests {
         when(
                 mockPackage.getPackageInfo(
                         packageName,
-                        SignUtil.getPackageManagerFlag()
+                        PackageHelper.getPackageManagerFlag()
                 )
         ).thenReturn(info);
 

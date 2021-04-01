@@ -52,7 +52,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import com.microsoft.identity.common.Util;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
-import com.microsoft.identity.common.internal.util.SignUtil;
+import com.microsoft.identity.common.internal.broker.PackageHelper;
 
 import junit.framework.Assert;
 
@@ -130,13 +130,13 @@ public class BrokerProxyTests {
                         .getPackageInfo(
                                 androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
                                         .getContext().getPackageName(),
-                                SignUtil.getPackageManagerFlag()
+                                PackageHelper.getPackageManagerFlag()
                         );
 
         // Broker App can be signed with multiple certificates. It will look
         // all of them
         // until it finds the correct one for ADAL broker.
-        for (Signature signature : SignUtil.getSignatures(info)) {
+        for (Signature signature : PackageHelper.getSignatures(info)) {
             mTestSignature = signature.toByteArray();
             MessageDigest md = MessageDigest.getInstance("SHA");
             md.update(mTestSignature);
@@ -1176,7 +1176,7 @@ public class BrokerProxyTests {
         PackageManager mockPackage = mock(PackageManager.class);
         PackageInfo info = Util.addSignatures(new PackageInfo(), new Signature[]{signature});
 
-        when(mockPackage.getPackageInfo(packageName, SignUtil.getPackageManagerFlag())).thenReturn(info);
+        when(mockPackage.getPackageInfo(packageName, PackageHelper.getPackageManagerFlag())).thenReturn(info);
         when(mockPackage.checkPermission(anyString(), anyString()))
                 .thenReturn(permissionStatus ? PackageManager.PERMISSION_GRANTED : PackageManager.PERMISSION_DENIED);
         return mockPackage;

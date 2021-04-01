@@ -45,7 +45,7 @@ import androidx.test.rule.ServiceTestRule;
 
 import com.microsoft.identity.common.Util;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.internal.util.SignUtil;
+import com.microsoft.identity.common.internal.broker.PackageHelper;
 
 import junit.framework.Assert;
 
@@ -389,14 +389,14 @@ public final class BrokerAccountServiceTest {
 
     private SignatureData getSignature(final Context context, final String packageName)
             throws PackageManager.NameNotFoundException, NoSuchAlgorithmException {
-        PackageInfo info = SignUtil.getPackageInfo(context, packageName);
+        PackageInfo info = PackageHelper.getPackageInfo(context, packageName);
 
         // Broker App can be signed with multiple certificates. It will look
         // all of them
         // until it finds the correct one for ADAL broker.
         byte[] signatureByte;
         String signatureTag;
-        for (final Signature signature : SignUtil.getSignatures(info)) {
+        for (final Signature signature : PackageHelper.getSignatures(info)) {
             signatureByte = signature.toByteArray();
             MessageDigest md = MessageDigest.getInstance("SHA");
             md.update(signatureByte);
