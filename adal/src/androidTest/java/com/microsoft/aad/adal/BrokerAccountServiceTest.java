@@ -389,7 +389,7 @@ public final class BrokerAccountServiceTest {
 
     private SignatureData getSignature(final Context context, final String packageName)
             throws PackageManager.NameNotFoundException, NoSuchAlgorithmException {
-        PackageInfo info = PackageHelper.getPackageInfo(context, packageName);
+        PackageInfo info = PackageHelper.getPackageInfo(context.getPackageManager(), packageName);
 
         // Broker App can be signed with multiple certificates. It will look
         // all of them
