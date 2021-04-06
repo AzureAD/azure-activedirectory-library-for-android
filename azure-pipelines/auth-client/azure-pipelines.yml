@@ -1,0 +1,21 @@
+name: Instrumented Tests
+trigger:
+- main
+
+
+pool:
+ name: DockerBuildAgents
+resources:
+ repositories:
+ - repository: common
+   type: github
+   name: AzureAD/microsoft-authentication-library-common-for-android
+   ref: refs/heads/pedroro/IDDP-pipelines
+   endpoint: ANDROID_GITHUB
+
+workspace:
+  clean: all
+steps:
+- checkout: self
+  submodules: recursive
+- template: azure-pipelines/templates/steps/auth-client/docker-tasks.yml@common
