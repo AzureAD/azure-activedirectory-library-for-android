@@ -1,0 +1,42 @@
+plugins {
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+    id 'com.gradle.plugin-publish' version '0.14.0'
+}
+
+group 'com.microsoft.identity'
+version '1.0'
+
+
+pluginBundle {
+    website = 'https://github.com/azuread'
+    vcsUrl = 'https://github.com/azuread/android-complete'
+    tags = ['build']
+}
+
+gradlePlugin {
+    plugins {
+        buildPlugin {
+            id = 'com.microsoft.identity.infra'
+            implementationClass = 'com.microsoft.identity.infra.BuildPlugin'
+            displayName = "AuthClient Android Build Plugin"
+            description = "Gradle plugin to encapsulate custom build tasks and configuration for AuthClient android projects."
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+    google()
+    jcenter()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+    implementation 'com.android.tools.build:gradle:4.1.0'
+}
+
+test {
+    useJUnitPlatform()
+}

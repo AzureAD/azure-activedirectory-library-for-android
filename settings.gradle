@@ -7,6 +7,15 @@
  * in the user guide at https://docs.gradle.org/5.1.1/userguide/multi_project_builds.html
  */
 
+pluginManagement {
+    repositories {
+        mavenLocal()
+        google()
+        jcenter()
+        gradlePluginPortal()
+    }
+}
+
 rootProject.name = 'android_auth'
 
 // Android DevX Projects
@@ -58,3 +67,4 @@ project(':LocationLibrary').projectDir = new File('authenticator/PhoneFactor/Loc
 project(':Brooklyn').projectDir = new File('authenticator/PhoneFactor/Brooklyn')
 project(':RootDetectionLibrary').projectDir = new File('authenticator/PhoneFactor/RootDetectionLibrary')
 */
+
