@@ -17,8 +17,8 @@ pluginBundle {
 gradlePlugin {
     plugins {
         buildPlugin {
-            id = 'com.microsoft.identity.infra'
-            implementationClass = 'com.microsoft.identity.infra.BuildPlugin'
+            id = 'com.microsoft.identity.buildsystem'
+            implementationClass = 'com.microsoft.identity.buildsystem.BuildPlugin'
             displayName = "AuthClient Android Build Plugin"
             description = "Gradle plugin to encapsulate custom build tasks and configuration for AuthClient android projects."
         }

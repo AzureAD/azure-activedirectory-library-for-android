@@ -23,7 +23,7 @@ You need an IDE to develop/maintain the plugin.  The author used IntelliJ IDEA f
 
 ### Plugins to help build and publish plugins and build.gradle for our plugin
 
-The com.microsoft.identity.infra plugin uses 3 plugins to help build and publish the plugin such that it can be located by consuming projects correctly.  If you want to know the details of what they do please refer to their documentation above.
+The com.microsoft.identity.buildsystem plugin uses 3 plugins to help build and publish the plugin such that it can be located by consuming projects correctly.  If you want to know the details of what they do please refer to their documentation above.
 
 - java-gradle-plugin: Which adds the java plugin and knows about how to generate plugin specific build artifacts
 - com.gradle.plugin-publish: Which knows how to publsh plugin specific build artifacts and knows about the plugin portal
@@ -50,8 +50,8 @@ pluginBundle {
 gradlePlugin {
     plugins {
         buildPlugin {
-            id = 'com.microsoft.identity.infra'
-            implementationClass = 'com.microsoft.identity.infra.BuildPlugin'
+            id = 'com.microsoft.identity.buildsystem'
+            implementationClass = 'com.microsoft.identity.buildsystem.BuildPlugin'
             displayName = "AuthClient Android Build Plugin"
             description = "Gradle plugin to encapsulate custom build tasks and configuration for AuthClient android projects."
         }
