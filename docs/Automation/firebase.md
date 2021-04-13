@@ -4,7 +4,7 @@ The Android Authencation Client SDK runs our E2E UI Automation on real devices h
 
 ## References
 
-- [Firebase Test Lab]([Firebase Test Lab](https://firebase.google.com/docs/test-lab))
+- [Firebase Test Lab](https://firebase.google.com/docs/test-lab)
 
 - [gcloud SDK](https://cloud.google.com/sdk)
 
