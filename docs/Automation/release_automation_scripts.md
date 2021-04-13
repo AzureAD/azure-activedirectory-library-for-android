@@ -4,7 +4,7 @@
 
 - [Testing Overview](./testing_overview.md)
 
-- [Lab Setup](./lab_setup.md)
+- [Lab Setup](./labsetup.md)
 
 - [Gradle Project Properties as Command Line Arguments](../ProjectBuild/gradle_project_properties.md)
 
