@@ -41,7 +41,7 @@ The script takes two arguments as follows:
 
 - Run the [MSAL Release Test Pipeline](https://dev.azure.com/IdentityDivision/IDDP/_build?definitionId=1283) and supply the `msal_version` in the pipeline variables
   
-  ![msalVersion](./images/msalVersionPipeline.JPG)
+  ![msalVersion](./images/msalVersionPipeline.png)
 
 ## Broker Release
 

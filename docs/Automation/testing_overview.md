@@ -26,13 +26,13 @@ For Android apps and libraries, there are 2 basic types of automated tests as fo
 Tests that run locally on your machine in the Java Virtual Machine (JVM). Since these tests run inside the JVM, they are fast to run however, tests that depend on the Android framework and/or OS level classes are not usually suitable for these types of tests as it usually requires the developer to mock such objects (though this can be avoided by using a framework called as Robolectric - we will cover this later below).
 These tests are usually located under the `src/test` directory of a project:
 
-![Unit Tests](./images/unitTests.jpg)
+![Unit Tests](./images/unitTests.png)
 
 ### Instrumented Tests
 
 Tests that run on a real Android device or an emulator. Since these tests run on Android device they have access to real Android framework objects such as the `Context` and `Package Manager` and the developer wouldn't need to mock these. Since these tests run on a device they are usually slow to run.
 These tests are usually located under the `src/androidTest` directory of a project:
-![Unit Tests](./images/instrumentedTests.jpg)
+![Unit Tests](./images/instrumentedTests.png)
 
 ## Overview of Android Testing frameworks used by Android Auth Client
 
@@ -70,7 +70,7 @@ Android Test Orchestrator is a tool that allows us to run each instrumented test
 
 We maintain a few different kinds of automation tests in our Android Auth Libraries as follows:
 
-![Testing Philosophy](./images/testPhilosophy.jpg)
+![Testing Philosophy](./images/testPhilosophy.png)
 
 ### Unit Tests
 
