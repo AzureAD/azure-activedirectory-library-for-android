@@ -66,55 +66,37 @@ We are going to need login credentials for our Google / Firebase credentials to 
 
 2. Click on request access
 
-3. Request permissions from one
-   of the following groups:
+3. Request permissions from one of the following groups:
 
-4. If a member of
-   the Identity org, request read-write permissions from tm-msidlabs-int
+   a. If a member of the Identity org, request read-write permissions from `tm-msidlabs-int`
 
-5. If outside the Identity org,
-   request read access to TM-MSIDLABS-DevKV
+   b. If outside the Identity org, request read access to `TM-MSIDLABS-DevKV`
 
-6. You can also reach out to msidlabint@microsoft.com to ask them for
-   a rushed approval
+6. You can also reach out to `msidlabint@microsoft.com` to ask them for a rushed approval
 
-7. After access has been
-   approved, wait for 2-24 hours for changes to be effective.
+7. After access has been approved, wait for 2-24 hours for changes to be effective.
 
 ### How to get Firebase username and password:
 
-1. Go to Azure Portal: [Microsoft Azure](https://portal.azure.com/) and login with MS
-   credentials
-2. Switch to the Microsoft
-   directory (if not already there)
-3. Search for the KeyVault named
-   "AdalTestInfo" (be sure to select "all" for the subcription,
-   location etc filters)
-4. Click into the AdalTestInfo keyvault (if you don't see
-   this KeyVault, make sure you follow the above steps to get access to the
-   KeyVault)
-5. Under settings, click on
-   secrets
-6. Grab the AndroidFirebaseUsername - this is username of the
-   Google account
-7. Grab the AndroidFirebasePassword - this is password of the
-   Google account
-8. Now you can use these
-   credentials to login into our Google account which would allow us to our
-   Firebase as well as Google cloud portal.
+1. Go to Azure Portal: [Microsoft Azure](https://portal.azure.com/) and login with MS credentials
+2. Switch to the Microsoft directory (if not already there)
+3. Search for the KeyVault named `AdalTestInfo` (be sure to select "all" for the subcription, location etc filters)
+4. Click into the `AdalTestInfo` keyvault (if you don't see this KeyVault, make sure you follow the above steps to get access to the KeyVault)
+5. Under settings, click on secrets
+6. Grab the `AndroidFirebaseUsername` - this is username of the Google account
+7. Grab the `AndroidFirebasePassword` - this is password of the Google account
+8. Now you can use these credentials to login into our Google account which would allow us to our Firebase as well as Google cloud portal.
 
 ### Firebase Google Account Login Issue
 
-1. When logging in from a new
-   device/location, Google may ask to verify identity.
+1. When logging in from a new device/location, Google may ask to verify identity.
 
 2. There may be two options:
 
-3. Verify with phone
+   a. Verify with phone
 
-4. Verify with recovery email
+   b. Verify with recovery email
 
 5. Please select verify with recovery email. The recovery email is already put in Google account and it is following the email: [droididautomation@microsoft.com](mailto:droididautomation@microsoft.com)
 
-6. If not done already, please join the [droididautomation@microsoft.com](mailto:droididautomation@microsoft.com) Distribution List so you can
-   receive the confirmation code that arrives on that email alias.
+6. If not done already, please join the [droididautomation@microsoft.com](mailto:droididautomation@microsoft.com) Distribution List so you can receive the confirmation code that arrives on that email alias.
