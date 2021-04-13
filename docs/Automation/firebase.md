@@ -2,6 +2,18 @@
 
 The Android Authencation Client SDK runs our E2E UI Automation on real devices hosted by the Firebase Test Lab. 
 
+## Related Readings
+
+- [Testing Overview](./testing_overview.md)
+
+- [Lab Setup](./lab_setup.md)
+
+- [Gradle Project Properties as Command Line Arguments](../ProjectBuild/gradle_project_properties.md)
+
+- [How to run Android Tests](./how_to_run_tests.md)
+
+- [Release Automation Scripts](release_automation_scripts.md)
+
 ## References
 
 - [Firebase Test Lab](https://firebase.google.com/docs/test-lab)
