@@ -9,8 +9,8 @@
 - [Gradle Project Properties as Command Line Arguments](../ProjectBuild/gradle_project_properties.md)
 
 - [How to run Android Tests](./how_to_run_tests.md)
-  
-  ## Introduction
+
+## Introduction
 
 The Android Client team maintains multiple libraries such as the MSAL library as well as the Broker library, and therefore maintains test plans that need to be executed as part of doing the release to ensure we don't regress our code. 
 
