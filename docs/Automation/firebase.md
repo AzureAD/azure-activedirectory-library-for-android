@@ -63,17 +63,11 @@ We are going to need login credentials for our Google / Firebase credentials to 
 ### (Skip this if you've already done this) How to get access to the KeyVault where Client Secret is stored:
 
 1. Go to myaccess/
-
 2. Click on request access
-
 3. Request permissions from one of the following groups:
-
-   a. If a member of the Identity org, request read-write permissions from `tm-msidlabs-int`
-
-   b. If outside the Identity org, request read access to `TM-MSIDLABS-DevKV`
-
+   * If a member of the Identity org, request read-write permissions from `tm-msidlabs-int`
+   * If outside the Identity org, request read access to `TM-MSIDLABS-DevKV`
 6. You can also reach out to `msidlabint@microsoft.com` to ask them for a rushed approval
-
 7. After access has been approved, wait for 2-24 hours for changes to be effective.
 
 ### How to get Firebase username and password:
@@ -90,13 +84,8 @@ We are going to need login credentials for our Google / Firebase credentials to 
 ### Firebase Google Account Login Issue
 
 1. When logging in from a new device/location, Google may ask to verify identity.
-
 2. There may be two options:
-
-   a. Verify with phone
-
-   b. Verify with recovery email
-
+   - Verify with phone
+   - Verify with recovery email
 5. Please select verify with recovery email. The recovery email is already put in Google account and it is following the email: [droididautomation@microsoft.com](mailto:droididautomation@microsoft.com)
-
 6. If not done already, please join the [droididautomation@microsoft.com](mailto:droididautomation@microsoft.com) Distribution List so you can receive the confirmation code that arrives on that email alias.
