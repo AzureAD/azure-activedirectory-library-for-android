@@ -60,7 +60,7 @@ To run tests with client secret, you would have to pass the following command li
 
 This can also be achieved from within Android Studio as follows:
 
-![Android Studio Command Line Parameters](android_studio_cmd_params.png "Android Studio Command Line Parameters")
+![Android Studio Command Line Parameters](images/android_studio_cmd_params.png "Android Studio Command Line Parameters")
 
 ### With Client Assertion (Certificate) - (Recommended for JVM Tests)
 
