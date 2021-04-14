@@ -1,3 +1,11 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
 include ':adal', ':userappwithbroker', ':common', 'keyvault', 'labapi', 'testutils'
 project(':common').projectDir = new File('common/common')
 project(':keyvault').projectDir = new File('common/keyvault')
