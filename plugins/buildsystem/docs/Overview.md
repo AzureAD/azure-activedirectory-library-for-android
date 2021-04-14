@@ -124,10 +124,10 @@ pluginManagement {
     repositories {
         mavenLocal()
         google()
-        jcenter()
+        mavenCentral()
         gradlePluginPortal()
     }
 }
 ```
 
-> NOTE: Since our plugin references the android plugin we need to include google() and jcenter() here.
+> NOTE: Since our plugin references the android plugin we need to include google() and mavenCentral() here.
