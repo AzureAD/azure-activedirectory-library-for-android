@@ -49,8 +49,10 @@ import android.util.Base64;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import com.microsoft.identity.common.Util;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
+import com.microsoft.identity.common.internal.broker.PackageHelper;
 
 import junit.framework.Assert;
 
@@ -128,13 +130,13 @@ public class BrokerProxyTests {
                         .getPackageInfo(
                                 androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
                                         .getContext().getPackageName(),
-                                PackageManager.GET_SIGNATURES
+                                PackageHelper.getPackageManagerFlag()
                         );
 
         // Broker App can be signed with multiple certificates. It will look
         // all of them
         // until it finds the correct one for ADAL broker.
-        for (Signature signature : info.signatures) {
+        for (Signature signature : PackageHelper.getSignatures(info)) {
             mTestSignature = signature.toByteArray();
             MessageDigest md = MessageDigest.getInstance("SHA");
             md.update(mTestSignature);
@@ -1172,11 +1174,9 @@ public class BrokerProxyTests {
     private PackageManager getPackageManager(final Signature signature, final String packageName,
                                              boolean permissionStatus) throws NameNotFoundException {
         PackageManager mockPackage = mock(PackageManager.class);
-        PackageInfo info = new PackageInfo();
-        Signature[] signatures = new Signature[1];
-        signatures[0] = signature;
-        info.signatures = signatures;
-        when(mockPackage.getPackageInfo(packageName, PackageManager.GET_SIGNATURES)).thenReturn(info);
+        PackageInfo info = Util.addSignatures(new PackageInfo(), new Signature[]{signature});
+
+        when(mockPackage.getPackageInfo(packageName, PackageHelper.getPackageManagerFlag())).thenReturn(info);
         when(mockPackage.checkPermission(anyString(), anyString()))
                 .thenReturn(permissionStatus ? PackageManager.PERMISSION_GRANTED : PackageManager.PERMISSION_DENIED);
         return mockPackage;
