@@ -1,0 +1,96 @@
+# Build and push an image to Azure Container Registry
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+# https://github.com/AzureAD/android-complete/blob/master/docker/overview.md
+
+name: Build and Publish Docker Image
+
+trigger:
+  - none
+
+resources:
+  repositories:
+  - repository: self
+    type: git
+    ref: pedroro/build-publish-docker
+
+variables:
+  # Container registry service connection established during pipeline creation
+  dockerRegistryServiceConnection: '94bfc8c4-2d8e-4523-b370-3edf4b3d966e'
+  imageRepository: 'samples/dbi-instrumented-api$(ANDROIDAPILEVEL)'
+  containerRegistry: 'authclient.azurecr.io'
+  dockerfilePath: '$(Build.SourcesDirectory)/docker/api29/Dockerfile'
+  tag: '$(Build.BuildId)'
+  vmImageName: 'ubuntu-latest'
+  nodeversion: '12.x'
+  # dockerBaseImage: https://hub.docker.com/_/gradle?tab=tags&page=1&ordering=last_updated
+  # androidCommandLineUtilsUrl: https://developer.android.com/studio/index.html#command-tools
+  # androidApiLevel: https://developer.android.com/studio/releases/platforms
+  # androidBuildToolsVersion: https://developer.android.com/studio/releases/platform-tools
+  # androidNdkVersion: https://developer.android.com/ndk/downloads
+  # androidImageVariant: google_apis
+  # androidImageAbi: x86_64
+  # cmakeBinUrl: https://github.com/Kitware/CMake/releases/
+  # cmakeBinFile:
+  # cmakeBinFolder:
+  # ninjaBinUr: https://github.com/ninja-build/ninja/releases/
+  # ninjaZipFile: ninja-linux.zip
+
+stages:
+- stage: Build
+  displayName: Build and push stage
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: $(nodeversion)
+      displayName: 'Install Node.js'
+    - script: |
+        npm install yargs
+        npm install handlebars
+      displayName: 'npm install'
+    - script: |
+        mkdir $(Build.SourcesDirectory)/resources
+        cat >$(Build.SourcesDirectory)/resources/api$(ANDROIDAPILEVEL).json <<EOL
+        {
+          "dockerBaseImage": "$(DOCKERBASEIMAGE)",
+          "androidCommandLineUtilsUrl": "$(ANDROIDCOMMANDLINEUTILSURL)",
+          "androidApiLevel": "$(ANDROIDAPILEVEL)",
+          "androidBuildToolsVersion": "$(ANDROIDBUILDTOOLSVERSION)",
+          "androidNdkVersion": "ndk;$(ANDROIDNDKVERSION)",
+          "androidImageVariant": "$(ANDROIDIMAGEVARIANT)",
+          "androidImageAbi": "$(ANDROIDIMAGEABI)",
+          "cmakeBinUrl": "$(CMAKEBINURL)",
+          "cmakeBinFile": "$(CMAKEBINFILE)",
+          "cmakeBinFolder": "$(CMAKEBINFOLDER)",
+          "ninjaBinUrl": "$(NINJABINURL)",
+          "ninjaZipFile": "$(NINJAZIPFILE)"
+        }
+        EOL
+      displayName: 'Create configuration API file'
+    - script: node ./generate.js generate --params "$(Build.SourcesDirectory)/resources/api$(ANDROIDAPILEVEL).json" --outputPath "$(Build.SourcesDirectory)/resources"
+      workingDirectory: ./docker/scripts
+      displayName: 'Create Docker file'
+    - task: Docker@2
+      displayName: Build and push an image to container registry
+      inputs:
+        command: buildAndPush
+        repository: $(imageRepository)
+        dockerfile: $(Build.SourcesDirectory)/resources/Dockerfile
+        containerRegistry: $(dockerRegistryServiceConnection)
+        tags: |
+          $(tag)
+    - task: CopyFiles@2
+      inputs:
+        sourceFolder: '$(Build.SourcesDirectory)/resources'
+        contents: '*'
+        targetFolder: $(Build.ArtifactStagingDirectory)
+      displayName: 'Copy resources'
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        artifactName: Resources
+      displayName: 'Publish Docker and API configuration files'
