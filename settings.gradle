@@ -19,13 +19,14 @@ pluginManagement {
 rootProject.name = 'android_auth'
 
 // Android DevX Projects
-include ':adal', ':msal', ':common', ':AADAuthenticator',
+include ':adal', ':msal', ':common', ':common-java', ':AADAuthenticator',
         ':brokerHost', ':adalTestApp', ':msalTestApp', ':package-inspector', ':pop-benchmarker',
         ':labapi', ':keyvault', ':testutils', 'msalautomationapp', 'uiautomationutilities', 'brokerautomationapp',
         ':oneauth', ':oneauthtestapp', ':msalcpptesthost', ':AzureSample'//, ':tsl', ':AzureSample',
 project(':adal').projectDir = new File('adal/adal')
 project(':msal').projectDir = new File('msal/msal')
 project(':common').projectDir = new File('common/common')
+project(':common-java').projectDir = new File('common/common4j')
 project(':AADAuthenticator').projectDir = new File('broker/AADAuthenticator')
 project(':brokerHost').projectDir = new File('broker/userapp')
 project(':adalTestApp').projectDir = new File('adal/userappwithbroker')
