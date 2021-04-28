@@ -7,12 +7,6 @@ name: Build and Publish Docker Image
 pr: none
 trigger: none
 
-resources:
-  repositories:
-  - repository: self
-    type: git
-    ref: pedroro/build-publish-docker
-
 variables:
   # Container registry service connection established during pipeline creation
   dockerRegistryServiceConnection: '94bfc8c4-2d8e-4523-b370-3edf4b3d966e'
@@ -44,6 +38,10 @@ stages:
     pool:
       vmImage: $(vmImageName)
     steps:
+    - checkout: self
+      clean: true
+      submodules: recursive
+      persistCredentials: True
     - task: NodeTool@0
       inputs:
         versionSpec: $(nodeversion)
