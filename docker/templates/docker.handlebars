@@ -75,7 +75,7 @@ WORKDIR /home/android-repositories/msal
 RUN git submodule init
 RUN git submodule update
 RUN echo "sdk.dir=$ANDROID_HOME" > local.properties
-RUN gradle msal:assemble
+RUN gradle msal:assembleLocal
 WORKDIR /home/android-repositories/common
 RUN git submodule init
 RUN git submodule update
