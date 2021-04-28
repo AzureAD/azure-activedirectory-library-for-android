@@ -4,8 +4,8 @@
 
 name: Build and Publish Docker Image
 
-trigger:
-  - none
+pr: none
+trigger: none
 
 resources:
   repositories:
