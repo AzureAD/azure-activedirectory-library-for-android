@@ -1,0 +1,13 @@
+Plugin Overview: https://github.com/AzureAD/android-complete/blob/master/plugins/buildsystem/docs/Overview.md
+
+vNext
+----------------------------
+
+Version 0.1.0
+----------------------------
+[MINOR] Enable applying SpotBugs Plugin
+[PATCH] Apply JAVA 8 for Java only projects
+
+Version 0.0.1
+----------------------------
+Initial setup for the Build Plugin
