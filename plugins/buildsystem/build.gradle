@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'com.microsoft.identity'
-version '0.0.1'
+version '0.0.2'
 
 
 pluginBundle {
@@ -28,12 +28,16 @@ gradlePlugin {
 repositories {
     mavenCentral()
     google()
+    maven {
+        url "https://plugins.gradle.org/m2/"
+    }
 }
 
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
     implementation 'com.android.tools.build:gradle:4.1.0'
+    implementation 'gradle.plugin.com.github.spotbugs.snom:spotbugs-gradle-plugin:4.7.1'
 }
 
 test {

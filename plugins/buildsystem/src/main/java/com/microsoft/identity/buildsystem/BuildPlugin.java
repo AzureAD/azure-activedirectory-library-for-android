@@ -24,6 +24,7 @@ public class BuildPlugin implements Plugin<Project> {
             }
         });
 
+        SpotBugs.apply(project);
     }
 
     private void applyDesugaring(final Project project){
