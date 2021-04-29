@@ -32,7 +32,7 @@ In order to override the default configs add below task in your project's build.
 
 ```groovy
 tasks.withType(com.github.spotbugs.snom.SpotBugsTask) {
-    baselineFile = file('<PATH TO OVERRIDDEN BASELINE FILE')
+    baselineFile = file('<PATH TO OVERRIDDEN BASELINE FILE>')
     reports {
         xml.enabled = false
         html.enabled = true
@@ -42,4 +42,4 @@ tasks.withType(com.github.spotbugs.snom.SpotBugsTask) {
 
 ### Min BuildPlugin version
 
-SpotBugs is enabled in the BuildPlugin version 0.0.2
+SpotBugs is enabled in the BuildPlugin version 0.1.0
