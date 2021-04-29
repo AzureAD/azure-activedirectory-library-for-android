@@ -28,16 +28,25 @@ import com.github.spotbugs.snom.SpotBugsPlugin;
 import org.gradle.api.Project;
 import java.io.File;
 
+/**
+ * Class to apply and configure the SpotBugs gradle Plugin to a project
+ * @see <a href="https://github.com/spotbugs/spotbugs-gradle-plugin">Spotbugs gradle plugin </a>
+ */
 public final class SpotBugs {
-    private static final String BASELINE_FILE_PATH_RELATIVE_TO_PROJECT_ROOT = "config/spotbugs/baseline.xml";
+    private static final String BASELINE_FILE_PATH_RELATIVE_TO_PROJECT_ROOT = "../config/spotbugs/baseline.xml";
 
+    /**
+     * Applies theo  SpotBugs Plugin to given project
+     * @see <a href="https://github.com/spotbugs/spotbugs-gradle-plugin">Spotbugs gradle plugin </a>
+     * @param project project to apply the Spotbugs plugin
+     */
     static void apply(Project project) {
         if(!project.getPlugins().hasPlugin(SpotBugsPlugin.class)) {
             project.getPlugins().apply(SpotBugsPlugin.class);
         }
 
-        SpotBugsExtension spotBugsExtension = project.getExtensions().findByType(SpotBugsExtension.class);
-        File baselineFile = project.file(BASELINE_FILE_PATH_RELATIVE_TO_PROJECT_ROOT);
+        final SpotBugsExtension spotBugsExtension = project.getExtensions().findByType(SpotBugsExtension.class);
+        final File baselineFile = project.file(BASELINE_FILE_PATH_RELATIVE_TO_PROJECT_ROOT);
         if(baselineFile.exists()) {
             spotBugsExtension.getBaselineFile().set(baselineFile);
         }
