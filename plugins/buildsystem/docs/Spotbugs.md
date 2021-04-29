@@ -20,9 +20,12 @@ SpotBugs is a static analysis tool to find bugs in Java programs. It looks for i
 
 Below are the specific values that BuildPlugin sets in addition to the [default values](https://spotbugs-gradle-plugin.netlify.app/com/github/spotbugs/snom/spotbugstask) already set by the SpotBugs Plugin
 
-```groovy
- spotbugsMain {
-    baselineFile = file('config/spotbugs/baseline.xml')    
+- baseline file path
+
+```java
+final File baselineFile = project.file("../config/spotbugs/baseline.xml");
+if(baselineFile.exists()) {
+    spotBugsExtension.getBaselineFile().set(baselineFile);
 }
 ```
 
