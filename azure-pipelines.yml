@@ -1,17 +1,12 @@
-# Build and push an image to Azure Container Registry
+# File: azure-pipelines.yml
+# Description: Build and push a docker image to run android automated test on Azure Container Registry
 # https://docs.microsoft.com/azure/devops/pipelines/languages/docker
 # https://github.com/AzureAD/android-complete/blob/master/docker/overview.md
 
 name: Build and Publish Docker Image
 
-trigger:
-  - none
-
-resources:
-  repositories:
-  - repository: self
-    type: git
-    ref: pedroro/build-publish-docker
+pr: none
+trigger: none
 
 variables:
   # Container registry service connection established during pipeline creation
@@ -44,6 +39,10 @@ stages:
     pool:
       vmImage: $(vmImageName)
     steps:
+    - checkout: self
+      clean: true
+      submodules: recursive
+      persistCredentials: True
     - task: NodeTool@0
       inputs:
         versionSpec: $(nodeversion)
