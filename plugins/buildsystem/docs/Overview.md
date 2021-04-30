@@ -131,3 +131,7 @@ pluginManagement {
 ```
 
 > NOTE: Since our plugin references the android plugin we need to include google() and mavenCentral() here.
+
+## Plugins/Settings applied by BuildPlugin
+
+- [SpotBugs](Spotbugs.md)

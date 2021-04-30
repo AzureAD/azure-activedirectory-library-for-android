@@ -51,6 +51,7 @@ public class BuildPlugin implements Plugin<Project> {
             }
         });
 
+        SpotBugs.applySpotBugsPlugin(project);
     }
 
     private void applyDesugaringToAndroidProject(final Project project){
