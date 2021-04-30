@@ -1,4 +1,5 @@
-# Build and push an image to Azure Container Registry
+# File: azure-pipelines.yml
+# Description: Build and push a docker image to run android automated test on Azure Container Registry
 # https://docs.microsoft.com/azure/devops/pipelines/languages/docker
 # https://github.com/AzureAD/android-complete/blob/master/docker/overview.md
 
