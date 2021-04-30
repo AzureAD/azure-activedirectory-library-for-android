@@ -40,7 +40,7 @@ public final class SpotBugs {
      * @see <a href="https://github.com/spotbugs/spotbugs-gradle-plugin">Spotbugs gradle plugin </a>
      * @param project project to apply the Spotbugs plugin
      */
-    static void apply(Project project) {
+    static void applySpotBugsPlugin(Project project) {
         if(!project.getPlugins().hasPlugin(SpotBugsPlugin.class)) {
             project.getPlugins().apply(SpotBugsPlugin.class);
         }
