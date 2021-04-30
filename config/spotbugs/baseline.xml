@@ -1,0 +1,1200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<BugCollection version="4.2.2" sequence="0" timestamp="1619747483395" analysisTimestamp="1619747483485" release="3.1.2">
+  <Project projectName="adal (spotbugsLocalDebug)">
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\googleblog\android_developers\PRNGFixes$LinuxPRNGSecureRandom.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\googleblog\android_developers\PRNGFixes$LinuxPRNGSecureRandomProvider.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\googleblog\android_developers\PRNGFixes.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AbstractMetadataRequestor.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AcquireTokenInteractiveRequest.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AcquireTokenRequest$1.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AcquireTokenRequest$2.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AcquireTokenRequest$3.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AcquireTokenRequest$CallbackHandler$1.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AcquireTokenRequest$CallbackHandler$2.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AcquireTokenRequest$CallbackHandler.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AcquireTokenRequest.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AcquireTokenSilentHandler.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AcquireTokenWithBrokerRequest.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\ADALError.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\ADFSWebFingerValidator.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AggregatedDispatcher.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\APIEvent.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationActivity$1.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationActivity$2.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationActivity$3.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationActivity$ActivityBroadcastReceiver.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationActivity$CustomWebViewClient$1.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationActivity$CustomWebViewClient.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationActivity$TokenTask.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationActivity$TokenTaskResult.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationActivity.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationCallback.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationCancelError.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationConstants$AAD.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationConstants$Broker$CliTelemInfo.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationConstants$Broker.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationConstants$Browser.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationConstants$HeaderField.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationConstants$MediaType.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationConstants$OAuth2.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationConstants$OAuth2ErrorCode.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationConstants$UIRequest.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationConstants$UIResponse.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationConstants.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationContext$1.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationContext$2.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationContext$3.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationContext$4.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationContext$SettableFuture$1.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationContext$SettableFuture.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationContext.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationDialog$1$1.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationDialog$1$2.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationDialog$1$3.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationDialog$1$4.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationDialog$1.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationDialog$2.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationDialog$DialogWebViewClient$1.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationDialog$DialogWebViewClient.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationDialog.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationException.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationParameters$1$1.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationParameters$1.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationParameters$AuthenticationParamCallback.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationParameters$Challenge.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationParameters.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationRequest$UserIdentifierType.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationRequest.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationRequestState.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationResult$AuthenticationStatus.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationResult.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationServerProtocolException.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthenticationSettings.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\AuthorityValidationMetadataCache.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\BasicWebViewClient$1.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\BasicWebViewClient$2.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\BasicWebViewClient$3$1.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\BasicWebViewClient$3.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\BasicWebViewClient.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\BrokerAccountServiceHandler$1.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\BrokerAccountServiceHandler$2.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\BrokerAccountServiceHandler$3.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\BrokerAccountServiceHandler$4.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\BrokerAccountServiceHandler$5$1.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\BrokerAccountServiceHandler$5.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\BrokerAccountServiceHandler$BrokerAccountServiceConnection$1.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\BrokerAccountServiceHandler$BrokerAccountServiceConnection.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\BrokerAccountServiceHandler$InstanceHolder.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\BrokerAccountServiceHandler.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\BrokerEvent.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\BrokerProxy$1.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\BrokerProxy$SwitchToBroker.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\BrokerProxy.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\BuildConfig.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\CacheEvent.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\CacheKey$1.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\CacheKey.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\Callback.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\CallbackExecutor$1.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\CallbackExecutor$2.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\CallbackExecutor.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\ChallengeResponseBuilder$ChallengeRequest.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\ChallengeResponseBuilder$ChallengeResponse.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\ChallengeResponseBuilder$RequestField.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\ChallengeResponseBuilder.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\ClientMetrics.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\ClientMetricsEndpointType.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\CoreAdapter.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\DateTimeAdapter.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\DefaultDispatcher.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\DefaultEvent.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\DefaultTokenCacheStore.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\DeserializationAuthenticationException.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\Discovery.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\DRSMetadata.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\DRSMetadataRequestor$Type.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\DRSMetadataRequestor.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\EventStrings.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\ExceptionExtensions.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\FileTokenCacheStore.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\HttpAuthDialog$1.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\HttpAuthDialog$2.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\HttpAuthDialog$3.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\HttpAuthDialog$4.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\HttpAuthDialog$CancelListener.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\HttpAuthDialog$OkListener.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\HttpAuthDialog.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\HttpEvent.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\HttpUtil.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\IBrokerProxy.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\IdentityProviderService.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\IDeviceCertificate.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\IDispatcher.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\IdToken.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\IEvents.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\IJWSBuilder.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\InstanceDiscoveryMetadata.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\IntuneAppProtectionPolicyRequiredException.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\ITokenCacheStore.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\ITokenStoreQuery.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\IWindowComponent.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\Link.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\Logger$1.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\Logger$2.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\Logger$ILogger.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\Logger$LogLevel.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\Logger.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\MemoryTokenCacheStore.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\Oauth2.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\PackageHelper.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\PromptBehavior.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\ResourceAuthenticationChallengeException.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\ServerRespondingWithRetryableException.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\SSOStateSerializer.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\StorageHelper.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\StringExtensions.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\Telemetry.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\TelemetryUtils$1.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\TelemetryUtils$CliTelemInfo.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\TelemetryUtils.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\TokenCacheAccessor$1.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\TokenCacheAccessor$2.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\TokenCacheAccessor$KeyMakerStrategy.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\TokenCacheAccessor.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\TokenCacheItem.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\TokenCacheItemSerializationAdapater.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\TokenEntryType.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\UIEvent.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\UrlExtensions.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\UsageAuthenticationException.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\UserInfo.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\WebFingerMetadata.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\WebFingerMetadataRequestor.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\WebFingerMetadataRequestParameters.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\WebviewHelper$PreKeyAuthInfo.class</Jar>
+    <Jar>C:\temp\android_auth\adal\intermediates\javac\localDebug\classes\com\microsoft\aad\adal\WebviewHelper.class</Jar>
+    <AuxClasspathEntry>C:\temp\android_auth\adal\intermediates\compile_r_class_jar\localDebug\R.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\b6fbbdadfcff642127829062bce22562\appcompat-1.0.2-api.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\0be1db90cc4ed622b4eef576769e0d0c\jetified-gson-2.8.5.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\e440f80a3c8b9222567abed0f4afe74d\legacy-support-v4-1.0.0-api.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\8c150e30907e6dae2c2a9bca9443bae6\fragment-1.0.0-api.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\4f78b4f6a9fb7c6065f246996696ff27\vectordrawable-animated-1.0.0-api.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\b4b9506259b648e8109855c85f3dcc75\legacy-support-core-ui-1.0.0-api.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\622e53bef4f8fe9cff905125ac61052f\legacy-support-core-utils-1.0.0-api.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\cb520bc74f618d7be842ce71df0c5e61\vectordrawable-1.0.1-api.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\e6c1dfe38e4c8937aafe55ee9a1d2666\media-1.0.0-api.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\5e08622419ed1605050fa716115e7d33\loader-1.0.0-api.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\eb1de95c0f5b68b4bc41cd3d3794679c\viewpager-1.0.0-api.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\0a7ba8174468507f33d71ee85225c357\coordinatorlayout-1.0.0-api.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\c42b32c8b15c0579c8ade9d7d2b9d20c\drawerlayout-1.0.0-api.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\8fbea45693e7635204bfb20253baac55\slidingpanelayout-1.0.0-api.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\af886af89c1af0663e1c46c8f477b1c4\customview-1.0.0-api.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\ed9b8d9b1281ee23dad104dd8b6566aa\swiperefreshlayout-1.0.0-api.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\84fd3e1e6408da28cda8e7629da6888c\asynclayoutinflater-1.0.0-api.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\2bad1479abbd61012b9d72ed513ebc30\core-1.0.1-api.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\32d5c4bf2d9b7c1802ce7a4b4f9e7939\versionedparcelable-1.0.0-api.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\modules-2\files-2.1\androidx.collection\collection\1.0.0\42858b26cafdaa69b6149f45dfc2894007bc2c7a\collection-1.0.0.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\dd7111b0c304bf06aa3737c7ecf22ca6\cursoradapter-1.0.0-api.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\e7a9cb8a96a44e1b8eb52eeed514eb2a\lifecycle-runtime-2.0.0-api.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\f25ea3d00f93d73b032fad59a09c589d\documentfile-1.0.0-api.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\f1be33305c76518e765a1e100093883b\localbroadcastmanager-1.0.0-api.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\81e2b7d442e237fa5fd4ea960f6af57b\print-1.0.0-api.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\a43f2fb1cb2284e4571386f696e7fe33\lifecycle-viewmodel-2.0.0-api.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\3a2a1cbb2c152987555e069f9c4587ab\interpolator-1.0.0-api.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\5893ee98db7ffaf6a695b4acbb0307db\lifecycle-livedata-2.0.0-api.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\82a275448afe721f066f64a30fb49b28\lifecycle-livedata-core-2.0.0-api.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\modules-2\files-2.1\androidx.lifecycle\lifecycle-common\2.0.0\e070ffae07452331bc5684734fce6831d531785c\lifecycle-common-2.0.0.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\8e465c8da06d0b5b8d711faa34fa9901\core-runtime-2.0.0-api.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\modules-2\files-2.1\androidx.arch.core\core-common\2.0.0\bb21b9a11761451b51624ac428d1f1bb5deeac38\core-common-2.0.0.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\modules-2\files-2.1\androidx.annotation\annotation\1.0.0\45599f2cd5965ac05a1488fa2a5c0cdd7c499ead\annotation-1.0.0.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\234b7560de0f7ee089e2873186f07be2\jetified-nimbus-jose-jwt-8.2.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\be6c6301159f0ceed84e44e98562c597\constraintlayout-1.1.3-api.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\temp\android_auth\common\intermediates\compile_library_classes_jar\debug\classes.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\e3031b118234e7de28698e2087df160f\jetified-jcip-annotations-1.0-1.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\28d97182fb80f482740d0d3942e6af53\jetified-json-smart-2.3.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\e1addd37c49901f97bc19741f3386a45\jetified-accessors-smart-1.2.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\3adb9dd186b53006517f3fd54d6b83c8\jetified-asm-5.0.4.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\modules-2\files-2.1\androidx.constraintlayout\constraintlayout-solver\1.1.3\54abe9ffb22cc9019b0b6fcc10f185cc4e67b34e\constraintlayout-solver-1.1.3.jar</AuxClasspathEntry>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\AbstractMetadataRequestor.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\AcquireTokenInteractiveRequest.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\AcquireTokenRequest.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\AcquireTokenSilentHandler.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\AcquireTokenWithBrokerRequest.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\ADALError.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\ADFSWebFingerValidator.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\AuthenticationActivity.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\AuthenticationCallback.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\AuthenticationCancelError.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\AuthenticationConstants.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\AuthenticationContext.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\AuthenticationDialog.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\AuthenticationException.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\AuthenticationParameters.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\AuthenticationRequest.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\AuthenticationRequestState.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\AuthenticationResult.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\AuthenticationServerProtocolException.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\AuthenticationSettings.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\AuthorityValidationMetadataCache.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\BasicWebViewClient.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\BrokerAccountServiceHandler.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\BrokerProxy.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\CacheKey.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\Callback.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\CallbackExecutor.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\ChallengeResponseBuilder.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\ClientMetrics.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\CoreAdapter.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\DateTimeAdapter.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\DefaultTokenCacheStore.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\DeserializationAuthenticationException.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\Discovery.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\DRSMetadata.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\DRSMetadataRequestor.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\ExceptionExtensions.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\FileTokenCacheStore.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\HttpAuthDialog.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\HttpUtil.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\IBrokerProxy.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\IdentityProviderService.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\IDeviceCertificate.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\IdToken.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\IJWSBuilder.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\InstanceDiscoveryMetadata.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\IntuneAppProtectionPolicyRequiredException.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\ITokenCacheStore.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\ITokenStoreQuery.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\IWindowComponent.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\Link.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\Logger.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\MemoryTokenCacheStore.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\Oauth2.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\package-info.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\PackageHelper.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\PromptBehavior.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\ResourceAuthenticationChallengeException.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\ServerRespondingWithRetryableException.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\SSOStateSerializer.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\StorageHelper.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\StringExtensions.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\TokenCacheAccessor.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\TokenCacheItem.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\TokenCacheItemSerializationAdapater.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\UrlExtensions.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\UsageAuthenticationException.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\UserInfo.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\WebFingerMetadata.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\WebFingerMetadataRequestor.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\WebFingerMetadataRequestParameters.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\main\java\com\microsoft\aad\adal\WebviewHelper.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\telemetry\java\com\microsoft\aad\adal\AggregatedDispatcher.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\telemetry\java\com\microsoft\aad\adal\APIEvent.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\telemetry\java\com\microsoft\aad\adal\BrokerEvent.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\telemetry\java\com\microsoft\aad\adal\CacheEvent.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\telemetry\java\com\microsoft\aad\adal\DefaultDispatcher.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\telemetry\java\com\microsoft\aad\adal\DefaultEvent.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\telemetry\java\com\microsoft\aad\adal\EventStrings.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\telemetry\java\com\microsoft\aad\adal\HttpEvent.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\telemetry\java\com\microsoft\aad\adal\IDispatcher.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\telemetry\java\com\microsoft\aad\adal\IEvents.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\telemetry\java\com\microsoft\aad\adal\Telemetry.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\telemetry\java\com\microsoft\aad\adal\TelemetryUtils.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\telemetry\java\com\microsoft\aad\adal\UIEvent.java</SrcDir>
+    <SrcDir>C:\android-complete\adal\adal\src\third_party\java\com\googleblog\android_developers\PRNGFixes.java</SrcDir>
+    <SrcDir>C:\temp\android_auth\adal\generated\source\buildConfig\local\debug\com\microsoft\aad\adal\BuildConfig.java</SrcDir>
+  </Project>
+  <BugInstance type="SIC_INNER_SHOULD_BE_STATIC" priority="2" rank="18" abbrev="SIC" category="PERFORMANCE" instanceHash="278cbcb739f3d31960220b77e3694158" instanceOccurrenceNum="0" instanceOccurrenceMax="0">
+    <ShortMessage>Should be a static inner class</ShortMessage>
+    <LongMessage>Should com.microsoft.aad.adal.AuthenticationActivity$TokenTaskResult be a _static_ inner class?</LongMessage>
+    <Class classname="com.microsoft.aad.adal.AuthenticationActivity$TokenTaskResult" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.AuthenticationActivity$TokenTaskResult" start="1316" end="1316" sourcefile="AuthenticationActivity.java" sourcepath="com/microsoft/aad/adal/AuthenticationActivity.java">
+        <Message>At AuthenticationActivity.java:[line 1316]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.aad.adal.AuthenticationActivity$TokenTaskResult</Message>
+    </Class>
+    <SourceLine classname="com.microsoft.aad.adal.AuthenticationActivity$TokenTaskResult" start="1316" end="1316" sourcefile="AuthenticationActivity.java" sourcepath="com/microsoft/aad/adal/AuthenticationActivity.java" synthetic="true">
+      <Message>At AuthenticationActivity.java:[line 1316]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="ES_COMPARING_PARAMETER_STRING_WITH_EQ" priority="2" rank="16" abbrev="ES" category="BAD_PRACTICE" instanceHash="e29488b83183ddebd05697017ab4b057" instanceOccurrenceNum="0" instanceOccurrenceMax="0" cweid="597">
+    <ShortMessage>Comparison of String parameter using == or !=</ShortMessage>
+    <LongMessage>Comparison of String parameter using == or != in new com.microsoft.aad.adal.AuthenticationRequest(String, String, String, String, String, String, UUID, boolean, boolean, String)</LongMessage>
+    <Class classname="com.microsoft.aad.adal.AuthenticationRequest" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.AuthenticationRequest" start="46" end="477" sourcefile="AuthenticationRequest.java" sourcepath="com/microsoft/aad/adal/AuthenticationRequest.java">
+        <Message>At AuthenticationRequest.java:[lines 46-477]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.aad.adal.AuthenticationRequest</Message>
+    </Class>
+    <Method classname="com.microsoft.aad.adal.AuthenticationRequest" name="&lt;init&gt;" signature="(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/UUID;ZZLjava/lang/String;)V" isStatic="false" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.AuthenticationRequest" start="191" end="203" startBytecode="0" endBytecode="29" sourcefile="AuthenticationRequest.java" sourcepath="com/microsoft/aad/adal/AuthenticationRequest.java"/>
+      <Message>In method new com.microsoft.aad.adal.AuthenticationRequest(String, String, String, String, String, String, UUID, boolean, boolean, String)</Message>
+    </Method>
+    <Type descriptor="Ljava/lang/String;" role="TYPE_FOUND">
+      <SourceLine classname="java.lang.String" start="111" end="3141" sourcefile="String.java" sourcepath="java/lang/String.java">
+        <Message>At String.java:[lines 111-3141]</Message>
+      </SourceLine>
+      <Message>Actual type String</Message>
+    </Type>
+    <String value="urn:ietf:params:oauth:grant-type:saml1_1-bearer" role="STRING_CONSTANT">
+      <Message>String constant &quot;urn:ietf:params:oauth:grant-type:saml1_1-bearer&quot;</Message>
+    </String>
+    <LocalVariable name="assertionType" register="2" pc="25" role="LOCAL_VARIABLE_VALUE_OF">
+      <Message>Value loaded from assertionType</Message>
+    </LocalVariable>
+    <SourceLine classname="com.microsoft.aad.adal.AuthenticationRequest" primary="true" start="195" end="195" startBytecode="27" endBytecode="27" sourcefile="AuthenticationRequest.java" sourcepath="com/microsoft/aad/adal/AuthenticationRequest.java">
+      <Message>At AuthenticationRequest.java:[line 195]</Message>
+    </SourceLine>
+    <Property name="edu.umd.cs.findbugs.detect.RefComparisonWarningProperty.STATIC_AND_PARAMETER" value="true"/>
+  </BugInstance>
+  <BugInstance type="ES_COMPARING_PARAMETER_STRING_WITH_EQ" priority="2" rank="16" abbrev="ES" category="BAD_PRACTICE" instanceHash="d748067e175533926de91f4f2eb8e5ba" instanceOccurrenceNum="0" instanceOccurrenceMax="0" cweid="597">
+    <ShortMessage>Comparison of String parameter using == or !=</ShortMessage>
+    <LongMessage>Comparison of String parameter using == or != in new com.microsoft.aad.adal.AuthenticationRequest(String, String, String, String, String, String, UUID, boolean, boolean, String)</LongMessage>
+    <Class classname="com.microsoft.aad.adal.AuthenticationRequest" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.AuthenticationRequest" start="46" end="477" sourcefile="AuthenticationRequest.java" sourcepath="com/microsoft/aad/adal/AuthenticationRequest.java">
+        <Message>At AuthenticationRequest.java:[lines 46-477]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.aad.adal.AuthenticationRequest</Message>
+    </Class>
+    <Method classname="com.microsoft.aad.adal.AuthenticationRequest" name="&lt;init&gt;" signature="(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/UUID;ZZLjava/lang/String;)V" isStatic="false" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.AuthenticationRequest" start="191" end="203" startBytecode="0" endBytecode="29" sourcefile="AuthenticationRequest.java" sourcepath="com/microsoft/aad/adal/AuthenticationRequest.java"/>
+      <Message>In method new com.microsoft.aad.adal.AuthenticationRequest(String, String, String, String, String, String, UUID, boolean, boolean, String)</Message>
+    </Method>
+    <Type descriptor="Ljava/lang/String;" role="TYPE_FOUND">
+      <SourceLine classname="java.lang.String" start="111" end="3141" sourcefile="String.java" sourcepath="java/lang/String.java">
+        <Message>At String.java:[lines 111-3141]</Message>
+      </SourceLine>
+      <Message>Actual type String</Message>
+    </Type>
+    <String value="urn:ietf:params:oauth:grant-type:saml2-bearer" role="STRING_CONSTANT">
+      <Message>String constant &quot;urn:ietf:params:oauth:grant-type:saml2-bearer&quot;</Message>
+    </String>
+    <LocalVariable name="assertionType" register="2" pc="31" role="LOCAL_VARIABLE_VALUE_OF">
+      <Message>Value loaded from assertionType</Message>
+    </LocalVariable>
+    <SourceLine classname="com.microsoft.aad.adal.AuthenticationRequest" primary="true" start="195" end="195" startBytecode="33" endBytecode="33" sourcefile="AuthenticationRequest.java" sourcepath="com/microsoft/aad/adal/AuthenticationRequest.java">
+      <Message>At AuthenticationRequest.java:[line 195]</Message>
+    </SourceLine>
+    <Property name="edu.umd.cs.findbugs.detect.RefComparisonWarningProperty.STATIC_AND_PARAMETER" value="true"/>
+  </BugInstance>
+  <BugInstance type="UWF_UNWRITTEN_FIELD" priority="2" rank="12" abbrev="UwF" category="CORRECTNESS" instanceHash="6a3da5db7e55904855a81fe399762c2" instanceOccurrenceNum="0" instanceOccurrenceMax="0">
+    <ShortMessage>Unwritten field</ShortMessage>
+    <LongMessage>Unwritten field: com.microsoft.aad.adal.AuthenticationResult.mTokenType</LongMessage>
+    <Class classname="com.microsoft.aad.adal.AuthenticationResult" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.AuthenticationResult" start="103" end="562" sourcefile="AuthenticationResult.java" sourcepath="com/microsoft/aad/adal/AuthenticationResult.java">
+        <Message>At AuthenticationResult.java:[lines 103-562]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.aad.adal.AuthenticationResult</Message>
+    </Class>
+    <Field classname="com.microsoft.aad.adal.AuthenticationResult" name="mTokenType" signature="Ljava/lang/String;" isStatic="false" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.AuthenticationResult" sourcefile="AuthenticationResult.java" sourcepath="com/microsoft/aad/adal/AuthenticationResult.java">
+        <Message>In AuthenticationResult.java</Message>
+      </SourceLine>
+      <Message>Field com.microsoft.aad.adal.AuthenticationResult.mTokenType</Message>
+    </Field>
+    <SourceLine classname="com.microsoft.aad.adal.AuthenticationResult" primary="true" start="247" end="247" startBytecode="1" endBytecode="1" sourcefile="AuthenticationResult.java" sourcepath="com/microsoft/aad/adal/AuthenticationResult.java">
+      <Message>At AuthenticationResult.java:[line 247]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="NM_SAME_SIMPLE_NAME_AS_SUPERCLASS" priority="1" rank="14" abbrev="Nm" category="BAD_PRACTICE" instanceHash="7e01418fa750617a1deee11b366b5dea" instanceOccurrenceNum="0" instanceOccurrenceMax="0">
+    <ShortMessage>Class names shouldn&apos;t shadow simple name of superclass</ShortMessage>
+    <LongMessage>The class name com.microsoft.aad.adal.CacheKey shadows the simple name of the superclass com.microsoft.identity.common.adal.internal.cache.CacheKey</LongMessage>
+    <Class classname="com.microsoft.aad.adal.CacheKey" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.CacheKey" start="30" end="74" sourcefile="CacheKey.java" sourcepath="com/microsoft/aad/adal/CacheKey.java">
+        <Message>At CacheKey.java:[lines 30-74]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.aad.adal.CacheKey</Message>
+    </Class>
+    <Class classname="com.microsoft.identity.common.adal.internal.cache.CacheKey">
+      <SourceLine classname="com.microsoft.identity.common.adal.internal.cache.CacheKey" start="54" end="243" sourcefile="CacheKey.java" sourcepath="com/microsoft/identity/common/adal/internal/cache/CacheKey.java">
+        <Message>At CacheKey.java:[lines 54-243]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.identity.common.adal.internal.cache.CacheKey</Message>
+    </Class>
+    <SourceLine classname="com.microsoft.aad.adal.CacheKey" start="30" end="74" sourcefile="CacheKey.java" sourcepath="com/microsoft/aad/adal/CacheKey.java" synthetic="true">
+      <Message>At CacheKey.java:[lines 30-74]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="SIC_INNER_SHOULD_BE_STATIC" priority="2" rank="18" abbrev="SIC" category="PERFORMANCE" instanceHash="a63cb1539fad2437c883c501f800c469" instanceOccurrenceNum="0" instanceOccurrenceMax="0">
+    <ShortMessage>Should be a static inner class</ShortMessage>
+    <LongMessage>Should com.microsoft.aad.adal.ChallengeResponseBuilder$ChallengeRequest be a _static_ inner class?</LongMessage>
+    <Class classname="com.microsoft.aad.adal.ChallengeResponseBuilder$ChallengeRequest" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.ChallengeResponseBuilder$ChallengeRequest" start="78" end="97" sourcefile="ChallengeResponseBuilder.java" sourcepath="com/microsoft/aad/adal/ChallengeResponseBuilder.java">
+        <Message>At ChallengeResponseBuilder.java:[lines 78-97]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.aad.adal.ChallengeResponseBuilder$ChallengeRequest</Message>
+    </Class>
+    <SourceLine classname="com.microsoft.aad.adal.ChallengeResponseBuilder$ChallengeRequest" start="78" end="97" sourcefile="ChallengeResponseBuilder.java" sourcepath="com/microsoft/aad/adal/ChallengeResponseBuilder.java" synthetic="true">
+      <Message>At ChallengeResponseBuilder.java:[lines 78-97]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="SIC_INNER_SHOULD_BE_STATIC" priority="2" rank="18" abbrev="SIC" category="PERFORMANCE" instanceHash="ef2e54aa52ea2bbdc2fd5695bed0f47d" instanceOccurrenceNum="0" instanceOccurrenceMax="0">
+    <ShortMessage>Should be a static inner class</ShortMessage>
+    <LongMessage>Should com.microsoft.aad.adal.ChallengeResponseBuilder$ChallengeResponse be a _static_ inner class?</LongMessage>
+    <Class classname="com.microsoft.aad.adal.ChallengeResponseBuilder$ChallengeResponse" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.ChallengeResponseBuilder$ChallengeResponse" start="52" end="71" sourcefile="ChallengeResponseBuilder.java" sourcepath="com/microsoft/aad/adal/ChallengeResponseBuilder.java">
+        <Message>At ChallengeResponseBuilder.java:[lines 52-71]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.aad.adal.ChallengeResponseBuilder$ChallengeResponse</Message>
+    </Class>
+    <SourceLine classname="com.microsoft.aad.adal.ChallengeResponseBuilder$ChallengeResponse" start="52" end="71" sourcefile="ChallengeResponseBuilder.java" sourcepath="com/microsoft/aad/adal/ChallengeResponseBuilder.java" synthetic="true">
+      <Message>At ChallengeResponseBuilder.java:[lines 52-71]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="NM_SAME_SIMPLE_NAME_AS_SUPERCLASS" priority="1" rank="14" abbrev="Nm" category="BAD_PRACTICE" instanceHash="f93d4151eebf9ea156fca1f5aa0093d" instanceOccurrenceNum="0" instanceOccurrenceMax="0">
+    <ShortMessage>Class names shouldn&apos;t shadow simple name of superclass</ShortMessage>
+    <LongMessage>The class name com.microsoft.aad.adal.DateTimeAdapter shadows the simple name of the superclass com.microsoft.identity.common.adal.internal.cache.DateTimeAdapter</LongMessage>
+    <Class classname="com.microsoft.aad.adal.DateTimeAdapter" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.DateTimeAdapter" start="25" end="25" sourcefile="DateTimeAdapter.java" sourcepath="com/microsoft/aad/adal/DateTimeAdapter.java">
+        <Message>At DateTimeAdapter.java:[line 25]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.aad.adal.DateTimeAdapter</Message>
+    </Class>
+    <Class classname="com.microsoft.identity.common.adal.internal.cache.DateTimeAdapter">
+      <SourceLine classname="com.microsoft.identity.common.adal.internal.cache.DateTimeAdapter" start="43" end="136" sourcefile="DateTimeAdapter.java" sourcepath="com/microsoft/identity/common/adal/internal/cache/DateTimeAdapter.java">
+        <Message>At DateTimeAdapter.java:[lines 43-136]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.identity.common.adal.internal.cache.DateTimeAdapter</Message>
+    </Class>
+    <SourceLine classname="com.microsoft.aad.adal.DateTimeAdapter" start="25" end="25" sourcefile="DateTimeAdapter.java" sourcepath="com/microsoft/aad/adal/DateTimeAdapter.java" synthetic="true">
+      <Message>At DateTimeAdapter.java:[line 25]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" priority="1" rank="15" abbrev="ST" category="STYLE" instanceHash="80d1522085ff7e41ac5eabfab0f479bb" instanceOccurrenceNum="0" instanceOccurrenceMax="0">
+    <ShortMessage>Write to static field from instance method</ShortMessage>
+    <LongMessage>Write to static field com.microsoft.aad.adal.DefaultEvent.sApplicationName from instance method com.microsoft.aad.adal.DefaultEvent.setDefaults(Context, String)</LongMessage>
+    <Class classname="com.microsoft.aad.adal.DefaultEvent" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.DefaultEvent" start="46" end="170" sourcefile="DefaultEvent.java" sourcepath="com/microsoft/aad/adal/DefaultEvent.java">
+        <Message>At DefaultEvent.java:[lines 46-170]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.aad.adal.DefaultEvent</Message>
+    </Class>
+    <Method classname="com.microsoft.aad.adal.DefaultEvent" name="setDefaults" signature="(Landroid/content/Context;Ljava/lang/String;)V" isStatic="false" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.DefaultEvent" start="121" end="142" startBytecode="0" endBytecode="306" sourcefile="DefaultEvent.java" sourcepath="com/microsoft/aad/adal/DefaultEvent.java"/>
+      <Message>In method com.microsoft.aad.adal.DefaultEvent.setDefaults(Context, String)</Message>
+    </Method>
+    <Field classname="com.microsoft.aad.adal.DefaultEvent" name="sApplicationName" signature="Ljava/lang/String;" isStatic="true" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.DefaultEvent" sourcefile="DefaultEvent.java" sourcepath="com/microsoft/aad/adal/DefaultEvent.java">
+        <Message>In DefaultEvent.java</Message>
+      </SourceLine>
+      <Message>Field com.microsoft.aad.adal.DefaultEvent.sApplicationName</Message>
+    </Field>
+    <SourceLine classname="com.microsoft.aad.adal.DefaultEvent" primary="true" start="122" end="122" startBytecode="8" endBytecode="8" sourcefile="DefaultEvent.java" sourcepath="com/microsoft/aad/adal/DefaultEvent.java">
+      <Message>At DefaultEvent.java:[line 122]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" priority="1" rank="15" abbrev="ST" category="STYLE" instanceHash="c96a74a13a08b6df20dafdb9f4ce8b0e" instanceOccurrenceNum="0" instanceOccurrenceMax="0">
+    <ShortMessage>Write to static field from instance method</ShortMessage>
+    <LongMessage>Write to static field com.microsoft.aad.adal.DefaultEvent.sClientId from instance method com.microsoft.aad.adal.DefaultEvent.setDefaults(Context, String)</LongMessage>
+    <Class classname="com.microsoft.aad.adal.DefaultEvent" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.DefaultEvent" start="46" end="170" sourcefile="DefaultEvent.java" sourcepath="com/microsoft/aad/adal/DefaultEvent.java">
+        <Message>At DefaultEvent.java:[lines 46-170]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.aad.adal.DefaultEvent</Message>
+    </Class>
+    <Method classname="com.microsoft.aad.adal.DefaultEvent" name="setDefaults" signature="(Landroid/content/Context;Ljava/lang/String;)V" isStatic="false" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.DefaultEvent" start="121" end="142" startBytecode="0" endBytecode="306" sourcefile="DefaultEvent.java" sourcepath="com/microsoft/aad/adal/DefaultEvent.java"/>
+      <Message>In method com.microsoft.aad.adal.DefaultEvent.setDefaults(Context, String)</Message>
+    </Method>
+    <Field classname="com.microsoft.aad.adal.DefaultEvent" name="sClientId" signature="Ljava/lang/String;" isStatic="true" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.DefaultEvent" sourcefile="DefaultEvent.java" sourcepath="com/microsoft/aad/adal/DefaultEvent.java">
+        <Message>In DefaultEvent.java</Message>
+      </SourceLine>
+      <Message>Field com.microsoft.aad.adal.DefaultEvent.sClientId</Message>
+    </Field>
+    <SourceLine classname="com.microsoft.aad.adal.DefaultEvent" primary="true" start="121" end="121" startBytecode="1" endBytecode="1" sourcefile="DefaultEvent.java" sourcepath="com/microsoft/aad/adal/DefaultEvent.java">
+      <Message>At DefaultEvent.java:[line 121]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" priority="2" rank="17" abbrev="ST" category="STYLE" instanceHash="d53658857850f12e6f66015fc36a5f3d" instanceOccurrenceNum="0" instanceOccurrenceMax="0">
+    <ShortMessage>Write to static field from instance method</ShortMessage>
+    <LongMessage>Write to static field com.microsoft.aad.adal.DefaultEvent.sApplicationVersion from instance method com.microsoft.aad.adal.DefaultEvent.setDefaults(Context, String)</LongMessage>
+    <Class classname="com.microsoft.aad.adal.DefaultEvent" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.DefaultEvent" start="46" end="170" sourcefile="DefaultEvent.java" sourcepath="com/microsoft/aad/adal/DefaultEvent.java">
+        <Message>At DefaultEvent.java:[lines 46-170]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.aad.adal.DefaultEvent</Message>
+    </Class>
+    <Method classname="com.microsoft.aad.adal.DefaultEvent" name="setDefaults" signature="(Landroid/content/Context;Ljava/lang/String;)V" isStatic="false" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.DefaultEvent" start="121" end="142" startBytecode="0" endBytecode="306" sourcefile="DefaultEvent.java" sourcepath="com/microsoft/aad/adal/DefaultEvent.java"/>
+      <Message>In method com.microsoft.aad.adal.DefaultEvent.setDefaults(Context, String)</Message>
+    </Method>
+    <Field classname="com.microsoft.aad.adal.DefaultEvent" name="sApplicationVersion" signature="Ljava/lang/String;" isStatic="true" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.DefaultEvent" sourcefile="DefaultEvent.java" sourcepath="com/microsoft/aad/adal/DefaultEvent.java">
+        <Message>In DefaultEvent.java</Message>
+      </SourceLine>
+      <Message>Field com.microsoft.aad.adal.DefaultEvent.sApplicationVersion</Message>
+    </Field>
+    <SourceLine classname="com.microsoft.aad.adal.DefaultEvent" primary="true" start="124" end="124" startBytecode="25" endBytecode="25" sourcefile="DefaultEvent.java" sourcepath="com/microsoft/aad/adal/DefaultEvent.java">
+      <Message>At DefaultEvent.java:[line 124]</Message>
+    </SourceLine>
+    <SourceLine classname="com.microsoft.aad.adal.DefaultEvent" start="126" end="126" startBytecode="34" endBytecode="34" sourcefile="DefaultEvent.java" sourcepath="com/microsoft/aad/adal/DefaultEvent.java" role="SOURCE_LINE_ANOTHER_INSTANCE">
+      <Message>Another occurrence at DefaultEvent.java:[line 126]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" priority="2" rank="17" abbrev="ST" category="STYLE" instanceHash="7e242783941abf472b4ac12a7d2e3ffc" instanceOccurrenceNum="0" instanceOccurrenceMax="0">
+    <ShortMessage>Write to static field from instance method</ShortMessage>
+    <LongMessage>Write to static field com.microsoft.aad.adal.DefaultEvent.sDeviceId from instance method com.microsoft.aad.adal.DefaultEvent.setDefaults(Context, String)</LongMessage>
+    <Class classname="com.microsoft.aad.adal.DefaultEvent" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.DefaultEvent" start="46" end="170" sourcefile="DefaultEvent.java" sourcepath="com/microsoft/aad/adal/DefaultEvent.java">
+        <Message>At DefaultEvent.java:[lines 46-170]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.aad.adal.DefaultEvent</Message>
+    </Class>
+    <Method classname="com.microsoft.aad.adal.DefaultEvent" name="setDefaults" signature="(Landroid/content/Context;Ljava/lang/String;)V" isStatic="false" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.DefaultEvent" start="121" end="142" startBytecode="0" endBytecode="306" sourcefile="DefaultEvent.java" sourcepath="com/microsoft/aad/adal/DefaultEvent.java"/>
+      <Message>In method com.microsoft.aad.adal.DefaultEvent.setDefaults(Context, String)</Message>
+    </Method>
+    <Field classname="com.microsoft.aad.adal.DefaultEvent" name="sDeviceId" signature="Ljava/lang/String;" isStatic="true" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.DefaultEvent" sourcefile="DefaultEvent.java" sourcepath="com/microsoft/aad/adal/DefaultEvent.java">
+        <Message>In DefaultEvent.java</Message>
+      </SourceLine>
+      <Message>Field com.microsoft.aad.adal.DefaultEvent.sDeviceId</Message>
+    </Field>
+    <SourceLine classname="com.microsoft.aad.adal.DefaultEvent" primary="true" start="130" end="130" startBytecode="49" endBytecode="49" sourcefile="DefaultEvent.java" sourcepath="com/microsoft/aad/adal/DefaultEvent.java">
+      <Message>At DefaultEvent.java:[line 130]</Message>
+    </SourceLine>
+    <SourceLine classname="com.microsoft.aad.adal.DefaultEvent" start="132" end="132" startBytecode="58" endBytecode="58" sourcefile="DefaultEvent.java" sourcepath="com/microsoft/aad/adal/DefaultEvent.java" role="SOURCE_LINE_ANOTHER_INSTANCE">
+      <Message>Another occurrence at DefaultEvent.java:[line 132]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="SE_BAD_FIELD" priority="2" rank="16" abbrev="Se" category="BAD_PRACTICE" instanceHash="e5d596ee48fca592d77f8e9433cf7e4a" instanceOccurrenceNum="0" instanceOccurrenceMax="0">
+    <ShortMessage>Non-transient non-serializable instance field in serializable class</ShortMessage>
+    <LongMessage>Class com.microsoft.aad.adal.DefaultTokenCacheStore defines non-transient non-serializable instance field mGson</LongMessage>
+    <Class classname="com.microsoft.aad.adal.DefaultTokenCacheStore" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.DefaultTokenCacheStore" start="65" end="375" sourcefile="DefaultTokenCacheStore.java" sourcepath="com/microsoft/aad/adal/DefaultTokenCacheStore.java">
+        <Message>At DefaultTokenCacheStore.java:[lines 65-375]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.aad.adal.DefaultTokenCacheStore</Message>
+    </Class>
+    <Field classname="com.microsoft.aad.adal.DefaultTokenCacheStore" name="mGson" signature="Lcom/google/gson/Gson;" isStatic="false" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.DefaultTokenCacheStore" sourcefile="DefaultTokenCacheStore.java" sourcepath="com/microsoft/aad/adal/DefaultTokenCacheStore.java">
+        <Message>In DefaultTokenCacheStore.java</Message>
+      </SourceLine>
+      <Message>Field com.microsoft.aad.adal.DefaultTokenCacheStore.mGson</Message>
+    </Field>
+    <Type descriptor="Lcom/google/gson/Gson;" role="TYPE_FOUND">
+      <SourceLine classname="com.google.gson.Gson" start="114" end="1029" sourcefile="Gson.java" sourcepath="com/google/gson/Gson.java">
+        <Message>At Gson.java:[lines 114-1029]</Message>
+      </SourceLine>
+      <Message>Actual type com.google.gson.Gson</Message>
+    </Type>
+    <SourceLine classname="com.microsoft.aad.adal.DefaultTokenCacheStore" sourcefile="DefaultTokenCacheStore.java" sourcepath="com/microsoft/aad/adal/DefaultTokenCacheStore.java" synthetic="true">
+      <Message>In DefaultTokenCacheStore.java</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="SE_BAD_FIELD" priority="2" rank="16" abbrev="Se" category="BAD_PRACTICE" instanceHash="b6c195a329c62546338de4f18c49277" instanceOccurrenceNum="0" instanceOccurrenceMax="0">
+    <ShortMessage>Non-transient non-serializable instance field in serializable class</ShortMessage>
+    <LongMessage>Class com.microsoft.aad.adal.DefaultTokenCacheStore defines non-transient non-serializable instance field mPrefs</LongMessage>
+    <Class classname="com.microsoft.aad.adal.DefaultTokenCacheStore" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.DefaultTokenCacheStore" start="65" end="375" sourcefile="DefaultTokenCacheStore.java" sourcepath="com/microsoft/aad/adal/DefaultTokenCacheStore.java">
+        <Message>At DefaultTokenCacheStore.java:[lines 65-375]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.aad.adal.DefaultTokenCacheStore</Message>
+    </Class>
+    <Field classname="com.microsoft.aad.adal.DefaultTokenCacheStore" name="mPrefs" signature="Lcom/microsoft/identity/common/internal/cache/SharedPreferencesFileManager;" isStatic="false" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.DefaultTokenCacheStore" sourcefile="DefaultTokenCacheStore.java" sourcepath="com/microsoft/aad/adal/DefaultTokenCacheStore.java">
+        <Message>In DefaultTokenCacheStore.java</Message>
+      </SourceLine>
+      <Message>Field com.microsoft.aad.adal.DefaultTokenCacheStore.mPrefs</Message>
+    </Field>
+    <Type descriptor="Lcom/microsoft/identity/common/internal/cache/SharedPreferencesFileManager;" role="TYPE_FOUND">
+      <SourceLine classname="com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager" start="51" end="382" sourcefile="SharedPreferencesFileManager.java" sourcepath="com/microsoft/identity/common/internal/cache/SharedPreferencesFileManager.java">
+        <Message>At SharedPreferencesFileManager.java:[lines 51-382]</Message>
+      </SourceLine>
+      <Message>Actual type com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager</Message>
+    </Type>
+    <SourceLine classname="com.microsoft.aad.adal.DefaultTokenCacheStore" sourcefile="DefaultTokenCacheStore.java" sourcepath="com/microsoft/aad/adal/DefaultTokenCacheStore.java" synthetic="true">
+      <Message>In DefaultTokenCacheStore.java</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="NM_SAME_SIMPLE_NAME_AS_SUPERCLASS" priority="1" rank="14" abbrev="Nm" category="BAD_PRACTICE" instanceHash="18b15b2ff480b44bc38fe0ed16de244a" instanceOccurrenceNum="0" instanceOccurrenceMax="0">
+    <ShortMessage>Class names shouldn&apos;t shadow simple name of superclass</ShortMessage>
+    <LongMessage>The class name com.microsoft.aad.adal.PackageHelper shadows the simple name of the superclass com.microsoft.identity.common.internal.broker.PackageHelper</LongMessage>
+    <Class classname="com.microsoft.aad.adal.PackageHelper" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.PackageHelper" start="39" end="40" sourcefile="PackageHelper.java" sourcepath="com/microsoft/aad/adal/PackageHelper.java">
+        <Message>At PackageHelper.java:[lines 39-40]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.aad.adal.PackageHelper</Message>
+    </Class>
+    <Class classname="com.microsoft.identity.common.internal.broker.PackageHelper">
+      <SourceLine classname="com.microsoft.identity.common.internal.broker.PackageHelper" start="60" end="201" sourcefile="PackageHelper.java" sourcepath="com/microsoft/identity/common/internal/broker/PackageHelper.java">
+        <Message>At PackageHelper.java:[lines 60-201]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.identity.common.internal.broker.PackageHelper</Message>
+    </Class>
+    <SourceLine classname="com.microsoft.aad.adal.PackageHelper" start="39" end="40" sourcefile="PackageHelper.java" sourcepath="com/microsoft/aad/adal/PackageHelper.java" synthetic="true">
+      <Message>At PackageHelper.java:[lines 39-40]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="IS2_INCONSISTENT_SYNC" priority="2" rank="17" abbrev="IS" category="MT_CORRECTNESS" instanceHash="ccceef888e0ec03c72b1b72ca3be13ac" instanceOccurrenceNum="0" instanceOccurrenceMax="0" cweid="366">
+    <ShortMessage>Inconsistent synchronization</ShortMessage>
+    <LongMessage>Inconsistent synchronization of com.microsoft.aad.adal.StorageHelper.mBlobVersion; locked 50% of time</LongMessage>
+    <Class classname="com.microsoft.aad.adal.StorageHelper" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.StorageHelper" start="151" end="676" sourcefile="StorageHelper.java" sourcepath="com/microsoft/aad/adal/StorageHelper.java">
+        <Message>At StorageHelper.java:[lines 151-676]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.aad.adal.StorageHelper</Message>
+    </Class>
+    <Field classname="com.microsoft.aad.adal.StorageHelper" name="mBlobVersion" signature="Ljava/lang/String;" isStatic="false" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.StorageHelper" sourcefile="StorageHelper.java" sourcepath="com/microsoft/aad/adal/StorageHelper.java">
+        <Message>In StorageHelper.java</Message>
+      </SourceLine>
+      <Message>Field com.microsoft.aad.adal.StorageHelper.mBlobVersion</Message>
+    </Field>
+    <Int value="50" role="INT_SYNC_PERCENT">
+      <Message>Synchronized 50% of the time</Message>
+    </Int>
+    <SourceLine classname="com.microsoft.aad.adal.StorageHelper" primary="true" start="186" end="186" startBytecode="64" endBytecode="64" sourcefile="StorageHelper.java" sourcepath="com/microsoft/aad/adal/StorageHelper.java" role="SOURCE_LINE_UNSYNC_ACCESS">
+      <Message>Unsynchronized access at StorageHelper.java:[line 186]</Message>
+    </SourceLine>
+    <SourceLine classname="com.microsoft.aad.adal.StorageHelper" start="187" end="187" startBytecode="77" endBytecode="77" sourcefile="StorageHelper.java" sourcepath="com/microsoft/aad/adal/StorageHelper.java" role="SOURCE_LINE_UNSYNC_ACCESS">
+      <Message>Unsynchronized access at StorageHelper.java:[line 187]</Message>
+    </SourceLine>
+    <SourceLine classname="com.microsoft.aad.adal.StorageHelper" start="335" end="335" startBytecode="21" endBytecode="21" sourcefile="StorageHelper.java" sourcepath="com/microsoft/aad/adal/StorageHelper.java" role="SOURCE_LINE_SYNC_ACCESS">
+      <Message>Synchronized access at StorageHelper.java:[line 335]</Message>
+    </SourceLine>
+    <SourceLine classname="com.microsoft.aad.adal.StorageHelper" start="336" end="336" startBytecode="26" endBytecode="26" sourcefile="StorageHelper.java" sourcepath="com/microsoft/aad/adal/StorageHelper.java" role="SOURCE_LINE_SYNC_ACCESS">
+      <Message>Synchronized access at StorageHelper.java:[line 336]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="SE_TRANSIENT_FIELD_NOT_RESTORED" priority="2" rank="16" abbrev="Se" category="BAD_PRACTICE" instanceHash="5ff78dbd223360356b53e1526acfdf05" instanceOccurrenceNum="0" instanceOccurrenceMax="0">
+    <ShortMessage>Transient field that isn&apos;t set by deserialization.</ShortMessage>
+    <LongMessage>The field com.microsoft.aad.adal.UserInfo.mPasswordExpiresOn is transient but isn&apos;t set by deserialization</LongMessage>
+    <Class classname="com.microsoft.aad.adal.UserInfo" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.UserInfo" start="65" end="255" sourcefile="UserInfo.java" sourcepath="com/microsoft/aad/adal/UserInfo.java">
+        <Message>At UserInfo.java:[lines 65-255]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.aad.adal.UserInfo</Message>
+    </Class>
+    <Field classname="com.microsoft.aad.adal.UserInfo" name="mPasswordExpiresOn" signature="Ljava/util/Date;" isStatic="false" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.UserInfo" sourcefile="UserInfo.java" sourcepath="com/microsoft/aad/adal/UserInfo.java">
+        <Message>In UserInfo.java</Message>
+      </SourceLine>
+      <Message>Field com.microsoft.aad.adal.UserInfo.mPasswordExpiresOn</Message>
+    </Field>
+    <SourceLine classname="com.microsoft.aad.adal.UserInfo" sourcefile="UserInfo.java" sourcepath="com/microsoft/aad/adal/UserInfo.java" synthetic="true">
+      <Message>In UserInfo.java</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugCategory category="BAD_PRACTICE">
+    <Description>Bad practice</Description>
+  </BugCategory>
+  <BugCategory category="PERFORMANCE">
+    <Description>Performance</Description>
+  </BugCategory>
+  <BugCategory category="CORRECTNESS">
+    <Description>Correctness</Description>
+  </BugCategory>
+  <BugCategory category="STYLE">
+    <Description>Dodgy code</Description>
+  </BugCategory>
+  <BugCategory category="MT_CORRECTNESS">
+    <Description>Multithreaded correctness</Description>
+  </BugCategory>
+  <BugPattern type="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" abbrev="ST" category="STYLE">
+    <ShortDescription>Write to static field from instance method</ShortDescription>
+    <Details><![CDATA[
+
+  <p> This instance method writes to a static field. This is tricky to get
+correct if multiple instances are being manipulated,
+and generally bad practice.
+</p>
+
+    ]]></Details>
+  </BugPattern>
+  <BugPattern type="UWF_UNWRITTEN_FIELD" abbrev="UwF" category="CORRECTNESS">
+    <ShortDescription>Unwritten field</ShortDescription>
+    <Details><![CDATA[
+
+  <p> This field is never written.&nbsp; All reads of it will return the default
+value. Check for errors (should it have been initialized?), or remove it if it is useless.</p>
+
+    ]]></Details>
+  </BugPattern>
+  <BugPattern type="SIC_INNER_SHOULD_BE_STATIC" abbrev="SIC" category="PERFORMANCE">
+    <ShortDescription>Should be a static inner class</ShortDescription>
+    <Details><![CDATA[
+
+  <p> This class is an inner class, but does not use its embedded reference
+  to the object which created it.&nbsp; This reference makes the instances
+  of the class larger, and may keep the reference to the creator object
+  alive longer than necessary.&nbsp; If possible, the class should be
+   made static.
+</p>
+
+    ]]></Details>
+  </BugPattern>
+  <BugPattern type="NM_SAME_SIMPLE_NAME_AS_SUPERCLASS" abbrev="Nm" category="BAD_PRACTICE">
+    <ShortDescription>Class names shouldn&apos;t shadow simple name of superclass</ShortDescription>
+    <Details><![CDATA[
+
+  <p> This class has a simple name that is identical to that of its superclass, except
+that its superclass is in a different package (e.g., <code>alpha.Foo</code> extends <code>beta.Foo</code>).
+This can be exceptionally confusing, create lots of situations in which you have to look at import statements
+to resolve references and creates many
+opportunities to accidentally define methods that do not override methods in their superclasses.
+</p>
+
+    ]]></Details>
+  </BugPattern>
+  <BugPattern type="ES_COMPARING_PARAMETER_STRING_WITH_EQ" abbrev="ES" category="BAD_PRACTICE">
+    <ShortDescription>Comparison of String parameter using == or !=</ShortDescription>
+    <Details><![CDATA[
+
+  <p>This code compares a <code>java.lang.String</code> parameter for reference
+equality using the == or != operators. Requiring callers to
+pass only String constants or interned strings to a method is unnecessarily
+fragile, and rarely leads to measurable performance gains. Consider
+using the <code>equals(Object)</code> method instead.</p>
+
+    ]]></Details>
+  </BugPattern>
+  <BugPattern type="SE_BAD_FIELD" abbrev="Se" category="BAD_PRACTICE">
+    <ShortDescription>Non-transient non-serializable instance field in serializable class</ShortDescription>
+    <Details><![CDATA[
+
+<p> This Serializable class defines a non-primitive instance field which is neither transient,
+Serializable, or <code>java.lang.Object</code>, and does not appear to implement
+the <code>Externalizable</code> interface or the
+<code>readObject()</code> and <code>writeObject()</code> methods.&nbsp;
+Objects of this class will not be deserialized correctly if a non-Serializable
+object is stored in this field.</p>
+
+    ]]></Details>
+  </BugPattern>
+  <BugPattern type="IS2_INCONSISTENT_SYNC" abbrev="IS" category="MT_CORRECTNESS">
+    <ShortDescription>Inconsistent synchronization</ShortDescription>
+    <Details><![CDATA[
+
+  <p> The fields of this class appear to be accessed inconsistently with respect
+  to synchronization.&nbsp; This bug report indicates that the bug pattern detector
+  judged that
+  </p>
+  <ul>
+  <li> The class contains a mix of locked and unlocked accesses,</li>
+  <li> The class is <b>not</b> annotated as javax.annotation.concurrent.NotThreadSafe,</li>
+  <li> At least one locked access was performed by one of the class's own methods, and</li>
+  <li> The number of unsynchronized field accesses (reads and writes) was no more than
+       one third of all accesses, with writes being weighed twice as high as reads</li>
+  </ul>
+
+  <p> A typical bug matching this bug pattern is forgetting to synchronize
+  one of the methods in a class that is intended to be thread-safe.</p>
+
+  <p> You can select the nodes labeled "Unsynchronized access" to show the
+  code locations where the detector believed that a field was accessed
+  without synchronization.</p>
+
+  <p> Note that there are various sources of inaccuracy in this detector;
+  for example, the detector cannot statically detect all situations in which
+  a lock is held.&nbsp; Also, even when the detector is accurate in
+  distinguishing locked vs. unlocked accesses, the code in question may still
+  be correct.</p>
+
+
+    ]]></Details>
+  </BugPattern>
+  <BugPattern type="SE_TRANSIENT_FIELD_NOT_RESTORED" abbrev="Se" category="BAD_PRACTICE">
+    <ShortDescription>Transient field that isn&apos;t set by deserialization.</ShortDescription>
+    <Details><![CDATA[
+
+  <p> This class contains a field that is updated at multiple places in the class, thus it seems to be part of the state of the class. However, since the field is marked as transient and not set in readObject or readResolve, it will contain the default value in any
+deserialized instance of the class.
+</p>
+
+    ]]></Details>
+  </BugPattern>
+  <BugCode abbrev="ST">
+    <Description>Misuse of static fields</Description>
+  </BugCode>
+  <BugCode abbrev="Se">
+    <Description>Incorrect definition of Serializable class</Description>
+  </BugCode>
+  <BugCode abbrev="UwF">
+    <Description>Unwritten field</Description>
+  </BugCode>
+  <BugCode abbrev="IS" cweid="366">
+    <Description>Inconsistent synchronization</Description>
+  </BugCode>
+  <BugCode abbrev="SIC">
+    <Description>Inner class could be made static</Description>
+  </BugCode>
+  <BugCode abbrev="ES" cweid="597">
+    <Description>Checking String equality using == or !=</Description>
+  </BugCode>
+  <BugCode abbrev="Nm">
+    <Description>Confusing method name</Description>
+  </BugCode>
+  <Errors errors="0" missingClasses="66">
+    <MissingClass>android.accounts.Account</MissingClass>
+    <MissingClass>android.accounts.AccountAuthenticatorResponse</MissingClass>
+    <MissingClass>android.accounts.AccountManager</MissingClass>
+    <MissingClass>android.accounts.AccountManagerFuture</MissingClass>
+    <MissingClass>android.accounts.AuthenticatorDescription</MissingClass>
+    <MissingClass>android.accounts.AuthenticatorException</MissingClass>
+    <MissingClass>android.accounts.OperationCanceledException</MissingClass>
+    <MissingClass>android.app.Activity</MissingClass>
+    <MissingClass>android.app.AlertDialog</MissingClass>
+    <MissingClass>android.app.AlertDialog$Builder</MissingClass>
+    <MissingClass>android.app.Dialog</MissingClass>
+    <MissingClass>android.content.BroadcastReceiver</MissingClass>
+    <MissingClass>android.content.Context</MissingClass>
+    <MissingClass>android.content.DialogInterface$OnCancelListener</MissingClass>
+    <MissingClass>android.content.DialogInterface$OnClickListener</MissingClass>
+    <MissingClass>android.content.Intent</MissingClass>
+    <MissingClass>android.content.IntentFilter</MissingClass>
+    <MissingClass>android.content.ServiceConnection</MissingClass>
+    <MissingClass>android.content.pm.ApplicationInfo</MissingClass>
+    <MissingClass>android.content.pm.PackageInfo</MissingClass>
+    <MissingClass>android.content.pm.PackageManager</MissingClass>
+    <MissingClass>android.content.pm.PackageManager$NameNotFoundException</MissingClass>
+    <MissingClass>android.content.res.Resources</MissingClass>
+    <MissingClass>android.net.Uri</MissingClass>
+    <MissingClass>android.net.Uri$Builder</MissingClass>
+    <MissingClass>android.net.http.SslError</MissingClass>
+    <MissingClass>android.os.AsyncTask</MissingClass>
+    <MissingClass>android.os.Build</MissingClass>
+    <MissingClass>android.os.Build$VERSION</MissingClass>
+    <MissingClass>android.os.Bundle</MissingClass>
+    <MissingClass>android.os.Handler</MissingClass>
+    <MissingClass>android.os.IInterface</MissingClass>
+    <MissingClass>android.os.Looper</MissingClass>
+    <MissingClass>android.os.NetworkOnMainThreadException</MissingClass>
+    <MissingClass>android.os.Process</MissingClass>
+    <MissingClass>android.os.RemoteException</MissingClass>
+    <MissingClass>android.provider.Settings$Secure</MissingClass>
+    <MissingClass>android.security.KeyChain</MissingClass>
+    <MissingClass>android.security.KeyChainAliasCallback</MissingClass>
+    <MissingClass>android.security.KeyPairGeneratorSpec$Builder</MissingClass>
+    <MissingClass>android.text.TextUtils</MissingClass>
+    <MissingClass>android.util.Base64</MissingClass>
+    <MissingClass>android.util.Log</MissingClass>
+    <MissingClass>android.util.Pair</MissingClass>
+    <MissingClass>android.util.SparseArray</MissingClass>
+    <MissingClass>android.view.LayoutInflater</MissingClass>
+    <MissingClass>android.view.MotionEvent</MissingClass>
+    <MissingClass>android.view.View</MissingClass>
+    <MissingClass>android.view.View$OnTouchListener</MissingClass>
+    <MissingClass>android.view.inputmethod.InputMethodManager</MissingClass>
+    <MissingClass>android.webkit.ClientCertRequest</MissingClass>
+    <MissingClass>android.webkit.CookieManager</MissingClass>
+    <MissingClass>android.webkit.CookieSyncManager</MissingClass>
+    <MissingClass>android.webkit.HttpAuthHandler</MissingClass>
+    <MissingClass>android.webkit.SslErrorHandler</MissingClass>
+    <MissingClass>android.webkit.WebResourceError</MissingClass>
+    <MissingClass>android.webkit.WebSettings</MissingClass>
+    <MissingClass>android.webkit.WebView</MissingClass>
+    <MissingClass>android.webkit.WebViewClient</MissingClass>
+    <MissingClass>android.widget.Button</MissingClass>
+    <MissingClass>android.widget.EditText</MissingClass>
+    <MissingClass>android.widget.ProgressBar</MissingClass>
+    <MissingClass>android.widget.TextView$OnEditorActionListener</MissingClass>
+    <MissingClass>org.json.JSONArray</MissingClass>
+    <MissingClass>org.json.JSONException</MissingClass>
+    <MissingClass>org.json.JSONObject</MissingClass>
+  </Errors>
+  <FindBugsSummary timestamp="Thu, 29 Apr 2021 18:51:23 -0700" total_classes="172" referenced_classes="492" total_bugs="17" total_size="8993" num_packages="2" java_version="1.8.0-25" vm_version="25.71-b00" cpu_seconds="61.42" clock_seconds="7.03" peak_mbytes="296.83" alloc_mbytes="455.50" gc_seconds="0.24" priority_2="12" priority_1="5">
+    <FileStats path="com/googleblog/android_developers/PRNGFixes.java" bugCount="0" size="145"/>
+    <FileStats path="com/microsoft/aad/adal/ADALError.java" bugCount="0" size="294"/>
+    <FileStats path="com/microsoft/aad/adal/ADFSWebFingerValidator.java" bugCount="0" size="33"/>
+    <FileStats path="com/microsoft/aad/adal/APIEvent.java" bugCount="0" size="118"/>
+    <FileStats path="com/microsoft/aad/adal/AbstractMetadataRequestor.java" bugCount="0" size="21"/>
+    <FileStats path="com/microsoft/aad/adal/AcquireTokenInteractiveRequest.java" bugCount="0" size="73"/>
+    <FileStats path="com/microsoft/aad/adal/AcquireTokenRequest.java" bugCount="0" size="581"/>
+    <FileStats path="com/microsoft/aad/adal/AcquireTokenSilentHandler.java" bugCount="0" size="189"/>
+    <FileStats path="com/microsoft/aad/adal/AcquireTokenWithBrokerRequest.java" bugCount="0" size="69"/>
+    <FileStats path="com/microsoft/aad/adal/AggregatedDispatcher.java" bugCount="0" size="23"/>
+    <FileStats path="com/microsoft/aad/adal/AuthenticationActivity.java" bugCount="1" size="671" bugHash="014b8b42a8a9828d302a85837864a21d"/>
+    <FileStats path="com/microsoft/aad/adal/AuthenticationCallback.java" bugCount="0" size="3"/>
+    <FileStats path="com/microsoft/aad/adal/AuthenticationCancelError.java" bugCount="0" size="8"/>
+    <FileStats path="com/microsoft/aad/adal/AuthenticationConstants.java" bugCount="0" size="186"/>
+    <FileStats path="com/microsoft/aad/adal/AuthenticationContext.java" bugCount="0" size="598"/>
+    <FileStats path="com/microsoft/aad/adal/AuthenticationDialog.java" bugCount="0" size="190"/>
+    <FileStats path="com/microsoft/aad/adal/AuthenticationException.java" bugCount="0" size="108"/>
+    <FileStats path="com/microsoft/aad/adal/AuthenticationParameters.java" bugCount="0" size="264"/>
+    <FileStats path="com/microsoft/aad/adal/AuthenticationRequest.java" bugCount="2" size="290" bugHash="581137ffa8e4eb5df019e464c90865d3"/>
+    <FileStats path="com/microsoft/aad/adal/AuthenticationRequestState.java" bugCount="0" size="39"/>
+    <FileStats path="com/microsoft/aad/adal/AuthenticationResult.java" bugCount="1" size="241" bugHash="f488a44ff9ce021e8f90276aef63fdec"/>
+    <FileStats path="com/microsoft/aad/adal/AuthenticationServerProtocolException.java" bugCount="0" size="5"/>
+    <FileStats path="com/microsoft/aad/adal/AuthenticationSettings.java" bugCount="0" size="86"/>
+    <FileStats path="com/microsoft/aad/adal/AuthorityValidationMetadataCache.java" bugCount="0" size="60"/>
+    <FileStats path="com/microsoft/aad/adal/BasicWebViewClient.java" bugCount="0" size="239"/>
+    <FileStats path="com/microsoft/aad/adal/BrokerAccountServiceHandler.java" bugCount="0" size="301"/>
+    <FileStats path="com/microsoft/aad/adal/BrokerEvent.java" bugCount="0" size="45"/>
+    <FileStats path="com/microsoft/aad/adal/BrokerProxy.java" bugCount="0" size="482"/>
+    <FileStats path="com/microsoft/aad/adal/BuildConfig.java" bugCount="0" size="10"/>
+    <FileStats path="com/microsoft/aad/adal/CacheEvent.java" bugCount="0" size="44"/>
+    <FileStats path="com/microsoft/aad/adal/CacheKey.java" bugCount="1" size="26" bugHash="e117756bfd3f7edb5560a584cded4f3c"/>
+    <FileStats path="com/microsoft/aad/adal/Callback.java" bugCount="0" size="3"/>
+    <FileStats path="com/microsoft/aad/adal/CallbackExecutor.java" bugCount="0" size="48"/>
+    <FileStats path="com/microsoft/aad/adal/ChallengeResponseBuilder.java" bugCount="2" size="205" bugHash="b7b2fd4497f464a75b84f8066f019c6b"/>
+    <FileStats path="com/microsoft/aad/adal/ClientMetrics.java" bugCount="0" size="63"/>
+    <FileStats path="com/microsoft/aad/adal/CoreAdapter.java" bugCount="0" size="46"/>
+    <FileStats path="com/microsoft/aad/adal/DRSMetadata.java" bugCount="0" size="10"/>
+    <FileStats path="com/microsoft/aad/adal/DRSMetadataRequestor.java" bugCount="0" size="68"/>
+    <FileStats path="com/microsoft/aad/adal/DateTimeAdapter.java" bugCount="1" size="3" bugHash="5dfa1e6a50e6b52ddc2a771acafece29"/>
+    <FileStats path="com/microsoft/aad/adal/DefaultDispatcher.java" bugCount="0" size="28"/>
+    <FileStats path="com/microsoft/aad/adal/DefaultEvent.java" bugCount="4" size="78" bugHash="4223f9b1cd9b193f468729fd1db6a691"/>
+    <FileStats path="com/microsoft/aad/adal/DefaultTokenCacheStore.java" bugCount="2" size="163" bugHash="f6dc36150f28b75483f296e3ba1b8aaf"/>
+    <FileStats path="com/microsoft/aad/adal/DeserializationAuthenticationException.java" bugCount="0" size="5"/>
+    <FileStats path="com/microsoft/aad/adal/Discovery.java" bugCount="0" size="154"/>
+    <FileStats path="com/microsoft/aad/adal/EventStrings.java" bugCount="0" size="95"/>
+    <FileStats path="com/microsoft/aad/adal/ExceptionExtensions.java" bugCount="0" size="13"/>
+    <FileStats path="com/microsoft/aad/adal/FileTokenCacheStore.java" bugCount="0" size="73"/>
+    <FileStats path="com/microsoft/aad/adal/HttpAuthDialog.java" bugCount="0" size="88"/>
+    <FileStats path="com/microsoft/aad/adal/HttpEvent.java" bugCount="0" size="104"/>
+    <FileStats path="com/microsoft/aad/adal/HttpUtil.java" bugCount="0" size="18"/>
+    <FileStats path="com/microsoft/aad/adal/IBrokerProxy.java" bugCount="0" size="13"/>
+    <FileStats path="com/microsoft/aad/adal/IDeviceCertificate.java" bugCount="0" size="6"/>
+    <FileStats path="com/microsoft/aad/adal/IDispatcher.java" bugCount="0" size="2"/>
+    <FileStats path="com/microsoft/aad/adal/IEvents.java" bugCount="0" size="5"/>
+    <FileStats path="com/microsoft/aad/adal/IJWSBuilder.java" bugCount="0" size="3"/>
+    <FileStats path="com/microsoft/aad/adal/ITokenCacheStore.java" bugCount="0" size="7"/>
+    <FileStats path="com/microsoft/aad/adal/ITokenStoreQuery.java" bugCount="0" size="7"/>
+    <FileStats path="com/microsoft/aad/adal/IWindowComponent.java" bugCount="0" size="2"/>
+    <FileStats path="com/microsoft/aad/adal/IdToken.java" bugCount="0" size="68"/>
+    <FileStats path="com/microsoft/aad/adal/IdentityProviderService.java" bugCount="0" size="10"/>
+    <FileStats path="com/microsoft/aad/adal/InstanceDiscoveryMetadata.java" bugCount="0" size="33"/>
+    <FileStats path="com/microsoft/aad/adal/IntuneAppProtectionPolicyRequiredException.java" bugCount="0" size="20"/>
+    <FileStats path="com/microsoft/aad/adal/Link.java" bugCount="0" size="16"/>
+    <FileStats path="com/microsoft/aad/adal/Logger.java" bugCount="0" size="176"/>
+    <FileStats path="com/microsoft/aad/adal/MemoryTokenCacheStore.java" bugCount="0" size="60"/>
+    <FileStats path="com/microsoft/aad/adal/Oauth2.java" bugCount="0" size="528"/>
+    <FileStats path="com/microsoft/aad/adal/PackageHelper.java" bugCount="1" size="4" bugHash="18a146086f3be232dea29f1c5d3003b4"/>
+    <FileStats path="com/microsoft/aad/adal/PromptBehavior.java" bugCount="0" size="15"/>
+    <FileStats path="com/microsoft/aad/adal/ResourceAuthenticationChallengeException.java" bugCount="0" size="5"/>
+    <FileStats path="com/microsoft/aad/adal/SSOStateSerializer.java" bugCount="0" size="42"/>
+    <FileStats path="com/microsoft/aad/adal/ServerRespondingWithRetryableException.java" bugCount="0" size="11"/>
+    <FileStats path="com/microsoft/aad/adal/StorageHelper.java" bugCount="1" size="255" bugHash="f48a2e0d4070b01620307633b0d20d30"/>
+    <FileStats path="com/microsoft/aad/adal/StringExtensions.java" bugCount="0" size="11"/>
+    <FileStats path="com/microsoft/aad/adal/Telemetry.java" bugCount="0" size="53"/>
+    <FileStats path="com/microsoft/aad/adal/TelemetryUtils.java" bugCount="0" size="43"/>
+    <FileStats path="com/microsoft/aad/adal/TokenCacheAccessor.java" bugCount="0" size="401"/>
+    <FileStats path="com/microsoft/aad/adal/TokenCacheItem.java" bugCount="0" size="171"/>
+    <FileStats path="com/microsoft/aad/adal/TokenCacheItemSerializationAdapater.java" bugCount="0" size="40"/>
+    <FileStats path="com/microsoft/aad/adal/UIEvent.java" bugCount="0" size="30"/>
+    <FileStats path="com/microsoft/aad/adal/UrlExtensions.java" bugCount="0" size="8"/>
+    <FileStats path="com/microsoft/aad/adal/UsageAuthenticationException.java" bugCount="0" size="8"/>
+    <FileStats path="com/microsoft/aad/adal/UserInfo.java" bugCount="1" size="95" bugHash="327910292c73d251939b1f10774b2dd9"/>
+    <FileStats path="com/microsoft/aad/adal/WebFingerMetadata.java" bugCount="0" size="16"/>
+    <FileStats path="com/microsoft/aad/adal/WebFingerMetadataRequestParameters.java" bugCount="0" size="12"/>
+    <FileStats path="com/microsoft/aad/adal/WebFingerMetadataRequestor.java" bugCount="0" size="38"/>
+    <FileStats path="com/microsoft/aad/adal/WebviewHelper.java" bugCount="0" size="72"/>
+    <PackageStats package="com.googleblog.android_developers" total_bugs="0" total_types="3" total_size="145">
+      <ClassStats class="com.googleblog.android_developers.PRNGFixes" sourceFile="PRNGFixes.java" interface="false" size="83" bugs="0"/>
+      <ClassStats class="com.googleblog.android_developers.PRNGFixes$LinuxPRNGSecureRandom" sourceFile="PRNGFixes.java" interface="false" size="55" bugs="0"/>
+      <ClassStats class="com.googleblog.android_developers.PRNGFixes$LinuxPRNGSecureRandomProvider" sourceFile="PRNGFixes.java" interface="false" size="7" bugs="0"/>
+    </PackageStats>
+    <PackageStats package="com.microsoft.aad.adal" total_bugs="17" total_types="169" total_size="8848" priority_2="12" priority_1="5">
+      <ClassStats class="com.microsoft.aad.adal.ADALError" sourceFile="ADALError.java" interface="false" size="294" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.ADFSWebFingerValidator" sourceFile="ADFSWebFingerValidator.java" interface="false" size="33" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.APIEvent" sourceFile="APIEvent.java" interface="false" size="118" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AbstractMetadataRequestor" sourceFile="AbstractMetadataRequestor.java" interface="false" size="21" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AcquireTokenInteractiveRequest" sourceFile="AcquireTokenInteractiveRequest.java" interface="false" size="73" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AcquireTokenRequest" sourceFile="AcquireTokenRequest.java" interface="false" size="438" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AcquireTokenRequest$1" sourceFile="AcquireTokenRequest.java" interface="false" size="24" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AcquireTokenRequest$2" sourceFile="AcquireTokenRequest.java" interface="false" size="43" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AcquireTokenRequest$3" sourceFile="AcquireTokenRequest.java" interface="false" size="36" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AcquireTokenRequest$CallbackHandler" sourceFile="AcquireTokenRequest.java" interface="false" size="24" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AcquireTokenRequest$CallbackHandler$1" sourceFile="AcquireTokenRequest.java" interface="false" size="8" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AcquireTokenRequest$CallbackHandler$2" sourceFile="AcquireTokenRequest.java" interface="false" size="8" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AcquireTokenSilentHandler" sourceFile="AcquireTokenSilentHandler.java" interface="false" size="189" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AcquireTokenWithBrokerRequest" sourceFile="AcquireTokenWithBrokerRequest.java" interface="false" size="69" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AggregatedDispatcher" sourceFile="AggregatedDispatcher.java" interface="false" size="23" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationActivity" sourceFile="AuthenticationActivity.java" interface="false" size="340" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationActivity$1" sourceFile="AuthenticationActivity.java" interface="false" size="10" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationActivity$2" sourceFile="AuthenticationActivity.java" interface="false" size="9" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationActivity$3" sourceFile="AuthenticationActivity.java" interface="false" size="8" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationActivity$ActivityBroadcastReceiver" sourceFile="AuthenticationActivity.java" interface="false" size="19" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationActivity$CustomWebViewClient" sourceFile="AuthenticationActivity.java" interface="false" size="76" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationActivity$CustomWebViewClient$1" sourceFile="AuthenticationActivity.java" interface="false" size="23" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationActivity$TokenTask" sourceFile="AuthenticationActivity.java" interface="false" size="173" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationActivity$TokenTaskResult" sourceFile="AuthenticationActivity.java" interface="false" size="13" bugs="1" priority_2="1"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationCallback" sourceFile="AuthenticationCallback.java" interface="true" size="3" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationCancelError" sourceFile="AuthenticationCancelError.java" interface="false" size="8" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationConstants" sourceFile="AuthenticationConstants.java" interface="false" size="9" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationConstants$AAD" sourceFile="AuthenticationConstants.java" interface="false" size="23" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationConstants$Broker" sourceFile="AuthenticationConstants.java" interface="false" size="66" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationConstants$Broker$CliTelemInfo" sourceFile="AuthenticationConstants.java" interface="false" size="7" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationConstants$Browser" sourceFile="AuthenticationConstants.java" interface="false" size="13" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationConstants$HeaderField" sourceFile="AuthenticationConstants.java" interface="false" size="5" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationConstants$MediaType" sourceFile="AuthenticationConstants.java" interface="false" size="4" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationConstants$OAuth2" sourceFile="AuthenticationConstants.java" interface="false" size="42" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationConstants$OAuth2ErrorCode" sourceFile="AuthenticationConstants.java" interface="false" size="4" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationConstants$UIRequest" sourceFile="AuthenticationConstants.java" interface="false" size="4" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationConstants$UIResponse" sourceFile="AuthenticationConstants.java" interface="false" size="9" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationContext" sourceFile="AuthenticationContext.java" interface="false" size="509" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationContext$1" sourceFile="AuthenticationContext.java" interface="false" size="21" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationContext$2" sourceFile="AuthenticationContext.java" interface="false" size="16" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationContext$3" sourceFile="AuthenticationContext.java" interface="false" size="26" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationContext$4" sourceFile="AuthenticationContext.java" interface="false" size="11" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationContext$SettableFuture" sourceFile="AuthenticationContext.java" interface="false" size="10" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationContext$SettableFuture$1" sourceFile="AuthenticationContext.java" interface="false" size="5" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationDialog" sourceFile="AuthenticationDialog.java" interface="false" size="44" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationDialog$1" sourceFile="AuthenticationDialog.java" interface="false" size="56" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationDialog$1$1" sourceFile="AuthenticationDialog.java" interface="false" size="8" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationDialog$1$2" sourceFile="AuthenticationDialog.java" interface="false" size="10" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationDialog$1$3" sourceFile="AuthenticationDialog.java" interface="false" size="9" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationDialog$1$4" sourceFile="AuthenticationDialog.java" interface="false" size="7" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationDialog$2" sourceFile="AuthenticationDialog.java" interface="false" size="8" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationDialog$DialogWebViewClient" sourceFile="AuthenticationDialog.java" interface="false" size="35" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationDialog$DialogWebViewClient$1" sourceFile="AuthenticationDialog.java" interface="false" size="13" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationException" sourceFile="AuthenticationException.java" interface="false" size="108" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationParameters" sourceFile="AuthenticationParameters.java" interface="false" size="86" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationParameters$1" sourceFile="AuthenticationParameters.java" interface="false" size="21" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationParameters$1$1" sourceFile="AuthenticationParameters.java" interface="false" size="9" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationParameters$AuthenticationParamCallback" sourceFile="AuthenticationParameters.java" interface="true" size="2" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationParameters$Challenge" sourceFile="AuthenticationParameters.java" interface="false" size="146" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationRequest" sourceFile="AuthenticationRequest.java" interface="false" size="279" bugs="2" priority_2="2"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationRequest$UserIdentifierType" sourceFile="AuthenticationRequest.java" interface="false" size="11" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationRequestState" sourceFile="AuthenticationRequestState.java" interface="false" size="39" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationResult" sourceFile="AuthenticationResult.java" interface="false" size="228" bugs="1" priority_2="1"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationResult$AuthenticationStatus" sourceFile="AuthenticationResult.java" interface="false" size="13" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationServerProtocolException" sourceFile="AuthenticationServerProtocolException.java" interface="false" size="5" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthenticationSettings" sourceFile="AuthenticationSettings.java" interface="false" size="86" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.AuthorityValidationMetadataCache" sourceFile="AuthorityValidationMetadataCache.java" interface="false" size="60" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.BasicWebViewClient" sourceFile="BasicWebViewClient.java" interface="false" size="176" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.BasicWebViewClient$1" sourceFile="BasicWebViewClient.java" interface="false" size="9" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.BasicWebViewClient$2" sourceFile="BasicWebViewClient.java" interface="false" size="10" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.BasicWebViewClient$3" sourceFile="BasicWebViewClient.java" interface="false" size="31" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.BasicWebViewClient$3$1" sourceFile="BasicWebViewClient.java" interface="false" size="13" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.BrokerAccountServiceHandler" sourceFile="BrokerAccountServiceHandler.java" interface="false" size="145" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.BrokerAccountServiceHandler$1" sourceFile="BrokerAccountServiceHandler.java" interface="false" size="20" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.BrokerAccountServiceHandler$2" sourceFile="BrokerAccountServiceHandler.java" interface="false" size="22" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.BrokerAccountServiceHandler$3" sourceFile="BrokerAccountServiceHandler.java" interface="false" size="20" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.BrokerAccountServiceHandler$4" sourceFile="BrokerAccountServiceHandler.java" interface="false" size="16" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.BrokerAccountServiceHandler$5" sourceFile="BrokerAccountServiceHandler.java" interface="false" size="16" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.BrokerAccountServiceHandler$5$1" sourceFile="BrokerAccountServiceHandler.java" interface="false" size="9" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.BrokerAccountServiceHandler$BrokerAccountServiceConnection" sourceFile="BrokerAccountServiceHandler.java" interface="false" size="34" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.BrokerAccountServiceHandler$BrokerAccountServiceConnection$1" sourceFile="BrokerAccountServiceHandler.java" interface="false" size="13" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.BrokerAccountServiceHandler$InstanceHolder" sourceFile="BrokerAccountServiceHandler.java" interface="false" size="6" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.BrokerEvent" sourceFile="BrokerEvent.java" interface="false" size="45" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.BrokerProxy" sourceFile="BrokerProxy.java" interface="false" size="460" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.BrokerProxy$1" sourceFile="BrokerProxy.java" interface="false" size="9" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.BrokerProxy$SwitchToBroker" sourceFile="BrokerProxy.java" interface="false" size="13" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.BuildConfig" sourceFile="BuildConfig.java" interface="false" size="10" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.CacheEvent" sourceFile="CacheEvent.java" interface="false" size="44" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.CacheKey" sourceFile="CacheKey.java" interface="false" size="22" bugs="1" priority_1="1"/>
+      <ClassStats class="com.microsoft.aad.adal.CacheKey$1" sourceFile="CacheKey.java" interface="false" size="4" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.Callback" sourceFile="Callback.java" interface="true" size="3" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.CallbackExecutor" sourceFile="CallbackExecutor.java" interface="false" size="30" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.CallbackExecutor$1" sourceFile="CallbackExecutor.java" interface="false" size="9" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.CallbackExecutor$2" sourceFile="CallbackExecutor.java" interface="false" size="9" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.ChallengeResponseBuilder" sourceFile="ChallengeResponseBuilder.java" interface="false" size="145" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.ChallengeResponseBuilder$ChallengeRequest" sourceFile="ChallengeResponseBuilder.java" interface="false" size="27" bugs="1" priority_2="1"/>
+      <ClassStats class="com.microsoft.aad.adal.ChallengeResponseBuilder$ChallengeResponse" sourceFile="ChallengeResponseBuilder.java" interface="false" size="19" bugs="1" priority_2="1"/>
+      <ClassStats class="com.microsoft.aad.adal.ChallengeResponseBuilder$RequestField" sourceFile="ChallengeResponseBuilder.java" interface="false" size="14" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.ClientMetrics" sourceFile="ClientMetrics.java" interface="false" size="57" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.ClientMetricsEndpointType" sourceFile="ClientMetrics.java" interface="false" size="6" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.CoreAdapter" sourceFile="CoreAdapter.java" interface="false" size="46" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.DRSMetadata" sourceFile="DRSMetadata.java" interface="false" size="10" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.DRSMetadataRequestor" sourceFile="DRSMetadataRequestor.java" interface="false" size="57" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.DRSMetadataRequestor$Type" sourceFile="DRSMetadataRequestor.java" interface="false" size="11" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.DateTimeAdapter" sourceFile="DateTimeAdapter.java" interface="false" size="3" bugs="1" priority_1="1"/>
+      <ClassStats class="com.microsoft.aad.adal.DefaultDispatcher" sourceFile="DefaultDispatcher.java" interface="false" size="28" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.DefaultEvent" sourceFile="DefaultEvent.java" interface="false" size="78" bugs="4" priority_2="2" priority_1="2"/>
+      <ClassStats class="com.microsoft.aad.adal.DefaultTokenCacheStore" sourceFile="DefaultTokenCacheStore.java" interface="false" size="163" bugs="2" priority_2="2"/>
+      <ClassStats class="com.microsoft.aad.adal.DeserializationAuthenticationException" sourceFile="DeserializationAuthenticationException.java" interface="false" size="5" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.Discovery" sourceFile="Discovery.java" interface="false" size="154" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.EventStrings" sourceFile="EventStrings.java" interface="false" size="95" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.ExceptionExtensions" sourceFile="ExceptionExtensions.java" interface="false" size="13" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.FileTokenCacheStore" sourceFile="FileTokenCacheStore.java" interface="false" size="73" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.HttpAuthDialog" sourceFile="HttpAuthDialog.java" interface="false" size="50" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.HttpAuthDialog$1" sourceFile="HttpAuthDialog.java" interface="false" size="9" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.HttpAuthDialog$2" sourceFile="HttpAuthDialog.java" interface="false" size="8" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.HttpAuthDialog$3" sourceFile="HttpAuthDialog.java" interface="false" size="8" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.HttpAuthDialog$4" sourceFile="HttpAuthDialog.java" interface="false" size="9" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.HttpAuthDialog$CancelListener" sourceFile="HttpAuthDialog.java" interface="true" size="2" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.HttpAuthDialog$OkListener" sourceFile="HttpAuthDialog.java" interface="true" size="2" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.HttpEvent" sourceFile="HttpEvent.java" interface="false" size="104" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.HttpUtil" sourceFile="HttpUtil.java" interface="false" size="18" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.IBrokerProxy" sourceFile="IBrokerProxy.java" interface="true" size="13" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.IDeviceCertificate" sourceFile="IDeviceCertificate.java" interface="true" size="6" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.IDispatcher" sourceFile="IDispatcher.java" interface="true" size="2" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.IEvents" sourceFile="IEvents.java" interface="true" size="5" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.IJWSBuilder" sourceFile="IJWSBuilder.java" interface="true" size="3" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.ITokenCacheStore" sourceFile="ITokenCacheStore.java" interface="true" size="7" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.ITokenStoreQuery" sourceFile="ITokenStoreQuery.java" interface="true" size="7" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.IWindowComponent" sourceFile="IWindowComponent.java" interface="true" size="2" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.IdToken" sourceFile="IdToken.java" interface="false" size="68" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.IdentityProviderService" sourceFile="IdentityProviderService.java" interface="false" size="10" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.InstanceDiscoveryMetadata" sourceFile="InstanceDiscoveryMetadata.java" interface="false" size="33" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.IntuneAppProtectionPolicyRequiredException" sourceFile="IntuneAppProtectionPolicyRequiredException.java" interface="false" size="20" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.Link" sourceFile="Link.java" interface="false" size="16" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.Logger" sourceFile="Logger.java" interface="false" size="120" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.Logger$1" sourceFile="Logger.java" interface="false" size="27" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.Logger$2" sourceFile="Logger.java" interface="false" size="6" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.Logger$ILogger" sourceFile="Logger.java" interface="true" size="2" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.Logger$LogLevel" sourceFile="Logger.java" interface="false" size="21" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.MemoryTokenCacheStore" sourceFile="MemoryTokenCacheStore.java" interface="false" size="60" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.Oauth2" sourceFile="Oauth2.java" interface="false" size="528" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.PackageHelper" sourceFile="PackageHelper.java" interface="false" size="4" bugs="1" priority_1="1"/>
+      <ClassStats class="com.microsoft.aad.adal.PromptBehavior" sourceFile="PromptBehavior.java" interface="false" size="15" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.ResourceAuthenticationChallengeException" sourceFile="ResourceAuthenticationChallengeException.java" interface="false" size="5" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.SSOStateSerializer" sourceFile="SSOStateSerializer.java" interface="false" size="42" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.ServerRespondingWithRetryableException" sourceFile="ServerRespondingWithRetryableException.java" interface="false" size="11" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.StorageHelper" sourceFile="StorageHelper.java" interface="false" size="255" bugs="1" priority_2="1"/>
+      <ClassStats class="com.microsoft.aad.adal.StringExtensions" sourceFile="StringExtensions.java" interface="false" size="11" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.Telemetry" sourceFile="Telemetry.java" interface="false" size="53" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.TelemetryUtils" sourceFile="TelemetryUtils.java" interface="false" size="18" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.TelemetryUtils$1" sourceFile="TelemetryUtils.java" interface="false" size="1" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.TelemetryUtils$CliTelemInfo" sourceFile="TelemetryUtils.java" interface="false" size="24" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.TokenCacheAccessor" sourceFile="TokenCacheAccessor.java" interface="false" size="383" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.TokenCacheAccessor$1" sourceFile="TokenCacheAccessor.java" interface="false" size="11" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.TokenCacheAccessor$2" sourceFile="TokenCacheAccessor.java" interface="false" size="4" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.TokenCacheAccessor$KeyMakerStrategy" sourceFile="TokenCacheAccessor.java" interface="true" size="3" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.TokenCacheItem" sourceFile="TokenCacheItem.java" interface="false" size="158" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.TokenCacheItemSerializationAdapater" sourceFile="TokenCacheItemSerializationAdapater.java" interface="false" size="40" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.TokenEntryType" sourceFile="TokenCacheItem.java" interface="false" size="13" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.UIEvent" sourceFile="UIEvent.java" interface="false" size="30" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.UrlExtensions" sourceFile="UrlExtensions.java" interface="false" size="8" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.UsageAuthenticationException" sourceFile="UsageAuthenticationException.java" interface="false" size="8" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.UserInfo" sourceFile="UserInfo.java" interface="false" size="95" bugs="1" priority_2="1"/>
+      <ClassStats class="com.microsoft.aad.adal.WebFingerMetadata" sourceFile="WebFingerMetadata.java" interface="false" size="16" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.WebFingerMetadataRequestParameters" sourceFile="WebFingerMetadataRequestParameters.java" interface="false" size="12" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.WebFingerMetadataRequestor" sourceFile="WebFingerMetadataRequestor.java" interface="false" size="38" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.WebviewHelper" sourceFile="WebviewHelper.java" interface="false" size="60" bugs="0"/>
+      <ClassStats class="com.microsoft.aad.adal.WebviewHelper$PreKeyAuthInfo" sourceFile="WebviewHelper.java" interface="false" size="12" bugs="0"/>
+    </PackageStats>
+    <FindBugsProfile>
+      <ClassProfile name="edu.umd.cs.findbugs.ba.npe.NullDerefAndRedundantComparisonFinder" totalMilliseconds="377" invocations="1205" avgMicrosecondsPerInvocation="313" maxMicrosecondsPerInvocation="15537" standardDeviationMicrosecondsPerInvocation="894"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.ClassInfoAnalysisEngine" totalMilliseconds="306" invocations="1749" avgMicrosecondsPerInvocation="175" maxMicrosecondsPerInvocation="14313" standardDeviationMicrosecondsPerInvocation="536"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.IsNullValueDataflowFactory" totalMilliseconds="287" invocations="1220" avgMicrosecondsPerInvocation="235" maxMicrosecondsPerInvocation="5050" standardDeviationMicrosecondsPerInvocation="455"/>
+      <ClassProfile name="edu.umd.cs.findbugs.OpcodeStack$JumpInfoFactory" totalMilliseconds="287" invocations="1909" avgMicrosecondsPerInvocation="150" maxMicrosecondsPerInvocation="91601" standardDeviationMicrosecondsPerInvocation="2107"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.TypeDataflowFactory" totalMilliseconds="272" invocations="1278" avgMicrosecondsPerInvocation="213" maxMicrosecondsPerInvocation="13680" standardDeviationMicrosecondsPerInvocation="638"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindNoSideEffectMethods" totalMilliseconds="270" invocations="492" avgMicrosecondsPerInvocation="549" maxMicrosecondsPerInvocation="12102" standardDeviationMicrosecondsPerInvocation="1235"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FieldItemSummary" totalMilliseconds="264" invocations="492" avgMicrosecondsPerInvocation="537" maxMicrosecondsPerInvocation="12173" standardDeviationMicrosecondsPerInvocation="1278"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.MethodGenFactory" totalMilliseconds="241" invocations="1278" avgMicrosecondsPerInvocation="188" maxMicrosecondsPerInvocation="177459" standardDeviationMicrosecondsPerInvocation="4967"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.ValueNumberDataflowFactory" totalMilliseconds="221" invocations="1281" avgMicrosecondsPerInvocation="172" maxMicrosecondsPerInvocation="8104" standardDeviationMicrosecondsPerInvocation="434"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.ClassDataAnalysisEngine" totalMilliseconds="216" invocations="1765" avgMicrosecondsPerInvocation="122" maxMicrosecondsPerInvocation="944" standardDeviationMicrosecondsPerInvocation="137"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.UnconditionalValueDerefDataflowFactory" totalMilliseconds="212" invocations="1220" avgMicrosecondsPerInvocation="174" maxMicrosecondsPerInvocation="4661" standardDeviationMicrosecondsPerInvocation="362"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindRefComparison$SpecialTypeAnalysis" totalMilliseconds="193" invocations="910" avgMicrosecondsPerInvocation="212" maxMicrosecondsPerInvocation="16447" standardDeviationMicrosecondsPerInvocation="732"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.CFGFactory" totalMilliseconds="190" invocations="1221" avgMicrosecondsPerInvocation="156" maxMicrosecondsPerInvocation="12208" standardDeviationMicrosecondsPerInvocation="422"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.ConstantDataflowFactory" totalMilliseconds="136" invocations="1220" avgMicrosecondsPerInvocation="112" maxMicrosecondsPerInvocation="54834" standardDeviationMicrosecondsPerInvocation="1631"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.NoteDirectlyRelevantTypeQualifiers" totalMilliseconds="85" invocations="492" avgMicrosecondsPerInvocation="173" maxMicrosecondsPerInvocation="5410" standardDeviationMicrosecondsPerInvocation="420"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.JavaClassAnalysisEngine" totalMilliseconds="82" invocations="643" avgMicrosecondsPerInvocation="127" maxMicrosecondsPerInvocation="18249" standardDeviationMicrosecondsPerInvocation="753"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.OptionalReturnNull" totalMilliseconds="81" invocations="172" avgMicrosecondsPerInvocation="476" maxMicrosecondsPerInvocation="78937" standardDeviationMicrosecondsPerInvocation="6000"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.CalledMethods" totalMilliseconds="71" invocations="492" avgMicrosecondsPerInvocation="144" maxMicrosecondsPerInvocation="6435" standardDeviationMicrosecondsPerInvocation="442"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.LoadOfKnownNullValue" totalMilliseconds="69" invocations="172" avgMicrosecondsPerInvocation="403" maxMicrosecondsPerInvocation="10768" standardDeviationMicrosecondsPerInvocation="1017"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.UnreadFields" totalMilliseconds="63" invocations="172" avgMicrosecondsPerInvocation="369" maxMicrosecondsPerInvocation="3281" standardDeviationMicrosecondsPerInvocation="528"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.BuildStringPassthruGraph" totalMilliseconds="60" invocations="492" avgMicrosecondsPerInvocation="122" maxMicrosecondsPerInvocation="3058" standardDeviationMicrosecondsPerInvocation="303"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.BuildObligationPolicyDatabase" totalMilliseconds="58" invocations="492" avgMicrosecondsPerInvocation="118" maxMicrosecondsPerInvocation="2891" standardDeviationMicrosecondsPerInvocation="211"/>
+      <ClassProfile name="edu.umd.cs.findbugs.ba.npe.TypeQualifierNullnessAnnotationDatabase" totalMilliseconds="58" invocations="29352" avgMicrosecondsPerInvocation="1" maxMicrosecondsPerInvocation="1034" standardDeviationMicrosecondsPerInvocation="12"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindNullDeref$CheckCallSitesAndReturnInstructions" totalMilliseconds="56" invocations="1205" avgMicrosecondsPerInvocation="47" maxMicrosecondsPerInvocation="2027" standardDeviationMicrosecondsPerInvocation="142"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.DumbMethods" totalMilliseconds="55" invocations="172" avgMicrosecondsPerInvocation="323" maxMicrosecondsPerInvocation="3683" standardDeviationMicrosecondsPerInvocation="498"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.CheckRelaxingNullnessAnnotation" totalMilliseconds="54" invocations="172" avgMicrosecondsPerInvocation="315" maxMicrosecondsPerInvocation="22138" standardDeviationMicrosecondsPerInvocation="1722"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindInconsistentSync2" totalMilliseconds="51" invocations="172" avgMicrosecondsPerInvocation="297" maxMicrosecondsPerInvocation="3461" standardDeviationMicrosecondsPerInvocation="518"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.ValueRangeAnalysisFactory" totalMilliseconds="50" invocations="1278" avgMicrosecondsPerInvocation="39" maxMicrosecondsPerInvocation="14549" standardDeviationMicrosecondsPerInvocation="421"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FunctionsThatMightBeMistakenForProcedures" totalMilliseconds="50" invocations="492" avgMicrosecondsPerInvocation="102" maxMicrosecondsPerInvocation="5478" standardDeviationMicrosecondsPerInvocation="326"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.OverridingEqualsNotSymmetrical" totalMilliseconds="45" invocations="492" avgMicrosecondsPerInvocation="91" maxMicrosecondsPerInvocation="5212" standardDeviationMicrosecondsPerInvocation="288"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindBadCast2" totalMilliseconds="44" invocations="172" avgMicrosecondsPerInvocation="257" maxMicrosecondsPerInvocation="19746" standardDeviationMicrosecondsPerInvocation="1538"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.ReflectiveClasses" totalMilliseconds="43" invocations="492" avgMicrosecondsPerInvocation="88" maxMicrosecondsPerInvocation="10906" standardDeviationMicrosecondsPerInvocation="524"/>
+      <ClassProfile name="edu.umd.cs.findbugs.util.TopologicalSort" totalMilliseconds="43" invocations="1528" avgMicrosecondsPerInvocation="28" maxMicrosecondsPerInvocation="1339" standardDeviationMicrosecondsPerInvocation="63"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.RuntimeExceptionCapture" totalMilliseconds="42" invocations="172" avgMicrosecondsPerInvocation="246" maxMicrosecondsPerInvocation="3197" standardDeviationMicrosecondsPerInvocation="460"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindRefComparison" totalMilliseconds="40" invocations="172" avgMicrosecondsPerInvocation="235" maxMicrosecondsPerInvocation="6074" standardDeviationMicrosecondsPerInvocation="548"/>
+    </FindBugsProfile>
+  </FindBugsSummary>
+  <ClassFeatures></ClassFeatures>
+  <History></History>
+</BugCollection>
