@@ -118,6 +118,8 @@ For instance to push an APK for BrokerHost app to the `/data/local/tmp` director
 
 `adb push "c:\Files\BrokerHost.apk" "/data/local/tmp/BrokerHost.apk" `
 
+We can also achieve this from within Android Studio using [Device File Explore](https://developer.android.com/studio/debug/device-file-explorer).
+
 ### Automation Apps Supported Flavors
 
 The UI Automation can be run against a variety of flavors across the auth library being useds as well as the broker being used.
