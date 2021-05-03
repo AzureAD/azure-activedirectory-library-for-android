@@ -163,3 +163,7 @@ We write two sets of logs in our automation. These are as follows:
 All of these logs are saved in the `/sdcard/automation` directory on the device.
 
 We can pull these using either `adb pull` command or we can also view these directly in Android Studio using [Device File Explore](https://developer.android.com/studio/debug/device-file-explorer).
+
+### Pipelines / Scripts to facilitate automation during releases
+
+We have created pipelines and/or scripts to facilitate running automation during releases, you can find them here: [Release Automation Pipelines & Scripts](release_automation_scripts.md)
