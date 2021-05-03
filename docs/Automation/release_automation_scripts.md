@@ -61,4 +61,4 @@ The script takes two arguments as follows:
 
 Run the following pipeline by supplying the version of common that you want to test: https://dev.azure.com/IdentityDivision/IDDP/_build?definitionId=1288
 
-![](./images/adalCommonVersionPipeline.png)
+![commonVersion](./images/adalCommonVersionPipeline.png)
