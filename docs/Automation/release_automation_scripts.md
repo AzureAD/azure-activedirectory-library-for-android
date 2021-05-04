@@ -56,3 +56,9 @@ The script takes two arguments as follows:
 - **labSecret** - the secret required to use LAB API. More details here: [LabSetup.md](labsetup.md)
 - **authenticatorApkPath** - the path to Authenticator APK pointing to broker version (typically an RC build) that we are trying to test
 - **companyPortalApkPath** - the path to Company Portal APK pointing to broker version (typically an RC build) that we are trying to test
+
+## ADAL with Common Release
+
+Run the following pipeline by supplying the version of common that you want to test: https://dev.azure.com/IdentityDivision/IDDP/_build?definitionId=1288
+
+![commonVersion](./images/adalCommonVersionPipeline.png)
