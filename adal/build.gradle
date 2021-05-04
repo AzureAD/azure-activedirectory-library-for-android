@@ -141,7 +141,7 @@ dependencies {
 
     // 'local' flavor dependencies
     localApi(project(":common")) {
-        transitive = false
+        transitive = true
     }
 
     snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.2.0', changing: true)
