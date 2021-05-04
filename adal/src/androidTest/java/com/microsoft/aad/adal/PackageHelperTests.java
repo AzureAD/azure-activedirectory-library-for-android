@@ -34,7 +34,6 @@ import android.util.Base64;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import com.microsoft.identity.common.Util;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.internal.broker.PackageHelper;
 
@@ -220,7 +219,7 @@ public class PackageHelperTests {
                                              final String packageName,
                                              final int callingUID) throws NameNotFoundException {
         final PackageManager mockPackage = mock(PackageManager.class);
-        final PackageInfo info = Util.addSignatures(new PackageInfo(), new Signature[]{signature});
+        final PackageInfo mockedPackageInfo = new MockedPackageInfo(new Signature[]{signature});
 
         final ApplicationInfo appInfo = new ApplicationInfo();
         appInfo.name = packageName;
@@ -228,9 +227,9 @@ public class PackageHelperTests {
         when(
                 mockPackage.getPackageInfo(
                         packageName,
-                        PackageHelper.getPackageManagerFlag()
+                        PackageHelper.getPackageManagerSignaturesFlag()
                 )
-        ).thenReturn(info);
+        ).thenReturn(mockedPackageInfo);
 
         when(mockPackage.getApplicationInfo(packageName, 0)).thenReturn(appInfo);
         Context mock = mock(Context.class);

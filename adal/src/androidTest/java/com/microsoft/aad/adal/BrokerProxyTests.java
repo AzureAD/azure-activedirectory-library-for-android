@@ -41,6 +41,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
 import android.content.pm.Signature;
+import android.content.pm.SigningInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -49,7 +50,6 @@ import android.util.Base64;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import com.microsoft.identity.common.Util;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.internal.broker.PackageHelper;
@@ -130,7 +130,7 @@ public class BrokerProxyTests {
                         .getPackageInfo(
                                 androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
                                         .getContext().getPackageName(),
-                                PackageHelper.getPackageManagerFlag()
+                                PackageHelper.getPackageManagerSignaturesFlag()
                         );
 
         // Broker App can be signed with multiple certificates. It will look
@@ -1170,13 +1170,11 @@ public class BrokerProxyTests {
         return mockContext;
     }
 
-    @SuppressLint("PackageManagerGetSignatures")
     private PackageManager getPackageManager(final Signature signature, final String packageName,
                                              boolean permissionStatus) throws NameNotFoundException {
         PackageManager mockPackage = mock(PackageManager.class);
-        PackageInfo info = Util.addSignatures(new PackageInfo(), new Signature[]{signature});
-
-        when(mockPackage.getPackageInfo(packageName, PackageHelper.getPackageManagerFlag())).thenReturn(info);
+        final PackageInfo mockedPackageInfo = new MockedPackageInfo(new Signature[]{signature});
+        when(mockPackage.getPackageInfo(packageName, PackageHelper.getPackageManagerSignaturesFlag())).thenReturn(mockedPackageInfo);
         when(mockPackage.checkPermission(anyString(), anyString()))
                 .thenReturn(permissionStatus ? PackageManager.PERMISSION_GRANTED : PackageManager.PERMISSION_DENIED);
         return mockPackage;

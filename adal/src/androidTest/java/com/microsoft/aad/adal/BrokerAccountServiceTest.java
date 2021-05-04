@@ -43,7 +43,6 @@ import android.util.Pair;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.rule.ServiceTestRule;
 
-import com.microsoft.identity.common.Util;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.internal.broker.PackageHelper;
 
@@ -379,9 +378,8 @@ public final class BrokerAccountServiceTest {
         Mockito.when(packageManager.checkPermission(Mockito.contains("android.permission.GET_ACCOUNTS"),
                 Mockito.anyString())).thenReturn(PackageManager.PERMISSION_DENIED);
 
-        final PackageInfo packageInfo = Util.addSignatures(Mockito.mock(PackageInfo.class), new Signature[]{signature});
-
-        Mockito.when(packageManager.getPackageInfo(Mockito.anyString(), Mockito.anyInt())).thenReturn(packageInfo);
+        final PackageInfo mockedPackageInfo = new MockedPackageInfo(new Signature[]{signature});
+        Mockito.when(packageManager.getPackageInfo(Mockito.anyString(), Mockito.anyInt())).thenReturn(mockedPackageInfo);
 
         Mockito.when(packageManager.checkPermission(Mockito.contains("android.permission.GET_ACCOUNTS"),
                 Mockito.anyString())).thenReturn(PackageManager.PERMISSION_DENIED);
