@@ -169,7 +169,15 @@ abstract class BasicWebViewClient extends WebViewClient {
     public void onReceivedError(@NonNull final WebView view,
                                 @NonNull final WebResourceRequest request,
                                 @NonNull WebResourceError error) {
-        sendErrorResponse(error.getErrorCode(), error.getDescription().toString());
+        final String methodName = "onReceivedError (23)";
+        final boolean isForMainFrame = request.isForMainFrame();
+
+        com.microsoft.identity.common.logging.Logger.warn(TAG + methodName, "WebResourceError - isForMainFrame? " + isForMainFrame);
+        com.microsoft.identity.common.logging.Logger.warnPII(TAG + methodName, "Failing url: " + request.getUrl());
+
+        if (request.isForMainFrame()) {
+            sendErrorResponse(error.getErrorCode(), error.getDescription().toString());
+        }
     }
 
     private void sendErrorResponse(final int errorCode,
