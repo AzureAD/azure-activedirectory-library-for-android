@@ -119,21 +119,16 @@ public class PackageHelperTests {
                 mContext.getPackageName(),
                 0 // calling uid
         );
-        final Object packageHelper = getInstance(mockContext);
-        final Method m = ReflectionUtils.getTestMethod(
-                packageHelper,
-                "getCurrentSignatureForPackage", // method name
-                String.class
-        );
 
-        // act
-        String actual = (String) m.invoke(packageHelper, mContext.getPackageName());
+        MockedPackageInfo mockedPackageInfo = new MockedPackageInfo(new Signature[]{new Signature(mTestSignature)});
+        final PackageHelper packageHelper = (PackageHelper) getInstance(mockContext);
+        String actual = packageHelper.getCurrentSignatureForPackage(mockedPackageInfo);
 
         // assert
         assertEquals("should be same info", mTestTag, actual);
 
         // act
-        actual = (String) m.invoke(packageHelper, (String) null);
+        actual = packageHelper.getCurrentSignatureForPackage((String) null);
 
         // assert
         assertNull("should return null", actual);
@@ -219,7 +214,7 @@ public class PackageHelperTests {
                                              final String packageName,
                                              final int callingUID) throws NameNotFoundException {
         final PackageManager mockPackage = mock(PackageManager.class);
-        final PackageInfo mockedPackageInfo = new MockedPackageInfo(new Signature[]{signature});
+        final MockedPackageInfo mockedPackageInfo = new MockedPackageInfo(new Signature[]{signature});
 
         final ApplicationInfo appInfo = new ApplicationInfo();
         appInfo.name = packageName;

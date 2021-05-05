@@ -34,10 +34,18 @@ public class MockedSigningInfo {
     }
 
     public boolean hasMultipleSigners() {
+        return signatures != null && signatures.length > 1;
+    }
+
+    public boolean hasPastSigningCertificates() {
         return false;
     }
 
     public Signature[] getSigningCertificateHistory() {
+        return signatures;
+    }
+
+    public Signature[] getApkContentsSigners() {
         return signatures;
     }
 }
