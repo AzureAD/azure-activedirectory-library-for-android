@@ -175,7 +175,7 @@ abstract class BasicWebViewClient extends WebViewClient {
         com.microsoft.identity.common.logging.Logger.warn(TAG + methodName, "WebResourceError - isForMainFrame? " + isForMainFrame);
         com.microsoft.identity.common.logging.Logger.warnPII(TAG + methodName, "Failing url: " + request.getUrl());
 
-        if (request.isForMainFrame()) {
+        if (isForMainFrame) {
             sendErrorResponse(error.getErrorCode(), error.getDescription().toString());
         }
     }
