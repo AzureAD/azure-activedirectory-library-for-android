@@ -22,10 +22,6 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
-import android.content.pm.PackageInfo;
-import android.content.pm.Signature;
-import android.content.pm.SigningInfo;
-import android.os.Build;
 import android.util.Base64;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
@@ -54,9 +50,6 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 final class Util {
     public static final int TEST_PASSWORD_EXPIRATION = 1387227772;
