@@ -4,8 +4,12 @@ apply plugin: 'checkstyle'
 apply plugin: 'maven-publish'
 apply from: 'versioning/version_tasks.gradle'
 apply plugin: 'maven'
+apply plugin: 'jacoco'
 
 group = 'com.microsoft.aad'
+
+//Constants:- used to generate Coverage report task
+def androidTestType = "AndroidTest"
 
 configurations {
     javadocDeps
@@ -63,12 +67,13 @@ android {
     }
     buildTypes {
         debug {
-            testCoverageEnabled false
+            testCoverageEnabled true
             debuggable true
             buildConfigField("String", "VERSION_NAME", "\"${versionName}\"")
 
         }
         release {
+            testCoverageEnabled true
             minifyEnabled false
             debuggable false
             proguardFiles getDefaultProguardFile('proguard-android.txt')
@@ -122,6 +127,10 @@ android {
         variant.outputs.all {
             outputFileName = "${archivesBaseName}-${version}.aar"
         }
+
+        // create separate code coverage tasks(for androidTests) for every build variant
+        def buildVariant = variant.name
+        createCoverageTask(buildVariant, androidTestType)
     }
 
     useLibrary 'android.test.mock'
@@ -194,6 +203,52 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
     from javadoc.destinationDir
     destinationDir = reporting.file("$project.buildDir/outputs/jar/")
+}
+
+ext.createCoverageTask = { buildVariant, testType ->
+    // Code coverage task depends on additional task to run all android tests
+    def androidTestTask = "connected${buildVariant.capitalize()}AndroidTest"
+
+    // Output of those additional task are stored in .ec file for android tests
+    def androidTestFile = "outputs/code_coverage/${buildVariant}AndroidTest/connected/*.ec"
+
+    // Task to generate coverage report for particular build variant, that depends on additional task
+    task "${buildVariant}Adal${testType}CoverageReport" (type:JacocoReport, dependsOn: androidTestTask) {
+        group = "Code Coverage"
+        description = "Generate Adal Coverage Reports(${testType}) on the ${buildVariant.capitalize()}"
+
+        def commonBuild = buildVariant.matches("(.*)Debug(.*)") ? "debug" : "release"
+        def commonFilePath = buildDir.absolutePath.matches("(.*)android_auth(.*)") ? "common" : "../common/common/build";
+        def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test.*', '**/PRNGFixes*']
+
+        // Include source files(of Adal) in which code coverage needs to be found, after filtering out some set of files
+        def coverageSourceDirs = "${projectDir}/src/main/java";
+        def javaClasses = fileTree(
+                dir: "${buildDir}/intermediates/javac/${buildVariant}/classes",
+                excludes: fileFilter
+        )
+
+        // Include additional source files(as adal depends on common) in code coverage report
+        def additionalCoverageSourceDirs = "${projectDir}/../common/common/src/main/java"
+        def additionalJavaClasses = fileTree(
+                dir: "${buildDir}/../${commonFilePath}/intermediates/javac/${commonBuild}/classes",
+                excludes: fileFilter
+        )
+
+        //Include all those directories for source files and additional source files defined above
+        sourceDirectories.from = files([coverageSourceDirs])
+        additionalSourceDirs.from = files(additionalCoverageSourceDirs)
+        additionalClassDirs.from = files([additionalJavaClasses])
+        classDirectories.from = files([javaClasses])
+
+        //Code coverage report is generated based on the the output files of additional tasks(androidTestTask)
+        executionData.from = fileTree(dir: "$buildDir", includes: [androidTestFile])
+
+        // html reports are auto-generated without enabling flag, so enabling xml flag
+        reports {
+            xml.enabled = true
+        }
+    }
 }
 
 // For publishing to the remote maven repo.
