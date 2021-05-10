@@ -167,7 +167,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
             if (decrypted != null) {
                 try {
                     return mGson.fromJson(decrypted, TokenCacheItem.class);
-                } catch (JsonSyntaxException exception) {
+                } catch (final JsonSyntaxException exception) {
                     Logger.e(TAG, "Fail to parse Json. ", exception.getMessage(), ARGUMENT_EXCEPTION, exception);
                 }
             }
