@@ -1,5 +1,6 @@
 v.Next
 ----------
+- [PATCH] Fixes crash due to missing exception handling. (#1606)
 - [PATCH] Adds API23 WebViewClient#onReceivedError overload (#1580)
 - [PATCH] Fixes for MFA setup using Authenticator app.(#1579)
 - [MINOR] Changes to Broker Validation to allow setting whether to trust debug brokers (prod brokers are always trusted).
