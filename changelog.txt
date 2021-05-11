@@ -7,7 +7,8 @@ v.Next
 - [PATCH] Replaced deprecated PackageInfo.versionCode with PackageInfoCompat.getLongVersionCode(packageInfo) (#1584)
 - [PATCH] Fixes deprecated PackageInfo.signatures (#1587)
 - [PATCH] Deprecated ADAL namespaced AuthenticationSettings#setSecretKey(), #getSecretKey() (#1586)
-- Picks up common@3.2.0
+- [PATCH] Disregard pageload errors for the non-primary frame during interactive auth (#1603)
+- [PATCH] Updates Nimbus version 8.2 -> 9.9 (#1600)
 
 Version 3.1.2
 -------------
