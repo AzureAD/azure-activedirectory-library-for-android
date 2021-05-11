@@ -1,13 +1,9 @@
 # File: azure-pipelines\pull-request-validation\pr-adal.yml
-# Description: Assemble and run unit test
+# Description: Assemble adal
 # Variable: 'ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME' was defined in the Variables tab
 # Variable: 'mvnAccessToken' was defined in the Variables tab
 # https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate
 name: $(date:yyyyMMdd)$(rev:.r)
-
-variables:
-- name: robolectricSdkVersion
-  value: 28
 
 trigger:
   branches:
@@ -47,10 +43,6 @@ jobs:
       publishJUnitResults: false
       jdkArchitecture: x86
       sqAnalysisBreakBuildIfQualityGateFailed: false
-  - task: Gradle@2
-    displayName: Run Unit tests
-    inputs:
-      tasks: adal:testLocalDebugUnitTest -Plabtest -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}}
   - task: ComponentGovernanceComponentDetection@0
     displayName: Component Detection
 ...
