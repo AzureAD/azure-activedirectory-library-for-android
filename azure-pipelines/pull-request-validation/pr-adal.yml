@@ -17,7 +17,7 @@ resources:
   - repository: common
     type: github
     name: AzureAD/microsoft-authentication-library-common-for-android
-    ref: dev
+    ref: pedroro/pipelines-pr
     endpoint: ANDROID_GITHUB
 
 jobs:
@@ -43,6 +43,9 @@ jobs:
       publishJUnitResults: false
       jdkArchitecture: x86
       sqAnalysisBreakBuildIfQualityGateFailed: false
+  - template: azure-pipelines/templates/steps/spot-bugs.yml@common
+    parameters:
+      project: adal
   - task: ComponentGovernanceComponentDetection@0
     displayName: Component Detection
 ...
