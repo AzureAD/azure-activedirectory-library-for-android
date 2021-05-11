@@ -1,9 +1,22 @@
-apply plugin: 'com.android.library'
-apply plugin: 'pmd'
-apply plugin: 'checkstyle'
-apply plugin: 'maven-publish'
+plugins {
+    id 'com.microsoft.identity.buildsystem' version '0.1.0'
+    id 'com.android.library'
+    id 'pmd'
+    id 'checkstyle'
+    id 'maven-publish'
+}
+
 apply from: 'versioning/version_tasks.gradle'
-apply plugin: 'maven'
+
+def desugarCode = false
+
+if(project.hasProperty("sugar")){
+    desugarCode = sugar.toBoolean()
+}
+
+buildSystem {
+    desugar = desugarCode
+}
 
 group = 'com.microsoft.aad'
 
@@ -28,14 +41,6 @@ allprojects {
             }
         }
         mavenCentral()
-    }
-}
-
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
     }
 }
 

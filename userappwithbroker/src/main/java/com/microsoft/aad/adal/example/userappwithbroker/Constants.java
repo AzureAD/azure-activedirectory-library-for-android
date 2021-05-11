@@ -96,6 +96,10 @@ public class Constants {
         Regular(BuildConfig.REGULAR_REDIDRECT_URI),
         Regular2("msauth://com.microsoft.aad.adal.userappwithbroker/L8kGVGYgNOaxbhn9Y7vR%2F6LIEG8%3D"),
         Mooncake("msauth://com.msft.identity.client.sample.local/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D"),
+        Mooncake1( "msauth://com.microsoft.aad.adal.userappwithbroker/QK0hWtPIQviyU3IX8AhunaS0IY4%3D"),
+        Mooncake2( "msauth://com.microsoft.aad.adal.userappwithbroker/L8kGVGYgNOaxbhn9Y7vR%2F6LIEG8%3D"),
+        Mooncake3( "msauth://com.microsoft.aad.adal.userappwithbroker/IcB5PxIyvbLkbFVtBI%2FitkW%2Fejk%3D"),
+        Mooncake4( "msauth://com.microsoft.aad.adal.userappwithbroker/2%2BQqCWt1ilKg0IrfKT6CkdMpPqk%3D"),
         Broker("urn:ietf:wg:oauth:2.0:oob"),
         LABS("msauth://com.microsoft.aad.adal.userappwithbroker/2%2BQqCWt1ilKg0IrfKT6CkdMpPqk%3D"),
         LABSDEBUG("msauth://com.microsoft.aad.adal.userappwithbroker/1wIqXSqBj7w%2bh11ZifsnqwgyKrY%3d");
