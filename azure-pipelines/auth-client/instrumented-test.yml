@@ -18,7 +18,7 @@ resources:
 
 jobs:
 - job: instrumentedTest
-  displayName: Instrumented Test MSAL
+  displayName: Instrumented Test ADAL
   workspace:
     clean: all
   steps:
