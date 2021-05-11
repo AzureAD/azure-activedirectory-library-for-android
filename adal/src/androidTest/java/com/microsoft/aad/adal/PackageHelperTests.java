@@ -228,7 +228,7 @@ public class PackageHelperTests {
         when(
                 mockPackage.getPackageInfo(
                         packageName,
-                        PackageHelper.getPackageManagerSignaturesFlag()
+                        PackageHelper.getPackageManagerFlag()
                 )
         ).thenReturn(info);
 
