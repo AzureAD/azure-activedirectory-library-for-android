@@ -50,7 +50,7 @@ jobs:
   - task: Gradle@2
     displayName: Run Unit tests
     inputs:
-      tasks: adal:testDebugUnitTest -Plabtest -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}}
+      tasks: adal:testLocalDebugUnitTest -Plabtest -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}}
   - task: ComponentGovernanceComponentDetection@0
     displayName: Component Detection
 ...
