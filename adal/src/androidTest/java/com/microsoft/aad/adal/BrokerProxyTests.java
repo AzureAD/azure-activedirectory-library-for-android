@@ -130,7 +130,7 @@ public class BrokerProxyTests {
                         .getPackageInfo(
                                 androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
                                         .getContext().getPackageName(),
-                                PackageHelper.getPackageManagerSignaturesFlag()
+                                PackageHelper.getPackageManagerFlag()
                         );
 
         // Broker App can be signed with multiple certificates. It will look
