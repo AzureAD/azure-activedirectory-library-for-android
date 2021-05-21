@@ -149,12 +149,12 @@ dependencies {
         transitive = true
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: 'pedroro-test-package', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.2.0', changing: true)
 
     // 'dist' flavor dependencies
     //TODO: we will have to change transitive to true once common4j is published
-    distApi("com.microsoft.identity:common:pedroro-test-package") {
-        transitive = true
+    distApi("com.microsoft.identity:common:3.2.0") {
+        transitive = false
     }
 
     // Android Instrumented Test Dependencies
