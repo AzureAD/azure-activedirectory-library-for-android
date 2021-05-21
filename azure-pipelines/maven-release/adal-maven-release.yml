@@ -27,7 +27,7 @@ jobs:
     project: adal
     projectVersion: $(AdalVersion)
     checkoutSubmodules: recursive
-    envVstsMvnAndroidAccessTokenVar: ENV_VSTS_MVN_ANDROID_ADAL_ACCESSTOKEN
+    envVstsMvnAndroidAccessTokenVar: ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN
     gradleAssembleReleaseTask: adal:clean adal:assembleDist adal:javadocJar
     gradleGeneratePomFiletask: adal:generatePomFileForAdalPublication
     aarSourceFolder: C:\Temp\s\adal\outputs\aar
