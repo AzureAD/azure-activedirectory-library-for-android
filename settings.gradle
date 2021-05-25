@@ -22,8 +22,9 @@ include ':adal', ':msal', ':common', ':common4j', ':AADAuthenticator',
         ':brokerHost', ':adalTestApp', ':msalTestApp', ':package-inspector', ':pop-benchmarker',
         ':labapi', ':keyvault', ':testutils', 'msalautomationapp', 'uiautomationutilities',
         'brokerautomationapp', ':oneauth', ':oneauthtestapp', ':msalcpptesthost', ':AzureSample',
-        'AcaPlugin', ':LabApiUtilities'
+        'AcaPlugin', ':broker4j', ':LinuxBroker', ':LabApiUtilities'
         //, ':tsl', ':AzureSample',
+
 project(':adal').projectDir = new File('adal/adal')
 project(':msal').projectDir = new File('msal/msal')
 project(':common').projectDir = new File('common/common')
@@ -46,6 +47,8 @@ project(':oneauthtestapp').projectDir = new File('oneauth/testapps/android/oneau
 project(':msalcpptesthost').projectDir = new File('msalcpp/test/android/testhost/app')
 project(':AcaPlugin').projectDir = new File('plugins/buildsystem')
 project(':LabApiUtilities').projectDir = new File('common/LabApiUtilities')
+project(':LinuxBroker').projectDir = new File('broker/LinuxBroker')
+project(':broker4j').projectDir = new File('broker/broker4j')
 //project(':tsl').projectDir = new File('tsl/tokenshare')
 
 // Authenticator projects
