@@ -6,7 +6,6 @@
  * Detailed information about configuring a multi-project build in Gradle can be found
  * in the user guide at https://docs.gradle.org/5.1.1/userguide/multi_project_builds.html
  */
-
 pluginManagement {
     repositories {
         mavenLocal()
@@ -21,8 +20,9 @@ rootProject.name = 'android_auth'
 // Android DevX Projects
 include ':adal', ':msal', ':common', ':common4j', ':AADAuthenticator',
         ':brokerHost', ':adalTestApp', ':msalTestApp', ':package-inspector', ':pop-benchmarker',
-        ':labapi', ':keyvault', ':testutils', 'msalautomationapp', 'uiautomationutilities', 'brokerautomationapp',
-        ':oneauth', ':oneauthtestapp', ':msalcpptesthost', ':AzureSample', 'AcaPlugin'
+        ':labapi', ':keyvault', ':testutils', 'msalautomationapp', 'uiautomationutilities',
+        'brokerautomationapp', ':oneauth', ':oneauthtestapp', ':msalcpptesthost', ':AzureSample',
+        'AcaPlugin', ':LabApiUtilities'
         //, ':tsl', ':AzureSample',
 project(':adal').projectDir = new File('adal/adal')
 project(':msal').projectDir = new File('msal/msal')
@@ -45,6 +45,7 @@ project(':oneauth').projectDir = new File('oneauth/sources/android/gradle')
 project(':oneauthtestapp').projectDir = new File('oneauth/testapps/android/oneauthtestapp/app')
 project(':msalcpptesthost').projectDir = new File('msalcpp/test/android/testhost/app')
 project(':AcaPlugin').projectDir = new File('plugins/buildsystem')
+project(':LabApiUtilities').projectDir = new File('common/LabApiUtilities')
 //project(':tsl').projectDir = new File('tsl/tokenshare')
 
 // Authenticator projects
