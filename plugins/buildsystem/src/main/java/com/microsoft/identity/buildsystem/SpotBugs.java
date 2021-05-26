@@ -34,6 +34,7 @@ import java.io.File;
  */
 public final class SpotBugs {
     private static final String BASELINE_FILE_PATH_RELATIVE_TO_PROJECT_ROOT = "../config/spotbugs/baseline.xml";
+    private static final String EXCLUDE_FILE_PATH_RELATIVE_TO_PROJECT_ROOT = "../config/spotbugs/exclude.xml";
 
     /**
      * Applies theo  SpotBugs Plugin to given project
@@ -49,6 +50,11 @@ public final class SpotBugs {
         final File baselineFile = project.file(BASELINE_FILE_PATH_RELATIVE_TO_PROJECT_ROOT);
         if(baselineFile.exists()) {
             spotBugsExtension.getBaselineFile().set(baselineFile);
+        }
+
+        final File excludeFile = project.file(EXCLUDE_FILE_PATH_RELATIVE_TO_PROJECT_ROOT);
+        if (excludeFile.exists()) {
+            spotBugsExtension.getExcludeFilter().set(excludeFile);
         }
     }
 }
