@@ -84,6 +84,9 @@ project(':broker4j').projectDir = new File('broker/broker4j')
 include(":LinuxBroker")
 project(':LinuxBroker').projectDir = new File('broker/LinuxBroker')
 
+include(':LabApiUtilities')
+project(':LabApiUtilities').projectDir = new File('common/LabApiUtilities')
+
 //include(":AzureSample")
 //project(':AzureSample').projectDir = new File('azuresample/app')
 

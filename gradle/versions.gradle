@@ -44,6 +44,7 @@ ext {
     flatBuffersJavaVersion = "1.12.0"
     daggerVersion = "2.31.2"
     daggerCompilerVersion = "2.31.2"
+    msal4jVersion = "1.10.0"
 
     // TODO: adal automation test app.
     supportLibraryVersion = "27.1.+"
