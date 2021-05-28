@@ -18,60 +18,129 @@ pluginManagement {
 rootProject.name = 'android_auth'
 
 // Android DevX Projects
-include ':adal', ':msal', ':common', ':common4j', ':AADAuthenticator',
-        ':brokerHost', ':adalTestApp', ':msalTestApp', ':package-inspector', ':pop-benchmarker',
-        ':labapi', ':keyvault', ':testutils', 'msalautomationapp', 'uiautomationutilities',
-        'brokerautomationapp', ':oneauth', ':oneauthtestapp', ':msalcpptesthost', ':AzureSample',
-        'AcaPlugin', ':broker4j', ':LinuxBroker', ':LabApiUtilities'
-        //, ':tsl', ':AzureSample',
-
+include ':adal'
 project(':adal').projectDir = new File('adal/adal')
+
+include(':msal')
 project(':msal').projectDir = new File('msal/msal')
+
+include(':common')
 project(':common').projectDir = new File('common/common')
+
+include(':common4j')
 project(':common4j').projectDir = new File('common/common4j')
+
+include(':AADAuthenticator')
 project(':AADAuthenticator').projectDir = new File('broker/AADAuthenticator')
+
+include(":brokerHost")
 project(':brokerHost').projectDir = new File('broker/userapp')
+
+include(":adalTestApp")
 project(':adalTestApp').projectDir = new File('adal/userappwithbroker')
+
+include(":msalTestApp")
 project(':msalTestApp').projectDir = new File('msal/testapps/testapp')
-project(':AzureSample').projectDir = new File('azuresample/app')
+
+include(":package-inspector")
 project(':package-inspector').projectDir = new File('msal/package-inspector')
+
+include(":pop-benchmarker")
 project(':pop-benchmarker').projectDir = new File('msal/pop-benchmarker')
+
+include(":labapi")
 project(':labapi').projectDir = new File('common/labapi')
+
+include(":keyvault")
 project(':keyvault').projectDir = new File('common/keyvault')
+
+include(":testutils")
 project(':testutils').projectDir = new File('common/testutils')
+
+include(":msalautomationapp")
 project(':msalautomationapp').projectDir = new File('msal/msalautomationapp')
+
+include(":uiautomationutilities")
 project(':uiautomationutilities').projectDir = new File('common/uiautomationutilities')
+
+include(":brokerautomationapp")
 project(':brokerautomationapp').projectDir = new File('broker/brokerautomationapp')
+
+include(":oneauth")
 project(':oneauth').projectDir = new File('oneauth/sources/android/gradle')
+
+include(":oneauthtestapp")
 project(':oneauthtestapp').projectDir = new File('oneauth/testapps/android/oneauthtestapp/app')
+
+include(":msalcpptesthost")
 project(':msalcpptesthost').projectDir = new File('msalcpp/test/android/testhost/app')
+
+include(":AcaPlugin")
 project(':AcaPlugin').projectDir = new File('plugins/buildsystem')
-project(':LabApiUtilities').projectDir = new File('common/LabApiUtilities')
-project(':LinuxBroker').projectDir = new File('broker/LinuxBroker')
+
+include(":broker4j")
 project(':broker4j').projectDir = new File('broker/broker4j')
+
+include(":LinuxBroker")
+project(':LinuxBroker').projectDir = new File('broker/LinuxBroker')
+
+include(':LabApiUtilities')
+project(':LabApiUtilities').projectDir = new File('common/LabApiUtilities')
+
+//include(":AzureSample")
+//project(':AzureSample').projectDir = new File('azuresample/app')
+
+//include(":tsl")
 //project(':tsl').projectDir = new File('tsl/tokenshare')
 
+
 // Authenticator projects
-/*
-include ':app', ':NgcProviderLibrary', ':AadRemoteNgcLibrary', ':SharedCoreLibrary',
-        ':TestUtilitiesLibrary', ':3rdparty', ':VerifiableCredential-SDK',
-        ':VerifiableCredential-Wallet', ':CommonUiLibrary', ':ReactNativeLibrary', ':GraphClient',
-        ':LocationLibrary', ':Brooklyn', ':MsaAccountLibrary', 'RootDetectionLibrary', ":MfaLibrary"
-project(':app').projectDir = new File('authenticator/PhoneFactor/app')
-project(':NgcProviderLibrary').projectDir = new File('authenticator/PhoneFactor/NgcProviderLibrary')
-project(':AadRemoteNgcLibrary').projectDir = new File('authenticator/PhoneFactor/AadRemoteNgcLibrary')
-project(':SharedCoreLibrary').projectDir = new File('authenticator/PhoneFactor/SharedCoreLibrary')
-project(':TestUtilitiesLibrary').projectDir = new File('authenticator/PhoneFactor/TestUtilitiesLibrary')
-project(':3rdparty').projectDir = new File('authenticator/PhoneFactor/3rdparty')
-project(':MfaLibrary').projectDir = new File('authenticator/PhoneFactor/MfaLibrary')
-project(':MsaAccountLibrary').projectDir = new File('authenticator/PhoneFactor/MsaAccountLibrary/')
-project(':VerifiableCredential-SDK').projectDir = new File('authenticator/PhoneFactor/VerifiableCredential-SDK/sdk')
-project(':VerifiableCredential-Wallet').projectDir = new File('authenticator/PhoneFactor/VerifiableCredential-Wallet')
-project(':CommonUiLibrary').projectDir = new File('authenticator/PhoneFactor/CommonUiLibrary')
-project(':ReactNativeLibrary').projectDir = new File('authenticator/PhoneFactor/ReactNativeLibrary')
-project(':GraphClient').projectDir = new File('authenticator/PhoneFactor/GraphClient')
-project(':LocationLibrary').projectDir = new File('authenticator/PhoneFactor/LocationLibrary')
-project(':Brooklyn').projectDir = new File('authenticator/PhoneFactor/Brooklyn')
-project(':RootDetectionLibrary').projectDir = new File('authenticator/PhoneFactor/RootDetectionLibrary')
-*/
+
+//include(":app")
+//project(':app').projectDir = new File('authenticator/PhoneFactor/app')
+//
+//include(":NgcProviderLibrary")
+//project(':NgcProviderLibrary').projectDir = new File('authenticator/PhoneFactor/NgcProviderLibrary')
+//
+//include(":AadRemoteNgcLibrary")
+//project(':AadRemoteNgcLibrary').projectDir = new File('authenticator/PhoneFactor/AadRemoteNgcLibrary')
+//
+//include(":SharedCoreLibrary")
+//project(':SharedCoreLibrary').projectDir = new File('authenticator/PhoneFactor/SharedCoreLibrary')
+//
+//include(":TestUtilitiesLibrary")
+//project(':TestUtilitiesLibrary').projectDir = new File('authenticator/PhoneFactor/TestUtilitiesLibrary')
+//
+//include(":3rdparty")
+//project(':3rdparty').projectDir = new File('authenticator/PhoneFactor/3rdparty')
+//
+//include(":MfaLibrary")
+//project(':MfaLibrary').projectDir = new File('authenticator/PhoneFactor/MfaLibrary')
+//
+//include(":MsaAccountLibrary")
+//project(':MsaAccountLibrary').projectDir = new File('authenticator/PhoneFactor/MsaAccountLibrary/')
+//
+//include(":VerifiableCredential-SDK")
+//project(':VerifiableCredential-SDK').projectDir = new File('authenticator/PhoneFactor/VerifiableCredential-SDK/sdk')
+//
+//include(":VerifiableCredential-Wallet")
+//project(':VerifiableCredential-Wallet').projectDir = new File('authenticator/PhoneFactor/VerifiableCredential-Wallet')
+//
+//include(":CommonUiLibrary")
+//project(':CommonUiLibrary').projectDir = new File('authenticator/PhoneFactor/CommonUiLibrary')
+//
+//include(":ReactNativeLibrary")
+//project(':ReactNativeLibrary').projectDir = new File('authenticator/PhoneFactor/ReactNativeLibrary')
+//
+//include(":GraphClient")
+//project(':GraphClient').projectDir = new File('authenticator/PhoneFactor/GraphClient')
+//
+//include(":LocationLibrary")
+//project(':LocationLibrary').projectDir = new File('authenticator/PhoneFactor/LocationLibrary')
+//
+//include(":Brooklyn")
+//project(':Brooklyn').projectDir = new File('authenticator/PhoneFactor/Brooklyn')
+//
+//include(":RootDetectionLibrary")
+//project(':RootDetectionLibrary').projectDir = new File('authenticator/PhoneFactor/RootDetectionLibrary')
 

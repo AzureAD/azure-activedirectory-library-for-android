@@ -1,7 +1,8 @@
 Plugin Overview: https://github.com/AzureAD/android-complete/blob/master/plugins/buildsystem/docs/Overview.md
 
-vNext
+Version 0.1.1
 ----------------------------
+[MINOR] Add exclude list to SpotBugs Plugin
 
 Version 0.1.0
 ----------------------------
