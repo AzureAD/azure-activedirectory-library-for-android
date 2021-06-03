@@ -129,7 +129,7 @@ public class BrokerProxyTests {
                         .getPackageInfo(
                                 androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
                                         .getContext().getPackageName(),
-                                PackageHelper.getPackageManagerFlag()
+                                PackageHelper.getPackageManagerSignaturesFlag()
                         );
 
         // Broker App can be signed with multiple certificates. It will look
@@ -1175,7 +1175,7 @@ public class BrokerProxyTests {
         PackageManager mockPackage = mock(PackageManager.class);
         PackageInfo info = Util.addSignatures(new PackageInfo(), new Signature[]{signature});
 
-        when(mockPackage.getPackageInfo(packageName, PackageHelper.getPackageManagerFlag())).thenReturn(info);
+        when(mockPackage.getPackageInfo(packageName, PackageHelper.getPackageManagerSignaturesFlag())).thenReturn(info);
         when(mockPackage.checkPermission(anyString(), anyString()))
                 .thenReturn(permissionStatus ? PackageManager.PERMISSION_GRANTED : PackageManager.PERMISSION_DENIED);
         return mockPackage;
