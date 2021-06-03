@@ -107,7 +107,7 @@ public class TelemetryTest {
         when(mockedSignature.toByteArray()).thenReturn(Base64.decode(
                 Util.ENCODED_SIGNATURE, Base64.NO_WRAP));
 
-        final PackageInfo mockedPackageInfo = com.microsoft.identity.common.Util.addSignatures(Mockito.mock(PackageInfo.class), new Signature[]{mockedSignature});
+        final PackageInfo mockedPackageInfo = Util.addSignatures(Mockito.mock(PackageInfo.class), new Signature[]{mockedSignature});
 
         final PackageManager mockedPackageManager = Mockito.mock(PackageManager.class);
         when(mockedPackageManager.getPackageInfo(Mockito.anyString(), anyInt())).thenReturn(mockedPackageInfo);
