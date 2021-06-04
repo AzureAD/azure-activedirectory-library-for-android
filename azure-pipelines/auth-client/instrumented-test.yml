@@ -13,7 +13,7 @@ resources:
  - repository: common
    type: github
    name: AzureAD/microsoft-authentication-library-common-for-android
-   ref: dev
+   ref: pedroro/small-fix-in-docker-pipeline
    endpoint: ANDROID_GITHUB
 
 jobs:
