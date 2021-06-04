@@ -45,6 +45,7 @@ ext {
     daggerVersion = "2.31.2"
     daggerCompilerVersion = "2.31.2"
     msal4jVersion = "1.10.0"
+    apacheHttpVersion = "4.5.13"
 
     // TODO: adal automation test app.
     supportLibraryVersion = "27.1.+"
