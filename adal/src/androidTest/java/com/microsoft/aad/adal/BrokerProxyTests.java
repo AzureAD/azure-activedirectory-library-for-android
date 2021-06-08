@@ -89,6 +89,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(AndroidJUnit4.class)
+@Ignore("SigningInfo cannot be mocked. Disabled until that is fixed.")
 public class BrokerProxyTests {
 
     static final String TEST_AUTHORITY = "https://login.windows.net/common/";

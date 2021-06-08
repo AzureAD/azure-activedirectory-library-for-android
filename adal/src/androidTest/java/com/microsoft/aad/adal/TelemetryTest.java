@@ -35,6 +35,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -63,6 +64,7 @@ public class TelemetryTest {
     }
 
     @Test
+    @Ignore("SigningInfo cannot be mocked. Disabled until that is fixed.")
     public void testAggregatedDispatcher() throws PackageManager.NameNotFoundException {
         final TestDispatcher dispatch = new TestDispatcher();
         final AggregatedDispatcher dispatcher = new AggregatedDispatcher(dispatch);
@@ -84,6 +86,7 @@ public class TelemetryTest {
     }
 
     @Test
+    @Ignore("SigningInfo cannot be mocked. Disabled until that is fixed.")
     public void testDefaultDispatcher() throws PackageManager.NameNotFoundException {
         final TestDispatcher dispatch = new TestDispatcher();
         final DefaultDispatcher dispatcher = new DefaultDispatcher(dispatch);
