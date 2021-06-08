@@ -45,6 +45,7 @@ ext {
     daggerVersion = "2.31.2"
     daggerCompilerVersion = "2.31.2"
     msal4jVersion = "1.10.0"
+    apacheHttpVersion = "4.5.13"
     moshiVersion = "1.12.0"
     moshiAdaptersVersion = "1.12.0"
     openpojoVersion = "0.9.1"
