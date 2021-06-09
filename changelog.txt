@@ -1,12 +1,14 @@
 v.Next
 ----------
+- [PATCH] Fixes crash due to missing exception handling. (#1606)
 - [PATCH] Adds API23 WebViewClient#onReceivedError overload (#1580)
 - [PATCH] Fixes for MFA setup using Authenticator app.(#1579)
 - [MINOR] Changes to Broker Validation to allow setting whether to trust debug brokers (prod brokers are always trusted).
 - [PATCH] Replaced deprecated PackageInfo.versionCode with PackageInfoCompat.getLongVersionCode(packageInfo) (#1584)
 - [PATCH] Fixes deprecated PackageInfo.signatures (#1587)
 - [PATCH] Deprecated ADAL namespaced AuthenticationSettings#setSecretKey(), #getSecretKey() (#1586)
-- Picks up common@3.2.0
+- [PATCH] Disregard pageload errors for the non-primary frame during interactive auth (#1603)
+- [PATCH] Updates Nimbus version 8.2 -> 9.9 (#1600)
 
 Version 3.1.2
 -------------

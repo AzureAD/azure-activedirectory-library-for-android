@@ -26,7 +26,6 @@ package com.microsoft.aad.adal;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.Signature;
@@ -122,7 +121,7 @@ public class PackageHelperTests {
 
         MockedPackageInfo mockedPackageInfo = new MockedPackageInfo(new Signature[]{new Signature(mTestSignature)});
         final PackageHelper packageHelper = (PackageHelper) getInstance(mockContext);
-        String actual = packageHelper.getCurrentSignatureForPackage(mockedPackageInfo);
+        String actual = packageHelper.getCurrentSignatureForPackage(mockedPackageInfo.packageName);
 
         // assert
         assertEquals("should be same info", mTestTag, actual);

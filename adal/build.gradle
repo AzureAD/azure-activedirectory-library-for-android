@@ -1,9 +1,22 @@
-apply plugin: 'com.android.library'
-apply plugin: 'pmd'
-apply plugin: 'checkstyle'
-apply plugin: 'maven-publish'
+plugins {
+    id 'com.microsoft.identity.buildsystem' version '0.1.0'
+    id 'com.android.library'
+    id 'pmd'
+    id 'checkstyle'
+    id 'maven-publish'
+}
+
 apply from: 'versioning/version_tasks.gradle'
-apply plugin: 'maven'
+
+def desugarCode = false
+
+if(project.hasProperty("sugar")){
+    desugarCode = sugar.toBoolean()
+}
+
+buildSystem {
+    desugar = desugarCode
+}
 
 group = 'com.microsoft.aad'
 
@@ -28,14 +41,6 @@ allprojects {
             }
         }
         mavenCentral()
-    }
-}
-
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
     }
 }
 
@@ -141,12 +146,13 @@ dependencies {
 
     // 'local' flavor dependencies
     localApi(project(":common")) {
-        transitive = false
+        transitive = true
     }
 
     snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.2.0', changing: true)
 
     // 'dist' flavor dependencies
+    //TODO: we will have to change transitive to true once common4j is published
     distApi("com.microsoft.identity:common:3.2.0") {
         transitive = false
     }
