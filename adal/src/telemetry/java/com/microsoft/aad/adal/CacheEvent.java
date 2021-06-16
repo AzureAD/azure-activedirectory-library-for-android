@@ -25,7 +25,7 @@ package com.microsoft.aad.adal;
 
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
-import android.util.Pair;
+import com.microsoft.identity.common.java.util.ported.Pair;
 
 import java.util.List;
 import java.util.Map;
@@ -45,7 +45,7 @@ final class CacheEvent extends DefaultEvent {
     }
 
     void setTokenType(final String tokenType) {
-        getEventList().add(Pair.create(EventStrings.TOKEN_TYPE, tokenType));
+        getEventList().add(new Pair<>(EventStrings.TOKEN_TYPE, tokenType));
     }
 
     void setTokenTypeRT(final boolean tokenTypeRT) {

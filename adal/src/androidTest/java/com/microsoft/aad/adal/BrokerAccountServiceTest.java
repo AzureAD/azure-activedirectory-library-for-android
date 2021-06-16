@@ -38,7 +38,7 @@ import android.content.pm.Signature;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Base64;
-import android.util.Pair;
+import com.microsoft.identity.common.java.util.ported.Pair;
 
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.rule.ServiceTestRule;

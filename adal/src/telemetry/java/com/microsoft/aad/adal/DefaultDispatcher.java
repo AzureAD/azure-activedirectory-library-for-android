@@ -23,7 +23,7 @@
 
 package com.microsoft.aad.adal;
 
-import android.util.Pair;
+import com.microsoft.identity.common.java.util.ported.Pair;
 
 import java.util.HashMap;
 import java.util.List;

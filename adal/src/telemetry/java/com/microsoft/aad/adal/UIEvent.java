@@ -23,14 +23,14 @@
 
 package com.microsoft.aad.adal;
 
-import android.util.Pair;
+import com.microsoft.identity.common.java.util.ported.Pair;
 
 import java.util.List;
 import java.util.Map;
 
 final class UIEvent extends DefaultEvent {
     UIEvent(final String eventName) {
-        getEventList().add(Pair.create(EventStrings.EVENT_NAME, eventName));
+        getEventList().add(new Pair<>(EventStrings.EVENT_NAME, eventName));
     }
 
     void setRedirectCount(final Integer redirectCount) {

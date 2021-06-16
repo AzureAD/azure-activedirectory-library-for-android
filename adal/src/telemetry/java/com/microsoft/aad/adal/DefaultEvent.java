@@ -30,7 +30,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.provider.Settings.Secure;
 import android.text.TextUtils;
-import android.util.Pair;
+import com.microsoft.identity.common.java.util.ported.Pair;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
@@ -85,7 +85,7 @@ class DefaultEvent implements IEvents {
             return;
         }
 
-        mEventList.add(Pair.create(name, value));
+        mEventList.add(new Pair<>(name, value));
     }
 
     @Override

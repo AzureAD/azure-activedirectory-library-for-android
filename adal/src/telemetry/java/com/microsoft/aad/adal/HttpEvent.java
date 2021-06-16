@@ -25,7 +25,7 @@ package com.microsoft.aad.adal;
 
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
-import android.util.Pair;
+import com.microsoft.identity.common.java.util.ported.Pair;
 
 import java.net.URL;
 import java.util.List;
@@ -38,7 +38,7 @@ final class HttpEvent extends DefaultEvent {
     private static final String TAG = HttpEvent.class.getSimpleName();
 
     HttpEvent(final String eventName) {
-        getEventList().add(Pair.create(EventStrings.EVENT_NAME, eventName));
+        getEventList().add(new Pair<>(EventStrings.EVENT_NAME, eventName));
     }
 
     void setUserAgent(final String userAgent) {

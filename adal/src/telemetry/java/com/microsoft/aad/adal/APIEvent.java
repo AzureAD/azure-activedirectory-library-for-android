@@ -24,7 +24,7 @@
 package com.microsoft.aad.adal;
 
 import android.content.Context;
-import android.util.Pair;
+import com.microsoft.identity.common.java.util.ported.Pair;
 
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
