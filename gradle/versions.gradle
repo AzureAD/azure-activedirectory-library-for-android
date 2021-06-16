@@ -57,6 +57,7 @@ ext {
     junitVintageEngineVersion = "5.7.2"
     dbusJavaVersion = "3.3.0"
     dbusJavaUtilsVersion = "3.3.0"
+    bouncyCastleVersion = "1.64"
 
     // TODO: adal automation test app.
     supportLibraryVersion = "27.1.+"
