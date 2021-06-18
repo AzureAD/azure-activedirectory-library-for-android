@@ -1,0 +1,68 @@
+# File: azure-pipelines\instrumented-tests-multistage.yml
+# Description: Run Instrumneted test for Supported API levels
+name: $(Date:yyyyMMdd)$(Rev:.r)
+
+pr: none
+trigger: none
+
+resources:
+  repositories:
+  - repository: common
+    type: github
+    name: AzureAD/microsoft-authentication-library-common-for-android
+    ref: $(common_branch)
+    endpoint: ANDROID_GITHUB
+  - repository: msal
+    type: github
+    name: AzureAD/microsoft-authentication-library-for-android
+    ref: $(msal_branch)
+    endpoint: ANDROID_GITHUB
+  - repository: adal
+    type: github
+    name: AzureAD/azure-activedirectory-library-for-android
+    ref: $(adal_branch)
+    endpoint: ANDROID_GITHUB
+
+parameters:
+- name: listOfApis
+  displayName: List of Android APIs
+  type: object
+  default:
+  - 30
+  - 29
+  - 28
+  - 27
+  - 26
+  - 25
+  - 24
+  - 23
+  - 22
+  - 21
+- name: listOfProjects
+  displayName: List of Projects
+  type: object
+  default:
+  - msal
+  - adal
+  - common
+
+stages:
+- ${{ each api in parameters.listOfApis }}:
+  - stage: stage${{ api }}
+    displayName: 'API ${{ api }}'
+    dependsOn: []
+    pool:
+      name: DockerBuildAgents
+    jobs:
+    - ${{ each project in parameters.listOfProjects }}:
+      - job: test${{project}}
+        variables:
+          acrName: authclient
+          acrRegistry: $(acrName).azurecr.io
+          acrRepository: samples/dbi-instrumented-api$(api)
+        displayName: 'test ${{project}} API ${{ api }}'
+        steps:
+        - template: templates/docker-instrumented-test.yml
+          parameters:
+            acrImage: $(acrRegistry)/$(acrRepository)
+            androidProject: ${{project}}
