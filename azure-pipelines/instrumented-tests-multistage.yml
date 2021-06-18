@@ -59,10 +59,10 @@ stages:
         variables:
           acrName: authclient
           acrRegistry: $(acrName).azurecr.io
-          acrRepository: samples/dbi-instrumented-api$(api)
-        displayName: 'test ${{project}} API ${{ api }}'
+          acrRepository: samples/dbi-instrumented-api${{ api }}
+        displayName: 'test ${{ project }} API ${{ api }}'
         steps:
         - template: templates/docker-instrumented-test.yml
           parameters:
             acrImage: $(acrRegistry)/$(acrRepository)
-            androidProject: ${{project}}
+            androidProject: ${{ project }}
