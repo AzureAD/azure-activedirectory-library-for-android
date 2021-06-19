@@ -4,6 +4,10 @@ name: $(Date:yyyyMMdd)$(Rev:.r)
 
 pr: none
 trigger: none
+schedules:
+- cron: "0 0 * * *"
+  displayName: Daily midnight build
+  always: true
 
 resources:
   repositories:
@@ -31,13 +35,13 @@ parameters:
   - 30
   - 29
   - 28
-  - 27
+#  - 27
   - 26
   - 25
   - 24
   - 23
   - 22
-  - 21
+#  - 21
 - name: listOfProjects
   displayName: List of Projects
   type: object
