@@ -38,7 +38,7 @@ import android.content.pm.Signature;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Base64;
-import com.microsoft.identity.common.java.util.ported.Pair;
+import com.microsoft.identity.common.java.util.ported.KeyValuePair;
 
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.rule.ServiceTestRule;
@@ -347,10 +347,10 @@ public final class BrokerAccountServiceTest {
     }
 
     private void verifyBrokerEventList(final BrokerEvent brokerEvent) {
-        final List<Pair<String, String>> eventLists = brokerEvent.getEvents();
-        assertTrue(eventLists.contains(new Pair<>(EventStrings.BROKER_ACCOUNT_SERVICE_STARTS_BINDING, Boolean.toString(true))));
-        assertTrue(eventLists.contains(new Pair<>(EventStrings.BROKER_ACCOUNT_SERVICE_BINDING_SUCCEED, Boolean.toString(true))));
-        assertTrue(eventLists.contains(new Pair<>(EventStrings.BROKER_ACCOUNT_SERVICE_CONNECTED, Boolean.toString(true))));
+        final List<KeyValuePair<String, String>> eventLists = brokerEvent.getEvents();
+        assertTrue(eventLists.contains(new KeyValuePair<>(EventStrings.BROKER_ACCOUNT_SERVICE_STARTS_BINDING, Boolean.toString(true))));
+        assertTrue(eventLists.contains(new KeyValuePair<>(EventStrings.BROKER_ACCOUNT_SERVICE_BINDING_SUCCEED, Boolean.toString(true))));
+        assertTrue(eventLists.contains(new KeyValuePair<>(EventStrings.BROKER_ACCOUNT_SERVICE_CONNECTED, Boolean.toString(true))));
     }
 
     private BrokerEvent getBrokerEvent() {

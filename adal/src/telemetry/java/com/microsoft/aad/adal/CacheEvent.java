@@ -25,7 +25,7 @@ package com.microsoft.aad.adal;
 
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
-import com.microsoft.identity.common.java.util.ported.Pair;
+import com.microsoft.identity.common.java.util.ported.KeyValuePair;
 
 import java.util.List;
 import java.util.Map;
@@ -45,7 +45,7 @@ final class CacheEvent extends DefaultEvent {
     }
 
     void setTokenType(final String tokenType) {
-        getEventList().add(new Pair<>(EventStrings.TOKEN_TYPE, tokenType));
+        getEventList().add(new KeyValuePair<>(EventStrings.TOKEN_TYPE, tokenType));
     }
 
     void setTokenTypeRT(final boolean tokenTypeRT) {
@@ -72,7 +72,7 @@ final class CacheEvent extends DefaultEvent {
             return;
         }
 
-        final List<Pair<String, String>> eventList = getEventList();
+        final List<KeyValuePair<String, String>> eventList = getEventList();
 
         // We are keeping track of the number of Cache Events here, first time we insert the CACHE_EVENT_COUNT in the
         // map, next time onwards, we read the value of it and increment by one.
@@ -92,12 +92,12 @@ final class CacheEvent extends DefaultEvent {
             dispatchMap.remove(EventStrings.SPE_INFO);
         }
 
-        for (Pair<String, String> eventPair : eventList) {
-            final String name = eventPair.first;
+        for (KeyValuePair<String, String> eventKeyValuePair : eventList) {
+            final String name = eventKeyValuePair.key;
 
             if (name.equals(EventStrings.TOKEN_TYPE_IS_FRT) || name.equals(EventStrings.TOKEN_TYPE_IS_RT)
                     || name.equals(EventStrings.TOKEN_TYPE_IS_MRRT) || name.equals(EventStrings.SPE_INFO)) {
-                dispatchMap.put(name, eventPair.second);
+                dispatchMap.put(name, eventKeyValuePair.value);
             }
         }
     }

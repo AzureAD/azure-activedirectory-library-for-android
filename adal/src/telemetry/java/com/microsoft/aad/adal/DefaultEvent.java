@@ -30,7 +30,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.provider.Settings.Secure;
 import android.text.TextUtils;
-import com.microsoft.identity.common.java.util.ported.Pair;
+import com.microsoft.identity.common.java.util.ported.KeyValuePair;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
@@ -41,7 +41,7 @@ import java.util.Map;
 
 
 class DefaultEvent implements IEvents {
-    private final List<Pair<String, String>> mEventList;
+    private final List<KeyValuePair<String, String>> mEventList;
 
     private static String sApplicationName = null;
 
@@ -85,11 +85,11 @@ class DefaultEvent implements IEvents {
             return;
         }
 
-        mEventList.add(new Pair<>(name, value));
+        mEventList.add(new KeyValuePair<>(name, value));
     }
 
     @Override
-    public List<Pair<String, String>> getEvents() {
+    public List<KeyValuePair<String, String>> getEvents() {
         return Collections.unmodifiableList(mEventList);
     }
 
@@ -143,17 +143,17 @@ class DefaultEvent implements IEvents {
 
     // Sets the correlation id to the top of the list
     void setCorrelationId(final String correlationId) {
-        mEventList.add(0, new Pair<>(EventStrings.CORRELATION_ID, correlationId));
+        mEventList.add(0, new KeyValuePair<>(EventStrings.CORRELATION_ID, correlationId));
         mDefaultEventCount++;
     }
 
     void setRequestId(final String requestId) {
         mRequestId = requestId;
-        mEventList.add(0, new Pair<>(EventStrings.REQUEST_ID, requestId));
+        mEventList.add(0, new KeyValuePair<>(EventStrings.REQUEST_ID, requestId));
         mDefaultEventCount++;
     }
 
-    List<Pair<String, String>> getEventList() {
+    List<KeyValuePair<String, String>> getEventList() {
         return mEventList;
     }
 
