@@ -25,8 +25,7 @@ package com.microsoft.aad.adal;
 
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
-import com.microsoft.identity.common.java.util.ported.KeyValuePair;
-
+import java.util.AbstractMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,7 +34,7 @@ public final class Telemetry {
     private static final String TAG = Telemetry.class.getSimpleName();
     private DefaultDispatcher mDispatcher = null;
     private static boolean sAllowPii = false;
-    private final Map<KeyValuePair<String, String>, String> mEventTracking = new ConcurrentHashMap<KeyValuePair<String, String>, String>();
+    private final Map<AbstractMap.SimpleEntry<String, String>, String> mEventTracking = new ConcurrentHashMap<>();
     private static final Telemetry INSTANCE = new Telemetry();
 
     /**
@@ -99,7 +98,7 @@ public final class Telemetry {
             return;
         }
 
-        mEventTracking.put(new KeyValuePair<>(requestId, eventName), Long.toString(System.currentTimeMillis()));
+        mEventTracking.put(new AbstractMap.SimpleEntry<>(requestId, eventName), Long.toString(System.currentTimeMillis()));
     }
 
     void stopEvent(final String requestId, final IEvents events, final String eventName) {
@@ -108,7 +107,7 @@ public final class Telemetry {
             return;
         }
 
-        final String startTime = mEventTracking.remove(new KeyValuePair<>(requestId, eventName));
+        final String startTime = mEventTracking.remove(new AbstractMap.SimpleEntry<>(requestId, eventName));
 
         // If we did not get anything back from the dictionary, most likely its a bug that stopEvent was called without
         // a corresponding startEvent

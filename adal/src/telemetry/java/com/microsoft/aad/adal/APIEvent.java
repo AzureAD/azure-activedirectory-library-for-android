@@ -24,13 +24,13 @@
 package com.microsoft.aad.adal;
 
 import android.content.Context;
-import com.microsoft.identity.common.java.util.ported.KeyValuePair;
 
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
+import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
 
@@ -188,10 +188,10 @@ final class APIEvent extends DefaultEvent {
     @Override
     public void processEvent(final Map<String, String> dispatchMap) {
         super.processEvent(dispatchMap);
-        final List<KeyValuePair<String, String>> eventList = getEventList();
+        final List<AbstractMap.SimpleEntry<String, String>> eventList = getEventList();
 
-        for (KeyValuePair<String, String> eventKeyValuePair : eventList) {
-            final String name = eventKeyValuePair.key;
+        for (AbstractMap.SimpleEntry<String, String> eventKeyValuePair : eventList) {
+            final String name = eventKeyValuePair.getKey();
 
             // API Event specific parameters, push all except the time values
             if (name.equals(EventStrings.AUTHORITY_TYPE) || name.equals(EventStrings.API_DEPRECATED)
@@ -205,7 +205,7 @@ final class APIEvent extends DefaultEvent {
                     || name.equals(EventStrings.API_ERROR_CODE) || name.equals(EventStrings.SERVER_ERROR_CODE)
                     || name.equals(EventStrings.SERVER_SUBERROR_CODE) || name.equals(EventStrings.TOKEN_AGE)
                     || name.equals(EventStrings.SPE_INFO)) {
-                dispatchMap.put(name, eventKeyValuePair.value);
+                dispatchMap.put(name, eventKeyValuePair.getValue());
             }
         }
     }

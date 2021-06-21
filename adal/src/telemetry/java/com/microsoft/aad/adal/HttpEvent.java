@@ -25,9 +25,8 @@ package com.microsoft.aad.adal;
 
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
-import com.microsoft.identity.common.java.util.ported.KeyValuePair;
-
 import java.net.URL;
+import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
 
@@ -38,7 +37,7 @@ final class HttpEvent extends DefaultEvent {
     private static final String TAG = HttpEvent.class.getSimpleName();
 
     HttpEvent(final String eventName) {
-        getEventList().add(new KeyValuePair<>(EventStrings.EVENT_NAME, eventName));
+        getEventList().add(new AbstractMap.SimpleEntry<>(EventStrings.EVENT_NAME, eventName));
     }
 
     void setUserAgent(final String userAgent) {
@@ -180,9 +179,9 @@ final class HttpEvent extends DefaultEvent {
             dispatchMap.remove(EventStrings.SPE_INFO);
         }
 
-        final List<KeyValuePair<String, String>> eventList = getEventList();
-        for (KeyValuePair<String, String> eventKeyValuePair : eventList) {
-            final String name = eventKeyValuePair.key;
+        final List<AbstractMap.SimpleEntry<String, String>> eventList = getEventList();
+        for (AbstractMap.SimpleEntry<String, String> eventKeyValuePair : eventList) {
+            final String name = eventKeyValuePair.getKey();
 
             if (name.equals(EventStrings.HTTP_RESPONSE_CODE)
                     || name.equals(EventStrings.REQUEST_ID_HEADER)
@@ -192,7 +191,7 @@ final class HttpEvent extends DefaultEvent {
                     || name.equals(EventStrings.SERVER_SUBERROR_CODE)
                     || name.equals(EventStrings.TOKEN_AGE)
                     || name.equals(EventStrings.SPE_INFO)) {
-                dispatchMap.put(name, eventKeyValuePair.value);
+                dispatchMap.put(name, eventKeyValuePair.getValue());
             }
         }
     }

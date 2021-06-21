@@ -23,8 +23,7 @@
 
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.java.util.ported.KeyValuePair;
-
+import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,10 +57,10 @@ class DefaultDispatcher {
         }
 
         final Map<String, String> dispatchMap = new HashMap<>();
-        final List<KeyValuePair<String, String>> eventList = events.getEvents();
+        final List<AbstractMap.SimpleEntry<String, String>> eventList = events.getEvents();
 
-        for (final KeyValuePair<String, String> event : eventList) {
-            dispatchMap.put(event.key, event.value);
+        for (final AbstractMap.SimpleEntry<String, String> event : eventList) {
+            dispatchMap.put(event.getKey(), event.getValue());
         }
 
         mDispatcher.dispatchEvent(dispatchMap);
