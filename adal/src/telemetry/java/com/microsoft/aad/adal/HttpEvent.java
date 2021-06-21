@@ -179,8 +179,8 @@ final class HttpEvent extends DefaultEvent {
             dispatchMap.remove(EventStrings.SPE_INFO);
         }
 
-        final List<AbstractMap.SimpleEntry<String, String>> eventList = getEventList();
-        for (AbstractMap.SimpleEntry<String, String> eventKeyValuePair : eventList) {
+        final List<Map.Entry<String, String>> eventList = getEventList();
+        for (Map.Entry<String, String> eventKeyValuePair : eventList) {
             final String name = eventKeyValuePair.getKey();
 
             if (name.equals(EventStrings.HTTP_RESPONSE_CODE)

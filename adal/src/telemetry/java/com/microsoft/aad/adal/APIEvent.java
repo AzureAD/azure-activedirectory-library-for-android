@@ -30,7 +30,6 @@ import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
-import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
 
@@ -188,9 +187,9 @@ final class APIEvent extends DefaultEvent {
     @Override
     public void processEvent(final Map<String, String> dispatchMap) {
         super.processEvent(dispatchMap);
-        final List<AbstractMap.SimpleEntry<String, String>> eventList = getEventList();
+        final List<Map.Entry<String, String>> eventList = getEventList();
 
-        for (AbstractMap.SimpleEntry<String, String> eventKeyValuePair : eventList) {
+        for (Map.Entry<String, String> eventKeyValuePair : eventList) {
             final String name = eventKeyValuePair.getKey();
 
             // API Event specific parameters, push all except the time values

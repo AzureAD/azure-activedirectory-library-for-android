@@ -34,7 +34,7 @@ public final class Telemetry {
     private static final String TAG = Telemetry.class.getSimpleName();
     private DefaultDispatcher mDispatcher = null;
     private static boolean sAllowPii = false;
-    private final Map<AbstractMap.SimpleEntry<String, String>, String> mEventTracking = new ConcurrentHashMap<>();
+    private final Map<Map.Entry<String, String>, String> mEventTracking = new ConcurrentHashMap<>();
     private static final Telemetry INSTANCE = new Telemetry();
 
     /**

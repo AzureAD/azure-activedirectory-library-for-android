@@ -23,7 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,9 +56,9 @@ class DefaultDispatcher {
         }
 
         final Map<String, String> dispatchMap = new HashMap<>();
-        final List<AbstractMap.SimpleEntry<String, String>> eventList = events.getEvents();
+        final List<Map.Entry<String, String>> eventList = events.getEvents();
 
-        for (final AbstractMap.SimpleEntry<String, String> event : eventList) {
+        for (final Map.Entry<String, String> event : eventList) {
             dispatchMap.put(event.getKey(), event.getValue());
         }
 

@@ -51,7 +51,7 @@ final class UIEvent extends DefaultEvent {
      */
     @Override
     public void processEvent(final Map<String, String> dispatchMap) {
-        final List<AbstractMap.SimpleEntry<String, String>> eventList = getEventList();
+        final List<Map.Entry<String, String>> eventList = getEventList();
 
         // We are keeping track of the number of UI Events here, first time we insert the UI_EVENT_COUNT into the map
         // next time onwards, we read the value of it and increment by one.
@@ -70,7 +70,7 @@ final class UIEvent extends DefaultEvent {
             dispatchMap.put(EventStrings.NTLM, "");
         }
 
-        for (AbstractMap.SimpleEntry<String, String> eventKeyValuePair : eventList) {
+        for (Map.Entry<String, String> eventKeyValuePair : eventList) {
             final String name = eventKeyValuePair.getKey();
 
             if (name.equals(EventStrings.USER_CANCEL) || name.equals(EventStrings.NTLM)) {

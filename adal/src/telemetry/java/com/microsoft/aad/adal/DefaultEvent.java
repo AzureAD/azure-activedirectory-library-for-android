@@ -41,7 +41,7 @@ import java.util.Map;
 
 
 class DefaultEvent implements IEvents {
-    private final List<AbstractMap.SimpleEntry<String, String>> mEventList;
+    private final List<Map.Entry<String, String>> mEventList;
 
     private static String sApplicationName = null;
 
@@ -89,7 +89,7 @@ class DefaultEvent implements IEvents {
     }
 
     @Override
-    public List<AbstractMap.SimpleEntry<String, String>> getEvents() {
+    public List<Map.Entry<String, String>> getEvents() {
         return Collections.unmodifiableList(mEventList);
     }
 
@@ -153,7 +153,7 @@ class DefaultEvent implements IEvents {
         mDefaultEventCount++;
     }
 
-    List<AbstractMap.SimpleEntry<String, String>> getEventList() {
+    List<Map.Entry<String, String>> getEventList() {
         return mEventList;
     }
 

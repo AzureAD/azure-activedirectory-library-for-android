@@ -23,14 +23,13 @@
 
 package com.microsoft.aad.adal;
 
-import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
 
 interface IEvents {
     void setProperty(final String name, final String value);
 
-    List<AbstractMap.SimpleEntry<String, String>> getEvents();
+    List<Map.Entry<String, String>> getEvents();
 
     int getDefaultEventCount();
 
