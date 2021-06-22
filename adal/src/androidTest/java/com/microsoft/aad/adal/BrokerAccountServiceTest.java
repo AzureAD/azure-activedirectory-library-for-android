@@ -38,7 +38,6 @@ import android.content.pm.Signature;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Base64;
-import android.util.Pair;
 
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.rule.ServiceTestRule;
@@ -58,8 +57,10 @@ import org.mockito.Mockito;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -347,10 +348,10 @@ public final class BrokerAccountServiceTest {
     }
 
     private void verifyBrokerEventList(final BrokerEvent brokerEvent) {
-        final List<Pair<String, String>> eventLists = brokerEvent.getEvents();
-        assertTrue(eventLists.contains(new Pair<>(EventStrings.BROKER_ACCOUNT_SERVICE_STARTS_BINDING, Boolean.toString(true))));
-        assertTrue(eventLists.contains(new Pair<>(EventStrings.BROKER_ACCOUNT_SERVICE_BINDING_SUCCEED, Boolean.toString(true))));
-        assertTrue(eventLists.contains(new Pair<>(EventStrings.BROKER_ACCOUNT_SERVICE_CONNECTED, Boolean.toString(true))));
+        final List<Map.Entry<String, String>> eventLists = brokerEvent.getEvents();
+        assertTrue(eventLists.contains(new AbstractMap.SimpleEntry<>(EventStrings.BROKER_ACCOUNT_SERVICE_STARTS_BINDING, Boolean.toString(true))));
+        assertTrue(eventLists.contains(new AbstractMap.SimpleEntry<>(EventStrings.BROKER_ACCOUNT_SERVICE_BINDING_SUCCEED, Boolean.toString(true))));
+        assertTrue(eventLists.contains(new AbstractMap.SimpleEntry<>(EventStrings.BROKER_ACCOUNT_SERVICE_CONNECTED, Boolean.toString(true))));
     }
 
     private BrokerEvent getBrokerEvent() {

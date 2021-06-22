@@ -23,15 +23,13 @@
 
 package com.microsoft.aad.adal;
 
-import android.util.Pair;
-
 import java.util.List;
 import java.util.Map;
 
 interface IEvents {
     void setProperty(final String name, final String value);
 
-    List<Pair<String, String>> getEvents();
+    List<Map.Entry<String, String>> getEvents();
 
     int getDefaultEventCount();
 
