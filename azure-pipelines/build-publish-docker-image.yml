@@ -2,7 +2,9 @@
 # Description: Build and push a docker image to run android automated test on Azure Container Registry
 # https://docs.microsoft.com/azure/devops/pipelines/languages/docker
 # https://github.com/AzureAD/android-complete/blob/master/docker/overview.md
-
+# Variable: 'ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME' was defined in the Variables tab
+# Variable: 'mvnAccessToken' was defined in the Variables tab
+# https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate
 name: $(Date:yyyyMMdd)$(Rev:.r) API level $(ANDROIDAPILEVEL) [$(Build.BuildId)]
 
 pr: none
@@ -65,7 +67,9 @@ stages:
           "cmakeBinFile": "$(CMAKEBINFILE)",
           "cmakeBinFolder": "$(CMAKEBINFOLDER)",
           "ninjaBinUrl": "$(NINJABINURL)",
-          "ninjaZipFile": "$(NINJAZIPFILE)"
+          "ninjaZipFile": "$(NINJAZIPFILE)",
+          "vstsUsername": "$(ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME)",
+          "vstsMavenAccessToken": "$(mvnAccessToken)"
         }
         EOL
       displayName: 'Create configuration API file'
