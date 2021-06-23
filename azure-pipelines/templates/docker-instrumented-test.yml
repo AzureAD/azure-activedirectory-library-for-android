@@ -3,6 +3,7 @@
 
 parameters:
 - name: acrImage
+  default: authclient.azurecr.io/samples/dbi-instrumented-api30
 - name: androidProject
   default: self
 - name: EnvVstsMvnAccount
