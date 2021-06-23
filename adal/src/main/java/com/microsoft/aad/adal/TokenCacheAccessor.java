@@ -98,10 +98,11 @@ class TokenCacheAccessor {
         sharedSSOCaches.add(msalOAuth2TokenCache);
         mCommonCache = new ADALOAuth2TokenCache(appContext, sharedSSOCaches);
 
-        if (mTokenCacheStore instanceof DefaultTokenCacheStore) {
+        if (mTokenCacheStore instanceof DelegatingCache) {
+            final ITokenCacheStore delegate = ((DelegatingCache) mTokenCacheStore).getDelegateCache();
             //If the default token cache is in use... delegate token operations to unified cache in common
             //If not using default token cache then sharing SSO state between ADAL & MSAL cache implementations will not be possible anyway
-            mUseCommonCache = true;
+            mUseCommonCache = delegate instanceof DefaultTokenCacheStore;
         }
     }
 

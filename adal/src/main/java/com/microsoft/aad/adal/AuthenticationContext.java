@@ -176,46 +176,8 @@ public class AuthenticationContext {
         mValidateAuthority = validateAuthority;
 
         if (null != tokenCacheStore) {
-            mTokenCacheStore = wrapCache(tokenCacheStore);
+            mTokenCacheStore = new DelegatingCache(mContext, tokenCacheStore);
         }
-    }
-
-    private ITokenCacheStore wrapCache(@NonNull final ITokenCacheStore originalCache) {
-        return new ITokenCacheStore() {
-            @Override
-            public synchronized TokenCacheItem getItem(final String key) {
-                return originalCache.getItem(key);
-            }
-
-            @Override
-            public synchronized Iterator<TokenCacheItem> getAll() {
-                return originalCache.getAll();
-            }
-
-            @Override
-            public synchronized boolean contains(final String key) {
-                return originalCache.contains(key);
-            }
-
-            @Override
-            public synchronized void setItem(final String key, final TokenCacheItem item) {
-                originalCache.setItem(key, item);
-            }
-
-            @Override
-            public synchronized void removeItem(final String key) {
-                originalCache.removeItem(key);
-            }
-
-            @Override
-            public synchronized void removeAll() {
-                // Clear our original cache
-                originalCache.removeAll();
-
-                // clear our replica cache
-                getMsalOAuth2TokenCache(mContext).clearAll();
-            }
-        };
     }
 
     /**
