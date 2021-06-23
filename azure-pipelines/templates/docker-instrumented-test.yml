@@ -3,7 +3,10 @@
 
 parameters:
 - name: acrImage
-- name: androidProject 
+- name: androidProject
+  default: self
+- name: EnvVstsMvnAccount
+  default: ''
 
 steps:
 - task: PostBuildCleanup@3
@@ -12,6 +15,11 @@ steps:
 - checkout: ${{ parameters.androidProject }}
   clean: true
   submodules: recursive
+- script: touch env.list
+  displayName: 'Create Enviroment file'
+- script: echo "${{ parameters.EnvVstsMvnAccount }}=$(mvnAccessToken)" >> env.list
+  condition: ne(parameters.EnvVstsMvnAccount, '')
+  displayName: set mvnAccessToken
 - script: |
     if docker image inspect $DOCKERIMAGE; then
       echo "Image is already installed"
@@ -31,7 +39,7 @@ steps:
     echo =============================================
     echo Run unit and instrumented inside docker container
     echo =============================================
-    docker run --privileged --cpus="3" --memory="12g" -v "$PWD":/home/gradle/ -w /home/gradle/ $DOCKERIMAGE sh scripts/run-instrumented-tests.sh
+    docker run --privileged --env-file env.list --cpus="3" --memory="12g" -v "$PWD":/home/gradle/ -w /home/gradle/ $DOCKERIMAGE sh scripts/run-instrumented-tests.sh
   env:
     DOCKERIMAGE: ${{ parameters.acrImage }}
   displayName: 'Build and test inside docker container'
@@ -50,7 +58,8 @@ steps:
     echo =============================================
     echo Cleaning up build output that is owned by docker user rather than agent user
     echo =============================================
-    docker run --privileged --cpus="3" --memory="12g" -v "$PWD":/home/gradle/ -w /home/gradle/ $DOCKERIMAGE gradle clean
+    docker run --privileged --env-file env.list --cpus="3" --memory="12g" -v "$PWD":/home/gradle/ -w /home/gradle/ $DOCKERIMAGE gradle --stop
+    docker run --privileged --env-file env.list --cpus="3" --memory="12g" -v "$PWD":/home/gradle/ -w /home/gradle/ $DOCKERIMAGE gradle clean
     echo =============================================
     echo prune containers to avoid running out of disk space - shutdown containers still exist on disk
     echo =============================================

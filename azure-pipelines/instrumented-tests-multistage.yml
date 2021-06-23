@@ -26,6 +26,11 @@ resources:
     name: AzureAD/azure-activedirectory-library-for-android
     ref: $(adal_branch)
     endpoint: ANDROID_GITHUB
+  - repository: broker
+    type: github
+    name: AzureAD/ad-accounts-for-android
+    ref: $(broker_branch)
+    endpoint: ANDROID_GITHUB
 
 parameters:
 - name: listOfApis
@@ -41,7 +46,7 @@ parameters:
   - 24
   - 23
   - 22
-#  - 21
+  - 21
 - name: listOfProjects
   displayName: List of Projects
   type: object
@@ -49,6 +54,7 @@ parameters:
   - msal
   - adal
   - common
+  - broker
 
 stages:
 - ${{ each api in parameters.listOfApis }}:
@@ -70,3 +76,5 @@ stages:
           parameters:
             acrImage: $(acrRegistry)/$(acrRepository)
             androidProject: ${{ project }}
+            ${{ if eq(project, 'broker') }}:
+              EnvVstsMvnAccount: ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN
