@@ -77,7 +77,7 @@ stages:
           acrRepository: samples/dbi-instrumented-api${{ api }}
         displayName: 'test ${{ project }} API ${{ api }}'
         steps:
-        - template: templates/docker-instrumented-test.yml
+        - template: azure-pipelines/templates/steps/auth-client/docker-tasks.yml@common
           parameters:
             acrImage: $(acrRegistry)/$(acrRepository)
             androidProject: ${{ project }}
