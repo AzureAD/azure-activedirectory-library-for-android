@@ -50,6 +50,8 @@ steps:
     testResultsFiles: '**/TEST-*.xml'
     searchFolder: '$(System.DefaultWorkingDirectory)'
     displayName: 'Publish Test Results'
+    mergeTestResults: false
+    testRunTitle: '${{ parameters.androidProject }} ${{ parameters.acrImage }}'
 - script: |
     echo =============================================
     echo Kill all running containers if existing

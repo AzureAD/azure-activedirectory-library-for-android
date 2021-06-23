@@ -1,5 +1,7 @@
 # File: azure-pipelines\instrumented-tests-multistage.yml
 # Description: Run Instrumneted test for Supported API levels
+# Variable: 'mvnAccessToken' was defined in the Variables tab
+# https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate
 name: $(Date:yyyyMMdd)$(Rev:.r)
 
 pr: none
