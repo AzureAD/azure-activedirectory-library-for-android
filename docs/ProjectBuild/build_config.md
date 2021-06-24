@@ -30,10 +30,10 @@ test. The plugin is straightforward to use, please refer to official plugin docs
 documentation.
 
 We are currently using this plugin to inject `labSecret` for our Lab Api in Java only modules. For
-more information on configuring Lab Api, please read [Lab Setup Doc](../Automation/labsetup.md)
+more information on configuring Lab Api, please read [Lab Setup Doc](../Automation/labsetup.md).
 
 We can see example usage in the tests for LabApiUtilities module.
-See [build.gradle for LabApiUtilities](https://github.com/AzureAD/microsoft-authentication-library-common-for-android/blob/dev/LabApiUtilities/build.gradle)
+See [build.gradle for LabApiUtilities](https://github.com/AzureAD/microsoft-authentication-library-common-for-android/blob/dev/LabApiUtilities/build.gradle).
 
 
 
