@@ -1,9 +1,11 @@
-# File: azure-pipelines.yml
+# File: azure-pipelines\build-publish-docker-image.yml
 # Description: Build and push a docker image to run android automated test on Azure Container Registry
 # https://docs.microsoft.com/azure/devops/pipelines/languages/docker
 # https://github.com/AzureAD/android-complete/blob/master/docker/overview.md
-
-name: Build and Publish Docker Image
+# Variable: 'ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME' was defined in the Variables tab
+# Variable: 'mvnAccessToken' was defined in the Variables tab
+# https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate
+name: $(Date:yyyyMMdd)$(Rev:.r) API level $(ANDROIDAPILEVEL) [$(Build.BuildId)]
 
 pr: none
 trigger: none
@@ -13,7 +15,6 @@ variables:
   dockerRegistryServiceConnection: '94bfc8c4-2d8e-4523-b370-3edf4b3d966e'
   imageRepository: 'samples/dbi-instrumented-api$(ANDROIDAPILEVEL)'
   containerRegistry: 'authclient.azurecr.io'
-  dockerfilePath: '$(Build.SourcesDirectory)/docker/api29/Dockerfile'
   tag: '$(Build.BuildId)'
   vmImageName: 'ubuntu-latest'
   nodeversion: '12.x'
@@ -66,7 +67,9 @@ stages:
           "cmakeBinFile": "$(CMAKEBINFILE)",
           "cmakeBinFolder": "$(CMAKEBINFOLDER)",
           "ninjaBinUrl": "$(NINJABINURL)",
-          "ninjaZipFile": "$(NINJAZIPFILE)"
+          "ninjaZipFile": "$(NINJAZIPFILE)",
+          "vstsUsername": "$(ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME)",
+          "vstsMavenAccessToken": "$(mvnAccessToken)"
         }
         EOL
       displayName: 'Create configuration API file'
@@ -82,6 +85,7 @@ stages:
         containerRegistry: $(dockerRegistryServiceConnection)
         tags: |
           $(tag)
+          latest
     - task: CopyFiles@2
       inputs:
         sourceFolder: '$(Build.SourcesDirectory)/resources'
