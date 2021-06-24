@@ -34,6 +34,3 @@ more information on configuring Lab Api, please read [Lab Setup Doc](../Automati
 
 We can see example usage in the tests for LabApiUtilities module.
 See [build.gradle for LabApiUtilities](https://github.com/AzureAD/microsoft-authentication-library-common-for-android/blob/dev/LabApiUtilities/build.gradle).
-
-
-
