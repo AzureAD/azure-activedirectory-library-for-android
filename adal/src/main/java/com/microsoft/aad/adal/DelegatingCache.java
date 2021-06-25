@@ -30,17 +30,31 @@ import androidx.annotation.NonNull;
 
 import java.util.Iterator;
 
+/**
+ * An implementation of {@link ITokenCacheStore} that delegates to a constructor-provided instance.
+ */
 class DelegatingCache implements ITokenCacheStore {
 
     private final Context mContext;
     private final ITokenCacheStore mDelegate;
 
+    /**
+     * Constructs a new instance of {@link DelegatingCache}.
+     *
+     * @param context  The application {@link Context} of the initializing app.
+     * @param delegate The cache to which method invocations on this cache will delegate.
+     */
     DelegatingCache(@NonNull final Context context,
                     @NonNull final ITokenCacheStore delegate) {
         mContext = context;
         mDelegate = delegate;
     }
 
+    /**
+     * Gets the cache to which this cache is delegating.
+     *
+     * @return The delegate cache.
+     */
     public ITokenCacheStore getDelegateCache() {
         return mDelegate;
     }
