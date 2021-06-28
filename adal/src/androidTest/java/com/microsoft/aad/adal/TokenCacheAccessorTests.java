@@ -219,7 +219,8 @@ public class TokenCacheAccessorTests {
         );
 
 
-        // Populate a mock Instance Discovery
+        // Populate a mock Instance Discovery containing entries for the common authority as
+        // well as one instance for Mooncake.
         AzureActiveDirectory.putCloud(
                 new URL(WORLDWIDE_AUTHORITY).getHost(),
                 new AzureActiveDirectoryCloud(
