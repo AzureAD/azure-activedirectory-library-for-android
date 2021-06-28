@@ -105,7 +105,6 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         mPrefs = SharedPreferencesFileManager.getSharedPreferences(
                 mContext,
                 SHARED_PREFERENCE_NAME,
-                Context.MODE_PRIVATE,
                 null
         );
 
