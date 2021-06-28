@@ -299,12 +299,18 @@ public class TokenCacheAccessorTests {
         assertEquals(MOONCAKE_AUTHORITY, mTokenCacheAccessor.getAuthorityUrlWithPreferredCache());
     }
 
+    /**
+     * This test asserts that the MSAL cache is updated by writes to the ADAL cache.
+     * The ADAL class {@link TokenCacheAccessor} receives an instance of the cache supplied by the host
+     * app. If the caller has set an instance of {@link DefaultTokenCacheStore}, then ADAL should write a
+     * matching ID, AT, and Account to the MSAL cache for migration/SSO purposes.
+     */
     @Test
     public void testMsalCacheIsUpdated() throws ServiceException, MalformedURLException {
-        // First assert the cache initialization is using the default authority
+        // Assert our cache is configured for WW
         assertEquals(WORLDWIDE_AUTHORITY, mTokenCacheAccessor.getAuthorityUrlWithPreferredCache());
 
-        // Create a Request and Result that use differing authorities
+        // Create a request to WW
         final AuthenticationRequest request =
                 new AuthenticationRequest(
                         WORLDWIDE_AUTHORITY,
