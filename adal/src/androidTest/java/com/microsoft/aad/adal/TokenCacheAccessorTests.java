@@ -22,15 +22,30 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
+import android.content.Context;
 import android.util.Base64;
 
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.exception.ServiceException;
+import com.microsoft.identity.common.internal.authscheme.BearerAuthenticationSchemeInternal;
+import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
+import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
+import com.microsoft.identity.common.internal.cache.ICacheRecord;
+import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentialAdapter;
+import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
+import com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache;
+import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
+import com.microsoft.identity.common.internal.dto.AccountRecord;
+import com.microsoft.identity.common.internal.dto.Credential;
+import com.microsoft.identity.common.internal.dto.IdTokenRecord;
+import com.microsoft.identity.common.internal.dto.RefreshTokenRecord;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryCloud;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.ClientInfo;
+import com.microsoft.identity.common.internal.providers.oauth2.RefreshToken;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -40,6 +55,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,6 +67,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import javax.crypto.SecretKey;
@@ -59,6 +76,7 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import static androidx.test.InstrumentationRegistry.getContext;
+import static com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(AndroidJUnit4.class)
@@ -109,6 +127,7 @@ public class TokenCacheAccessorTests {
                             .claim("family_name", MOCK_FAMILY_NAME)
                             .claim("name", MOCK_NAME)
                             .claim("middle_name", MOCK_MIDDLE_NAME)
+                            .claim("upn", "jdoe@contoso.com")
                             .build();
 
             // Create the JWT
@@ -128,6 +147,7 @@ public class TokenCacheAccessorTests {
         MOCK_ID_TOKEN_WITH_CLAIMS = idTokenWithClaims;
     }
 
+    Context mContext;
     TokenCacheAccessor mTokenCacheAccessor;
 
     @Before
@@ -169,10 +189,10 @@ public class TokenCacheAccessorTests {
         }
 
         // initialize the class under test
-        final FileMockContext mockContext = new FileMockContext(getContext());
-        final ITokenCacheStore tokenCacheStore = new DefaultTokenCacheStore(mockContext);
+        mContext = new FileMockContext(getContext());
+        final ITokenCacheStore tokenCacheStore = new DelegatingCache(mContext, new DefaultTokenCacheStore(mContext));
         mTokenCacheAccessor = new TokenCacheAccessor(
-                mockContext,
+                mContext,
                 tokenCacheStore,
                 WORLDWIDE_AUTHORITY,
                 UUID.randomUUID().toString()
@@ -257,5 +277,113 @@ public class TokenCacheAccessorTests {
         mTokenCacheAccessor.updateTokenCache(request, result);
 
         assertEquals(MOONCAKE_AUTHORITY, mTokenCacheAccessor.getAuthorityUrlWithPreferredCache());
+    }
+
+    @Test
+    public void testMsalCacheIsUpdated() throws ServiceException, MalformedURLException {
+        // First assert the cache initialization is using the default authority
+        assertEquals(WORLDWIDE_AUTHORITY, mTokenCacheAccessor.getAuthorityUrlWithPreferredCache());
+
+        // Create a Request and Result that use differing authorities
+        final AuthenticationRequest request =
+                new AuthenticationRequest(
+                        WORLDWIDE_AUTHORITY,
+                        "a_resource",
+                        "12345",
+                        "https://localhost:2000",
+                        "",
+                        PromptBehavior.Auto,
+                        "",
+                        UUID.randomUUID(),
+                        false,
+                        null
+                );
+        final AuthenticationResult result = new AuthenticationResult(
+                "mock_at",
+                "mock_rt",
+                new Date(System.currentTimeMillis() + (3600 * 1000)),
+                false,
+                new UserInfo(
+                        "userid1",
+                        "givenName",
+                        "familyName",
+                        "identity",
+                        "userid1"
+                ),
+                "tid",
+                MOCK_ID_TOKEN_WITH_CLAIMS,
+                null,
+                "12345"
+        );
+
+        result.setAuthority(WORLDWIDE_AUTHORITY);
+        result.setClientInfo(new ClientInfo(MOCK_CLIENT_INFO));
+        result.setResponseReceived(System.currentTimeMillis());
+        result.setExpiresIn(System.currentTimeMillis());
+
+        // Populate a mock Instance Discovery
+        AzureActiveDirectory.putCloud(
+                new URL(WORLDWIDE_AUTHORITY).getHost(),
+                new AzureActiveDirectoryCloud(
+                        "login.microsoftonline.com",
+                        "login.windows.net",
+                        Arrays.asList(
+                                "login.microsoftonline.com",
+                                "login.windows.net",
+                                "login.microsoft.com",
+                                "sts.windows.net"
+                        )
+                )
+        );
+
+        // Save this to the cache
+        mTokenCacheAccessor.updateTokenCache(request, result);
+
+        assertEquals(WORLDWIDE_AUTHORITY, mTokenCacheAccessor.getAuthorityUrlWithPreferredCache());
+
+        // Assert the MSAL replicated cache now contains the account & RT
+        final IAccountCredentialCache accountCredentialCache = new SharedPreferencesAccountCredentialCache(
+                new CacheKeyValueDelegate(),
+                new SharedPreferencesFileManager(
+                        mContext,
+                        DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
+                        new StorageHelper(mContext)
+                )
+        );
+
+        final MsalOAuth2TokenCache msalCache =  new MsalOAuth2TokenCache(
+                mContext,
+                accountCredentialCache,
+                new MicrosoftStsAccountCredentialAdapter()
+        );
+
+        // Assert the presence of the account
+        final AccountRecord accountRecord = msalCache.getAccount(
+                "login.windows.net",
+                "12345",
+                "mock_uid.mock_utid",
+                "mock_utid"
+        );
+
+        Assert.assertNotNull(accountRecord);
+
+        // The RT
+        final ICacheRecord cacheRecord = msalCache.load(
+                "12345",
+                null,
+                accountRecord,
+                new BearerAuthenticationSchemeInternal()
+        );
+
+        final IdTokenRecord idToken = cacheRecord.getIdToken();
+        final RefreshTokenRecord refreshToken = cacheRecord.getRefreshToken();
+
+        Assert.assertEquals("mock_utid", idToken.getRealm());
+        Assert.assertEquals("12345", idToken.getClientId());
+        Assert.assertEquals(accountRecord.getHomeAccountId(), idToken.getHomeAccountId());
+
+        Assert.assertEquals("login.windows.net", refreshToken.getEnvironment());
+        Assert.assertEquals("12345", refreshToken.getClientId());
+        Assert.assertEquals(accountRecord.getHomeAccountId(), refreshToken.getHomeAccountId());
     }
 }
