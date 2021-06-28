@@ -217,6 +217,34 @@ public class TokenCacheAccessorTests {
                 WORLDWIDE_AUTHORITY,
                 UUID.randomUUID().toString()
         );
+
+
+        // Populate a mock Instance Discovery
+        AzureActiveDirectory.putCloud(
+                new URL(WORLDWIDE_AUTHORITY).getHost(),
+                new AzureActiveDirectoryCloud(
+                        WW_MSO,
+                        WW_PREFERRED_CACHE,
+                        Arrays.asList(
+                                LOGIN_MICROSOFTONLINE_COM,
+                                LOGIN_WINDOWS_NET,
+                                LOGIN_MICROSOFT_COM,
+                                STS_WINDOWS_NET
+                        )
+                )
+        );
+
+        AzureActiveDirectory.putCloud(
+                new URL(MOONCAKE_AUTHORITY).getHost(),
+                new AzureActiveDirectoryCloud(
+                        LOGIN_PARTNER_MICROSOFTONLINE_CN,
+                        LOGIN_PARTNER_MICROSOFTONLINE_CN,
+                        Arrays.asList(
+                                LOGIN_PARTNER_MICROSOFTONLINE_CN,
+                                LOGIN_CHINACLOUDAPI_CN
+                        )
+                )
+        );
     }
 
     @After
@@ -265,33 +293,6 @@ public class TokenCacheAccessorTests {
         result.setResponseReceived(System.currentTimeMillis());
         result.setExpiresIn(System.currentTimeMillis());
 
-        // Populate a mock Instance Discovery
-        AzureActiveDirectory.putCloud(
-                new URL(WORLDWIDE_AUTHORITY).getHost(),
-                new AzureActiveDirectoryCloud(
-                        WW_MSO,
-                        WW_PREFERRED_CACHE,
-                        Arrays.asList(
-                                LOGIN_MICROSOFTONLINE_COM,
-                                LOGIN_WINDOWS_NET,
-                                LOGIN_MICROSOFT_COM,
-                                STS_WINDOWS_NET
-                        )
-                )
-        );
-
-        AzureActiveDirectory.putCloud(
-                new URL(MOONCAKE_AUTHORITY).getHost(),
-                new AzureActiveDirectoryCloud(
-                        LOGIN_PARTNER_MICROSOFTONLINE_CN,
-                        LOGIN_PARTNER_MICROSOFTONLINE_CN,
-                        Arrays.asList(
-                                LOGIN_PARTNER_MICROSOFTONLINE_CN,
-                                LOGIN_CHINACLOUDAPI_CN
-                        )
-                )
-        );
-
         // Save this to the cache
         mTokenCacheAccessor.updateTokenCache(request, result);
 
@@ -339,21 +340,6 @@ public class TokenCacheAccessorTests {
         result.setClientInfo(new ClientInfo(MOCK_CLIENT_INFO));
         result.setResponseReceived(System.currentTimeMillis());
         result.setExpiresIn(System.currentTimeMillis());
-
-        // Populate a mock Instance Discovery
-        AzureActiveDirectory.putCloud(
-                new URL(WORLDWIDE_AUTHORITY).getHost(),
-                new AzureActiveDirectoryCloud(
-                        LOGIN_MICROSOFTONLINE_COM,
-                        LOGIN_WINDOWS_NET,
-                        Arrays.asList(
-                                LOGIN_MICROSOFTONLINE_COM,
-                                LOGIN_WINDOWS_NET,
-                                LOGIN_MICROSOFT_COM,
-                                STS_WINDOWS_NET
-                        )
-                )
-        );
 
         // Save this to the cache
         mTokenCacheAccessor.updateTokenCache(request, result);
