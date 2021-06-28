@@ -27,7 +27,7 @@ import android.util.Base64;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import com.microsoft.identity.common.exception.ServiceException;
+import com.microsoft.identity.common.java.exception.ServiceException;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryCloud;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.ClientInfo;
