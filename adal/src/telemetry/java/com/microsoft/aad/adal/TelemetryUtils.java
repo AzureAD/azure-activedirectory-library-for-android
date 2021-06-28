@@ -55,14 +55,14 @@ public final class TelemetryUtils {
     }
 
     public static class CliTelemInfo
-            extends com.microsoft.identity.common.internal.telemetry.CliTelemInfo {
+            extends com.microsoft.identity.common.java.telemetry.CliTelemInfo {
         // Looking for this class? It's moved! (See parent class)
 
         public CliTelemInfo() {
             super();
         }
 
-        private CliTelemInfo(final com.microsoft.identity.common.internal.telemetry.CliTelemInfo in) {
+        private CliTelemInfo(final com.microsoft.identity.common.java.telemetry.CliTelemInfo in) {
             super(in);
         }
 
@@ -89,7 +89,7 @@ public final class TelemetryUtils {
 
     public static CliTelemInfo parseXMsCliTelemHeader(final String headerValue) {
         return new CliTelemInfo(
-                com.microsoft.identity.common.internal.telemetry.CliTelemInfo.fromXMsCliTelemHeader(
+                com.microsoft.identity.common.java.telemetry.CliTelemInfo.fromXMsCliTelemHeader(
                         headerValue
                 )
         );
