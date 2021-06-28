@@ -96,6 +96,26 @@ public class TokenCacheAccessorTests {
     private static final String MOCK_UTID = "mock_utid";
     private static final String MOCK_CLIENT_INFO = createRawClientInfo(MOCK_UID, MOCK_UTID);
 
+    public static final String REDIRECT = "https://localhost:2000";
+    public static final String WW_MSO = "login.microsoftonline.com";
+    public static final String WW_PREFERRED_CACHE = "login.windows.net";
+    public static final String LOGIN_MICROSOFTONLINE_COM = "login.microsoftonline.com";
+    public static final String LOGIN_WINDOWS_NET = "login.windows.net";
+    public static final String LOGIN_MICROSOFT_COM = "login.microsoft.com";
+    public static final String STS_WINDOWS_NET = "sts.windows.net";
+    public static final String LOGIN_PARTNER_MICROSOFTONLINE_CN = "login.partner.microsoftonline.cn";
+    public static final String LOGIN_CHINACLOUDAPI_CN = "login.chinacloudapi.cn";
+
+    public static final String RESOURCE = "a_resource";
+    public static final String CLIENT = "12345";
+    public static final String MOCK_AT = "mock_at";
+    public static final String MOCK_RT = "mock_rt";
+    public static final String USERID_1 = "userid1";
+    public static final String GIVEN_NAME = "givenName";
+    public static final String FAMILY_NAME = "familyName";
+    public static final String IDENTITY = "identity";
+    public static final String TID = "tid";
+
     static String createRawClientInfo(final String uid, final String utid) {
         final String claims = "{\"uid\":\"" + uid + "\",\"utid\":\"" + utid + "\"}";
 
@@ -209,13 +229,12 @@ public class TokenCacheAccessorTests {
         // First assert the cache initialization is using the default authority
         assertEquals(WORLDWIDE_AUTHORITY, mTokenCacheAccessor.getAuthorityUrlWithPreferredCache());
 
-        // Create a Request and Result that use differing authorities
         final AuthenticationRequest request =
                 new AuthenticationRequest(
                         WORLDWIDE_AUTHORITY,
-                        "a_resource",
-                        "12345",
-                        "https://localhost:2000",
+                        RESOURCE,
+                        CLIENT,
+                        REDIRECT,
                         "",
                         PromptBehavior.Auto,
                         "",
@@ -224,21 +243,21 @@ public class TokenCacheAccessorTests {
                         null
                 );
         final AuthenticationResult result = new AuthenticationResult(
-                "mock_at",
-                "mock_rt",
+                MOCK_AT,
+                MOCK_RT,
                 new Date(System.currentTimeMillis() + (3600 * 1000)),
                 false,
                 new UserInfo(
-                        "userid1",
-                        "givenName",
-                        "familyName",
-                        "identity",
-                        "userid1"
+                        USERID_1,
+                        GIVEN_NAME,
+                        FAMILY_NAME,
+                        IDENTITY,
+                        USERID_1
                 ),
-                "tid",
+                TID,
                 MOCK_ID_TOKEN_WITH_CLAIMS,
                 null,
-                "12345"
+                CLIENT
         );
 
         result.setAuthority(MOONCAKE_AUTHORITY);
@@ -250,13 +269,13 @@ public class TokenCacheAccessorTests {
         AzureActiveDirectory.putCloud(
                 new URL(WORLDWIDE_AUTHORITY).getHost(),
                 new AzureActiveDirectoryCloud(
-                        "login.microsoftonline.com",
-                        "login.windows.net",
+                        WW_MSO,
+                        WW_PREFERRED_CACHE,
                         Arrays.asList(
-                                "login.microsoftonline.com",
-                                "login.windows.net",
-                                "login.microsoft.com",
-                                "sts.windows.net"
+                                LOGIN_MICROSOFTONLINE_COM,
+                                LOGIN_WINDOWS_NET,
+                                LOGIN_MICROSOFT_COM,
+                                STS_WINDOWS_NET
                         )
                 )
         );
@@ -264,11 +283,11 @@ public class TokenCacheAccessorTests {
         AzureActiveDirectory.putCloud(
                 new URL(MOONCAKE_AUTHORITY).getHost(),
                 new AzureActiveDirectoryCloud(
-                        "login.partner.microsoftonline.cn",
-                        "login.partner.microsoftonline.cn",
+                        LOGIN_PARTNER_MICROSOFTONLINE_CN,
+                        LOGIN_PARTNER_MICROSOFTONLINE_CN,
                         Arrays.asList(
-                                "login.partner.microsoftonline.cn",
-                                "login.chinacloudapi.cn"
+                                LOGIN_PARTNER_MICROSOFTONLINE_CN,
+                                LOGIN_CHINACLOUDAPI_CN
                         )
                 )
         );
@@ -288,9 +307,9 @@ public class TokenCacheAccessorTests {
         final AuthenticationRequest request =
                 new AuthenticationRequest(
                         WORLDWIDE_AUTHORITY,
-                        "a_resource",
-                        "12345",
-                        "https://localhost:2000",
+                        RESOURCE,
+                        CLIENT,
+                        REDIRECT,
                         "",
                         PromptBehavior.Auto,
                         "",
@@ -299,21 +318,21 @@ public class TokenCacheAccessorTests {
                         null
                 );
         final AuthenticationResult result = new AuthenticationResult(
-                "mock_at",
-                "mock_rt",
+                MOCK_AT,
+                MOCK_RT,
                 new Date(System.currentTimeMillis() + (3600 * 1000)),
                 false,
                 new UserInfo(
-                        "userid1",
-                        "givenName",
-                        "familyName",
-                        "identity",
-                        "userid1"
+                        USERID_1,
+                        GIVEN_NAME,
+                        FAMILY_NAME,
+                        IDENTITY,
+                        USERID_1
                 ),
-                "tid",
+                TID,
                 MOCK_ID_TOKEN_WITH_CLAIMS,
                 null,
-                "12345"
+                CLIENT
         );
 
         result.setAuthority(WORLDWIDE_AUTHORITY);
@@ -325,13 +344,13 @@ public class TokenCacheAccessorTests {
         AzureActiveDirectory.putCloud(
                 new URL(WORLDWIDE_AUTHORITY).getHost(),
                 new AzureActiveDirectoryCloud(
-                        "login.microsoftonline.com",
-                        "login.windows.net",
+                        LOGIN_MICROSOFTONLINE_COM,
+                        LOGIN_WINDOWS_NET,
                         Arrays.asList(
-                                "login.microsoftonline.com",
-                                "login.windows.net",
-                                "login.microsoft.com",
-                                "sts.windows.net"
+                                LOGIN_MICROSOFTONLINE_COM,
+                                LOGIN_WINDOWS_NET,
+                                LOGIN_MICROSOFT_COM,
+                                STS_WINDOWS_NET
                         )
                 )
         );
@@ -359,17 +378,17 @@ public class TokenCacheAccessorTests {
 
         // Assert the presence of the account
         final AccountRecord accountRecord = msalCache.getAccount(
-                "login.windows.net",
-                "12345",
-                "mock_uid.mock_utid",
-                "mock_utid"
+                LOGIN_WINDOWS_NET,
+                CLIENT,
+                MOCK_UID + "." + MOCK_UTID,
+                MOCK_UTID
         );
 
         Assert.assertNotNull(accountRecord);
 
         // The RT
         final ICacheRecord cacheRecord = msalCache.load(
-                "12345",
+                CLIENT,
                 null,
                 accountRecord,
                 new BearerAuthenticationSchemeInternal()
@@ -378,12 +397,12 @@ public class TokenCacheAccessorTests {
         final IdTokenRecord idToken = cacheRecord.getIdToken();
         final RefreshTokenRecord refreshToken = cacheRecord.getRefreshToken();
 
-        Assert.assertEquals("mock_utid", idToken.getRealm());
-        Assert.assertEquals("12345", idToken.getClientId());
+        Assert.assertEquals(MOCK_UTID, idToken.getRealm());
+        Assert.assertEquals(CLIENT, idToken.getClientId());
         Assert.assertEquals(accountRecord.getHomeAccountId(), idToken.getHomeAccountId());
 
-        Assert.assertEquals("login.windows.net", refreshToken.getEnvironment());
-        Assert.assertEquals("12345", refreshToken.getClientId());
+        Assert.assertEquals(LOGIN_WINDOWS_NET, refreshToken.getEnvironment());
+        Assert.assertEquals(CLIENT, refreshToken.getClientId());
         Assert.assertEquals(accountRecord.getHomeAccountId(), refreshToken.getHomeAccountId());
     }
 }
