@@ -69,6 +69,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -292,7 +293,7 @@ public class TokenCacheAccessorTests {
         result.setAuthority(MOONCAKE_AUTHORITY);
         result.setClientInfo(new ClientInfo(MOCK_CLIENT_INFO));
         result.setResponseReceived(System.currentTimeMillis());
-        result.setExpiresIn(System.currentTimeMillis());
+        result.setExpiresIn(TimeUnit.HOURS.toSeconds(1));
 
         // Save this to the cache
         mTokenCacheAccessor.updateTokenCache(request, result);
@@ -346,7 +347,7 @@ public class TokenCacheAccessorTests {
         result.setAuthority(WORLDWIDE_AUTHORITY);
         result.setClientInfo(new ClientInfo(MOCK_CLIENT_INFO));
         result.setResponseReceived(System.currentTimeMillis());
-        result.setExpiresIn(System.currentTimeMillis());
+        result.setExpiresIn(TimeUnit.HOURS.toSeconds(1));
 
         // Save this to the cache
         mTokenCacheAccessor.updateTokenCache(request, result);
