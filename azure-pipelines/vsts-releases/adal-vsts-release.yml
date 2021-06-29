@@ -10,8 +10,8 @@ trigger: none
 pr: none
 
 jobs:
-- job: Phase_1
-  displayName: Phase 1
+- job: build_publish
+  displayName: Publish adal to internal feed
   cancelTimeoutInMinutes: 1
   pool:
     name: Hosted Windows 2019 with VS2019
