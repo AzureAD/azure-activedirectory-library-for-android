@@ -1,0 +1,47 @@
+# File: azure-pipelines\pull-request-validation\common4j.yml
+# Description: Run test in common4j
+name: $(date:yyyyMMdd)$(rev:.r)
+
+trigger: none
+
+resources:
+  repositories:
+    - repository: self
+      type: git
+      ref: master
+    - repository: common
+      type: github
+      name: AzureAD/microsoft-authentication-library-common-for-android
+      ref: dev
+      endpoint: ANDROID_GITHUB
+
+pool:
+  name: Hosted Windows 2019 with VS2019
+
+jobs:
+  - job: Checkout
+    displayName: Checkout
+    steps:
+      - checkout: self
+        clean: true
+        submodules: recursive
+        persistCredentials: True
+      - template: ../templates/steps/automation-cert.yml
+      - task: Gradle@1
+        name: Gradle1
+        displayName: Assembles the outputs of this project.
+        inputs:
+          tasks: clean common4j:assemble
+      - task: ComponentGovernanceComponentDetection@0
+        displayName: Component Detection
+  - job: droidSetup
+    displayName: Perform droidSetup
+    steps:
+      - powershell: |
+          # Include the .gitconfig file included with project to your local gitconfig
+          git config --local include.path ../.gitconfig
+          # Run this newly minted command to clone each repo as a subfolder
+          git droidSetupDevexOnly
+        errorActionPreference: continue
+        displayName: 'Setup Android Complete'
+...
