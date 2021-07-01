@@ -43,6 +43,7 @@ import com.google.gson.Gson;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
+import com.microsoft.identity.common.crypto.AndroidSdkStorageEncryptionManager;
 import com.microsoft.identity.common.internal.broker.PackageHelper;
 import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
 import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
@@ -258,7 +259,7 @@ public final class AuthenticationContextTest {
                 new SharedPreferencesFileManager(
                         context,
                         DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
-                        new StorageHelper(context)
+                        new AndroidSdkStorageEncryptionManager(context, null)
                 )
         );
 

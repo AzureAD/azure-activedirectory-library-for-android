@@ -33,6 +33,7 @@ import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
+import com.microsoft.identity.common.crypto.AndroidSdkStorageEncryptionManager;
 import com.microsoft.identity.common.internal.authscheme.BearerAuthenticationSchemeInternal;
 import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
 import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
@@ -357,7 +358,7 @@ public class TokenCacheAccessorTests {
                 new SharedPreferencesFileManager(
                         mContext,
                         DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
-                        new StorageHelper(mContext)
+                        new AndroidSdkStorageEncryptionManager(mContext, null)
                 )
         );
 
