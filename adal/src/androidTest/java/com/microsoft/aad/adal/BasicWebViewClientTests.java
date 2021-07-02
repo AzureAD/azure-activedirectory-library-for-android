@@ -24,8 +24,6 @@ package com.microsoft.aad.adal;
 
 import android.content.Context;
 import android.content.Intent;
-import android.net.http.SslError;
-import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
 
 import androidx.annotation.Nullable;
@@ -40,14 +38,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
-import java.io.IOException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 

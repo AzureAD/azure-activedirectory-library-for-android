@@ -500,6 +500,7 @@ class AcquireTokenRequest {
         PackageManager packageManager = mContext.getPackageManager();
         int authVersionCode = Integer.MAX_VALUE;
         int cpVersionCode = Integer.MAX_VALUE;
+        int brokerHostVersionCode = Integer.MAX_VALUE;
 
         try {
             PackageInfo authPackageInfo = packageManager.getPackageInfo(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, 0);
@@ -513,7 +514,15 @@ class AcquireTokenRequest {
         } catch (PackageManager.NameNotFoundException ignored) {
         }
 
-        return authVersionCode >= AUTHENTICATOR_LLT_VERSION_CODE && cpVersionCode >= CP_LLT_VERSION_CODE;
+        try {
+            PackageInfo brokerHostPackageInfo = packageManager.getPackageInfo(AuthenticationConstants.Broker.BROKER_HOST_APP_PACKAGE_NAME, 0);
+            brokerHostVersionCode = brokerHostPackageInfo.versionCode;
+        } catch (PackageManager.NameNotFoundException ignored) {
+        }
+
+        return authVersionCode >= AUTHENTICATOR_LLT_VERSION_CODE
+                && cpVersionCode >= CP_LLT_VERSION_CODE
+                && brokerHostVersionCode >= CP_LLT_VERSION_CODE;
 
     }
 

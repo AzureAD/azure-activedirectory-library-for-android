@@ -715,29 +715,6 @@ public final class AuthenticationConstants {
         public static final String CHALLENGE_REQUEST_CERT_AUTH_DELIMETER = com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CHALLENGE_REQUEST_CERT_AUTH_DELIMETER;
 
         /**
-         * Apk packagename that will install AD-Authenticator. It is used to
-         * query if this app installed or not from package manager.
-         */
-        public static final String COMPANY_PORTAL_APP_PACKAGE_NAME = com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
-
-        /**
-         * Signature info for Intune Company portal app that installs authenticator
-         * component.
-         */
-        public static final String COMPANY_PORTAL_APP_SIGNATURE = com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.COMPANY_PORTAL_APP_SIGNATURE;
-
-        /**
-         * Signature info for Azure authenticator app that installs authenticator
-         * component.
-         */
-        public static final String AZURE_AUTHENTICATOR_APP_SIGNATURE = com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_SIGNATURE;
-
-        /**
-         * Azure Authenticator app signature hash.
-         */
-        public static final String AZURE_AUTHENTICATOR_APP_PACKAGE_NAME = com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME;
-
-        /**
          * The value for pkeyauth redirect.
          */
         public static final String PKEYAUTH_REDIRECT = com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.PKEYAUTH_REDIRECT;

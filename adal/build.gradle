@@ -55,12 +55,13 @@ android {
         debug {
             testCoverageEnabled false
             debuggable true
-
+            buildConfigField("String", "VERSION_NAME", "\"${versionName}\"")
         }
         release {
             minifyEnabled false
             debuggable false
             proguardFiles getDefaultProguardFile('proguard-android.txt')
+            buildConfigField("String", "VERSION_NAME", "\"${versionName}\"")
         }
     }
 
