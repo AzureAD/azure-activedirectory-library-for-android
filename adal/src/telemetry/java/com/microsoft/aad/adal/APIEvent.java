@@ -24,7 +24,6 @@
 package com.microsoft.aad.adal;
 
 import android.content.Context;
-import android.util.Pair;
 
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
@@ -188,10 +187,10 @@ final class APIEvent extends DefaultEvent {
     @Override
     public void processEvent(final Map<String, String> dispatchMap) {
         super.processEvent(dispatchMap);
-        final List<Pair<String, String>> eventList = getEventList();
+        final List<Map.Entry<String, String>> eventList = getEventList();
 
-        for (Pair<String, String> eventPair : eventList) {
-            final String name = eventPair.first;
+        for (Map.Entry<String, String> eventKeyValuePair : eventList) {
+            final String name = eventKeyValuePair.getKey();
 
             // API Event specific parameters, push all except the time values
             if (name.equals(EventStrings.AUTHORITY_TYPE) || name.equals(EventStrings.API_DEPRECATED)
@@ -205,7 +204,7 @@ final class APIEvent extends DefaultEvent {
                     || name.equals(EventStrings.API_ERROR_CODE) || name.equals(EventStrings.SERVER_ERROR_CODE)
                     || name.equals(EventStrings.SERVER_SUBERROR_CODE) || name.equals(EventStrings.TOKEN_AGE)
                     || name.equals(EventStrings.SPE_INFO)) {
-                dispatchMap.put(name, eventPair.second);
+                dispatchMap.put(name, eventKeyValuePair.getValue());
             }
         }
     }

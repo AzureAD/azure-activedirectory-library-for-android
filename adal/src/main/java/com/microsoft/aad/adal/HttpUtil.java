@@ -24,8 +24,8 @@ package com.microsoft.aad.adal;
 
 import android.content.Context;
 
-import com.microsoft.identity.common.exception.ClientException;
-import com.microsoft.identity.common.exception.ErrorStrings;
+import com.microsoft.identity.common.java.exception.ClientException;
+import com.microsoft.identity.common.java.exception.ErrorStrings;
 
 /**
  * Webrequest are called in background thread from API level. HttpUtil
