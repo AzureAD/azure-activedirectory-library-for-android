@@ -55,7 +55,6 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -107,30 +106,6 @@ public class PackageHelperTests {
     @After
     public void tearDown() {
         Logger.getInstance().setExternalLogger(null);
-    }
-
-    @Test
-    public void testGetCurrentSignatureForPackage() throws NameNotFoundException,
-            IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
-            InstantiationException, IllegalAccessException, InvocationTargetException {
-        final Context mockContext = getMockContext(
-                new Signature(mTestSignature),
-                mContext.getPackageName(),
-                0 // calling uid
-        );
-
-        MockedPackageInfo mockedPackageInfo = new MockedPackageInfo(new Signature[]{new Signature(mTestSignature)});
-        final PackageHelper packageHelper = (PackageHelper) getInstance(mockContext);
-        String actual = packageHelper.getCurrentSignatureForPackage(mockedPackageInfo.packageName);
-
-        // assert
-        assertEquals("should be same info", mTestTag, actual);
-
-        // act
-        actual = packageHelper.getCurrentSignatureForPackage((String) null);
-
-        // assert
-        assertNull("should return null", actual);
     }
 
     @Test

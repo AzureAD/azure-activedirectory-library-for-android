@@ -165,6 +165,12 @@ dependencies {
 
     // Test Dependencies
     testImplementation "junit:junit:$rootProject.ext.junitVersion"
+    //mockito-inline was introduced in mockito 2.7.6
+    //see: https://javadoc.io/static/org.mockito/mockito-core/3.6.28/org/mockito/Mockito.html#0.1
+    testImplementation "org.mockito:mockito-inline:$rootProject.ext.mockitoCoreVersion"
+    testImplementation ("org.robolectric:robolectric:$rootProject.ext.robolectricVersion")
+    testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"
+    testImplementation project(':testutils')
 
     // Javadoc Dependencies
     javadocDeps "androidx.annotation:annotation:$rootProject.ext.annotationVersion"
