@@ -1,4 +1,4 @@
-# File: azure-pipelines\build-android-complete.yml
+# File: azure-pipelines\build-broker-host.yml
 # Description: Generate BrokerHost APK
 # use <project>_branch variables to build the Local version
 # use <project>_version variables to build the Dist version
