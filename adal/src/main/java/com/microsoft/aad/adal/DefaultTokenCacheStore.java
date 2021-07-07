@@ -30,6 +30,7 @@ import android.os.Build;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
@@ -45,6 +46,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import static com.microsoft.aad.adal.ADALError.ARGUMENT_EXCEPTION;
 
 /**
  * Store/Retrieve TokenCacheItem from SharedPreferencesFileManager.
@@ -99,7 +102,12 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
             }
         }
 
-        mPrefs = new SharedPreferencesFileManager(mContext, SHARED_PREFERENCE_NAME);
+        mPrefs = SharedPreferencesFileManager.getSharedPreferences(
+                mContext,
+                SHARED_PREFERENCE_NAME,
+                Context.MODE_PRIVATE,
+                null
+        );
 
         // Check upfront when initializing DefaultTokenCacheStore. 
         // If it's under API 18 and secretkey is not provided, we should fail upfront to inform 
@@ -162,7 +170,11 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
             json = null != json ? json : "";
             String decrypted = decrypt(key, json);
             if (decrypted != null) {
-                return mGson.fromJson(decrypted, TokenCacheItem.class);
+                try {
+                    return mGson.fromJson(decrypted, TokenCacheItem.class);
+                } catch (final JsonSyntaxException exception) {
+                    Logger.e(TAG, "Fail to parse Json. ", exception.getMessage(), ARGUMENT_EXCEPTION, exception);
+                }
             }
         }
 
@@ -227,8 +239,12 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
             final String decryptedValue = decrypt(tokenKey, tokenValue);
             if (decryptedValue != null) {
-                final TokenCacheItem tokenCacheItem = mGson.fromJson(decryptedValue, TokenCacheItem.class);
-                tokens.add(tokenCacheItem);
+                try {
+                    final TokenCacheItem tokenCacheItem = mGson.fromJson(decryptedValue, TokenCacheItem.class);
+                    tokens.add(tokenCacheItem);
+                } catch (final JsonSyntaxException exception) {
+                    Logger.e(TAG, "Fail to parse Json. ", exception.getMessage(), ARGUMENT_EXCEPTION, exception);
+                }
             }
         }
 

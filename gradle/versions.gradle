@@ -8,8 +8,11 @@ ext {
     buildToolsVersion = "28.0.3"
 
     // Plugins
-    gradleVersion = '3.3.3'
+    gradleVersion = '4.1.0'
     androidMavenGradlePluginVersion = "1.4.1"
+
+    //Java Language Support
+    coreLibraryDesugaringVersion = "1.0.9"
 
     // Libraries
     androidxTestCoreVersion = "1.2.0"
