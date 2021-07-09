@@ -28,8 +28,8 @@ import androidx.annotation.NonNull;
 
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager;
 import com.microsoft.identity.common.internal.cache.ADALOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
 import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
@@ -112,7 +112,7 @@ class TokenCacheAccessor {
                 new SharedPreferencesFileManager(
                         appContext,
                         DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
-                        new StorageHelper(appContext)
+                        new AndroidAuthSdkStorageEncryptionManager(appContext, null)
                 )
         );
 
