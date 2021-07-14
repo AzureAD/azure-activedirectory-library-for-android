@@ -149,11 +149,11 @@ dependencies {
         transitive = true
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.2.0', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.4.4', changing: true)
 
     // 'dist' flavor dependencies
     //TODO: we will have to change transitive to true once common4j is published
-    distApi("com.microsoft.identity:common:3.2.0") {
+    distApi("com.microsoft.identity:common:3.4.4") {
         transitive = false
     }
 

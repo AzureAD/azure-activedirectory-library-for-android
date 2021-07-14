@@ -27,6 +27,7 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
+import com.microsoft.identity.common.AndroidCommonComponents;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager;
@@ -107,17 +108,16 @@ class TokenCacheAccessor {
     }
 
     static MsalOAuth2TokenCache getMsalOAuth2TokenCache(@NonNull final Context appContext) {
+        final AndroidCommonComponents components = new AndroidCommonComponents(appContext);
         final IAccountCredentialCache accountCredentialCache = new SharedPreferencesAccountCredentialCache(
                 new CacheKeyValueDelegate(),
-                new SharedPreferencesFileManager(
-                        appContext,
-                        DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
-                        new AndroidAuthSdkStorageEncryptionManager(appContext, null)
+                        components.getEncryptedFileStore(DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
+                        components.getStorageEncryptionManager(null)
                 )
         );
 
         return new MsalOAuth2TokenCache(
-                appContext,
+                components,
                 accountCredentialCache,
                 new MicrosoftStsAccountCredentialAdapter()
         );
