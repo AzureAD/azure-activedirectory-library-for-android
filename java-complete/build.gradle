@@ -1,0 +1,50 @@
+project.ext.vstsUsername = System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") : project.findProperty("vstsUsername")
+project.ext.vstsMavenAccessToken = System.getenv("ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
+buildscript {
+    apply from: rootProject.file("gradle/versions.gradle")
+}
+
+allprojects {
+    if (org.gradle.internal.os.OperatingSystem.current().isWindows()) {
+        buildDir = "C:/temp/${rootProject.name}/${project.name}"
+    }
+
+    repositories {
+        mavenLocal()
+        google()
+        mavenCentral()
+        maven {
+            url 'https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed/maven/v1'
+        }
+        maven {
+            // msazure and aria are consumed via upstream sources of the AndroidADAL feed.
+            name "vsts-maven-adal-android"
+            url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
+            credentials {
+                username project.vstsUsername
+                password project.vstsMavenAccessToken
+            }
+        }
+
+    }
+
+    gradle.projectsEvaluated {
+        tasks.withType(JavaCompile) {
+            options.compilerArgs << "-Xlint:unchecked"
+        }
+    }
+
+    tasks.withType(Javadoc) {
+        options.addStringOption('Xdoclint:none', '-quiet')
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
+if (!project.hasProperty("vstsUsername")) {
+    logger.error('vstsUsername is missing in gradle.properties')
+}
+if (!project.hasProperty("vstsMavenAccessToken")) {
+    logger.error('vstsMavenAccessToken is missing in gradle.properties')
+}

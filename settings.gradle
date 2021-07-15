@@ -27,9 +27,6 @@ project(':msal').projectDir = new File('msal/msal')
 include(':common')
 project(':common').projectDir = new File('common/common')
 
-include(':common4j')
-project(':common4j').projectDir = new File('common/common4j')
-
 include(':AADAuthenticator')
 project(':AADAuthenticator').projectDir = new File('broker/AADAuthenticator')
 
@@ -47,12 +44,6 @@ project(':package-inspector').projectDir = new File('msal/package-inspector')
 
 include(":pop-benchmarker")
 project(':pop-benchmarker').projectDir = new File('msal/pop-benchmarker')
-
-include(":labapi")
-project(':labapi').projectDir = new File('common/labapi')
-
-include(":keyvault")
-project(':keyvault').projectDir = new File('common/keyvault')
 
 include(":testutils")
 project(':testutils').projectDir = new File('common/testutils')
@@ -74,6 +65,16 @@ project(':oneauthtestapp').projectDir = new File('oneauth/testapps/android/oneau
 
 include(":msalcpptesthost")
 project(':msalcpptesthost').projectDir = new File('msalcpp/test/android/testhost/app')
+
+// Pure Java DevX Projects
+include(':common4j')
+project(':common4j').projectDir = new File('common/common4j')
+
+include(":labapi")
+project(':labapi').projectDir = new File('common/labapi')
+
+include(":keyvault")
+project(':keyvault').projectDir = new File('common/keyvault')
 
 include(":AcaPlugin")
 project(':AcaPlugin').projectDir = new File('plugins/buildsystem')
