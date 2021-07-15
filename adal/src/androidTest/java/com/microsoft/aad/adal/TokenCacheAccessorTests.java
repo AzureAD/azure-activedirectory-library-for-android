@@ -32,6 +32,7 @@ import android.util.Base64;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import com.microsoft.identity.common.AndroidCommonComponents;
 import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager;
 import com.microsoft.identity.common.internal.authscheme.BearerAuthenticationSchemeInternal;
 import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
@@ -362,7 +363,7 @@ public class TokenCacheAccessorTests {
         );
 
         final MsalOAuth2TokenCache msalCache =  new MsalOAuth2TokenCache(
-                mContext,
+                new AndroidCommonComponents(mContext),
                 accountCredentialCache,
                 new MicrosoftStsAccountCredentialAdapter()
         );
