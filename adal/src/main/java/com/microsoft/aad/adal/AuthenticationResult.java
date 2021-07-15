@@ -27,7 +27,7 @@ import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 import com.microsoft.identity.common.adal.internal.util.DateExtensions;
 import com.microsoft.identity.common.adal.internal.util.HashMapExtensions;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.ClientInfo;
+import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.ClientInfo;
 
 import org.json.JSONException;
 
