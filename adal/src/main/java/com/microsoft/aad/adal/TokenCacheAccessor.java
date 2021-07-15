@@ -27,6 +27,7 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
+import com.microsoft.identity.common.AndroidCommonComponents;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager;
@@ -38,11 +39,12 @@ import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentia
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
+import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.providers.microsoft.MicrosoftAccount;
 import com.microsoft.identity.common.java.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryAuthorizationRequest;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryOAuth2Configuration;
+import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectoryAuthorizationRequest;
+import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectoryOAuth2Configuration;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryOAuth2Strategy;
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectoryTokenResponse;
 
@@ -63,10 +65,9 @@ import static com.microsoft.identity.common.internal.cache.SharedPreferencesAcco
 class TokenCacheAccessor {
     private static final String TAG = TokenCacheAccessor.class.getSimpleName();
 
+    private final Context mContext;
     private final ITokenCacheStore mTokenCacheStore;
-
     private String mAuthority; // Remove final to update the authority when preferred cache location is not the same as passed in authority
-
     private final String mTelemetryRequestId;
     private boolean mUseCommonCache = false;
     private ADALOAuth2TokenCache mCommonCache = null;
@@ -85,6 +86,7 @@ class TokenCacheAccessor {
             throw new IllegalArgumentException("requestId");
         }
 
+        mContext = appContext;
         mTokenCacheStore = tokenCacheStore;
         mAuthority = authority;
         mTelemetryRequestId = telemetryRequestId;
@@ -311,7 +313,7 @@ class TokenCacheAccessor {
     /**
      * Update token cache with returned auth result.
      */
-    void updateTokenCache(final AuthenticationRequest request, final AuthenticationResult result) throws MalformedURLException {
+    void updateTokenCache(final AuthenticationRequest request, final AuthenticationResult result) throws MalformedURLException, AuthenticationException {
         if (result == null || StringExtensions.isNullOrBlank(result.getAccessToken())) {
             return;
         }
@@ -343,7 +345,8 @@ class TokenCacheAccessor {
         setItemToCacheForUser(request.getResource(), request.getClientId(), result, null);
     }
 
-    void updateTokenCacheUsingCommonCache(final AuthenticationRequest request, final AuthenticationResult result) throws MalformedURLException {
+    void updateTokenCacheUsingCommonCache(final AuthenticationRequest request, final AuthenticationResult result)
+            throws MalformedURLException, AuthenticationException {
         AzureActiveDirectory ad = new AzureActiveDirectory();
         AzureActiveDirectoryTokenResponse tokenResponse = CoreAdapter.asAadTokenResponse(result);
         AzureActiveDirectoryOAuth2Configuration config = new AzureActiveDirectoryOAuth2Configuration();
@@ -353,7 +356,13 @@ class TokenCacheAccessor {
             config.setAuthorityUrl(new URL(mAuthority));
         }
 
-        AzureActiveDirectoryOAuth2Strategy strategy = ad.createOAuth2Strategy(config);
+        AzureActiveDirectoryOAuth2Strategy strategy = null;
+        try {
+            strategy = ad.createOAuth2Strategy(config,
+                    new AndroidCommonComponents(mContext));
+        } catch (final ClientException e) {
+            throw ADALError.fromCommon(e);
+        }
 
         AzureActiveDirectoryAuthorizationRequest.Builder aadAuthRequestBuilder = new AzureActiveDirectoryAuthorizationRequest.Builder();
         aadAuthRequestBuilder

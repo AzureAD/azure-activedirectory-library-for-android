@@ -81,6 +81,8 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE;
+import static com.microsoft.identity.common.java.AuthenticationConstants.UIRequest.BROWSER_FLOW;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -1342,8 +1344,8 @@ public final class AcquireTokenRequestTest {
         final CountDownLatch signal = new CountDownLatch(1);
         signal.await(ACTIVITY_TIME_OUT, TimeUnit.MILLISECONDS);
 
-        final int requestCode = AuthenticationConstants.UIRequest.BROWSER_FLOW;
-        final int resultCode = AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE;
+        final int requestCode = BROWSER_FLOW;
+        final int resultCode = TOKEN_BROKER_RESPONSE;
 
         final Intent data = new Intent();
         data.putExtra(AuthenticationConstants.Browser.REQUEST_ID, callback.hashCode());

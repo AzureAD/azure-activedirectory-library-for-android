@@ -100,7 +100,13 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION;
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL;
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE;
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR;
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE;
 import static com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
+import static com.microsoft.identity.common.java.AuthenticationConstants.UIRequest.BROWSER_FLOW;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -882,7 +888,7 @@ public final class AuthenticationContextTest {
         // Check response in callback result
         assertNull("Error is null", callback.getException());
         assertEquals("Activity was attempted to start with request code",
-                AuthenticationConstants.UIRequest.BROWSER_FLOW,
+                BROWSER_FLOW,
                 testActivity.mStartActivityRequestCode);
     }
 
@@ -906,7 +912,7 @@ public final class AuthenticationContextTest {
         // Check correlationID that was set in the Discovery obj
         assertNull("Error is null", callback.getException());
         assertEquals("Activity was attempted to start with request code",
-                AuthenticationConstants.UIRequest.BROWSER_FLOW,
+                BROWSER_FLOW,
                 testActivity.mStartActivityRequestCode);
     }
 
@@ -987,7 +993,7 @@ public final class AuthenticationContextTest {
                 ((AuthenticationException) callback.getException()).getCode());
         assertTrue(
                 "Activity was not attempted to start with request code",
-                AuthenticationConstants.UIRequest.BROWSER_FLOW != testActivity.mStartActivityRequestCode);
+                BROWSER_FLOW != testActivity.mStartActivityRequestCode);
 
         // Sync test
         try {
@@ -1026,7 +1032,7 @@ public final class AuthenticationContextTest {
         // Check response in callback result
         assertNull("Error is null", callback.getException());
         assertEquals("Activity was attempted to start with request code",
-                AuthenticationConstants.UIRequest.BROWSER_FLOW,
+                BROWSER_FLOW,
                 testActivity.mStartActivityRequestCode);
         clearCache(context);
     }
@@ -1567,7 +1573,7 @@ public final class AuthenticationContextTest {
                 final String encodedState = Base64.encodeToString(state.getBytes(StandardCharsets.UTF_8), Base64.NO_PADDING | Base64.URL_SAFE);
                 intent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, callback.hashCode());
                 intent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, "https://login.windows.net/common?code=1234&state=" + encodedState);
-                context.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW, AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE, intent);
+                context.onActivityResult(BROWSER_FLOW, BROWSER_CODE_COMPLETE, intent);
                 return null;
             }
         }).when(mockedActivity).startActivityForResult(Mockito.any(Intent.class), Mockito.anyInt());
@@ -1749,11 +1755,11 @@ public final class AuthenticationContextTest {
 
         // Activity will start
         assertEquals("Activity was attempted to start.",
-                AuthenticationConstants.UIRequest.BROWSER_FLOW,
+                BROWSER_FLOW,
                 testActivity.mStartActivityRequestCode);
 
         context.onActivityResult(testActivity.mStartActivityRequestCode,
-                AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE, responseIntent);
+                BROWSER_CODE_COMPLETE, responseIntent);
         signalOnActivityResult.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
     }
 
@@ -2231,8 +2237,8 @@ public final class AuthenticationContextTest {
         FileMockContext mockContext = new FileMockContext(getInstrumentation().getContext());
         final AuthenticationContext authContext = getAuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, null);
-        int requestCode = AuthenticationConstants.UIRequest.BROWSER_FLOW;
-        int resultCode = AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE;
+        int requestCode = BROWSER_FLOW;
+        int resultCode = TOKEN_BROKER_RESPONSE;
         TestLogResponse logResponse = new TestLogResponse();
         String msgToCheck = "onActivityResult BROWSER_FLOW data is null";
         logResponse.listenLogForMessageSegments(msgToCheck);
@@ -2256,8 +2262,8 @@ public final class AuthenticationContextTest {
         final FileMockContext mockContext = new FileMockContext(getInstrumentation().getContext());
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, cache);
-        final int requestCode = AuthenticationConstants.UIRequest.BROWSER_FLOW;
-        final int resultCode = AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL;
+        final int requestCode = BROWSER_FLOW;
+        final int resultCode = BROWSER_CODE_CANCEL;
         final TestAuthCallback callback = new TestAuthCallback();
 
         final Intent data = new Intent();
@@ -2284,8 +2290,8 @@ public final class AuthenticationContextTest {
         final FileMockContext mockContext = new FileMockContext(getInstrumentation().getContext());
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, cache);
-        final int requestCode = AuthenticationConstants.UIRequest.BROWSER_FLOW;
-        final int resultCode = AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR;
+        final int requestCode = BROWSER_FLOW;
+        final int resultCode = BROWSER_CODE_ERROR;
         final TestAuthCallback callback = new TestAuthCallback();
 
         // act
@@ -2308,8 +2314,8 @@ public final class AuthenticationContextTest {
         final FileMockContext mockContext = new FileMockContext(getInstrumentation().getContext());
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, cache);
-        final int requestCode = AuthenticationConstants.UIRequest.BROWSER_FLOW;
-        final int resultCode = AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION;
+        final int requestCode = BROWSER_FLOW;
+        final int resultCode = BROWSER_CODE_AUTHENTICATION_EXCEPTION;
         final TestAuthCallback callback = new TestAuthCallback();
 
         // act
@@ -2339,8 +2345,8 @@ public final class AuthenticationContextTest {
         final FileMockContext mockContext = new FileMockContext(getInstrumentation().getContext());
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, cache);
-        final int requestCode = AuthenticationConstants.UIRequest.BROWSER_FLOW;
-        final int resultCode = AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION;
+        final int requestCode = BROWSER_FLOW;
+        final int resultCode = BROWSER_CODE_AUTHENTICATION_EXCEPTION;
         final TestAuthCallback callback = new TestAuthCallback();
 
         // act
@@ -2368,8 +2374,8 @@ public final class AuthenticationContextTest {
         final FileMockContext mockContext = new FileMockContext(getInstrumentation().getContext());
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, cache);
-        final int requestCode = AuthenticationConstants.UIRequest.BROWSER_FLOW;
-        final int resultCode = AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE;
+        final int requestCode = BROWSER_FLOW;
+        final int resultCode = TOKEN_BROKER_RESPONSE;
         final TestAuthCallback callback = new TestAuthCallback();
 
         // act
@@ -3116,11 +3122,11 @@ public final class AuthenticationContextTest {
 
         // Activity will start
         assertEquals("Activity was attempted to start.",
-                AuthenticationConstants.UIRequest.BROWSER_FLOW,
+                BROWSER_FLOW,
                 testActivity.mStartActivityRequestCode);
 
         context.onActivityResult(testActivity.mStartActivityRequestCode,
-                AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE,
+                BROWSER_CODE_COMPLETE,
                 getResponseIntent(callback, "resource", "clientid", "redirect", TEST_IDTOKEN_UPN));
         signalCallback.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 

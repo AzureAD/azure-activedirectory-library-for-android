@@ -253,7 +253,7 @@ public class TokenCacheAccessorTests {
     }
 
     @Test
-    public void testUpdateTokenCacheUsesResultAuthority() throws MalformedURLException, ServiceException {
+    public void testUpdateTokenCacheUsesResultAuthority() throws MalformedURLException, ServiceException, AuthenticationException {
         // First assert the cache initialization is using the default authority
         assertEquals(WORLDWIDE_AUTHORITY, mTokenCacheAccessor.getAuthorityUrlWithPreferredCache());
 
@@ -306,7 +306,7 @@ public class TokenCacheAccessorTests {
      * matching ID, AT, and Account to the MSAL cache for migration/SSO purposes.
      */
     @Test
-    public void testMsalCacheIsUpdated() throws ServiceException, MalformedURLException {
+    public void testMsalCacheIsUpdated() throws ServiceException, MalformedURLException, AuthenticationException {
         // Assert our cache is configured for WW
         assertEquals(WORLDWIDE_AUTHORITY, mTokenCacheAccessor.getAuthorityUrlWithPreferredCache());
 
