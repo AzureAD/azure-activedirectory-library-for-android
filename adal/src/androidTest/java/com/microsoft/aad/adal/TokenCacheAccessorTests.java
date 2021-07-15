@@ -355,7 +355,7 @@ public class TokenCacheAccessorTests {
         // Assert the MSAL replicated cache now contains the account & RT
         final IAccountCredentialCache accountCredentialCache = new SharedPreferencesAccountCredentialCache(
                 new CacheKeyValueDelegate(),
-                new SharedPreferencesFileManager(
+                SharedPreferencesFileManager.getSharedPreferences(
                         mContext,
                         DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
                         new AndroidAuthSdkStorageEncryptionManager(mContext, null)

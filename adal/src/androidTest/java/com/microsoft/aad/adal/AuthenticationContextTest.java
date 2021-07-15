@@ -252,7 +252,7 @@ public final class AuthenticationContextTest {
         // Create an instance of the MSAL cache, populate it with some data
         final IAccountCredentialCache accountCredentialCache = new SharedPreferencesAccountCredentialCache(
                 new CacheKeyValueDelegate(),
-                new SharedPreferencesFileManager(
+                SharedPreferencesFileManager.getSharedPreferences(
                         context,
                         DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
                         new AndroidAuthSdkStorageEncryptionManager(context, null)
