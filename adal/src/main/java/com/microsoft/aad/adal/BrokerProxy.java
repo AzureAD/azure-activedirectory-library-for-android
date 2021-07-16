@@ -894,11 +894,8 @@ class BrokerProxy implements IBrokerProxy {
 
                 // For new broker with PRT support, both company portal and
                 // azure authenticator will be able to support multi-user.
-                if (authenticator.packageName
-                        .equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME)
-                        || authenticator.packageName
-                        .equalsIgnoreCase(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME)
-                        || authenticator.packageName
+                final BrokerValidator brokerValidator = new BrokerValidator(mContext);
+                if (brokerValidator.isValidBrokerPackage(authenticator.packageName) || authenticator.packageName
                         .equalsIgnoreCase(AuthenticationSettings.INSTANCE.getBrokerPackageName())) {
                     // Existing broker logic only connects to broker for token
                     // requests if account exists. New version can allow to

@@ -55,12 +55,13 @@ android {
         debug {
             testCoverageEnabled false
             debuggable true
-
+            buildConfigField("String", "VERSION_NAME", "\"${versionName}\"")
         }
         release {
             minifyEnabled false
             debuggable false
             proguardFiles getDefaultProguardFile('proguard-android.txt')
+            buildConfigField("String", "VERSION_NAME", "\"${versionName}\"")
         }
     }
 
@@ -133,7 +134,7 @@ dependencies {
     snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.0.6', changing: true)
 
     // 'dist' flavor dependencies
-    distApi("com.microsoft.identity:common:3.0.6") {
+    distApi("com.microsoft.identity:common:3.4.5") {
         transitive = false
     }
 

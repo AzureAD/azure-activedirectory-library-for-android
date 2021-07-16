@@ -1324,7 +1324,7 @@ public final class AcquireTokenRequestTest {
                         + mockContext.getPackageName()
                         + "/"
                         + URLEncoder.encode(
-                        AuthenticationConstants.Broker.COMPANY_PORTAL_APP_SIGNATURE,
+                        AuthenticationConstants.Broker.COMPANY_PORTAL_APP_RELEASE_SIGNATURE,
                         AuthenticationConstants.ENCODING_UTF8
                 );
 
@@ -2379,7 +2379,7 @@ public final class AcquireTokenRequestTest {
 
     private String getEncodedTestingSignature() throws NoSuchAlgorithmException {
         final MessageDigest md = MessageDigest.getInstance("SHA");
-        md.update(Base64.decode(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_SIGNATURE, Base64.NO_WRAP));
+        md.update(Base64.decode(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_RELEASE_SIGNATURE, Base64.NO_WRAP));
         final byte[] testingSignature = md.digest();
         return Base64.encodeToString(testingSignature, Base64.NO_WRAP);
     }
