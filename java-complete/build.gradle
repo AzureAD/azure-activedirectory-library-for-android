@@ -1,7 +1,7 @@
 project.ext.vstsUsername = System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") : project.findProperty("vstsUsername")
 project.ext.vstsMavenAccessToken = System.getenv("ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
 buildscript {
-    apply from: rootProject.file("gradle/versions.gradle")
+    apply from: rootProject.file("../gradle/versions.gradle")
 }
 
 allprojects {
