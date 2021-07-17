@@ -36,6 +36,9 @@ project(':broker4j').projectDir = new File('../broker/broker4j')
 include(":LinuxBroker")
 project(':LinuxBroker').projectDir = new File('../broker/LinuxBroker')
 
+include(":LinuxBrokerPackage")
+project(':LinuxBrokerPackage').projectDir = new File('../broker/LinuxBrokerPackage')
+
 include(':LabApiUtilities')
 project(':LabApiUtilities').projectDir = new File('../common/LabApiUtilities')
 
