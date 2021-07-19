@@ -71,7 +71,6 @@ android {
             testCoverageEnabled false
             debuggable true
             buildConfigField("String", "VERSION_NAME", "\"${versionName}\"")
-
         }
         release {
             minifyEnabled false
@@ -133,7 +132,6 @@ android {
 }
 
 dependencies {
-
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
 
     // Dependencies
@@ -149,11 +147,10 @@ dependencies {
         transitive = true
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.2.0', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.4.5', changing: true)
 
     // 'dist' flavor dependencies
-    //TODO: we will have to change transitive to true once common4j is published
-    distApi("com.microsoft.identity:common:3.2.0") {
+    distApi("com.microsoft.identity:common:3.4.5") {
         transitive = false
     }
 

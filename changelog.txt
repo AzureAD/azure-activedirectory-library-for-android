@@ -1,6 +1,5 @@
 v.Next
 ----------
-- [PATCH] Fixes crash due to missing exception handling. (#1606)
 - [PATCH] Adds API23 WebViewClient#onReceivedError overload (#1580)
 - [PATCH] Fixes for MFA setup using Authenticator app.(#1579)
 - [MINOR] Changes to Broker Validation to allow setting whether to trust debug brokers (prod brokers are always trusted).
@@ -10,6 +9,11 @@ v.Next
 - [PATCH] Disregard pageload errors for the non-primary frame during interactive auth (#1603)
 - [PATCH] Updates Nimbus version 8.2 -> 9.9 (#1600)
 - [PATCH] Fix for ADAL cache replication to Msal/Common-Cache (#1616)
+
+Version 3.1.3
+-------------
+- Adds exception handling for ADAL cache crash on malformed JSON (#1606)
+- Implements a fix for ADAL cache replication (#1616)
 
 Version 3.1.2
 -------------
