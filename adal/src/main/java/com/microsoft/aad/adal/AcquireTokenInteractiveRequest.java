@@ -31,6 +31,7 @@ import android.content.pm.ResolveInfo;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.java.exception.ClientException;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -128,6 +129,8 @@ final class AcquireTokenInteractiveRequest {
                 mTokenCacheAccessor.updateTokenCache(mAuthRequest, result);
             } catch (MalformedURLException e) {
                 throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e.getMessage(), e);
+            } catch (ClientException e) {
+                throw ADALError.fromCommon(e);
             }
         }
 
