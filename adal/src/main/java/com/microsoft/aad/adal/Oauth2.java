@@ -38,7 +38,7 @@ import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
 import com.microsoft.identity.common.adal.internal.util.HashMapExtensions;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.java.exception.ServiceException;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.ClientInfo;
+import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.ClientInfo;
 
 import org.json.JSONException;
 import org.json.JSONObject;

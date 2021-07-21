@@ -14,6 +14,9 @@ ext {
     //Java Language Support
     coreLibraryDesugaringVersion = "1.0.9"
 
+    //Java Language Support
+    coreLibraryDesugaringVersion = "1.0.9"
+
     // Libraries
     androidxTestRunnerVersion = "1.2.0"
     androidxTestOrchestratorVersion = "1.2.0"

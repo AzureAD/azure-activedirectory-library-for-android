@@ -1,4 +1,4 @@
-# File: azure-pipelines\pull-request-validation\credscan.yml
+# File: azure-pipelines\pull-request-validation\security-compliance-check-adal.yml
 # Description: Run Credscan and PoliCheck
 name: $(date:yyyyMMdd)$(rev:.r)
 
@@ -19,5 +19,5 @@ resources:
     endpoint: ANDROID_GITHUB
 
 jobs:
-- template: azure-pipelines/templates/steps/credscan-policheck.yml@common
+- template: azure-pipelines/templates/steps/security-compliance-check.yml@common
 ...
