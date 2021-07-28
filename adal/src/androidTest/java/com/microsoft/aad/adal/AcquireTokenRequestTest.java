@@ -2296,8 +2296,7 @@ public final class AcquireTokenRequestTest {
                 mockedSignature.toByteArray()
         ).thenReturn(Base64.decode(Util.ENCODED_SIGNATURE, Base64.NO_WRAP));
 
-        final PackageInfo mockedPackageInfo = Util.addSignatures(Mockito.mock(PackageInfo.class), new Signature[]{mockedSignature});
-
+        final PackageInfo mockedPackageInfo = new MockedPackageInfo(new Signature[]{mockedSignature});
         final PackageManager mockedPackageManager = Mockito.mock(PackageManager.class);
         when(
                 mockedPackageManager.getPackageInfo(
