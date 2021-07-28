@@ -42,7 +42,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
-import com.microsoft.identity.common.adal.internal.JWSBuilder;
+import com.microsoft.identity.common.java.util.JWSBuilder;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.logging.Logger;
 
