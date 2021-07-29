@@ -30,6 +30,7 @@ import com.microsoft.identity.common.adal.internal.JWSBuilder;
 import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
 import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.java.exception.ClientException;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -128,6 +129,9 @@ class AcquireTokenSilentHandler {
             } catch (MalformedURLException e) {
                 Logger.w(TAG + methodName, "Access token fetched but unable to update token cache");
                 throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e.getMessage(), e);
+            } catch (ClientException e) {
+                Logger.w(TAG + methodName, "Access token fetched but unable to update token cache");
+                throw ADALError.fromCommon(e);
             }
         }
 
