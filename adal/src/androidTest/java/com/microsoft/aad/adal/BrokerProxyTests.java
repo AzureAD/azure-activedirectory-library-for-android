@@ -41,6 +41,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
 import android.content.pm.Signature;
+import android.content.pm.SigningInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -89,7 +90,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(AndroidJUnit4.class)
-@Ignore("SigningInfo cannot be mocked. Disabled until that is fixed.")
 public class BrokerProxyTests {
 
     static final String TEST_AUTHORITY = "https://login.windows.net/common/";
@@ -1170,13 +1170,11 @@ public class BrokerProxyTests {
         return mockContext;
     }
 
-    @SuppressLint("PackageManagerGetSignatures")
     private PackageManager getPackageManager(final Signature signature, final String packageName,
                                              boolean permissionStatus) throws NameNotFoundException {
         PackageManager mockPackage = mock(PackageManager.class);
-        PackageInfo info = Util.addSignatures(new PackageInfo(), new Signature[]{signature});
-
-        when(mockPackage.getPackageInfo(packageName, PackageHelper.getPackageManagerSignaturesFlag())).thenReturn(info);
+        final PackageInfo mockedPackageInfo = new MockedPackageInfo(new Signature[]{signature});
+        when(mockPackage.getPackageInfo(packageName, PackageHelper.getPackageManagerSignaturesFlag())).thenReturn(mockedPackageInfo);
         when(mockPackage.checkPermission(anyString(), anyString()))
                 .thenReturn(permissionStatus ? PackageManager.PERMISSION_GRANTED : PackageManager.PERMISSION_DENIED);
         return mockPackage;
