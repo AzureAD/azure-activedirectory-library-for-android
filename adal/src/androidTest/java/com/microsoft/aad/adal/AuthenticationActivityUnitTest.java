@@ -65,6 +65,7 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import static androidx.test.InstrumentationRegistry.getInstrumentation;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION;
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL;
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR;
@@ -341,8 +342,8 @@ public class AuthenticationActivityUnitTest {
                 Class.forName("com.microsoft.aad.adal.AuthenticationActivity$TokenTaskResult"));
         AccountManager mockAct = mock(AccountManager.class);
         Account userAccount = new Account(username,
-                AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-        when(mockAct.getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE))
+                BROKER_ACCOUNT_TYPE);
+        when(mockAct.getAccountsByType(BROKER_ACCOUNT_TYPE))
                 .thenReturn(new Account[]{
                         userAccount
                 });
@@ -394,7 +395,7 @@ public class AuthenticationActivityUnitTest {
         Method executePostResult = ReflectionUtils.getTestMethod(tokenTask, "onPostExecute",
                 Class.forName("com.microsoft.aad.adal.AuthenticationActivity$TokenTaskResult"));
         AccountManager mockAct = mock(AccountManager.class);
-        when(mockAct.getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE))
+        when(mockAct.getAccountsByType(BROKER_ACCOUNT_TYPE))
                 .thenReturn(new Account[]{});
         ReflectionUtils.setFieldValue(tokenTask, "mRequest", authRequest);
         ReflectionUtils.setFieldValue(tokenTask, "mPackageName", "testpackagename");
@@ -445,11 +446,11 @@ public class AuthenticationActivityUnitTest {
         ).thenReturn("test");
 
         Account userAccount = new Account(username,
-                AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+                BROKER_ACCOUNT_TYPE);
 
         when(
                 mockAct.getAccountsByType(
-                        AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE)
+                        BROKER_ACCOUNT_TYPE)
         ).thenReturn(new Account[]{userAccount});
 
         ReflectionUtils.setFieldValue(tokenTask, "mRequest", authRequest);

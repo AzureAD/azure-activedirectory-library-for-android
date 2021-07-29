@@ -81,6 +81,7 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE;
 import static com.microsoft.identity.common.java.AuthenticationConstants.UIRequest.BROWSER_FLOW;
 import static org.junit.Assert.assertEquals;
@@ -627,7 +628,7 @@ public final class AcquireTokenRequestTest {
                 mockedAccountManager,
                 times(1)
         ).addAccount(
-                Matchers.refEq(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE),
+                Matchers.refEq(BROKER_ACCOUNT_TYPE),
                 anyString(),
                 (String[]) Matchers.eq(null),
                 Matchers.any(Bundle.class),
@@ -696,7 +697,7 @@ public final class AcquireTokenRequestTest {
                 mockedAccountManager,
                 times(0)
         ).addAccount(
-                Matchers.refEq(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE),
+                Matchers.refEq(BROKER_ACCOUNT_TYPE),
                 anyString(),
                 (String[]) Matchers.eq(null),
                 Matchers.any(Bundle.class),
@@ -2183,7 +2184,7 @@ public final class AcquireTokenRequestTest {
         final AccountManager mockedAccountManager = Mockito.mock(AccountManager.class);
         final AuthenticatorDescription authenticatorDescription
                 = new AuthenticatorDescription(
-                AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
+                BROKER_ACCOUNT_TYPE,
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME,
                 0, // label id
                 0, // icon id
@@ -2201,11 +2202,9 @@ public final class AcquireTokenRequestTest {
 
     private void mockAccountManagerGetAccountBehavior(final AccountManager mockedAccountManger)
             throws OperationCanceledException, IOException, AuthenticatorException {
-        final Account account = new Account(TEST_UPN, AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+        final Account account = new Account(TEST_UPN, BROKER_ACCOUNT_TYPE);
         when(mockedAccountManger.getAccountsByType(
-                Matchers.refEq(
-                        AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE
-                )
+                Matchers.refEq(BROKER_ACCOUNT_TYPE)
         )).thenReturn(new Account[]{account});
 
         final Bundle bundle = new Bundle();
@@ -2280,8 +2279,7 @@ public final class AcquireTokenRequestTest {
         when(
                 mockedAccountManager
                         .addAccount(
-                                Matchers.refEq(
-                                        AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE),
+                                Matchers.refEq(BROKER_ACCOUNT_TYPE),
                                 anyString(),
                                 (String[]) Matchers.eq(null),
                                 Matchers.any(Bundle.class),
