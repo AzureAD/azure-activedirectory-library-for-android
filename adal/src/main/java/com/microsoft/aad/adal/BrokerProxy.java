@@ -58,6 +58,7 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.RT_AGE;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_ERROR;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_SUBERROR;
@@ -419,7 +420,7 @@ class BrokerProxy implements IBrokerProxy {
     private Account getTargetAccount(final AuthenticationRequest request) {
         final String methodName = ":getTargetAccount";
         Account targetAccount = null;
-        final Account[] accountList = mAcctManager.getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+        final Account[] accountList = mAcctManager.getAccountsByType(BROKER_ACCOUNT_TYPE);
 
         if (!TextUtils.isEmpty(request.getBrokerAccountName())) {
             targetAccount = findAccount(request.getBrokerAccountName(), accountList);
@@ -660,7 +661,7 @@ class BrokerProxy implements IBrokerProxy {
         // getAuthToken call will execute in async as well
         Logger.v(TAG + methodName, "Try to remove account from account manager.");
         Account[] accountList = mAcctManager
-                .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+                .getAccountsByType(BROKER_ACCOUNT_TYPE);
         if (accountList.length != 0) {
             for (Account targetAccount : accountList) {
                 Logger.v(TAG + methodName, "Remove tokens for account. ", "Account: " + targetAccount.name, null);
@@ -730,7 +731,7 @@ class BrokerProxy implements IBrokerProxy {
             // to get the calling app's metadata if needed at BrokerActivity.
             final AccountManagerFuture<Bundle> result =
                     mAcctManager.addAccount(
-                            AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
+                            BROKER_ACCOUNT_TYPE,
                             AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
                             null,
                             addAccountOptions,
@@ -768,7 +769,7 @@ class BrokerProxy implements IBrokerProxy {
     public String getCurrentActiveBrokerPackageName() {
         AuthenticatorDescription[] authenticators = mAcctManager.getAuthenticatorTypes();
         for (AuthenticatorDescription authenticator : authenticators) {
-            if (authenticator.type.equals(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE)) {
+            if (authenticator.type.equals(BROKER_ACCOUNT_TYPE)) {
                 return authenticator.packageName;
             }
         }
@@ -877,7 +878,7 @@ class BrokerProxy implements IBrokerProxy {
 
             return users.length == 0 ? null : users[0].getDisplayableId();
         } else {
-            Account[] accountList = mAcctManager.getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+            Account[] accountList = mAcctManager.getAccountsByType(BROKER_ACCOUNT_TYPE);
             if (accountList.length > 0) {
                 return accountList[0].name;
             }
@@ -889,10 +890,9 @@ class BrokerProxy implements IBrokerProxy {
     private boolean checkAccount(final AccountManager am, String username, String uniqueId) {
         AuthenticatorDescription[] authenticators = am.getAuthenticatorTypes();
         for (AuthenticatorDescription authenticator : authenticators) {
-            if (authenticator.type.equals(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE)) {
+            if (authenticator.type.equals(BROKER_ACCOUNT_TYPE)) {
 
-                Account[] accountList = mAcctManager
-                        .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+                Account[] accountList = mAcctManager.getAccountsByType(BROKER_ACCOUNT_TYPE);
 
                 // For new broker with PRT support, both company portal and
                 // azure authenticator will be able to support multi-user.
@@ -963,7 +963,7 @@ class BrokerProxy implements IBrokerProxy {
         // queue up and will be active after first one is uninstalled.
         AuthenticatorDescription[] authenticators = am.getAuthenticatorTypes();
         for (AuthenticatorDescription authenticator : authenticators) {
-            if (authenticator.type.equals(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE)
+            if (authenticator.type.equals(BROKER_ACCOUNT_TYPE)
                     && mBrokerValidator.verifySignature(authenticator.packageName)) {
                 return true;
             }
@@ -997,7 +997,7 @@ class BrokerProxy implements IBrokerProxy {
 
     private UserInfo[] getUserInfoFromAccountManager() throws OperationCanceledException, AuthenticatorException, IOException {
         final String methodName = ":getUserInfoFromAccountManager";
-        final Account[] accountList = mAcctManager.getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+        final Account[] accountList = mAcctManager.getAccountsByType(BROKER_ACCOUNT_TYPE);
         final Bundle bundle = new Bundle();
         bundle.putBoolean(DATA_USER_INFO, true);
         Logger.v(TAG + methodName, "Retrieve all the accounts from account manager with broker account type, "
