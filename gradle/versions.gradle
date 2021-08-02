@@ -59,6 +59,7 @@ ext {
     dbusJavaUtilsVersion = "3.3.0"
     bouncyCastleVersion = "1.64"
     oshiCoreVersion = "5.7.5"
+    tokenShare = "1.6.1"
 
     // TODO: adal automation test app.
     supportLibraryVersion = "27.1.+"
