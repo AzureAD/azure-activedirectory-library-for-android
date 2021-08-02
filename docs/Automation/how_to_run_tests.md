@@ -105,7 +105,7 @@ When running the tests from within Android Studio we suggest configuring compile
 
 ##### Test Configuration
 
-| Scenario | Variant | brokerSource | Notes |
+| Scenario | Project | Variant | brokerSource |
 |----------|---------|--------------|-------|
 | MSAL Changes | msalautomationapp:        |     localBrokerMicrosoftAuthenticationDebug          |  PlayStore     |
 |   MSAL Changes & Broker Changes       |   msalautomationapp      |      localBrokerHostDebug        |   Ignored (uses local)    |
