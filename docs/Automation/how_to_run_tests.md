@@ -105,15 +105,11 @@ When running the tests from within Android Studio we suggest configuring compile
 
 ##### Test Configuration
 
-Only Testing MSAL:
-- project properties: suggested default as above
-- android_auth.msalautomationapp: localBrokerMicrosoftAuthenticationDebug
-
-Testing MSAL & Local Broker Host App:
-- project properties: change "PlayStore" to "LocalApk"
-- build variant: android_auth.msalautomationapp: localBrokerHostDebug
-
-> NOTE: See how to deploy the "BrokerHost.apk" below for this scenario.
+| Scenario | Variant | brokerSource | Notes |
+|----------|---------|--------------|-------|
+| MSAL Changes | msalautomationapp:        |     localBrokerMicrosoftAuthenticationDebug          |  PlayStore     |
+|   MSAL Changes & Broker Changes       |   msalautomationapp      |      localBrokerHostDebug        |   Ignored (uses local)    |
+|     MSAL Changes & Authenticator RC Build     |    msalautomationapp     |      localBrokerHostDebug        |   LocalApk    |
 
 ### Additional Apps Required When Running UI Automation
 
