@@ -109,7 +109,7 @@ When running the tests from within Android Studio we suggest configuring compile
 |----------|---------|--------------|-------|
 | MSAL Changes | msalautomationapp:        |     localBrokerMicrosoftAuthenticationDebug          |  PlayStore     |
 |   MSAL Changes & Broker Changes       |   msalautomationapp      |      localBrokerHostDebug        |   Ignored (uses local)    |
-|     MSAL Changes & Authenticator RC Build     |    msalautomationapp     |      localBrokerHostDebug        |   LocalApk    |
+|     MSAL Changes & Authenticator RC Build     |    msalautomationapp     |      localBrokerMicrosoftAuthenticationDebug        |   LocalApk    |
 
 ### Additional Apps Required When Running UI Automation
 
