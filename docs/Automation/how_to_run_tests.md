@@ -75,7 +75,7 @@ The UI Automation tests are currently optimized for Pixel 2, 3 and 4 and API lev
 
 ### Preparing a device/emulator
 
-For the tests to run successfully the device/emulator must have the google playstore installed.  The tests will install apps from the playstore during their execution.  The device/emulator playstore app will also need to be signed in with a google account before running the tests.  
+For the tests to run successfully the device/emulator must have the Google PlayStore installed.  The tests will install apps from the PlayStore during their execution.  The device/emulator PlayStore app will also need to be signed in with a google account before running the tests.  
 
 ### What Project Properties are supported when running UI Automation?
 
