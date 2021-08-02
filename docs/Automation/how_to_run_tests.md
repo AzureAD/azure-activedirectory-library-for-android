@@ -68,6 +68,15 @@ Before we go into the specifics of running tests, let's review where these tests
   
   - Also happens to contain some ADAL without Broker test cases (These were added here in interest of time to avoid creating a separate ADAL Automation app - we will relocate this in the future if needed)
 
+
+### Supported devices/emulators
+
+The UI Automation tests are currently optimized for Pixel 2, 3 and 4 and API levels 28 and 29 (emulator images should include Google Playstore). The tests may run fine on other devices too, however, we don't provide any guarantee because we haven't validated them. Over time we will try to optimize for more devices.
+
+### Preparing a device/emulator
+
+For the tests to run successfully the device/emulator must have the Google PlayStore installed.  The tests will install apps from the PlayStore during their execution.  The device/emulator PlayStore app will also need to be signed in with a google account before running the tests.  
+
 ### What Project Properties are supported when running UI Automation?
 
 UI Automation Tests support passing some additional command line arguments that can control the behavior of the tests. Some of these arguments may or may not be needed depending on your needs if you find yourself sticking to the defaults. 
@@ -76,9 +85,31 @@ For example, the following properties are supported / required:
 
 - **labSecret** (required) - to enable authentication against Lab Api. Fore more details see [Lab Setup](labsetup.md)
 
-- **brokerSource** (optional / default: `PlayStore`) - Determines where to isntall the broker app such as Authenticator & CP from when running the automation. When we are testing MSAL then we would want this to be `PlayStore` and when we are testing the broker release then we would want this to be `LocalApk` so that we can run the automation against the RC bits of Broker Apps that we obtain for testing. In the case of LocalApk, the broker app must be sideloaded on the device prior to the start of the test and this APK must dropped in the `/data/local/tmp` folder on the device because the Automation Infra will look for it in that folder and try to install it from there.
+- **brokerSource** (optional / default: `PlayStore`) - Determines where to install the broker app such as Authenticator & CP from when running the automation. When we are testing MSAL then we would want this to be `PlayStore` and when we are testing the broker release then we would want this to be `LocalApk` so that we can run the automation against the RC bits of Broker Apps that we obtain for testing. In the case of LocalApk, the broker app must be sideloaded on the device prior to the start of the test and this APK must dropped in the `/data/local/tmp` folder on the device because the Automation Infra will look for it in that folder and try to install it from there.
 
 There are more aguments supported. For a complete list of supported command line arguments across each of our projects, please see [Gradle Project Properties as Command Line Arguments](../ProjectBuild/gradle_project_properties.md).
+
+### Suggested Android Studio Project Settings
+
+#### MSAL/ADAL Testing
+
+When running the tests from within Android Studio we suggest configuring compiler settings to pass in project properties as command line options.  You can enter suggested defaults in Android Studio by:
+
+- Select "File" menu
+- Select "Settings"
+- Select/Expand "Build, Execution, Deployment"
+- Select "Compiler"
+- Enter: "-Plabtest -PlabSecret="[Put Lab Secret Here]" -PbrokerSource="PlayStore"
+
+> NOTE: This assumes you're testing MSAL changes with existing production Microsoft authenticator.
+
+##### Test Configuration
+
+| Scenario | Project | Variant | brokerSource |
+|----------|---------|--------------|-------|
+| MSAL Changes | msalautomationapp:        |     localBrokerMicrosoftAuthenticationDebug          |  PlayStore     |
+|   MSAL Changes & Broker Changes       |   msalautomationapp      |      localBrokerHostDebug        |   Ignored (uses local)    |
+|     MSAL Changes & Authenticator RC Build     |    msalautomationapp     |      localBrokerMicrosoftAuthenticationDebug        |   LocalApk    |
 
 ### Additional Apps Required When Running UI Automation
 
@@ -142,9 +173,7 @@ See `./gradlew msalautomationapp:tasks` or `./gradlew brokerautomationapp:tasks`
 
 - AutoBroker - runs tests against any supported broker for a given test as applicable with the select flavor of MSAL / ADAL
 
-### Supported Devices
 
-The UI Automation tests are currently optimized for Pixel 2, 3 and 4 and API levels 28 and 29. The tests may run fine on other devices too, however, we don't provide any guarantee is we haven't validated them. Over time we will try to optimize for more devices.
 
 ### How to get Automation logs after tests completion
 
