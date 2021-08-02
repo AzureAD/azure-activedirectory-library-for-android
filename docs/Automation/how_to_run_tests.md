@@ -71,7 +71,7 @@ Before we go into the specifics of running tests, let's review where these tests
 
 ### Supported devices/emulators
 
-The UI Automation tests are currently optimized for Pixel 2, 3 and 4 and API levels 28 and 29 (emulator images should include google playstore) The tests may run fine on other devices too, however, we don't provide any guarantee is we haven't validated them. Over time we will try to optimize for more devices.
+The UI Automation tests are currently optimized for Pixel 2, 3 and 4 and API levels 28 and 29 (emulator images should include Google Playstore). The tests may run fine on other devices too, however, we don't provide any guarantee because we haven't validated them. Over time we will try to optimize for more devices.
 
 ### Preparing a device/emulator
 
