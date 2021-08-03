@@ -62,6 +62,7 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.microsoft.aad.adal.TokenCacheAccessor.getMsalOAuth2TokenCache;
+import static com.microsoft.identity.common.java.AuthenticationConstants.UIRequest.BROWSER_FLOW;
 
 /**
  * ADAL context to get access token, refresh token, and lookup from cache.
@@ -1117,7 +1118,7 @@ public class AuthenticationContext {
      */
     public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         final String methodName = ":onActivityResult";
-        if (requestCode == AuthenticationConstants.UIRequest.BROWSER_FLOW) {
+        if (requestCode == BROWSER_FLOW) {
 
             if (data == null) {
                 // If data is null, RequestId is unknown. It could not find

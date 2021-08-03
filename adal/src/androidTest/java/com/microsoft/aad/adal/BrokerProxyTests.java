@@ -23,6 +23,8 @@
 
 package com.microsoft.aad.adal;
 
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;
@@ -41,7 +43,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
 import android.content.pm.Signature;
-import android.content.pm.SigningInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -162,7 +163,7 @@ public class BrokerProxyTests {
         final FileMockContext context = new FileMockContext(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext());
         context.setMockedPackageManager(getMockedPackageManagerWithBrokerAccountServiceDisabled(
                 signature, brokerPackage, false));
-        context.setMockedAccountManager(getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE, brokerPackage));
+        context.setMockedAccountManager(getMockedAccountManager(BROKER_ACCOUNT_TYPE, brokerPackage));
 
         AuthenticationSettings.INSTANCE.setUseBroker(true);
         final BrokerProxy brokerProxy = new BrokerProxy(context);
@@ -188,7 +189,7 @@ public class BrokerProxyTests {
 
     @Test
     public void testCanSwitchToBrokerInvalidSignature() throws NameNotFoundException {
-        String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        String authenticatorType = BROKER_ACCOUNT_TYPE;
         String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
         Signature signature = new Signature("74657374696e67");
 
@@ -206,7 +207,7 @@ public class BrokerProxyTests {
     public void testCannotSwitchToBrokerWhenADFS()
             throws ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException, NoSuchFieldException, NameNotFoundException {
-        String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        String authenticatorType = BROKER_ACCOUNT_TYPE;
         String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
         Signature signature = new Signature(mTestSignature);
 
@@ -229,7 +230,7 @@ public class BrokerProxyTests {
     @Test
     @Ignore
     public void testCanSwitchToBrokerNoAccountChooserActivity() throws NameNotFoundException {
-        String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        String authenticatorType = BROKER_ACCOUNT_TYPE;
         String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
         Signature signature = new Signature(mTestSignature);
 
@@ -252,7 +253,7 @@ public class BrokerProxyTests {
     @Test
     @Ignore
     public void testCanSwitchToBrokerWithAccountChooser() throws NameNotFoundException {
-        String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        String authenticatorType = BROKER_ACCOUNT_TYPE;
         String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
         Signature signature = new Signature(mTestSignature);
 
@@ -273,7 +274,7 @@ public class BrokerProxyTests {
     public void testCanSwitchToBrokerValidSkip()
             throws ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException, NoSuchFieldException, NameNotFoundException {
-        String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        String authenticatorType = BROKER_ACCOUNT_TYPE;
         String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
         Signature signature = new Signature(mTestSignature);
 
@@ -296,7 +297,7 @@ public class BrokerProxyTests {
 
     @Test
     public void testGetCurrentUser() throws NameNotFoundException {
-        final String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        final String authenticatorType = BROKER_ACCOUNT_TYPE;
         final String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
         AuthenticationSettings.INSTANCE.setBrokerSignature(mTestTag);
 
@@ -320,7 +321,7 @@ public class BrokerProxyTests {
     @Test
     public void testGetBrokerUsers() throws NameNotFoundException, OperationCanceledException, AuthenticatorException,
             IOException {
-        final String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        final String authenticatorType = BROKER_ACCOUNT_TYPE;
         final String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
         final Signature signature = new Signature(mTestSignature);
         AuthenticationSettings.INSTANCE.setBrokerSignature(mTestTag);
@@ -364,7 +365,7 @@ public class BrokerProxyTests {
             throws ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException, NoSuchFieldException, NameNotFoundException {
 
-        final String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        final String authenticatorType = BROKER_ACCOUNT_TYPE;
         final String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
         final Signature signature = new Signature(mTestSignature);
 
@@ -391,7 +392,7 @@ public class BrokerProxyTests {
             IllegalAccessException, InvocationTargetException, NoSuchFieldException, NameNotFoundException {
 
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
-        String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        String authenticatorType = BROKER_ACCOUNT_TYPE;
         String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
         Signature signature = new Signature(mTestSignature);
         AccountManager mockAcctManager = mock(AccountManager.class);
@@ -422,7 +423,7 @@ public class BrokerProxyTests {
                 "redirect", "loginhint", PromptBehavior.Auto, "", UUID.randomUUID(), false);
 
         final FileMockContext context = new FileMockContext(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext());
-        final AccountManager mockedAccountManager = getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
+        final AccountManager mockedAccountManager = getMockedAccountManager(BROKER_ACCOUNT_TYPE,
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         when(mockedAccountManager.getAccountsByType(anyString())).thenReturn(new Account[0]);
         context.setMockedAccountManager(mockedAccountManager);
@@ -445,7 +446,7 @@ public class BrokerProxyTests {
     public void testGetAuthTokenInBackgroundValidAccountEmptyBundle() throws NameNotFoundException, OperationCanceledException,
             AuthenticatorException, IOException, AuthenticationException {
 
-        final String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        final String authenticatorType = BROKER_ACCOUNT_TYPE;
         final AuthenticationRequest authRequest = createAuthenticationRequest("https://login.windows.net/omercantest", "resource", "client",
                 "redirect", "loginhint", PromptBehavior.Auto, "", UUID.randomUUID(), false);
         final String acctType = "loginhint";
@@ -481,7 +482,7 @@ public class BrokerProxyTests {
     @Test
     public void testGetAuthTokenInBackgroundPositive() throws NameNotFoundException, OperationCanceledException,
             AuthenticatorException, IOException, AuthenticationException {
-        final String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        final String authenticatorType = BROKER_ACCOUNT_TYPE;
         final String acctName = "LoginHint234FDFs";
         final AuthenticationRequest authRequest = createAuthenticationRequest("https://login.windows.net/omercantest", "resource", "client",
                 "redirect", acctName.toLowerCase(), PromptBehavior.Auto, "", UUID.randomUUID(), false);
@@ -515,7 +516,7 @@ public class BrokerProxyTests {
     public void testGetAuthTokenInBackgroundVerifyUserInfo() throws NameNotFoundException,
             OperationCanceledException, IOException, AuthenticationException, AuthenticatorException {
 
-        final String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        final String authenticatorType = BROKER_ACCOUNT_TYPE;
         final String acctName = "testAcct123";
         final AuthenticationRequest authRequest = createAuthenticationRequest("https://login.windows.net/omercantest", "resource", "client",
                 "redirect", acctName.toLowerCase(Locale.US), PromptBehavior.Auto, "", UUID.randomUUID(), false);
@@ -562,7 +563,7 @@ public class BrokerProxyTests {
             IOException, NoSuchFieldException, AuthenticatorException, AuthenticationException {
         final int tokenExpiresDate = 1000;
 
-        final String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        final String authenticatorType = BROKER_ACCOUNT_TYPE;
         final String acctName = "testAcct123";
         final AuthenticationRequest authRequest = createAuthenticationRequest("https://login.windows.net/authtest", "resource", "client",
                 "redirect", acctName.toLowerCase(Locale.US), PromptBehavior.Auto, "", UUID.randomUUID(), false);
@@ -611,7 +612,7 @@ public class BrokerProxyTests {
     @Test
     public void testGetAuthTokenInBackgroundVerifyAuthenticationResultNotReturnExpires() throws NameNotFoundException,
             AuthenticationException, OperationCanceledException, IOException, NoSuchFieldException, AuthenticatorException {
-        final String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        final String authenticatorType = BROKER_ACCOUNT_TYPE;
         final String acctName = "testAcct123";
         final AuthenticationRequest authRequest = createAuthenticationRequest("https://login.windows.net/authtest", "resource", "client",
                 "redirect", acctName.toLowerCase(Locale.US), PromptBehavior.Auto, "", UUID.randomUUID(), false);
@@ -663,7 +664,7 @@ public class BrokerProxyTests {
     private void setMockProxyForErrorCheck(final AccountManager mockedAccountManager, String acctName, int errCode, String msg)
             throws OperationCanceledException,
             IOException, AuthenticatorException {
-        final String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        final String authenticatorType = BROKER_ACCOUNT_TYPE;
         final Account[] accts = getAccountList(acctName, authenticatorType);
         when(mockedAccountManager.getAccountsByType(anyString())).thenReturn(accts);
 
@@ -684,7 +685,7 @@ public class BrokerProxyTests {
         final AuthenticationRequest authRequest = createAuthenticationRequest("https://login.windows.net/omercantest", "resource", "client",
                 "redirect", acctName.toLowerCase(Locale.US), PromptBehavior.Auto, "", UUID.randomUUID(), false);
 
-        final AccountManager mockedAccountManager = getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
+        final AccountManager mockedAccountManager = getMockedAccountManager(BROKER_ACCOUNT_TYPE,
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         setMockProxyForErrorCheck(mockedAccountManager, acctName, AccountManager.ERROR_CODE_BAD_ARGUMENTS, "testErrorMessage");
         final FileMockContext context = new FileMockContext(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext());
@@ -712,7 +713,7 @@ public class BrokerProxyTests {
         final AuthenticationRequest authRequest = createAuthenticationRequest("https://login.windows.net/omercantest",
                 "resource", "client", "redirect", acctName.toLowerCase(Locale.US), PromptBehavior.Auto, "", UUID.randomUUID(), false);
 
-        final AccountManager mockedAccountManager = getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
+        final AccountManager mockedAccountManager = getMockedAccountManager(BROKER_ACCOUNT_TYPE,
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         setMockProxyForErrorCheck(mockedAccountManager, acctName, AccountManager.ERROR_CODE_BAD_AUTHENTICATION, "testErrorMessage");
         final FileMockContext context = new FileMockContext(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext());
@@ -739,7 +740,7 @@ public class BrokerProxyTests {
         final AuthenticationRequest authRequest = createAuthenticationRequest("https://login.windows.net/omercantest", "resource", "client",
                 "redirect", acctName.toLowerCase(Locale.US), PromptBehavior.Auto, "", UUID.randomUUID(), false);
 
-        final AccountManager mockedAccountManager = getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
+        final AccountManager mockedAccountManager = getMockedAccountManager(BROKER_ACCOUNT_TYPE,
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         setMockProxyForErrorCheck(mockedAccountManager, acctName, AccountManager.ERROR_CODE_UNSUPPORTED_OPERATION, "testErrorMessage");
         final FileMockContext context = new FileMockContext(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext());
@@ -767,7 +768,7 @@ public class BrokerProxyTests {
                 "redirect", acctName.toLowerCase(Locale.US), PromptBehavior.Auto, "", UUID.randomUUID(), false);
         final FileMockContext context = new FileMockContext(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext());
         context.setConnectionAvailable(false);
-        final AccountManager mockedAccountManager = getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
+        final AccountManager mockedAccountManager = getMockedAccountManager(BROKER_ACCOUNT_TYPE,
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         setMockProxyForErrorCheck(mockedAccountManager, acctName, AccountManager.ERROR_CODE_NETWORK_ERROR, ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE.getDescription());
         context.setMockedAccountManager(mockedAccountManager);
@@ -795,9 +796,9 @@ public class BrokerProxyTests {
         authRequest.setSilent(true);
         final FileMockContext context = new FileMockContext(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext());
         context.setConnectionAvailable(false);
-        final AccountManager mockedAccountManager = getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
+        final AccountManager mockedAccountManager = getMockedAccountManager(BROKER_ACCOUNT_TYPE,
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
-        final String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        final String authenticatorType = BROKER_ACCOUNT_TYPE;
         final Account[] accts = getAccountList(acctName, authenticatorType);
         when(mockedAccountManager.getAccountsByType(anyString())).thenReturn(accts);
         final Bundle expected = new Bundle();
@@ -834,10 +835,10 @@ public class BrokerProxyTests {
         authRequest.setSilent(true);
         final FileMockContext context = new FileMockContext(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext());
         context.setConnectionAvailable(false);
-        final AccountManager mockedAccountManager = getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
+        final AccountManager mockedAccountManager = getMockedAccountManager(BROKER_ACCOUNT_TYPE,
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
 
-        final String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        final String authenticatorType = BROKER_ACCOUNT_TYPE;
         final Account[] accts = getAccountList(acctName, authenticatorType);
         when(mockedAccountManager.getAccountsByType(anyString())).thenReturn(accts);
 
@@ -872,10 +873,10 @@ public class BrokerProxyTests {
         authRequest.setSilent(true);
         final FileMockContext context = new FileMockContext(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext());
         context.setConnectionAvailable(false);
-        final AccountManager mockedAccountManager = getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
+        final AccountManager mockedAccountManager = getMockedAccountManager(BROKER_ACCOUNT_TYPE,
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
 
-        final String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        final String authenticatorType = BROKER_ACCOUNT_TYPE;
         final Account[] accts = getAccountList(acctName, authenticatorType);
         when(mockedAccountManager.getAccountsByType(anyString())).thenReturn(accts);
 
@@ -910,10 +911,10 @@ public class BrokerProxyTests {
         authRequest.setSilent(true);
         final FileMockContext context = new FileMockContext(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext());
         context.setConnectionAvailable(false);
-        final AccountManager mockedAccountManager = getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
+        final AccountManager mockedAccountManager = getMockedAccountManager(BROKER_ACCOUNT_TYPE,
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
 
-        final String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        final String authenticatorType = BROKER_ACCOUNT_TYPE;
         final Account[] accts = getAccountList(acctName, authenticatorType);
         when(mockedAccountManager.getAccountsByType(anyString())).thenReturn(accts);
 
@@ -945,7 +946,7 @@ public class BrokerProxyTests {
             IOException, AuthenticatorException, AuthenticationException {
         final AuthenticationRequest authRequest = createAuthenticationRequest("https://login.windows.net/test", "resource", "client",
                 "redirect", "loginhint", PromptBehavior.Auto, "", UUID.randomUUID(), false);
-        final AccountManager mockAcctManager = getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
+        final AccountManager mockAcctManager = getMockedAccountManager(BROKER_ACCOUNT_TYPE,
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         Bundle expected = new Bundle();
         prepareAddAccount(mockAcctManager, expected);
@@ -968,7 +969,7 @@ public class BrokerProxyTests {
         final AuthenticationRequest authRequest = createAuthenticationRequest("https://login.windows.net/omercantest", "resource", "client",
                 "redirect", "loginhint", PromptBehavior.Auto, "", UUID.randomUUID(), false);
 
-        final AccountManager mockAcctManager = getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
+        final AccountManager mockAcctManager = getMockedAccountManager(BROKER_ACCOUNT_TYPE,
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         final Bundle expected = new Bundle();
         final Intent expectedIntent = new Intent();
@@ -1002,7 +1003,7 @@ public class BrokerProxyTests {
         final AuthenticationRequest authenticationRequest = getAuthRequest(PromptBehavior.FORCE_PROMPT);
         intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT, authenticationRequest.getPrompt().name());
 
-        final AccountManager mockedAccountManager = getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
+        final AccountManager mockedAccountManager = getMockedAccountManager(BROKER_ACCOUNT_TYPE,
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         mockAddAccountResponse(mockedAccountManager, getMockedAccountManagerFuture(intent));
 
@@ -1027,7 +1028,7 @@ public class BrokerProxyTests {
         intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT, authenticationRequest.getPrompt().name());
 
         // mock account manager
-        final AccountManager mockedAccoutManager = getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
+        final AccountManager mockedAccoutManager = getMockedAccountManager(BROKER_ACCOUNT_TYPE,
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         mockAddAccountResponse(mockedAccoutManager, getMockedAccountManagerFuture(intent));
 
@@ -1053,7 +1054,7 @@ public class BrokerProxyTests {
         intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT, authenticationRequest.getPrompt().name());
 
         // mock account manager
-        final AccountManager mockedAccoutManager = getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
+        final AccountManager mockedAccoutManager = getMockedAccountManager(BROKER_ACCOUNT_TYPE,
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         mockAddAccountResponse(mockedAccoutManager, getMockedAccountManagerFuture(intent));
 
@@ -1133,7 +1134,7 @@ public class BrokerProxyTests {
                 (Activity) eq(null), (AccountManagerCallback<Bundle>) eq(null), any(Handler.class)))
                 .thenReturn(mockFuture);
         when(mockAcctManager.getAccountsByType(anyString()))
-                .thenReturn(getAccountList("test", AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE));
+                .thenReturn(getAccountList("test", BROKER_ACCOUNT_TYPE));
     }
 
     private Account[] getAccountList(String accountname, String authenticatorType) {

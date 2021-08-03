@@ -39,12 +39,13 @@ import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentia
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
+import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
+import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectoryOAuth2Strategy;
+import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.providers.microsoft.MicrosoftAccount;
 import com.microsoft.identity.common.java.providers.microsoft.MicrosoftRefreshToken;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryAuthorizationRequest;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryOAuth2Configuration;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryOAuth2Strategy;
+import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectoryAuthorizationRequest;
+import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectoryOAuth2Configuration;
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectoryTokenResponse;
 
 import java.net.MalformedURLException;
@@ -64,10 +65,9 @@ import static com.microsoft.identity.common.internal.cache.SharedPreferencesAcco
 class TokenCacheAccessor {
     private static final String TAG = TokenCacheAccessor.class.getSimpleName();
 
+    private final Context mContext;
     private final ITokenCacheStore mTokenCacheStore;
-
     private String mAuthority; // Remove final to update the authority when preferred cache location is not the same as passed in authority
-
     private final String mTelemetryRequestId;
     private boolean mUseCommonCache = false;
     private ADALOAuth2TokenCache mCommonCache = null;
@@ -86,6 +86,7 @@ class TokenCacheAccessor {
             throw new IllegalArgumentException("requestId");
         }
 
+        mContext = appContext;
         mTokenCacheStore = tokenCacheStore;
         mAuthority = authority;
         mTelemetryRequestId = telemetryRequestId;
@@ -300,6 +301,8 @@ class TokenCacheAccessor {
                 }
             } catch (MalformedURLException e) {
                 throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e.getMessage(), e);
+            } catch (ClientException e) {
+                throw ADALError.fromCommon(e);
             }
         } else if (AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT.equalsIgnoreCase(result.getErrorCode())) {
             // remove Item if oauth2_error is invalid_grant
@@ -311,7 +314,7 @@ class TokenCacheAccessor {
     /**
      * Update token cache with returned auth result.
      */
-    void updateTokenCache(final AuthenticationRequest request, final AuthenticationResult result) throws MalformedURLException {
+    void updateTokenCache(final AuthenticationRequest request, final AuthenticationResult result) throws MalformedURLException, AuthenticationException, ClientException {
         if (result == null || StringExtensions.isNullOrBlank(result.getAccessToken())) {
             return;
         }
@@ -343,7 +346,8 @@ class TokenCacheAccessor {
         setItemToCacheForUser(request.getResource(), request.getClientId(), result, null);
     }
 
-    void updateTokenCacheUsingCommonCache(final AuthenticationRequest request, final AuthenticationResult result) throws MalformedURLException {
+    void updateTokenCacheUsingCommonCache(final AuthenticationRequest request, final AuthenticationResult result)
+            throws MalformedURLException, AuthenticationException, ClientException {
         AzureActiveDirectory ad = new AzureActiveDirectory();
         AzureActiveDirectoryTokenResponse tokenResponse = CoreAdapter.asAadTokenResponse(result);
         AzureActiveDirectoryOAuth2Configuration config = new AzureActiveDirectoryOAuth2Configuration();
@@ -353,22 +357,28 @@ class TokenCacheAccessor {
             config.setAuthorityUrl(new URL(mAuthority));
         }
 
-        AzureActiveDirectoryOAuth2Strategy strategy = ad.createOAuth2Strategy(config);
+        AzureActiveDirectoryOAuth2Strategy strategy = null;
+        try {
+            strategy = ad.createOAuth2Strategy(config,
+                    new AndroidCommonComponents(mContext));
 
-        AzureActiveDirectoryAuthorizationRequest.Builder aadAuthRequestBuilder = new AzureActiveDirectoryAuthorizationRequest.Builder();
-        aadAuthRequestBuilder
-                .setClientId(request.getClientId())
-                .setResource(request.getResource())
-                .setScope(request.getResource())
-                .setRedirectUri(request.getRedirectUri())
-                .setLoginHint(request.getLoginHint())
-                .setCorrelationId(request.getCorrelationId());
+            AzureActiveDirectoryAuthorizationRequest.Builder aadAuthRequestBuilder = new AzureActiveDirectoryAuthorizationRequest.Builder();
+            aadAuthRequestBuilder
+                    .setClientId(request.getClientId())
+                    .setResource(request.getResource())
+                    .setScope(request.getResource())
+                    .setRedirectUri(request.getRedirectUri())
+                    .setLoginHint(request.getLoginHint())
+                    .setCorrelationId(request.getCorrelationId());
 
-        if (null != mAuthority) {
-            aadAuthRequestBuilder.setAuthority(new URL(mAuthority));
+            if (null != mAuthority) {
+                aadAuthRequestBuilder.setAuthority(new URL(mAuthority));
+            }
+
+            mCommonCache.save(strategy, aadAuthRequestBuilder.build(), tokenResponse);
+        } catch (final ClientException e) {
+            throw ADALError.fromCommon(e);
         }
-
-        mCommonCache.save(strategy, aadAuthRequestBuilder.build(), tokenResponse);
     }
 
 

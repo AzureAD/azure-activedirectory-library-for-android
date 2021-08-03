@@ -45,8 +45,9 @@ import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager
 import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.common.java.dto.IdTokenRecord;
 import com.microsoft.identity.common.java.dto.RefreshTokenRecord;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryCloud;
+import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
+import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectoryCloud;
+import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.ClientInfo;
 import com.microsoft.identity.common.java.exception.ServiceException;
 import com.nimbusds.jose.JOSEException;
@@ -70,7 +71,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -254,7 +254,7 @@ public class TokenCacheAccessorTests {
     }
 
     @Test
-    public void testUpdateTokenCacheUsesResultAuthority() throws MalformedURLException, ServiceException {
+    public void testUpdateTokenCacheUsesResultAuthority() throws MalformedURLException, ServiceException, AuthenticationException, ClientException {
         // First assert the cache initialization is using the default authority
         assertEquals(WORLDWIDE_AUTHORITY, mTokenCacheAccessor.getAuthorityUrlWithPreferredCache());
 
@@ -307,7 +307,7 @@ public class TokenCacheAccessorTests {
      * matching ID, AT, and Account to the MSAL cache for migration/SSO purposes.
      */
     @Test
-    public void testMsalCacheIsUpdated() throws ServiceException, MalformedURLException {
+    public void testMsalCacheIsUpdated() throws ServiceException, MalformedURLException, AuthenticationException, ClientException {
         // Assert our cache is configured for WW
         assertEquals(WORLDWIDE_AUTHORITY, mTokenCacheAccessor.getAuthorityUrlWithPreferredCache());
 

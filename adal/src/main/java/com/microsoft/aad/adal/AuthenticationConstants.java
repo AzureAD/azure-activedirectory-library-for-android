@@ -122,44 +122,38 @@ public final class AuthenticationConstants {
         /**
          * Represents that user cancelled the flow.
          */
-        public static final int BROWSER_CODE_CANCEL = com.microsoft.identity.common.adal.internal.AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL;
+        public static final int BROWSER_CODE_CANCEL = 2001;
 
         /**
          * Represents that browser error is returned.
          */
-        public static final int BROWSER_CODE_ERROR = com.microsoft.identity.common.adal.internal.AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR;
+        public static final int BROWSER_CODE_ERROR = 2002;
 
         /**
          * Represents that the authorization code is returned successfully.
          */
-        public static final int BROWSER_CODE_COMPLETE = com.microsoft.identity.common.adal.internal.AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE;
+        public static final int BROWSER_CODE_COMPLETE = 2003;
 
         /**
          * Represents that broker successfully returns the response.
          */
-        public static final int TOKEN_BROKER_RESPONSE = com.microsoft.identity.common.adal.internal.AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE;
+        public static final int TOKEN_BROKER_RESPONSE = 2004;
 
         /**
          * Webview throws Authentication exception. It needs to be send to callback.
          */
-        public static final int BROWSER_CODE_AUTHENTICATION_EXCEPTION = com.microsoft.identity.common.adal.internal.AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION;
+        public static final int BROWSER_CODE_AUTHENTICATION_EXCEPTION = 2005;
 
         /**
          * CA flow, device doesn't have company portal or azure authenticator installed.
          * Waiting for broker package to be installed, and resume request in broker.
          */
-        public static final int BROKER_REQUEST_RESUME = com.microsoft.identity.common.adal.internal.AuthenticationConstants.UIResponse.BROKER_REQUEST_RESUME;
-    }
-
-    /**
-     * Represents the request code.
-     */
-    public static final class UIRequest {
+        public static final int BROKER_REQUEST_RESUME = 2006;
 
         /**
-         * Represents the request of browser flow.
+         * MDM Flow is triggered.
          */
-        public static final int BROWSER_FLOW = com.microsoft.identity.common.adal.internal.AuthenticationConstants.UIRequest.BROWSER_FLOW;
+        public static final int BROWSER_CODE_MDM = 2009;
     }
 
     /**
@@ -356,12 +350,12 @@ public final class AuthenticationConstants {
         /**
          * AAD OAuth2 extension strings.
          */
-        public static final String RESOURCE = com.microsoft.identity.common.adal.internal.AuthenticationConstants.AAD.RESOURCE;
+        public static final String RESOURCE = com.microsoft.identity.common.java.AuthenticationConstants.AAD.RESOURCE;
 
         /**
          * AAD OAuth2 Challenge strings.
          */
-        public static final String BEARER = com.microsoft.identity.common.adal.internal.AuthenticationConstants.AAD.BEARER;
+        public static final String BEARER = com.microsoft.identity.common.java.AuthenticationConstants.AAD.BEARER;
 
         /**
          * AAD Oauth2 authorization.
@@ -477,7 +471,7 @@ public final class AuthenticationConstants {
         /**
          * Account type string.
          */
-        public static final String BROKER_ACCOUNT_TYPE = com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        public static final String BROKER_ACCOUNT_TYPE = com.microsoft.identity.common.java.AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
 
         /**
          * String of account initial name.
