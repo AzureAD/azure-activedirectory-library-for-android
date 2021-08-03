@@ -113,7 +113,7 @@ class TokenCacheAccessor {
         final IAccountCredentialCache accountCredentialCache = new SharedPreferencesAccountCredentialCache(
                 new CacheKeyValueDelegate(),
                         components.getEncryptedFileStore(DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
-                        components.getStorageEncryptionManager(null)
+                        components.getStorageEncryptionManager()
                 )
         );
 
