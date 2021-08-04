@@ -52,7 +52,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.gson.Gson;
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
-import com.microsoft.identity.common.adal.internal.JWSBuilder;
+import com.microsoft.identity.common.java.util.JWSBuilder;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
 import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;

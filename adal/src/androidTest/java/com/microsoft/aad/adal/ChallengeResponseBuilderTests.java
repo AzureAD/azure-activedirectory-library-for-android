@@ -24,8 +24,7 @@ package com.microsoft.aad.adal;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.adal.internal.JWSBuilder;
+import com.microsoft.identity.common.java.util.JWSBuilder;
 import com.microsoft.identity.common.java.exception.ClientException;
 
 import junit.framework.Assert;
@@ -209,10 +208,10 @@ public class ChallengeResponseBuilderTests extends AndroidTestHelper {
         final String context = "ABcdeded";
 
         final Object handler = getInstance(null);
-        final Field f = AuthenticationSettings.INSTANCE.getClass().getDeclaredField(
+        final Field f = com.microsoft.identity.common.java.AuthenticationSettings.INSTANCE.getClass().getDeclaredField(
                 "mClazzDeviceCertProxy");
         f.setAccessible(true);
-        f.set(AuthenticationSettings.INSTANCE, null);
+        f.set(com.microsoft.identity.common.java.AuthenticationSettings.INSTANCE, null);
 
         final Method m = ReflectionUtils.getTestMethod(
                 handler,
@@ -373,10 +372,10 @@ public class ChallengeResponseBuilderTests extends AndroidTestHelper {
             InvocationTargetException, NoSuchMethodException, NoSuchFieldException {
         final Object mockJwsBuilder = mock(JWSBuilder.class);
         final Object handler = getInstance(mockJwsBuilder);
-        final Field f = AuthenticationSettings.INSTANCE.getClass().getDeclaredField(
+        final Field f = com.microsoft.identity.common.java.AuthenticationSettings.INSTANCE.getClass().getDeclaredField(
                 "mClazzDeviceCertProxy");
         f.setAccessible(true);
-        f.set(AuthenticationSettings.INSTANCE, null);
+        f.set(com.microsoft.identity.common.java.AuthenticationSettings.INSTANCE, null);
 
         final Method m = ReflectionUtils.getTestMethod(
                 handler,
@@ -641,7 +640,7 @@ public class ChallengeResponseBuilderTests extends AndroidTestHelper {
         final Class clazz = Class.forName("com.microsoft.aad.adal.ChallengeResponseBuilder");
         final Constructor<?> constructorParams = clazz.getDeclaredConstructor(
                 Class
-                        .forName("com.microsoft.identity.common.adal.internal.JWSBuilder")
+                        .forName("com.microsoft.identity.common.java.util.JWSBuilder")
         );
 
         constructorParams.setAccessible(true);

@@ -31,7 +31,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants.AAD;
-import com.microsoft.identity.common.adal.internal.JWSBuilder;
+import com.microsoft.identity.common.java.util.JWSBuilder;
 import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;

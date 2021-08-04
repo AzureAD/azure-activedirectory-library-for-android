@@ -36,8 +36,6 @@ public enum AuthenticationSettings {
 
     private static final int DEFAULT_READ_CONNECT_TIMEOUT = 30000;
 
-    private Class<?> mClazzDeviceCertProxy;
-
     private String mActivityPackageName;
 
     private boolean mEnableHardwareAcceleration = true;
@@ -128,11 +126,7 @@ public enum AuthenticationSettings {
      * @param clazz class for workplace join
      */
     public void setDeviceCertificateProxyClass(Class clazz) {
-        if (IDeviceCertificate.class.isAssignableFrom(clazz)) {
-            mClazzDeviceCertProxy = clazz;
-        } else {
-            throw new IllegalArgumentException("clazz");
-        }
+        com.microsoft.identity.common.java.AuthenticationSettings.INSTANCE.setDeviceCertificateProxyClass(clazz);
     }
 
     /**
@@ -142,7 +136,7 @@ public enum AuthenticationSettings {
      * @return Class
      */
     public Class<?> getDeviceCertificateProxy() {
-        return mClazzDeviceCertProxy;
+        return com.microsoft.identity.common.java.AuthenticationSettings.INSTANCE.getDeviceCertificateProxy();
     }
 
     /**
