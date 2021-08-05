@@ -32,13 +32,13 @@ import androidx.annotation.NonNull;
 
 import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.adal.internal.JWSBuilder;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
 import com.microsoft.identity.common.adal.internal.util.HashMapExtensions;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.java.exception.ServiceException;
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.ClientInfo;
+import com.microsoft.identity.common.java.util.JWSBuilder;
 
 import org.json.JSONException;
 import org.json.JSONObject;
