@@ -39,7 +39,7 @@ import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.google.gson.Gson;
-import com.microsoft.identity.common.AndroidCommonComponents;
+import com.microsoft.identity.common.AndroidPlatformComponents;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
 import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager;
@@ -257,7 +257,7 @@ public final class AuthenticationContextTest {
         final Context context = getInstrumentation().getContext();
 
         // Create an instance of the MSAL cache, populate it with some data
-        final AndroidCommonComponents androidCommonComponents = new AndroidCommonComponents(context);
+        final AndroidPlatformComponents androidCommonComponents = AndroidPlatformComponents.createFromContext(context);
         final IAccountCredentialCache accountCredentialCache = new SharedPreferencesAccountCredentialCache(
                 new CacheKeyValueDelegate(),
                 androidCommonComponents.getEncryptedNameValueStore(

@@ -32,25 +32,23 @@ import android.util.Base64;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import com.microsoft.identity.common.AndroidCommonComponents;
-import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager;
-import com.microsoft.identity.common.java.authscheme.BearerAuthenticationSchemeInternal;
+import com.microsoft.identity.common.AndroidPlatformComponents;
 import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
 import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
-import com.microsoft.identity.common.java.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentialAdapter;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache;
-import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
+import com.microsoft.identity.common.java.authscheme.BearerAuthenticationSchemeInternal;
+import com.microsoft.identity.common.java.cache.ICacheRecord;
 import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.common.java.dto.IdTokenRecord;
 import com.microsoft.identity.common.java.dto.RefreshTokenRecord;
-import com.microsoft.identity.common.java.interfaces.ICommonComponents;
+import com.microsoft.identity.common.java.exception.ClientException;
+import com.microsoft.identity.common.java.exception.ServiceException;
+import com.microsoft.identity.common.java.interfaces.IPlatformComponents;
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectoryCloud;
-import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.ClientInfo;
-import com.microsoft.identity.common.java.exception.ServiceException;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -169,7 +167,7 @@ public class TokenCacheAccessorTests {
     }
 
     Context mContext;
-    ICommonComponents mComponents;
+    IPlatformComponents mComponents;
     TokenCacheAccessor mTokenCacheAccessor;
 
     @Before
@@ -212,7 +210,7 @@ public class TokenCacheAccessorTests {
 
         // initialize the class under test
         mContext = new FileMockContext(getContext());
-        mComponents = new AndroidCommonComponents(mContext);
+        mComponents = AndroidPlatformComponents.createFromContext(mContext);
         final ITokenCacheStore tokenCacheStore = new DelegatingCache(mContext, new DefaultTokenCacheStore(mContext));
         mTokenCacheAccessor = new TokenCacheAccessor(
                 mContext,
@@ -367,7 +365,7 @@ public class TokenCacheAccessorTests {
         );
 
         final MsalOAuth2TokenCache msalCache =  new MsalOAuth2TokenCache(
-                new AndroidCommonComponents(mContext),
+                AndroidPlatformComponents.createFromContext(mContext),
                 accountCredentialCache,
                 new MicrosoftStsAccountCredentialAdapter()
         );
