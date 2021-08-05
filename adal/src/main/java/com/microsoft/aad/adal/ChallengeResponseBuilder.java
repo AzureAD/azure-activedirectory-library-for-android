@@ -24,7 +24,9 @@
 package com.microsoft.aad.adal;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.java.challengehandlers.IDeviceCertificate;
 import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.exception.ErrorStrings;
 import com.microsoft.identity.common.java.util.JWSBuilder;
