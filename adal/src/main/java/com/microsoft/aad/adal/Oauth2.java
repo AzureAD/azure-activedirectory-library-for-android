@@ -32,13 +32,14 @@ import androidx.annotation.NonNull;
 
 import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.adal.internal.JWSBuilder;
+
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
 import com.microsoft.identity.common.adal.internal.util.HashMapExtensions;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.java.exception.ServiceException;
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.ClientInfo;
+import com.microsoft.identity.common.java.util.JWSBuilder;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -58,7 +59,8 @@ import java.util.Map;
 import java.util.UUID;
 
 import static com.microsoft.aad.adal.TelemetryUtils.CliTelemInfo;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.HeaderField.X_MS_CLITELEM;
+import static com.microsoft.identity.common.java.AuthenticationConstants.Broker.BROKER_CLIENT_ID;
+import static com.microsoft.identity.common.java.net.HttpConstants.HeaderField.X_MS_CLITELEM;
 
 /**
  * Base Oauth class.
@@ -347,7 +349,7 @@ class Oauth2 {
 
         // sending redirect uri for the refresh token request if it's provided
         if (!StringExtensions.isNullOrBlank(mRequest.getRedirectUri())
-                && !mRequest.getClientId().equalsIgnoreCase(AuthenticationConstants.Broker.BROKER_CLIENT_ID)) {
+                && !mRequest.getClientId().equalsIgnoreCase(BROKER_CLIENT_ID)) {
             message = String.format(STRING_FORMAT_QUERY_PARAM, message, AuthenticationConstants.OAuth2.REDIRECT_URI,
                     StringExtensions.urlFormEncode(mRequest.getRedirectUri()));
         }

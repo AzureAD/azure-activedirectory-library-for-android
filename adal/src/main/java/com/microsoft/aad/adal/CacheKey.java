@@ -27,7 +27,7 @@ import androidx.annotation.NonNull;
 /**
  * CacheKey will be the object for key.
  */
-public final class CacheKey extends com.microsoft.identity.common.adal.internal.cache.CacheKey {
+public final class CacheKey extends com.microsoft.identity.common.java.adal.cache.CacheKey {
 
     /**
      * Create cachekey from {@link TokenCacheItem}. It will use {@link UserInfo#getUserId()}

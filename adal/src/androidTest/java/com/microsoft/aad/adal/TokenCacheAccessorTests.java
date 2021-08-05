@@ -23,7 +23,7 @@
 package com.microsoft.aad.adal;
 
 import static androidx.test.InstrumentationRegistry.getContext;
-import static com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
+import static com.microsoft.identity.common.java.cache.SharedPreferencesAccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
 import static org.junit.Assert.assertEquals;
 
 import android.content.Context;
@@ -32,23 +32,23 @@ import android.util.Base64;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager;
-import com.microsoft.identity.common.internal.authscheme.BearerAuthenticationSchemeInternal;
-import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
-import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
+import com.microsoft.identity.common.AndroidPlatformComponents;
+import com.microsoft.identity.common.java.cache.CacheKeyValueDelegate;
+import com.microsoft.identity.common.java.cache.IAccountCredentialCache;
+import com.microsoft.identity.common.java.cache.MicrosoftStsAccountCredentialAdapter;
+import com.microsoft.identity.common.java.cache.MsalOAuth2TokenCache;
+import com.microsoft.identity.common.java.cache.SharedPreferencesAccountCredentialCache;
+import com.microsoft.identity.common.java.authscheme.BearerAuthenticationSchemeInternal;
 import com.microsoft.identity.common.java.cache.ICacheRecord;
-import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentialAdapter;
-import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
-import com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache;
-import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.common.java.dto.IdTokenRecord;
 import com.microsoft.identity.common.java.dto.RefreshTokenRecord;
+import com.microsoft.identity.common.java.exception.ClientException;
+import com.microsoft.identity.common.java.exception.ServiceException;
+import com.microsoft.identity.common.java.interfaces.IPlatformComponents;
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectoryCloud;
-import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.ClientInfo;
-import com.microsoft.identity.common.java.exception.ServiceException;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -167,6 +167,7 @@ public class TokenCacheAccessorTests {
     }
 
     Context mContext;
+    IPlatformComponents mComponents;
     TokenCacheAccessor mTokenCacheAccessor;
 
     @Before
@@ -209,6 +210,7 @@ public class TokenCacheAccessorTests {
 
         // initialize the class under test
         mContext = new FileMockContext(getContext());
+        mComponents = AndroidPlatformComponents.createFromContext(mContext);
         final ITokenCacheStore tokenCacheStore = new DelegatingCache(mContext, new DefaultTokenCacheStore(mContext));
         mTokenCacheAccessor = new TokenCacheAccessor(
                 mContext,
@@ -355,15 +357,15 @@ public class TokenCacheAccessorTests {
         // Assert the MSAL replicated cache now contains the account & RT
         final IAccountCredentialCache accountCredentialCache = new SharedPreferencesAccountCredentialCache(
                 new CacheKeyValueDelegate(),
-                new SharedPreferencesFileManager(
-                        mContext,
+                mComponents.getEncryptedNameValueStore(
                         DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
-                        new AndroidAuthSdkStorageEncryptionManager(mContext, null)
+                        mComponents.getStorageEncryptionManager(),
+                        String.class
                 )
         );
 
         final MsalOAuth2TokenCache msalCache =  new MsalOAuth2TokenCache(
-                mContext,
+                AndroidPlatformComponents.createFromContext(mContext),
                 accountCredentialCache,
                 new MicrosoftStsAccountCredentialAdapter()
         );

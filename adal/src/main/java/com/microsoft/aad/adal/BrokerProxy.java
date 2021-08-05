@@ -22,6 +22,12 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.RT_AGE;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_ERROR;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_SUBERROR;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.SPE_RING;
+
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerFuture;
@@ -43,10 +49,15 @@ import android.text.TextUtils;
 
 import androidx.core.content.pm.PackageInfoCompat;
 
+import com.microsoft.identity.common.AndroidPlatformComponents;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
-import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
+import com.microsoft.identity.common.java.constants.OAuth2ErrorCode;
+import com.microsoft.identity.common.java.constants.OAuth2SubErrorCode;
+import com.microsoft.identity.common.java.interfaces.IPlatformComponents;
+import com.microsoft.identity.common.java.interfaces.INameValueStorage;
+import com.microsoft.identity.common.java.interfaces.IPlatformComponents;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -58,13 +69,6 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 
-import static com.microsoft.aad.adal.AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.RT_AGE;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_ERROR;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_SUBERROR;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.SPE_RING;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT;
-
 /**
  * Handles interactions to authenticator inside the Account Manager.
  */
@@ -74,6 +78,8 @@ class BrokerProxy implements IBrokerProxy {
     private static final String TAG = "BrokerProxy";
 
     private Context mContext;
+
+    private IPlatformComponents mComponents;
 
     private AccountManager mAcctManager;
 
@@ -98,6 +104,7 @@ class BrokerProxy implements IBrokerProxy {
 
     BrokerProxy(final Context ctx) {
         mContext = ctx;
+        mComponents = AndroidPlatformComponents.createFromContext(ctx);
         mAcctManager = AccountManager.get(mContext);
         mHandler = new Handler(mContext.getMainLooper());
         mBrokerValidator = new BrokerValidator(ctx);
@@ -369,7 +376,7 @@ class BrokerProxy implements IBrokerProxy {
             } catch (final AuthenticatorException e) {
                 // Error code BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN will be thrown if there was an error
                 // communicating with the authenticator or if the authenticator returned an invalid response.
-                if (!StringExtensions.isNullOrBlank(e.getMessage()) && e.getMessage().contains(INVALID_GRANT)) {
+                if (!StringExtensions.isNullOrBlank(e.getMessage()) && e.getMessage().contains(OAuth2ErrorCode.INVALID_GRANT)) {
                     Logger.e(TAG + methodName, AUTHENTICATOR_CANCELS_REQUEST,
                             "Acquire token failed with 'invalid grant' error, cannot proceed with silent request.",
                             ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
@@ -583,8 +590,8 @@ class BrokerProxy implements IBrokerProxy {
             final String suberror = responseMap.get(AuthenticationConstants.OAuth2.SUBERROR);
 
             if (!StringExtensions.isNullOrBlank(error) && !StringExtensions.isNullOrBlank(suberror) &&
-                    AuthenticationConstants.OAuth2ErrorCode.UNAUTHORIZED_CLIENT.compareTo(error) == 0 &&
-                    AuthenticationConstants.OAuth2SubErrorCode.PROTECTION_POLICY_REQUIRED.compareTo(suberror) == 0) {
+                    OAuth2ErrorCode.UNAUTHORIZED_CLIENT.compareTo(error) == 0 &&
+                    OAuth2SubErrorCode.PROTECTION_POLICY_REQUIRED.compareTo(suberror) == 0) {
 
                 final String accountUpn = bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_NAME);
                 final String accountUserId = bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID);
@@ -629,12 +636,12 @@ class BrokerProxy implements IBrokerProxy {
             return;
         }
 
-        SharedPreferencesFileManager prefs = new SharedPreferencesFileManager(mContext, KEY_SHARED_PREF_ACCOUNT_LIST);
-        String accountList = prefs.getString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL);
+        final INameValueStorage<String> prefs = mComponents.getNameValueStore(KEY_SHARED_PREF_ACCOUNT_LIST, String.class);
+        String accountList = prefs.get(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL);
         accountList = null != accountList ? accountList : "";
         if (!accountList.contains(KEY_ACCOUNT_LIST_DELIM + accountName)) {
             accountList += KEY_ACCOUNT_LIST_DELIM + accountName;
-            prefs.putString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL, accountList);
+            prefs.put(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL, accountList);
         }
     }
 

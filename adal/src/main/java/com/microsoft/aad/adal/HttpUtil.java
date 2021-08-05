@@ -24,6 +24,7 @@ package com.microsoft.aad.adal;
 
 import android.content.Context;
 
+import com.microsoft.identity.common.internal.platform.AndroidPlatformUtil;
 import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.exception.ErrorStrings;
 
@@ -35,7 +36,7 @@ class HttpUtil {
 
     static void throwIfNetworkNotAvailable(final Context context) throws AuthenticationException {
         try {
-            com.microsoft.identity.common.adal.internal.net.HttpWebRequest.throwIfNetworkNotAvailable(context, false);
+            new AndroidPlatformUtil(context, null).throwIfNetworkNotAvailable(false);
         } catch (final ClientException e) {
             final String errorCode = e.getErrorCode();
             final String errorMessage = e.getMessage();
