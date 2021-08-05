@@ -636,7 +636,7 @@ class BrokerProxy implements IBrokerProxy {
         }
 
         final INameValueStorage<String> prefs = mComponents.getNameValueStore(KEY_SHARED_PREF_ACCOUNT_LIST, String.class);
-        final String accountList = prefs.get(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL);
+        String accountList = prefs.get(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL);
         accountList = null != accountList ? accountList : "";
         if (!accountList.contains(KEY_ACCOUNT_LIST_DELIM + accountName)) {
             accountList += KEY_ACCOUNT_LIST_DELIM + accountName;
