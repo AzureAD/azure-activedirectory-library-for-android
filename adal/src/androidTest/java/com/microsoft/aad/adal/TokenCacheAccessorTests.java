@@ -45,6 +45,7 @@ import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager
 import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.common.java.dto.IdTokenRecord;
 import com.microsoft.identity.common.java.dto.RefreshTokenRecord;
+import com.microsoft.identity.common.java.interfaces.ICommonComponents;
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectoryCloud;
 import com.microsoft.identity.common.java.exception.ClientException;
@@ -168,6 +169,7 @@ public class TokenCacheAccessorTests {
     }
 
     Context mContext;
+    ICommonComponents mComponents;
     TokenCacheAccessor mTokenCacheAccessor;
 
     @Before
@@ -210,6 +212,7 @@ public class TokenCacheAccessorTests {
 
         // initialize the class under test
         mContext = new FileMockContext(getContext());
+        mComponents = new AndroidCommonComponents(mContext);
         final ITokenCacheStore tokenCacheStore = new DelegatingCache(mContext, new DefaultTokenCacheStore(mContext));
         mTokenCacheAccessor = new TokenCacheAccessor(
                 mContext,
@@ -356,10 +359,10 @@ public class TokenCacheAccessorTests {
         // Assert the MSAL replicated cache now contains the account & RT
         final IAccountCredentialCache accountCredentialCache = new SharedPreferencesAccountCredentialCache(
                 new CacheKeyValueDelegate(),
-                SharedPreferencesFileManager.getSharedPreferences(
-                        mContext,
+                mComponents.getEncryptedNameValueStore(
                         DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
-                        new AndroidAuthSdkStorageEncryptionManager(mContext, null)
+                        mComponents.getStorageEncryptionManager(),
+                        String.class
                 )
         );
 

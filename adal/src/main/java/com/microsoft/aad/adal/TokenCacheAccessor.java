@@ -112,8 +112,9 @@ class TokenCacheAccessor {
         final AndroidCommonComponents components = new AndroidCommonComponents(appContext);
         final IAccountCredentialCache accountCredentialCache = new SharedPreferencesAccountCredentialCache(
                 new CacheKeyValueDelegate(),
-                        components.getEncryptedFileStore(DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
-                        components.getStorageEncryptionManager()
+                        components.getEncryptedNameValueStore(DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
+                        components.getStorageEncryptionManager(),
+                        String.class
                 )
         );
 
