@@ -353,16 +353,6 @@ public final class AuthenticationConstants {
         public static final String RESOURCE = com.microsoft.identity.common.java.AuthenticationConstants.AAD.RESOURCE;
 
         /**
-         * AAD OAuth2 Challenge strings.
-         */
-        public static final String BEARER = com.microsoft.identity.common.java.AuthenticationConstants.AAD.BEARER;
-
-        /**
-         * AAD Oauth2 authorization.
-         */
-        public static final String AUTHORIZATION = com.microsoft.identity.common.adal.internal.AuthenticationConstants.AAD.AUTHORIZATION;
-
-        /**
          * String of authorization uri.
          */
         public static final String AUTHORIZATION_URI = com.microsoft.identity.common.adal.internal.AuthenticationConstants.AAD.AUTHORIZATION_URI;

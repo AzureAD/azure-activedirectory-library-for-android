@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import static com.microsoft.aad.adal.TelemetryUtils.CliTelemInfo;
+import static com.microsoft.identity.common.java.AuthenticationConstants.AAD.BEARER;
 
 /**
  * Result class to keep code, token and other info Serializable properties Mark
@@ -217,7 +218,7 @@ public class AuthenticationResult implements Serializable {
      * @return AuthorizationHeader
      */
     public String createAuthorizationHeader() {
-        return AuthenticationConstants.AAD.BEARER + " " + getAccessToken();
+        return BEARER + " " + getAccessToken();
     }
 
     /**
