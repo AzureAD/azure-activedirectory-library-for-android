@@ -43,10 +43,13 @@ import android.text.TextUtils;
 
 import androidx.core.content.pm.PackageInfoCompat;
 
+import com.microsoft.identity.common.AndroidPlatformComponents;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
+import com.microsoft.identity.common.java.interfaces.IPlatformComponents;
+import com.microsoft.identity.common.java.interfaces.INameValueStorage;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -75,6 +78,8 @@ class BrokerProxy implements IBrokerProxy {
 
     private Context mContext;
 
+    private IPlatformComponents mComponents;
+
     private AccountManager mAcctManager;
 
     private Handler mHandler;
@@ -98,6 +103,7 @@ class BrokerProxy implements IBrokerProxy {
 
     BrokerProxy(final Context ctx) {
         mContext = ctx;
+        mComponents = AndroidPlatformComponents.createFromContext(ctx);
         mAcctManager = AccountManager.get(mContext);
         mHandler = new Handler(mContext.getMainLooper());
         mBrokerValidator = new BrokerValidator(ctx);
@@ -629,12 +635,12 @@ class BrokerProxy implements IBrokerProxy {
             return;
         }
 
-        SharedPreferencesFileManager prefs = new SharedPreferencesFileManager(mContext, KEY_SHARED_PREF_ACCOUNT_LIST);
-        String accountList = prefs.getString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL);
+        final INameValueStorage<String> prefs = mComponents.getNameValueStore(KEY_SHARED_PREF_ACCOUNT_LIST, String.class);
+        String accountList = prefs.get(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL);
         accountList = null != accountList ? accountList : "";
         if (!accountList.contains(KEY_ACCOUNT_LIST_DELIM + accountName)) {
             accountList += KEY_ACCOUNT_LIST_DELIM + accountName;
-            prefs.putString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL, accountList);
+            prefs.put(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL, accountList);
         }
     }
 
