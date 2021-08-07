@@ -1,5 +1,6 @@
 v.Next
 ----------
+- [MAJOR] Migrate Token Caches to Common4j (#1633)
 - [MINOR] Adapt to migration of shared preferences. (#1624)
 - [PATCH] Adds API23 WebViewClient#onReceivedError overload (#1580)
 - [PATCH] Fixes for MFA setup using Authenticator app.(#1579)
