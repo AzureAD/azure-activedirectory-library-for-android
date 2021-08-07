@@ -360,7 +360,7 @@ public final class AuthenticationConstants {
         /**
          * AAD Oauth2 authorization.
          */
-        public static final String AUTHORIZATION = com.microsoft.identity.common.adal.internal.AuthenticationConstants.AAD.AUTHORIZATION;
+        public static final String AUTHORIZATION = com.microsoft.identity.common.java.AuthenticationConstants.AAD.AUTHORIZATION;
 
         /**
          * String of authorization uri.
