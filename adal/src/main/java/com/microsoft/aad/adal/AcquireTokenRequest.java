@@ -23,7 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -37,12 +36,10 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.core.content.pm.PackageInfoCompat;
 
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.java.providers.microsoft.MicrosoftAuthorizationErrorResponse;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryCloud;
-import com.microsoft.identity.common.java.providers.microsoft.MicrosoftAuthorizationErrorResponse;
+import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
+import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectoryCloud;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -53,6 +50,12 @@ import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.BROKER_HOST_APP_PACKAGE_NAME;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.BROKER_REDIRECT_URI;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
+import static com.microsoft.identity.common.java.AuthenticationConstants.UIRequest.BROWSER_FLOW;
 
 /**
  * Internal class for handling acquireToken logic, including the silent flow and interactive flow.
@@ -505,19 +508,19 @@ class AcquireTokenRequest {
         long brokerHostVersionCode = Integer.MAX_VALUE;
 
         try {
-            final PackageInfo authPackageInfo = packageManager.getPackageInfo(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, 0);
+            final PackageInfo authPackageInfo = packageManager.getPackageInfo(AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, 0);
             authVersionCode = PackageInfoCompat.getLongVersionCode(authPackageInfo);
         } catch (final PackageManager.NameNotFoundException ignored) {
         }
 
         try {
-            final PackageInfo cpPackageInfo = packageManager.getPackageInfo(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME, 0);
+            final PackageInfo cpPackageInfo = packageManager.getPackageInfo(COMPANY_PORTAL_APP_PACKAGE_NAME, 0);
             cpVersionCode = PackageInfoCompat.getLongVersionCode(cpPackageInfo);
         } catch (final PackageManager.NameNotFoundException ignored) {
         }
 
         try {
-            final PackageInfo brokerHostPackageInfo = packageManager.getPackageInfo(AuthenticationConstants.Broker.BROKER_HOST_APP_PACKAGE_NAME, 0);
+            final PackageInfo brokerHostPackageInfo = packageManager.getPackageInfo(BROKER_HOST_APP_PACKAGE_NAME, 0);
             brokerHostVersionCode = PackageInfoCompat.getLongVersionCode(brokerHostPackageInfo);
         } catch (final PackageManager.NameNotFoundException ignored) {
         }
@@ -738,7 +741,7 @@ class AcquireTokenRequest {
             throw new UsageAuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, "The redirectUri is null or blank.");
         }
 
-        if (inputUri.equalsIgnoreCase(AuthenticationConstants.Broker.BROKER_REDIRECT_URI)) {
+        if (inputUri.equalsIgnoreCase(BROKER_REDIRECT_URI)) {
             // TODO: Clean this up once we migrate all Logger functions to the common one.
             com.microsoft.identity.common.internal.logging.Logger.info(TAG + methodName, "This is a broker redirectUri. Bypass the check.");
             return;
@@ -809,7 +812,7 @@ class AcquireTokenRequest {
         // This is called at UI thread when Activity sets result back.
         // ResultCode is set back from AuthenticationActivity. RequestCode is
         // set when we start the activity for result.
-        if (requestCode == AuthenticationConstants.UIRequest.BROWSER_FLOW) {
+        if (requestCode == BROWSER_FLOW) {
             getHandler();
 
             if (data == null || data.getExtras() == null) {
