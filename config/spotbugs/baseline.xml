@@ -95,18 +95,18 @@
   </BugInstance>
   <BugInstance type="NM_SAME_SIMPLE_NAME_AS_SUPERCLASS" priority="1" rank="14" abbrev="Nm" category="BAD_PRACTICE" instanceHash="7e01418fa750617a1deee11b366b5dea" instanceOccurrenceNum="0" instanceOccurrenceMax="0">
     <ShortMessage>Class names shouldn&apos;t shadow simple name of superclass</ShortMessage>
-    <LongMessage>The class name com.microsoft.aad.adal.CacheKey shadows the simple name of the superclass com.microsoft.identity.common.adal.internal.cache.CacheKey</LongMessage>
+    <LongMessage>The class name com.microsoft.aad.adal.CacheKey shadows the simple name of the superclass com.microsoft.identity.common.java.adal.cache.CacheKey</LongMessage>
     <Class classname="com.microsoft.aad.adal.CacheKey" primary="true">
       <SourceLine classname="com.microsoft.aad.adal.CacheKey" start="30" end="74" sourcefile="CacheKey.java" sourcepath="com/microsoft/aad/adal/CacheKey.java">
         <Message>At CacheKey.java:[lines 30-74]</Message>
       </SourceLine>
       <Message>In class com.microsoft.aad.adal.CacheKey</Message>
     </Class>
-    <Class classname="com.microsoft.identity.common.adal.internal.cache.CacheKey">
-      <SourceLine classname="com.microsoft.identity.common.adal.internal.cache.CacheKey" start="54" end="243" sourcefile="CacheKey.java" sourcepath="com/microsoft/identity/common/adal/internal/cache/CacheKey.java">
+    <Class classname="com.microsoft.identity.common.java.adal.cache.CacheKey">
+      <SourceLine classname="com.microsoft.identity.common.java.adal.cache.CacheKey" start="54" end="243" sourcefile="CacheKey.java" sourcepath="com/microsoft/identity/common/adal/internal/cache/CacheKey.java">
         <Message>At CacheKey.java:[lines 54-243]</Message>
       </SourceLine>
-      <Message>In class com.microsoft.identity.common.adal.internal.cache.CacheKey</Message>
+      <Message>In class com.microsoft.identity.common.java.adal.cache.CacheKey</Message>
     </Class>
     <SourceLine classname="com.microsoft.aad.adal.CacheKey" start="30" end="74" sourcefile="CacheKey.java" sourcepath="com/microsoft/aad/adal/CacheKey.java" synthetic="true">
       <Message>At CacheKey.java:[lines 30-74]</Message>

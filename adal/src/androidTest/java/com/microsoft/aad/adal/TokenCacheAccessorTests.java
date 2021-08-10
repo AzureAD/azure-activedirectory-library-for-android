@@ -23,7 +23,7 @@
 package com.microsoft.aad.adal;
 
 import static androidx.test.InstrumentationRegistry.getContext;
-import static com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
+import static com.microsoft.identity.common.java.cache.SharedPreferencesAccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
 import static org.junit.Assert.assertEquals;
 
 import android.content.Context;
@@ -33,11 +33,11 @@ import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.microsoft.identity.common.AndroidPlatformComponents;
-import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
-import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
-import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentialAdapter;
-import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
-import com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache;
+import com.microsoft.identity.common.java.cache.CacheKeyValueDelegate;
+import com.microsoft.identity.common.java.cache.IAccountCredentialCache;
+import com.microsoft.identity.common.java.cache.MicrosoftStsAccountCredentialAdapter;
+import com.microsoft.identity.common.java.cache.MsalOAuth2TokenCache;
+import com.microsoft.identity.common.java.cache.SharedPreferencesAccountCredentialCache;
 import com.microsoft.identity.common.java.authscheme.BearerAuthenticationSchemeInternal;
 import com.microsoft.identity.common.java.cache.ICacheRecord;
 import com.microsoft.identity.common.java.dto.AccountRecord;
