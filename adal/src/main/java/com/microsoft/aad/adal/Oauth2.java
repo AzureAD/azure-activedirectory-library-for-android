@@ -59,8 +59,8 @@ import java.util.Map;
 import java.util.UUID;
 
 import static com.microsoft.aad.adal.TelemetryUtils.CliTelemInfo;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.HeaderField.X_MS_CLITELEM;
 import static com.microsoft.identity.common.java.AuthenticationConstants.Broker.BROKER_CLIENT_ID;
+import static com.microsoft.identity.common.java.net.HttpConstants.HeaderField.X_MS_CLITELEM;
 
 /**
  * Base Oauth class.
