@@ -1,10 +1,10 @@
-# File: azure-pipelines\build-broker-host.yml
+# File: azure-pipelines\test-app\broker-host.yml
 # Description: Generate BrokerHost APK
 # use <project>_branch variables to build the Local version
 # use <project>_version variables to build the Dist version
 # Variable '[adal, common, msal, ad_accounts]_branch' was defined in the Variables tab
 # Variable '[adal, common, msal, ad_accounts]_version' was defined in the Variables tab
-# Variable: 'ENV_VSTS_MVN_ANDROID_MSAL_USERNAME' was defined in the Variables tab
+# Variable: 'ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN' was defined in the Variables tab
 # Variable: 'mvnAccessToken' was defined in the Variables tab
 # https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate
 name: $(date:yyyyMMdd)$(rev:.r)

@@ -88,8 +88,8 @@ project(':LinuxBroker').projectDir = new File('broker/LinuxBroker')
 include(':LabApiUtilities')
 project(':LabApiUtilities').projectDir = new File('common/LabApiUtilities')
 
-//include(":AzureSample")
-//project(':AzureSample').projectDir = new File('azuresample/app')
+include(":AzureSample")
+project(':AzureSample').projectDir = new File('azuresample/app')
 
 //include(":tsl")
 //project(':tsl').projectDir = new File('tsl/tokenshare')
