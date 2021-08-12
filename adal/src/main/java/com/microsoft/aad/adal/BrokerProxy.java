@@ -47,7 +47,6 @@ import com.microsoft.identity.common.AndroidPlatformComponents;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
-import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.java.interfaces.IPlatformComponents;
 import com.microsoft.identity.common.java.interfaces.INameValueStorage;
 
@@ -66,7 +65,7 @@ import static com.microsoft.identity.common.adal.internal.AuthenticationConstant
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_ERROR;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_SUBERROR;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.SPE_RING;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT;
+import static com.microsoft.identity.common.java.AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT;
 
 /**
  * Handles interactions to authenticator inside the Account Manager.
@@ -589,8 +588,8 @@ class BrokerProxy implements IBrokerProxy {
             final String suberror = responseMap.get(AuthenticationConstants.OAuth2.SUBERROR);
 
             if (!StringExtensions.isNullOrBlank(error) && !StringExtensions.isNullOrBlank(suberror) &&
-                    AuthenticationConstants.OAuth2ErrorCode.UNAUTHORIZED_CLIENT.compareTo(error) == 0 &&
-                    AuthenticationConstants.OAuth2SubErrorCode.PROTECTION_POLICY_REQUIRED.compareTo(suberror) == 0) {
+                    com.microsoft.identity.common.java.AuthenticationConstants.OAuth2ErrorCode.UNAUTHORIZED_CLIENT.compareTo(error) == 0 &&
+                    com.microsoft.identity.common.java.AuthenticationConstants.OAuth2SubErrorCode.PROTECTION_POLICY_REQUIRED.compareTo(suberror) == 0) {
 
                 final String accountUpn = bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_NAME);
                 final String accountUserId = bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID);

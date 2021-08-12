@@ -792,7 +792,7 @@ public final class AuthenticationConstants {
         /**
          * Oauth2 error code invalid_grant.
          */
-        static final String INVALID_GRANT = com.microsoft.identity.common.adal.internal.AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT;
+        static final String INVALID_GRANT = com.microsoft.identity.common.java.AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT;
     }
 
     /**
