@@ -55,6 +55,7 @@ import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.java.constants.OAuth2ErrorCode;
 import com.microsoft.identity.common.java.constants.OAuth2SubErrorCode;
+import com.microsoft.identity.common.java.interfaces.IPlatformComponents;
 import com.microsoft.identity.common.java.interfaces.INameValueStorage;
 import com.microsoft.identity.common.java.interfaces.IPlatformComponents;
 

@@ -28,9 +28,9 @@ import androidx.annotation.NonNull;
 
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
 import com.microsoft.identity.common.AndroidPlatformComponents;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.cache.ADALOAuth2TokenCache;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.java.AuthenticationConstants;
 import com.microsoft.identity.common.java.cache.CacheKeyValueDelegate;
 import com.microsoft.identity.common.java.cache.IAccountCredentialCache;
 import com.microsoft.identity.common.java.cache.IShareSingleSignOnState;
