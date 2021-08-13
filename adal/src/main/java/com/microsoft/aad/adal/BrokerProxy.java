@@ -22,6 +22,12 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.RT_AGE;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_ERROR;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_SUBERROR;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.SPE_RING;
+
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerFuture;
@@ -47,8 +53,11 @@ import com.microsoft.identity.common.AndroidPlatformComponents;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
+import com.microsoft.identity.common.java.constants.OAuth2ErrorCode;
+import com.microsoft.identity.common.java.constants.OAuth2SubErrorCode;
 import com.microsoft.identity.common.java.interfaces.IPlatformComponents;
 import com.microsoft.identity.common.java.interfaces.INameValueStorage;
+import com.microsoft.identity.common.java.interfaces.IPlatformComponents;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -59,13 +68,6 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
-
-import static com.microsoft.aad.adal.AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.RT_AGE;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_ERROR;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_SUBERROR;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.SPE_RING;
-import static com.microsoft.identity.common.java.AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT;
 
 /**
  * Handles interactions to authenticator inside the Account Manager.
@@ -374,7 +376,7 @@ class BrokerProxy implements IBrokerProxy {
             } catch (final AuthenticatorException e) {
                 // Error code BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN will be thrown if there was an error
                 // communicating with the authenticator or if the authenticator returned an invalid response.
-                if (!StringExtensions.isNullOrBlank(e.getMessage()) && e.getMessage().contains(INVALID_GRANT)) {
+                if (!StringExtensions.isNullOrBlank(e.getMessage()) && e.getMessage().contains(OAuth2ErrorCode.INVALID_GRANT)) {
                     Logger.e(TAG + methodName, AUTHENTICATOR_CANCELS_REQUEST,
                             "Acquire token failed with 'invalid grant' error, cannot proceed with silent request.",
                             ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
@@ -588,8 +590,8 @@ class BrokerProxy implements IBrokerProxy {
             final String suberror = responseMap.get(AuthenticationConstants.OAuth2.SUBERROR);
 
             if (!StringExtensions.isNullOrBlank(error) && !StringExtensions.isNullOrBlank(suberror) &&
-                    com.microsoft.identity.common.java.AuthenticationConstants.OAuth2ErrorCode.UNAUTHORIZED_CLIENT.compareTo(error) == 0 &&
-                    com.microsoft.identity.common.java.AuthenticationConstants.OAuth2SubErrorCode.PROTECTION_POLICY_REQUIRED.compareTo(suberror) == 0) {
+                    OAuth2ErrorCode.UNAUTHORIZED_CLIENT.compareTo(error) == 0 &&
+                    OAuth2SubErrorCode.PROTECTION_POLICY_REQUIRED.compareTo(suberror) == 0) {
 
                 final String accountUpn = bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_NAME);
                 final String accountUserId = bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID);

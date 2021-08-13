@@ -37,6 +37,7 @@ import com.microsoft.identity.common.java.cache.IShareSingleSignOnState;
 import com.microsoft.identity.common.java.cache.MicrosoftStsAccountCredentialAdapter;
 import com.microsoft.identity.common.java.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.java.cache.SharedPreferencesAccountCredentialCache;
+import com.microsoft.identity.common.java.constants.OAuth2ErrorCode;
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectoryOAuth2Strategy;
 import com.microsoft.identity.common.java.exception.ClientException;
@@ -303,7 +304,7 @@ class TokenCacheAccessor {
             } catch (ClientException e) {
                 throw ADALError.fromCommon(e);
             }
-        } else if (AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT.equalsIgnoreCase(result.getErrorCode())) {
+        } else if (OAuth2ErrorCode.INVALID_GRANT.equalsIgnoreCase(result.getErrorCode())) {
             // remove Item if oauth2_error is invalid_grant
             Logger.v(TAG + methodName, "Received INVALID_GRANT error code, remove existing cache entry.");
             removeTokenCacheItem(cachedItem, request.getResource());

@@ -784,41 +784,4 @@ public final class AuthenticationConstants {
             public static final String SPE_RING = com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.CliTelemInfo.SPE_RING;
         }
     }
-
-    /**
-     * Represents the oauth2 error code.
-     */
-    protected static final class OAuth2ErrorCode {
-        /**
-         * Oauth2 error code invalid_grant.
-         */
-        static final String INVALID_GRANT = com.microsoft.identity.common.java.AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT;
-    }
-
-    /**
-     * HTTP header fields.
-     */
-    static final class HeaderField {
-
-        /**
-         * @see <a href="https://tools.ietf.org/html/rfc1945#appendix-D.2.1">RFC-1945</a>
-         */
-        static final String ACCEPT = com.microsoft.identity.common.adal.internal.AuthenticationConstants.HeaderField.ACCEPT;
-
-        /**
-         * Header used to track SPE Ring for telemetry.
-         */
-        static final String X_MS_CLITELEM = com.microsoft.identity.common.adal.internal.AuthenticationConstants.HeaderField.X_MS_CLITELEM;
-    }
-
-    /**
-     * Identifiers for file formats and format contents.
-     */
-    static final class MediaType {
-
-        /**
-         * @see <a href="https://tools.ietf.org/html/rfc7159">RFC-7159</a>
-         */
-        static final String APPLICATION_JSON = com.microsoft.identity.common.adal.internal.AuthenticationConstants.MediaType.APPLICATION_JSON;
-    }
 }
