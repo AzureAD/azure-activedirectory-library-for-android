@@ -1,10 +1,10 @@
-# File: azure-pipelines\test-app\broker-host.yml
-# Description: Generate BrokerHost APK
+# File: azure-pipelines\test-app\adal.yml
+# Description: Generate ADAL test app APK
 # use branch_<project> variables to build the Local version
 # use version_<project> variables to build the Dist version
-# Variable 'branch_[adal, common, msal, ad_accounts]' was defined in the Variables tab
-# Variable 'version_[adal, common, msal, ad_accounts]' was defined in the Variables tab
-# Variable: 'ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN' was defined in the Variables tab
+# Variable 'branch_[adal, common]' was defined in the Variables tab
+# Variable 'version_[adal, common]' was defined in the Variables tab
+# Variable: 'ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN' was defined in the Variables tab
 # Variable: 'mvnAccessToken' was defined in the Variables tab
 # https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate
 name: $(date:yyyyMMdd)$(rev:.r)
@@ -35,25 +35,15 @@ resources:
     name: AzureAD/microsoft-authentication-library-common-for-android
     ref: $(branch_common)
     endpoint: ANDROID_GITHUB
-  - repository: msal
-    type: github
-    name: AzureAD/microsoft-authentication-library-for-android
-    ref: $(branch_msal)
-    endpoint: ANDROID_GITHUB
   - repository: adal
     type: github
     name: AzureAD/azure-activedirectory-library-for-android
     ref: $(branch_adal)
     endpoint: ANDROID_GITHUB
-  - repository: broker
-    type: github
-    name: AzureAD/ad-accounts-for-android
-    ref: $(branch_ad_accounts)
-    endpoint: ANDROID_GITHUB
 
 jobs:
-- job: brokerhost
-  displayName: Build BrokerHost ${{ parameters.productFlavors }} ${{ parameters.signingConfigurations }} APK
+- job: adal-test-app
+  displayName: Build ADAL Test App ${{ parameters.productFlavors }} ${{ parameters.signingConfigurations }} APK
   pool:
     name: Hosted Windows 2019 with VS2019
   steps:
@@ -63,18 +53,9 @@ jobs:
   - checkout: common
     clean: true
     path: android-complete/common
-  - checkout: msal
-    clean: true
-    submodules: true
-    path: android-complete/msal
   - checkout: adal
     clean: true
-    submodules: true
     path: android-complete/adal
-  - checkout: broker
-    clean: true
-    submodules: true
-    path: android-complete/broker
   - ${{ if eq(parameters.productFlavors, 'Dist') }}:
     - task: PowerShell@2
       displayName: Generate Assemble Dist Task
@@ -83,16 +64,10 @@ jobs:
         script: |
           $assembleTask = "assembleDist${{ parameters.signingConfigurations }}"
           if (("$(version_common)" -ne "")) {
-              $assembleTask = $assembleTask + " -PcommonVersion=" + "$(version_common)"
-          }
-          if (("$(version_ad_accounts)" -ne "")) {
-              $assembleTask = $assembleTask + " -PadAccountsVersion=" + "$(version_ad_accounts)"
+              $assembleTask = $assembleTask + " -PdistCommonVersion=" + "$(version_common)"
           }
           if (("$(version_adal)" -ne "")) {
-              $assembleTask = $assembleTask + " -PadalVersion=" + "$(version_adal)"
-          }
-          if (("$(version_msal)" -ne "")) {
-              $assembleTask = $assembleTask + " -PmsalVersion=" + "$(version_msal)"
+              $assembleTask = $assembleTask + " -PdistAdalVersion=" + "$(version_adal)"
           }
           Write-Host "##vso[task.setvariable variable=AssembleTask;]$assembleTask"
   - ${{ if eq(parameters.productFlavors, 'Local') }}:
@@ -102,21 +77,19 @@ jobs:
     displayName: Set MVN AccessToken in Environment
     inputs:
       filename: echo
-      arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN]$(mvnAccessToken)'
+      arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN]$(mvnAccessToken)'
   - task: Gradle@1
     name: Gradle1
-    displayName: Assemble BrokerHost
+    displayName: Assemble adalTestApp
     inputs:
-      tasks: brokerHost:clean brokerHost:$(AssembleTask)
+      tasks: adalTestApp:clean adalTestApp:$(AssembleTask)
       publishJUnitResults: false
       jdkArchitecture: x86
       sqAnalysisBreakBuildIfQualityGateFailed: false
-      gradleWrapperFile: $(Agent.BuildDirectory)/android-complete/gradlew
-      cwd: $(Agent.BuildDirectory)/android-complete
   - task: PublishPipelineArtifact@1
-    displayName: Publish Broker Host APK
+    displayName: Publish Adal Host APK
     inputs:
-      targetPath: C:/temp/android_auth/brokerHost/outputs/apk/${{ lower(parameters.productFlavors) }}/${{ lower(parameters.signingConfigurations) }}
-      artifactName: BrokerHost
+      targetPath: C:/temp/android_auth/adalTestApp/outputs/apk/${{ lower(parameters.productFlavors) }}/${{ lower(parameters.signingConfigurations) }}
+      artifactName: adalTestApp
       patterns: '**/*.apk'
 ...
