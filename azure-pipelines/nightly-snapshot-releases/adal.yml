@@ -6,6 +6,23 @@ name: $(date:yyyyMMdd)$(rev:.r)
 trigger: none
 pr: none
 
+parameters:
+- name: productFlavors
+  displayName: Product Flavor
+  type: string
+  default: Snapshot
+  values:
+  - Local
+  - Dist
+  - Snapshot
+- name: signingConfigurations
+  displayName: Signing Configuration
+  type: string
+  default: Debug
+  values:
+  - Debug
+  - Release
+
 resources:
  repositories:
  - repository: common
@@ -22,7 +39,8 @@ jobs:
   steps:
   - template: azure-pipelines/templates/steps/nightly-snapshot-releases/assemble-publish.yml@common
     parameters:
-      versionVariant: Snapshot
-      assembleVariant: Snapshot
+      versionVariant: Snapshot # Only option avalible
+      assembleVariant: ${{ parameters.productFlavors }}${{ parameters.signingConfigurations }}
+      testVariant: ${{ parameters.productFlavors }}${{ parameters.signingConfigurations}}UnitTest
       project: adal
       envVstsMvnAt: ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN
