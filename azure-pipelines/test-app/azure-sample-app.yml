@@ -76,7 +76,7 @@ jobs:
     displayName: Set MVN AccessToken in Environment
     inputs:
       filename: echo
-      arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN]$(mvnAccessToken)'
+      arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADAL_USERNAME]$(mvnAccessToken)'
   - task: Gradle@1
     name: Gradle1
     displayName: Assemble Azure Sample
