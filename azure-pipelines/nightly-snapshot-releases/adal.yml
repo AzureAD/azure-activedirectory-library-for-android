@@ -28,7 +28,7 @@ resources:
  - repository: common
    type: github
    name: AzureAD/microsoft-authentication-library-common-for-android
-   ref: dev
+   ref: pedroro/pipes
    endpoint: ANDROID_GITHUB
 
 jobs:
