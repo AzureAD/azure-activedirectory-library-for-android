@@ -65,6 +65,11 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import static androidx.test.InstrumentationRegistry.getInstrumentation;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION;
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL;
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR;
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
@@ -186,12 +191,12 @@ public class AuthenticationActivityUnitTest {
                 int.class, Intent.class);
 
         // call null intent
-        returnToCaller.invoke(mActivityRule.getActivity(), AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL,
+        returnToCaller.invoke(mActivityRule.getActivity(), BROWSER_CODE_CANCEL,
                 null);
         assertTrue(mActivityRule.getActivity().isFinishing());
 
         // verify result code that includes requestid
-        Intent data = assertFinishCalledWithResult(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL);
+        Intent data = assertFinishCalledWithResult(BROWSER_CODE_CANCEL);
         assertEquals(TEST_REQUEST_ID,
                 data.getIntExtra(AuthenticationConstants.Browser.REQUEST_ID, 0));
     }
@@ -239,7 +244,7 @@ public class AuthenticationActivityUnitTest {
             counter++;
         }
 
-        Intent data = assertFinishCalledWithResult(AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION);
+        Intent data = assertFinishCalledWithResult(BROWSER_CODE_AUTHENTICATION_EXCEPTION);
         Serializable serialazable = data
                 .getSerializableExtra(AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION);
         AuthenticationException exception = (AuthenticationException) serialazable;
@@ -337,8 +342,8 @@ public class AuthenticationActivityUnitTest {
                 Class.forName("com.microsoft.aad.adal.AuthenticationActivity$TokenTaskResult"));
         AccountManager mockAct = mock(AccountManager.class);
         Account userAccount = new Account(username,
-                AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-        when(mockAct.getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE))
+                BROKER_ACCOUNT_TYPE);
+        when(mockAct.getAccountsByType(BROKER_ACCOUNT_TYPE))
                 .thenReturn(new Account[]{
                         userAccount
                 });
@@ -354,7 +359,7 @@ public class AuthenticationActivityUnitTest {
         executePostResult.invoke(tokenTask, result);
 
         // Verification from returned intent data
-        Intent data = assertFinishCalledWithResult(AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE);
+        Intent data = assertFinishCalledWithResult(TOKEN_BROKER_RESPONSE);
         assertEquals("token is same in the result", "TokentestBroker",
                 data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN));
         assertEquals("Name is same in the result", "admin@aaltests.onmicrosoft.com",
@@ -390,7 +395,7 @@ public class AuthenticationActivityUnitTest {
         Method executePostResult = ReflectionUtils.getTestMethod(tokenTask, "onPostExecute",
                 Class.forName("com.microsoft.aad.adal.AuthenticationActivity$TokenTaskResult"));
         AccountManager mockAct = mock(AccountManager.class);
-        when(mockAct.getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE))
+        when(mockAct.getAccountsByType(BROKER_ACCOUNT_TYPE))
                 .thenReturn(new Account[]{});
         ReflectionUtils.setFieldValue(tokenTask, "mRequest", authRequest);
         ReflectionUtils.setFieldValue(tokenTask, "mPackageName", "testpackagename");
@@ -404,7 +409,7 @@ public class AuthenticationActivityUnitTest {
         executePostResult.invoke(tokenTask, result);
 
         // Verification from returned intent data
-        Intent data = assertFinishCalledWithResult(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR);
+        Intent data = assertFinishCalledWithResult(BROWSER_CODE_ERROR);
         assertTrue("Returns error about user",
                 data.getStringExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE)
                         .contains(ADALError.BROKER_SINGLE_USER_EXPECTED.getDescription()));
@@ -441,11 +446,11 @@ public class AuthenticationActivityUnitTest {
         ).thenReturn("test");
 
         Account userAccount = new Account(username,
-                AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+                BROKER_ACCOUNT_TYPE);
 
         when(
                 mockAct.getAccountsByType(
-                        AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE)
+                        BROKER_ACCOUNT_TYPE)
         ).thenReturn(new Account[]{userAccount});
 
         ReflectionUtils.setFieldValue(tokenTask, "mRequest", authRequest);
@@ -460,7 +465,7 @@ public class AuthenticationActivityUnitTest {
         executePostResult.invoke(tokenTask, result);
 
         // Verification from returned intent data
-        Intent data = assertFinishCalledWithResult(AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE);
+        Intent data = assertFinishCalledWithResult(TOKEN_BROKER_RESPONSE);
         final int numerOfCalls = 8;
         verify(mockAct, times(numerOfCalls)).setUserData(any(Account.class), Mockito.nullable(String.class), Mockito.nullable(String.class));
     }
@@ -524,7 +529,7 @@ public class AuthenticationActivityUnitTest {
         assertTrue(mActivityRule.getActivity().isFinishing());
 
         // verify result code that includes requestid
-        Intent data = assertFinishCalledWithResult(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL);
+        Intent data = assertFinishCalledWithResult(BROWSER_CODE_CANCEL);
         assertEquals(TEST_REQUEST_ID,
                 data.getIntExtra(AuthenticationConstants.Browser.REQUEST_ID, 0));
     }
@@ -556,7 +561,7 @@ public class AuthenticationActivityUnitTest {
         assertTrue(mActivityRule.getActivity().isFinishing());
 
         // verify result code
-        Intent data = assertFinishCalledWithResult(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR);
+        Intent data = assertFinishCalledWithResult(BROWSER_CODE_ERROR);
         assertEquals(AuthenticationConstants.Browser.WEBVIEW_INVALID_REQUEST,
                 data.getStringExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE));
     }

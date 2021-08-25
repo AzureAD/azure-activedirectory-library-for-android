@@ -23,11 +23,10 @@
 
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
-import com.microsoft.identity.common.adal.internal.util.DateExtensions;
+import com.microsoft.identity.common.java.util.DateExtensions;
 import com.microsoft.identity.common.adal.internal.util.HashMapExtensions;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.ClientInfo;
+import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.ClientInfo;
 
 import org.json.JSONException;
 
@@ -37,6 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import static com.microsoft.aad.adal.TelemetryUtils.CliTelemInfo;
+import static com.microsoft.identity.common.java.AuthenticationConstants.AAD.BEARER;
 
 /**
  * Result class to keep code, token and other info Serializable properties Mark
@@ -217,7 +217,7 @@ public class AuthenticationResult implements Serializable {
      * @return AuthorizationHeader
      */
     public String createAuthorizationHeader() {
-        return AuthenticationConstants.AAD.BEARER + " " + getAccessToken();
+        return BEARER + " " + getAccessToken();
     }
 
     /**

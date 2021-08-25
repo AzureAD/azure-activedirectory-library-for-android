@@ -34,6 +34,7 @@ import com.google.gson.JsonSyntaxException;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
+import com.microsoft.identity.common.java.adal.cache.DateTimeAdapter;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -102,7 +103,11 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
             }
         }
 
-        mPrefs = new SharedPreferencesFileManager(mContext, SHARED_PREFERENCE_NAME);
+        mPrefs = SharedPreferencesFileManager.getSharedPreferences(
+                mContext,
+                SHARED_PREFERENCE_NAME,
+                null
+        );
 
         // Check upfront when initializing DefaultTokenCacheStore. 
         // If it's under API 18 and secretkey is not provided, we should fail upfront to inform 

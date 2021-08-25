@@ -94,7 +94,7 @@ public class JwsBuilderTests extends AndroidTestHelper {
     private Object getInstance() throws ClassNotFoundException, InstantiationException,
             IllegalAccessException, IllegalArgumentException, InvocationTargetException,
             NoSuchMethodException {
-        final Class clazz = Class.forName("com.microsoft.identity.common.adal.internal.JWSBuilder");
+        final Class clazz = Class.forName("com.microsoft.identity.common.java.util.JWSBuilder");
         final Constructor<?> constructorParams = clazz.getDeclaredConstructor();
         constructorParams.setAccessible(true);
         return constructorParams.newInstance();

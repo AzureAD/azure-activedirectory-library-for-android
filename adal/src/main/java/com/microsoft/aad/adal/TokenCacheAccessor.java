@@ -27,24 +27,25 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
+import com.microsoft.identity.common.AndroidPlatformComponents;
+import com.microsoft.identity.common.adal.internal.cache.ADALOAuth2TokenCache;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-import com.microsoft.identity.common.internal.cache.ADALOAuth2TokenCache;
-import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
-import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
-import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
-import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentialAdapter;
-import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
-import com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache;
-import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
-import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
-import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryAuthorizationRequest;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryOAuth2Configuration;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryOAuth2Strategy;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryTokenResponse;
+import com.microsoft.identity.common.java.AuthenticationConstants;
+import com.microsoft.identity.common.java.cache.CacheKeyValueDelegate;
+import com.microsoft.identity.common.java.cache.IAccountCredentialCache;
+import com.microsoft.identity.common.java.cache.IShareSingleSignOnState;
+import com.microsoft.identity.common.java.cache.MicrosoftStsAccountCredentialAdapter;
+import com.microsoft.identity.common.java.cache.MsalOAuth2TokenCache;
+import com.microsoft.identity.common.java.cache.SharedPreferencesAccountCredentialCache;
+import com.microsoft.identity.common.java.constants.OAuth2ErrorCode;
+import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
+import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectoryOAuth2Strategy;
+import com.microsoft.identity.common.java.exception.ClientException;
+import com.microsoft.identity.common.java.providers.microsoft.MicrosoftAccount;
+import com.microsoft.identity.common.java.providers.microsoft.MicrosoftRefreshToken;
+import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectoryAuthorizationRequest;
+import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectoryOAuth2Configuration;
+import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectoryTokenResponse;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -55,7 +56,7 @@ import java.util.List;
 import static com.microsoft.aad.adal.TokenEntryType.FRT_TOKEN_ENTRY;
 import static com.microsoft.aad.adal.TokenEntryType.MRRT_TOKEN_ENTRY;
 import static com.microsoft.aad.adal.TokenEntryType.REGULAR_TOKEN_ENTRY;
-import static com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
+import static com.microsoft.identity.common.java.cache.SharedPreferencesAccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
 
 /**
  * Internal class handling the interaction with {@link AcquireTokenSilentHandler} and {@link ITokenCacheStore}.
@@ -63,10 +64,9 @@ import static com.microsoft.identity.common.internal.cache.SharedPreferencesAcco
 class TokenCacheAccessor {
     private static final String TAG = TokenCacheAccessor.class.getSimpleName();
 
+    private final Context mContext;
     private final ITokenCacheStore mTokenCacheStore;
-
     private String mAuthority; // Remove final to update the authority when preferred cache location is not the same as passed in authority
-
     private final String mTelemetryRequestId;
     private boolean mUseCommonCache = false;
     private ADALOAuth2TokenCache mCommonCache = null;
@@ -85,6 +85,7 @@ class TokenCacheAccessor {
             throw new IllegalArgumentException("requestId");
         }
 
+        mContext = appContext;
         mTokenCacheStore = tokenCacheStore;
         mAuthority = authority;
         mTelemetryRequestId = telemetryRequestId;
@@ -96,27 +97,28 @@ class TokenCacheAccessor {
         final MsalOAuth2TokenCache msalOAuth2TokenCache = getMsalOAuth2TokenCache(appContext);
 
         sharedSSOCaches.add(msalOAuth2TokenCache);
-        mCommonCache = new ADALOAuth2TokenCache(appContext, sharedSSOCaches);
+        mCommonCache = new ADALOAuth2TokenCache(AndroidPlatformComponents.createFromContext(appContext), sharedSSOCaches);
 
-        if (mTokenCacheStore instanceof DefaultTokenCacheStore) {
+        if (mTokenCacheStore instanceof DelegatingCache) {
+            final ITokenCacheStore delegate = ((DelegatingCache) mTokenCacheStore).getDelegateCache();
             //If the default token cache is in use... delegate token operations to unified cache in common
             //If not using default token cache then sharing SSO state between ADAL & MSAL cache implementations will not be possible anyway
-            mUseCommonCache = true;
+            mUseCommonCache = delegate instanceof DefaultTokenCacheStore;
         }
     }
 
     static MsalOAuth2TokenCache getMsalOAuth2TokenCache(@NonNull final Context appContext) {
+        final AndroidPlatformComponents components = AndroidPlatformComponents.createFromContext(appContext);
         final IAccountCredentialCache accountCredentialCache = new SharedPreferencesAccountCredentialCache(
                 new CacheKeyValueDelegate(),
-                new SharedPreferencesFileManager(
-                        appContext,
-                        DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
-                        new StorageHelper(appContext)
+                        components.getEncryptedNameValueStore(DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
+                        components.getStorageEncryptionManager(),
+                        String.class
                 )
         );
 
         return new MsalOAuth2TokenCache(
-                appContext,
+                components,
                 accountCredentialCache,
                 new MicrosoftStsAccountCredentialAdapter()
         );
@@ -299,8 +301,10 @@ class TokenCacheAccessor {
                 }
             } catch (MalformedURLException e) {
                 throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e.getMessage(), e);
+            } catch (ClientException e) {
+                throw ADALError.fromCommon(e);
             }
-        } else if (AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT.equalsIgnoreCase(result.getErrorCode())) {
+        } else if (OAuth2ErrorCode.INVALID_GRANT.equalsIgnoreCase(result.getErrorCode())) {
             // remove Item if oauth2_error is invalid_grant
             Logger.v(TAG + methodName, "Received INVALID_GRANT error code, remove existing cache entry.");
             removeTokenCacheItem(cachedItem, request.getResource());
@@ -310,7 +314,7 @@ class TokenCacheAccessor {
     /**
      * Update token cache with returned auth result.
      */
-    void updateTokenCache(final AuthenticationRequest request, final AuthenticationResult result) throws MalformedURLException {
+    void updateTokenCache(final AuthenticationRequest request, final AuthenticationResult result) throws MalformedURLException, AuthenticationException, ClientException {
         if (result == null || StringExtensions.isNullOrBlank(result.getAccessToken())) {
             return;
         }
@@ -342,7 +346,8 @@ class TokenCacheAccessor {
         setItemToCacheForUser(request.getResource(), request.getClientId(), result, null);
     }
 
-    void updateTokenCacheUsingCommonCache(final AuthenticationRequest request, final AuthenticationResult result) throws MalformedURLException {
+    void updateTokenCacheUsingCommonCache(final AuthenticationRequest request, final AuthenticationResult result)
+            throws MalformedURLException, AuthenticationException, ClientException {
         AzureActiveDirectory ad = new AzureActiveDirectory();
         AzureActiveDirectoryTokenResponse tokenResponse = CoreAdapter.asAadTokenResponse(result);
         AzureActiveDirectoryOAuth2Configuration config = new AzureActiveDirectoryOAuth2Configuration();
@@ -352,22 +357,28 @@ class TokenCacheAccessor {
             config.setAuthorityUrl(new URL(mAuthority));
         }
 
-        AzureActiveDirectoryOAuth2Strategy strategy = ad.createOAuth2Strategy(config);
+        AzureActiveDirectoryOAuth2Strategy strategy = null;
+        try {
+            strategy = ad.createOAuth2Strategy(config,
+                    AndroidPlatformComponents.createFromContext(mContext));
 
-        AzureActiveDirectoryAuthorizationRequest.Builder aadAuthRequestBuilder = new AzureActiveDirectoryAuthorizationRequest.Builder();
-        aadAuthRequestBuilder
-                .setClientId(request.getClientId())
-                .setResource(request.getResource())
-                .setScope(request.getResource())
-                .setRedirectUri(request.getRedirectUri())
-                .setLoginHint(request.getLoginHint())
-                .setCorrelationId(request.getCorrelationId());
+            AzureActiveDirectoryAuthorizationRequest.Builder aadAuthRequestBuilder = new AzureActiveDirectoryAuthorizationRequest.Builder();
+            aadAuthRequestBuilder
+                    .setClientId(request.getClientId())
+                    .setResource(request.getResource())
+                    .setScope(request.getResource())
+                    .setRedirectUri(request.getRedirectUri())
+                    .setLoginHint(request.getLoginHint())
+                    .setCorrelationId(request.getCorrelationId());
 
-        if (null != mAuthority) {
-            aadAuthRequestBuilder.setAuthority(new URL(mAuthority));
+            if (null != mAuthority) {
+                aadAuthRequestBuilder.setAuthority(new URL(mAuthority));
+            }
+
+            mCommonCache.save(strategy, aadAuthRequestBuilder.build(), tokenResponse);
+        } catch (final ClientException e) {
+            throw ADALError.fromCommon(e);
         }
-
-        mCommonCache.save(strategy, aadAuthRequestBuilder.build(), tokenResponse);
     }
 
 

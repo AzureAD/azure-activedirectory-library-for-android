@@ -66,6 +66,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
 import static com.microsoft.aad.adal.OauthTests.createAuthenticationRequest;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -368,7 +369,7 @@ public final class BrokerAccountServiceTest {
 
         final AccountManager mockedAccountManager = Mockito.mock(AccountManager.class);
         final AuthenticatorDescription authenticatorDescription = new AuthenticatorDescription(
-                AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE, androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext().getPackageName(), 0, 0, 0, 0);
+                BROKER_ACCOUNT_TYPE, androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext().getPackageName(), 0, 0, 0, 0);
         Mockito.when(mockedAccountManager.getAuthenticatorTypes()).thenReturn(new AuthenticatorDescription[]{authenticatorDescription});
         mockContext.setMockedAccountManager(mockedAccountManager);
         return mockContext;
@@ -379,9 +380,8 @@ public final class BrokerAccountServiceTest {
         Mockito.when(packageManager.checkPermission(Mockito.contains("android.permission.GET_ACCOUNTS"),
                 Mockito.anyString())).thenReturn(PackageManager.PERMISSION_DENIED);
 
-        final PackageInfo packageInfo = Util.addSignatures(Mockito.mock(PackageInfo.class), new Signature[]{signature});
-
-        Mockito.when(packageManager.getPackageInfo(Mockito.anyString(), Mockito.anyInt())).thenReturn(packageInfo);
+        final PackageInfo mockedPackageInfo = new MockedPackageInfo(new Signature[]{signature});
+        Mockito.when(packageManager.getPackageInfo(Mockito.anyString(), Mockito.anyInt())).thenReturn(mockedPackageInfo);
 
         Mockito.when(packageManager.checkPermission(Mockito.contains("android.permission.GET_ACCOUNTS"),
                 Mockito.anyString())).thenReturn(PackageManager.PERMISSION_DENIED);

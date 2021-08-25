@@ -42,10 +42,10 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.adal.internal.JWSBuilder;
+
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.logging.Logger;
+import com.microsoft.identity.common.java.util.JWSBuilder;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -60,10 +60,16 @@ import static com.microsoft.aad.adal.AuthenticationConstants.Browser.RESPONSE_ER
 import static com.microsoft.aad.adal.AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE;
 import static com.microsoft.aad.adal.AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO;
 import static com.microsoft.aad.adal.AuthenticationConstants.OAuth2.CODE;
+import static com.microsoft.aad.adal.AuthenticationConstants.OAuth2.ERROR;
+import static com.microsoft.aad.adal.AuthenticationConstants.OAuth2.ERROR_DESCRIPTION;
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION;
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR;
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_MDM;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.PLAY_STORE_INSTALL_PREFIX;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.AUTHENTICATOR_MFA_LINKING_PREFIX;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.BROWSER_DEVICE_CA_URL_QUERY_STRING_PARAMETER;
 
 abstract class BasicWebViewClient extends WebViewClient {
 
@@ -447,10 +453,10 @@ abstract class BasicWebViewClient extends WebViewClient {
 
             view.stopLoading();
 
-            if (url.contains(AuthenticationConstants.Broker.BROWSER_DEVICE_CA_URL_QUERY_STRING_PARAMETER)) {
+            if (url.contains(BROWSER_DEVICE_CA_URL_QUERY_STRING_PARAMETER)) {
                 Logger.warn(TAG + methodName, "Failed to launch Company Portal, falling back to browser.");
                 openLinkInBrowser(url);
-                sendResponse(AuthenticationConstants.UIResponse.BROWSER_CODE_MDM, new Intent());
+                sendResponse(BROWSER_CODE_MDM, new Intent());
             } else {
                 openLinkInBrowser(url);
                 cancelWebViewRequest(null);
@@ -488,12 +494,12 @@ abstract class BasicWebViewClient extends WebViewClient {
 
             view.stopLoading();
             if (!(url.startsWith(PLAY_STORE_INSTALL_PREFIX + COMPANY_PORTAL_APP_PACKAGE_NAME))
-                    && !(url.startsWith(PLAY_STORE_INSTALL_PREFIX + AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME))) {
+                    && !(url.startsWith(PLAY_STORE_INSTALL_PREFIX + AZURE_AUTHENTICATOR_APP_PACKAGE_NAME))) {
                 Logger.info(TAG + methodName, "The URI is either trying to open an unknown application or contains unknown query parameters");
                 return false;
             }
             final String appPackageName = (url.contains(COMPANY_PORTAL_APP_PACKAGE_NAME) ?
-                    COMPANY_PORTAL_APP_PACKAGE_NAME : AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME);
+                    COMPANY_PORTAL_APP_PACKAGE_NAME : AZURE_AUTHENTICATOR_APP_PACKAGE_NAME);
             Logger.verbose(TAG + methodName, "Request to open PlayStore to install : '" + appPackageName + "'");
 
             try {
@@ -506,7 +512,7 @@ abstract class BasicWebViewClient extends WebViewClient {
             }
 
             return true;
-        } else if (url.toLowerCase(Locale.US).startsWith(AuthenticationConstants.Broker.AUTHENTICATOR_MFA_LINKING_PREFIX)) {
+        } else if (url.toLowerCase(Locale.US).startsWith(AUTHENTICATOR_MFA_LINKING_PREFIX)) {
             Logger.verbose(TAG + methodName, "Linking Account in Authenticator to complete MFA setup.");
             try {
                 final Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
@@ -549,10 +555,10 @@ abstract class BasicWebViewClient extends WebViewClient {
             );
 
             Intent intent = new Intent();
-            intent.putExtra(AuthenticationConstants.OAuth2.ERROR, error);
-            intent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE, error);
-            intent.putExtra(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION, errorDescription);
-            intent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE, errorDescription);
+            intent.putExtra(ERROR, error);
+            intent.putExtra(RESPONSE_ERROR_CODE, error);
+            intent.putExtra(ERROR_DESCRIPTION, errorDescription);
+            intent.putExtra(RESPONSE_ERROR_MESSAGE, errorDescription);
             return intent;
         }
 
