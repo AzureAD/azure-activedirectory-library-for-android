@@ -77,7 +77,7 @@ jobs:
       jdkArchitecture: x86
       sqAnalysisBreakBuildIfQualityGateFailed: false
   - task: PublishPipelineArtifact@1
-    displayName: Publish Broker Host APK
+    displayName: Publish MSAL Test App
     inputs:
       targetPath: C:/temp/android_auth/msalTestApp/outputs/apk/${{ lower(parameters.productFlavors) }}/${{ lower(parameters.signingConfigurations) }}
       artifactName: msalTestApp

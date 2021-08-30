@@ -87,7 +87,7 @@ jobs:
       jdkArchitecture: x86
       sqAnalysisBreakBuildIfQualityGateFailed: false
   - task: PublishPipelineArtifact@1
-    displayName: Publish Adal Host APK
+    displayName: Publish ADAL Test App
     inputs:
       targetPath: C:/temp/android_auth/adalTestApp/outputs/apk/${{ lower(parameters.productFlavors) }}/${{ lower(parameters.signingConfigurations) }}
       artifactName: adalTestApp
