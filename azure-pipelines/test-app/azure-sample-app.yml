@@ -1,9 +1,9 @@
 # File: azure-pipelines\test-app\azure-sample-app.yml
 # Description: Generate AzureSample APK
-# use branch_<project> variables to build the Local version
-# use version_<project> variables to build the External version
-# Variable 'branch_[msal, azuresample]' was defined in the Variables tab
-# Variable 'version_[msal, azuresample]' was defined in the Variables tab
+# use local_<project>_branch variables to build the Local version
+# use dist_<project>_version variables to build the External version
+# Variable 'local_[msal, azuresample]_branch' was defined in the Variables tab
+# Variable 'dist_[msal, azuresample]_version' was defined in the Variables tab
 # Variable: 'ENV_VSTS_MVN_ANDROID_MSAL_USERNAME' was defined in the Variables tab
 # Variable: 'mvnAccessToken' was defined in the Variables tab
 # https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate
@@ -33,12 +33,12 @@ resources:
   - repository: msal
     type: github
     name: AzureAD/microsoft-authentication-library-for-android
-    ref: $(branch_msal)
+    ref: $(local_msal_branch)
     endpoint: ANDROID_GITHUB
   - repository: azuresample
     type: github
     name: Azure-Samples/ms-identity-android-java
-    ref: $(branch_azuresample)
+    ref: $(local_azuresample_branch)
     endpoint: ANDROID_GITHUB
 
 jobs:
@@ -65,8 +65,8 @@ jobs:
         targetType: inline
         script: |
           $assembleTask = "assembleExternal${{ parameters.signingConfigurations }}"
-          if (("$(version_msal)" -ne "")) {
-              $assembleTask = $assembleTask + " -PdistMsalVersion=" + "$(version_msal)"
+          if (("$(dist_msal_version)" -ne "")) {
+              $assembleTask = $assembleTask + " -PdistMsalVersion=" + "$(dist_msal_version)"
           }
           Write-Host "##vso[task.setvariable variable=AssembleTask;]$assembleTask"
   - ${{ if eq(parameters.productFlavors, 'Local') }}:

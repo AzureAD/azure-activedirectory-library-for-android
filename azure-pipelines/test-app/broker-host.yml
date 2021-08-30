@@ -1,9 +1,9 @@
 # File: azure-pipelines\test-app\broker-host.yml
 # Description: Generate BrokerHost APK
-# use branch_<project> variables to build the Local version
-# use version_<project> variables to build the Dist version
-# Variable 'branch_[adal, common, msal, ad_accounts]' was defined in the Variables tab
-# Variable 'version_[adal, common, msal, ad_accounts]' was defined in the Variables tab
+# use local_<project>_branch variables to build the Local version
+# use dist_<project>_version variables to build the Dist version
+# Variable 'local_[adal, common, msal, ad_accounts]_branch' was defined in the Variables tab
+# Variable 'dist_[adal, common, msal, ad_accounts]_version' was defined in the Variables tab
 # Variable: 'ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN' was defined in the Variables tab
 # Variable: 'mvnAccessToken' was defined in the Variables tab
 # https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate
@@ -33,22 +33,22 @@ resources:
   - repository: common
     type: github
     name: AzureAD/microsoft-authentication-library-common-for-android
-    ref: $(branch_common)
+    ref: $(local_common_branch)
     endpoint: ANDROID_GITHUB
   - repository: msal
     type: github
     name: AzureAD/microsoft-authentication-library-for-android
-    ref: $(branch_msal)
+    ref: $(local_msal_branch)
     endpoint: ANDROID_GITHUB
   - repository: adal
     type: github
     name: AzureAD/azure-activedirectory-library-for-android
-    ref: $(branch_adal)
+    ref: $(local_adal_branch)
     endpoint: ANDROID_GITHUB
   - repository: broker
     type: github
     name: AzureAD/ad-accounts-for-android
-    ref: $(branch_ad_accounts)
+    ref: $(local_ad_accounts_branch)
     endpoint: ANDROID_GITHUB
 
 jobs:
@@ -82,17 +82,17 @@ jobs:
         targetType: inline
         script: |
           $assembleTask = "assembleDist${{ parameters.signingConfigurations }}"
-          if (("$(version_common)" -ne "")) {
-              $assembleTask = $assembleTask + " -PcommonVersion=" + "$(version_common)"
+          if (("$(dist_common_version)" -ne "")) {
+              $assembleTask = $assembleTask + " -PcommonVersion=" + "$(dist_common_version)"
           }
-          if (("$(version_ad_accounts)" -ne "")) {
-              $assembleTask = $assembleTask + " -PadAccountsVersion=" + "$(version_ad_accounts)"
+          if (("$(dist_ad_accounts_version)" -ne "")) {
+              $assembleTask = $assembleTask + " -PadAccountsVersion=" + "$(dist_ad_accounts_version)"
           }
-          if (("$(version_adal)" -ne "")) {
-              $assembleTask = $assembleTask + " -PadalVersion=" + "$(version_adal)"
+          if (("$(dist_adal_version)" -ne "")) {
+              $assembleTask = $assembleTask + " -PadalVersion=" + "$(dist_adal_version)"
           }
-          if (("$(version_msal)" -ne "")) {
-              $assembleTask = $assembleTask + " -PmsalVersion=" + "$(version_msal)"
+          if (("$(dist_msal_version)" -ne "")) {
+              $assembleTask = $assembleTask + " -PmsalVersion=" + "$(dist_msal_version)"
           }
           Write-Host "##vso[task.setvariable variable=AssembleTask;]$assembleTask"
   - ${{ if eq(parameters.productFlavors, 'Local') }}:
