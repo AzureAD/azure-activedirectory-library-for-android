@@ -85,7 +85,7 @@ jobs:
   - task: PublishPipelineArtifact@1
     displayName: Publish Adal Host APK
     inputs:
-      targetPath: userappwithbroker/outputs/apk/${{ lower(parameters.productFlavors) }}/${{ lower(parameters.signingConfigurations) }}
+      targetPath: userappwithbroker/build/outputs/apk/${{ lower(parameters.productFlavors) }}/${{ lower(parameters.signingConfigurations) }}
       artifactName: adalTestApp
       patterns: '**/*.apk'
 ...
