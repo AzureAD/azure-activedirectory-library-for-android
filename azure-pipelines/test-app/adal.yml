@@ -68,6 +68,7 @@ jobs:
     - script: |
         cd common
         git checkout ${{ variables.local_common_branch }}
+      displayName: Checkout common branch ${{ variables.local_common_branch }}
   - task: CmdLine@1
     displayName: Set MVN AccessToken in Environment
     inputs:
