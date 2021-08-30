@@ -40,6 +40,11 @@ resources:
     name: Azure-Samples/ms-identity-android-java
     ref: $(local_azuresample_branch)
     endpoint: ANDROID_GITHUB
+  - repository: common
+    type: github
+    name: AzureAD/microsoft-authentication-library-common-for-android
+    ref: $(local_common_branch)
+    endpoint: ANDROID_GITHUB
 
 jobs:
 - job: azure_samples
@@ -52,11 +57,12 @@ jobs:
     path: android-complete
   - checkout: msal
     clean: true
-    submodules: true
     path: android-complete/msal
+  - checkout: common
+    clean: true
+    path: android-complete/common
   - checkout: azuresample
     clean: true
-    submodules: true
     path: android-complete/azuresample
   - ${{ if eq(parameters.productFlavors, 'External') }}:
     - task: PowerShell@2
