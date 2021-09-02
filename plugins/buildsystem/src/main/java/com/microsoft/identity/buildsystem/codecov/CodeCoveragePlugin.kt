@@ -22,12 +22,16 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.buildsystem.codecov
 
-import com.android.build.gradle.*
+import com.android.build.gradle.AppExtension
+import com.android.build.gradle.BaseExtension
+import com.android.build.gradle.LibraryExtension
 import com.android.build.gradle.api.BaseVariant
-import org.gradle.api.*
+import com.android.build.gradle.api.SourceKind
+import org.gradle.api.DomainObjectSet
+import org.gradle.api.GradleException
+import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.file.ConfigurableFileTree
-import org.gradle.api.logging.Logger
-import org.gradle.api.logging.Logging
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.testing.jacoco.plugins.JacocoPlugin
@@ -35,140 +39,186 @@ import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 import org.gradle.testing.jacoco.tasks.JacocoReport
 import java.io.File
 
-class CodeCoveragePlugin {
+/**
+ * This class creates code coverage tasks in the given project
+ */
+object CodeCoveragePlugin {
 
-    companion object {
-        private val logger: Logger = Logging.getLogger(CodeCoveragePlugin::class.java)
-        private lateinit var reportExtension: JacocoCoverageReportExtension
+    private lateinit var reportExtension: CodeCoverageReportExtension
 
-        @JvmStatic fun applyCodeCoveragePlugin(project: Project) {
-            reportExtension = project.extensions.create("jacocoCoverageReport", JacocoCoverageReportExtension::class.java, JacocoCoverageReportExtension.excludes)
+    /**
+     * Gets the codeCoverageReport configurations and uses them to create the code coverage tasks
+     */
+    @JvmStatic
+    fun applyCodeCoveragePlugin(project: Project) {
+        // get the configurations under codeCoverageReport
+        reportExtension = project.extensions.create("codeCoverageReport", CodeCoverageReportExtension::class.java)
+
+        // apply jacoco
+        if (project.plugins.withType(JacocoPlugin::class.java).isEmpty()) {
             project.plugins.apply(JacocoPlugin::class.java)
+        }
 
-            findAndroidPlugin(project.plugins)
+        // after build file has been evaluated ... add tasks
+        project.afterEvaluate { project_ ->
+            // apply plugin after android/android-library
+            findAndroidPlugin(project_.plugins)
 
-            val jacocoTestReportTask = findOrCreateJacocoTestReportTask(project.tasks)
+            val jacocoTestReportTask = findOrCreateJacocoTestReportTask(project_.tasks)
 
-            project.android().variants().all { variant ->
-                val reportTask = createReportTask(project, variant)
-                jacocoTestReportTask.dependsOn(reportTask)
-
-                logTaskAdded(reportTask)
+            if (reportExtension.unitTests.enabled) {
+                createTask(project, jacocoTestReportTask, TestTypes.UnitTest)
             }
         }
-
-        private fun createReportTask(project: Project, variant: BaseVariant): JacocoReport {
-            val sourceDirs = sourceDirs(variant)
-            val classesDir = classesDir(variant)
-            val testTask = testTask(project.tasks, variant)
-            val executionData = executionDataFile(testTask)
-
-            return project.tasks.create("jacoco${testTask.name.capitalize()}Report", JacocoReport::class.java) { reportTask ->
-                reportTask.dependsOn(testTask)
-                reportTask.group = "Reporting"
-                reportTask.description = "Generates Jacoco coverage reports for the ${variant.name} variant."
-                reportTask.executionData.setFrom(project.files(executionData))
-                reportTask.sourceDirectories.setFrom(project.files(sourceDirs))
-                val javaTree = project.fileTree(classesDir, excludes = getFileFilterPatterns())
-                if (hasKotlin(project.plugins)) {
-                    val kotlinClassesDir = "${project.buildDir}/tmp/kotlin-classes/${variant.name}"
-                    val kotlinTree = project.fileTree(kotlinClassesDir, excludes = getFileFilterPatterns())
-                    reportTask.classDirectories.setFrom(javaTree + kotlinTree)
-                } else {
-                    reportTask.classDirectories.setFrom(javaTree)
-                }
-
-                reportTask.reports { task ->
-                    val destination = reportExtension.destination
-
-                    task.html.isEnabled = reportExtension.generateHtml
-                    task.xml.isEnabled = reportExtension.generateXml
-                    task.csv.isEnabled = reportExtension.generateCsv
-
-                    if (reportExtension.generateHtml) {
-                        task.html.destination = File(if (destination.isNullOrBlank()) "${project.buildDir}/jacoco/jacocoHtml" else "${destination.trim()}/jacocoHtml")
-                    }
-
-                    if (reportExtension.generateXml) {
-                        task.xml.destination = File(if (destination.isNullOrBlank()) "${project.buildDir}/jacoco/jacoco.xml" else "${destination.trim()}/jacoco.xml")
-                    }
-
-                    if (reportExtension.generateCsv) {
-                        task.csv.destination = File(if (destination.isNullOrBlank()) "${project.buildDir}/jacoco/jacoco.csv" else "${destination.trim()}/jacoco.csv")
-                    }
-                }
-            }
-        }
-
-        fun findAndroidPlugin(plugins: PluginContainer) {
-            plugins.findPlugin("android") ?: plugins.findPlugin("android-library")
-            ?: throw GradleException("You must apply the Android plugin or the Android library plugin before using the jacoco-android plugin")
-        }
-
-        private fun findOrCreateJacocoTestReportTask(tasks: TaskContainer): Task {
-            var task: Task? = tasks.findByName("jacocoTestReport")
-            if (task == null) {
-                task = tasks.create("jacocoTestReport") { tsk ->
-                    tsk.group = "Reporting"
-                }
-            }
-            return task!!
-        }
-
-        private fun sourceDirs(variant: BaseVariant) {
-            variant.sourceSets.flatMap { it.javaDirectories.map { dir -> dir.path } }
-        }
-
-        private fun classesDir(variant: BaseVariant): File {
-            return if (variant.javaCompileProvider != null && variant.javaCompileProvider.isPresent) {
-                variant.javaCompileProvider.get().destinationDir
-            } else {
-                variant.javaCompile.destinationDir
-            }
-        }
-
-        private fun testTask(tasks: TaskContainer, variant: BaseVariant): Task = tasks.getByName("test${variant.name.capitalize()}UnitTest")
-
-        private fun executionDataFile(testTask: Task): File? = testTask.extensions.findByType(JacocoTaskExtension::class.java)?.destinationFile
-
-        private fun hasKotlin(plugins: PluginContainer) = plugins.hasPlugin("kotlin-android")
-
-        private fun logTaskAdded(reportTask: JacocoReport) {
-            logger.info("Added $reportTask")
-            logger.info("  executionData: $reportTask.executionData.asPath")
-            logger.info("  sourceDirectories: $reportTask.sourceDirectories.asPath")
-            logger.info("  csv.destination: $reportTask.reports.csv.destination")
-            logger.info("  xml.destination: $reportTask.reports.xml.destination")
-            logger.info("  html.destination: $reportTask.reports.html.destination")
-        }
-
-        fun Project.android(): BaseExtension {
-            val android = project.extensions.findByType(BaseExtension::class.java)
-            if (android != null) {
-                return android
-            } else {
-                throw GradleException("Project $name is not an Android project")
-            }
-        }
-
-        private fun BaseExtension.variants(): DomainObjectSet<out BaseVariant> {
-            return when (this) {
-                is AppExtension -> {
-                    applicationVariants
-                }
-
-                is LibraryExtension -> {
-                    libraryVariants
-                }
-
-                else -> throw GradleException("Unsupported BaseExtension type!")
-            }
-        }
-
-        private fun getFileFilterPatterns(): List<String> = JacocoCoverageReportExtension.DEFAULT_EXCLUDES + reportExtension.excludes
-
-        private fun Project.fileTree(dir: Any, excludes: List<String> = listOf(), includes: List<String> = listOf()): ConfigurableFileTree =
-                fileTree(mapOf("dir" to dir, "excludes" to excludes, "includes" to includes))
-
     }
+
+    /**
+     * Creates the code coverage tasks for the different build variants
+     */
+    private fun createTask(project: Project, jacocoTestReportTask: Task, testType: String) {
+        project.android().variants().all { variant ->
+            val reportTask = createReportTask(project, variant, testType)
+            jacocoTestReportTask.dependsOn(reportTask)
+        }
+    }
+
+    /**
+     * Creates the code coverage task for the given build variant and adds it to a group (Reporting)
+     */
+    private fun createReportTask(project: Project, variant: BaseVariant, testType: String): JacocoReport {
+        // get the sources
+        val sourceDirs = variant.getSourceFolders(SourceKind.JAVA).map { file -> file.dir }
+        // get the classes
+        val classesDir = variant.javaCompileProvider.get().destinationDir
+        // get the test task for this variant
+        val testTask = testTask(project.tasks, variant, testType)
+        // get JacocoTaskExtension execution destination
+        val executionData = executionDataFile(testTask)
+
+        val taskName = "${variant.name}${project.name.capitalize()}${testType}CoverageReport"
+        return project.tasks.create(taskName, JacocoReport::class.java) { reportTask ->
+            // set the task attributes
+            reportTask.dependsOn(testTask)
+            reportTask.group = "Reporting"
+            reportTask.description = "Generates Jacoco coverage reports for the ${variant.name} variant."
+            reportTask.executionData.setFrom(project.files(executionData))
+            reportTask.sourceDirectories.setFrom(project.files(sourceDirs))
+
+            // get the java project tree and exclude the defined excluded classes
+            val javaTree = project.fileTree(classesDir, excludes = getFileFilterPatterns())
+            // if kotlin is available, get the kotlin project tree and exclude the defined excluded classes
+            if (hasKotlin(project.plugins)) {
+                val kotlinClassesDir = "${project.buildDir}/tmp/kotlin-classes/${variant.name}"
+                val kotlinTree = project.fileTree(kotlinClassesDir, excludes = getFileFilterPatterns())
+                reportTask.classDirectories.setFrom(javaTree + kotlinTree)
+            } else {
+                reportTask.classDirectories.setFrom(javaTree)
+            }
+
+            reportTask.reports { task ->
+                // set the outputs enabled according to configs
+                task.html.isEnabled = reportExtension.html.enabled
+                task.xml.isEnabled = reportExtension.xml.enabled
+                task.csv.isEnabled = reportExtension.csv.enabled
+
+                // default reports path
+                val defaultCommonPath = "${project.buildDir}/reports/jacoco/$taskName"
+                val configuredDestination = reportExtension.destination
+
+                // configure destination for html code coverage output
+                if (reportExtension.html.enabled) {
+                    val path = File(if (configuredDestination.isNullOrBlank()) "$defaultCommonPath/html" else "${configuredDestination.trim()}/html")
+                    task.html.destination = path
+                }
+
+                // configure destination for xml code coverage output
+                if (reportExtension.xml.enabled) {
+                    val path = File(if (configuredDestination.isNullOrBlank()) "$defaultCommonPath/${taskName}.xml" else "${configuredDestination.trim()}/${taskName}.xml")
+                    task.xml.destination = path
+                }
+
+                // configure destination for csv code coverage output
+                if (reportExtension.csv.enabled) {
+                    val path = File(if (configuredDestination.isNullOrBlank()) "$defaultCommonPath/${taskName}.csv" else "${configuredDestination.trim()}/${taskName}.csv")
+                    task.csv.destination = path
+                }
+            }
+        }
+    }
+
+    /**
+     * Checks whether android/android-library plugins are available
+     */
+    private fun findAndroidPlugin(plugins: PluginContainer) {
+        plugins.findPlugin("android") ?: plugins.findPlugin("android-library")
+        ?: throw GradleException("You must apply the Android plugin or the Android library plugin before using the jacoco-android plugin")
+    }
+
+    /**
+     * Creates a combined code coverage task
+     */
+    private fun findOrCreateJacocoTestReportTask(tasks: TaskContainer): Task {
+        var task: Task? = tasks.findByName("combinedCoverageReport")
+        if (task == null) {
+            task = tasks.create("combinedCoverageReport") { tsk ->
+                tsk.group = "Reporting"
+            }
+        }
+        return task!!
+    }
+
+    /**
+     * Get the test task for this variant
+     * todo - getting for android test
+     */
+    private fun testTask(tasks: TaskContainer, variant: BaseVariant, testType: String): Task {
+        // todo - activate and solve issue with androidTests code coverage
+        // val name = if (testType == TestTypes.UnitTest) "test${variant.name.capitalize()}UnitTest" else "connected${variant.name.capitalize()}AndroidTest"
+        val name = "test${variant.name.capitalize()}UnitTest"
+        return tasks.getByName(name)
+    }
+
+    // get JacocoTaskExtension execution destination
+    private fun executionDataFile(testTask: Task): File? {
+        return testTask.extensions.findByType(JacocoTaskExtension::class.java)?.destinationFile
+    }
+
+    // kotlin is available
+    private fun hasKotlin(plugins: PluginContainer) = plugins.hasPlugin("kotlin-android")
+
+    /**
+     * method to get the android extension - as a Project class extension method!
+     */
+    private fun Project.android(): BaseExtension {
+        val android = project.extensions.findByType(BaseExtension::class.java)
+        if (android != null) {
+            return android
+        } else {
+            throw GradleException("Project $name is not an Android project")
+        }
+    }
+
+    /**
+     * method to get variants
+     */
+    private fun BaseExtension.variants(): DomainObjectSet<out BaseVariant> {
+        return when (this) {
+            is AppExtension -> {
+                applicationVariants
+            }
+
+            is LibraryExtension -> {
+                libraryVariants
+            }
+
+            else -> throw GradleException("Unsupported BaseExtension type!")
+        }
+    }
+
+    // get files to exclude
+    private fun getFileFilterPatterns(): List<String> = DEFAULT_EXCLUDES + reportExtension.excludes
+
+    // utility method to get the file tree
+    private fun Project.fileTree(dir: Any, excludes: List<String> = listOf(), includes: List<String> = listOf()): ConfigurableFileTree =
+            fileTree(mapOf("dir" to dir, "excludes" to excludes, "includes" to includes))
 }
