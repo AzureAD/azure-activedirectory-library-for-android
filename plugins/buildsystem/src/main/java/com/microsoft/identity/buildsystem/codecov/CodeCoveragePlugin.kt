@@ -106,9 +106,9 @@ object CodeCoveragePlugin {
      * Creates the code coverage tasks for the different build variants
      */
     private fun createTask(project: Project, testType: String) {
-        val excludeFlavours = (reportExtension.excludeFlavours ?: emptyList()).map { it.toLowerCase() }
+        val excludeFlavors = (reportExtension.excludeFlavors ?: emptyList()).map { it.toLowerCase() }
         project.android().variants().all { variant ->
-            if (shouldCreateTaskForVariant(excludeFlavours, variant, testType)) {
+            if (shouldCreateTaskForVariant(excludeFlavors, variant, testType)) {
                 createReportTask(project, variant, testType)
             }
         }

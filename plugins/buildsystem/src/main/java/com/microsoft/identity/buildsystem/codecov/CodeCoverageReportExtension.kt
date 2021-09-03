@@ -35,7 +35,7 @@ open class CodeCoverageReportExtension {
     var androidTests = ReportConfig(false) // whether code coverage targets android tests
 
     var destination: String? = null // the destination of the reports - by default it's buildDir/reports/jacoco
-    var excludeFlavours: Set<String>? = null // add some product flavours to exclude
+    var excludeFlavors: Set<String>? = null // add some product flavours to exclude
     var excludeClasses: Set<String>? = null // add some classes to exclude
 
     var includeNoLocationClasses: Boolean = true // To include Robolectric tests in the Jacoco report, flag -> "includeNolocationClasses" is set to true
