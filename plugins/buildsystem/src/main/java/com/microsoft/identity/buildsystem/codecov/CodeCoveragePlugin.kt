@@ -60,11 +60,11 @@ object CodeCoveragePlugin {
         }
 
         // after build file has been evaluated ... add tasks
-        project.afterEvaluate { project_ ->
+        project.afterEvaluate { evaluatedProject ->
             // apply plugin after android/android-library
-            findAndroidPlugin(project_.plugins)
+            findAndroidPlugin(evaluatedProject.plugins)
 
-            val jacocoTestReportTask = findOrCreateJacocoTestReportTask(project_.tasks)
+            val jacocoTestReportTask = findOrCreateJacocoTestReportTask(evaluatedProject.tasks)
 
             if (reportExtension.unitTests.enabled) {
                 createTask(project, jacocoTestReportTask, TestTypes.UnitTest)
@@ -76,9 +76,12 @@ object CodeCoveragePlugin {
      * Creates the code coverage tasks for the different build variants
      */
     private fun createTask(project: Project, jacocoTestReportTask: Task, testType: String) {
+        val excludeFlavours = (reportExtension.excludeFlavours ?: setOf("")).map { it.toLowerCase() }
         project.android().variants().all { variant ->
-            val reportTask = createReportTask(project, variant, testType)
-            jacocoTestReportTask.dependsOn(reportTask)
+            if (variant.buildType.isTestCoverageEnabled && !excludeFlavours.contains(variant.flavorName.toLowerCase())) {
+                val reportTask = createReportTask(project, variant, testType)
+                jacocoTestReportTask.dependsOn(reportTask)
+            }
         }
     }
 
@@ -216,9 +219,10 @@ object CodeCoveragePlugin {
     }
 
     // get files to exclude
-    private fun getFileFilterPatterns(): List<String> = DEFAULT_EXCLUDES + reportExtension.excludes
+    private fun getFileFilterPatterns(): Set<String> = DEFAULT_EXCLUDES +
+            (reportExtension.excludeClasses ?: setOf(""))
 
     // utility method to get the file tree
-    private fun Project.fileTree(dir: Any, excludes: List<String> = listOf(), includes: List<String> = listOf()): ConfigurableFileTree =
+    private fun Project.fileTree(dir: Any, excludes: Set<String> = setOf(), includes: Set<String> = setOf()): ConfigurableFileTree =
             fileTree(mapOf("dir" to dir, "excludes" to excludes, "includes" to includes))
 }

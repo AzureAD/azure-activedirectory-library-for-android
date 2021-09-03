@@ -35,7 +35,8 @@ open class CodeCoverageReportExtension {
     var androidTests = ReportConfig(false) // whether code coverage targets android tests - todo
 
     var destination: String? = null // the destination of the reports - by default it's buildDir/reports/jacoco
-    var excludes = listOf("") // add some classes to exclude
+    var excludeFlavours: Set<String>? = null // add some product flavours to exclude
+    var excludeClasses: Set<String>? = null // add some classes to exclude
 }
 
 open class ReportConfig(var enabled: Boolean)

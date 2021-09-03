@@ -22,7 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.buildsystem.codecov
 
-val DEFAULT_EXCLUDES = listOf(
+val DEFAULT_EXCLUDES = setOf(
         // Core Android generated class filters
         "**/R.class",
         "**/R2.class", // ButterKnife Gradle Plugin.
