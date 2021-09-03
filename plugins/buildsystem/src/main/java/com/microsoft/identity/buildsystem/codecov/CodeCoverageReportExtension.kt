@@ -32,7 +32,7 @@ open class CodeCoverageReportExtension {
     var csv = ReportConfig(true) // whether code coverage csv output is enabled
 
     var unitTests = ReportConfig(true) // whether code coverage targets unit tests
-    var androidTests = ReportConfig(false) // whether code coverage targets android tests - todo
+    var androidTests = ReportConfig(false) // whether code coverage targets android tests
 
     var destination: String? = null // the destination of the reports - by default it's buildDir/reports/jacoco
     var excludeFlavours: Set<String>? = null // add some product flavours to exclude

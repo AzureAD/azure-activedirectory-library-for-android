@@ -35,7 +35,6 @@ import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.testing.jacoco.plugins.JacocoPlugin
-import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 import org.gradle.testing.jacoco.tasks.JacocoReport
 import java.io.File
 
@@ -64,10 +63,12 @@ object CodeCoveragePlugin {
             // apply plugin after android/android-library
             findAndroidPlugin(evaluatedProject.plugins)
 
-            val jacocoTestReportTask = findOrCreateJacocoTestReportTask(evaluatedProject.tasks)
-
             if (reportExtension.unitTests.enabled) {
-                createTask(project, jacocoTestReportTask, TestTypes.UnitTest)
+                createTask(project, TestTypes.UnitTest)
+            }
+
+            if (reportExtension.androidTests.enabled) {
+                createTask(project, TestTypes.AndroidTest)
             }
         }
     }
@@ -75,14 +76,29 @@ object CodeCoveragePlugin {
     /**
      * Creates the code coverage tasks for the different build variants
      */
-    private fun createTask(project: Project, jacocoTestReportTask: Task, testType: String) {
-        val excludeFlavours = (reportExtension.excludeFlavours ?: setOf("")).map { it.toLowerCase() }
+    private fun createTask(project: Project, testType: String) {
+        val excludeFlavours = (reportExtension.excludeFlavours ?: emptyList()).map { it.toLowerCase() }
         project.android().variants().all { variant ->
-            if (variant.buildType.isTestCoverageEnabled && !excludeFlavours.contains(variant.flavorName.toLowerCase())) {
-                val reportTask = createReportTask(project, variant, testType)
-                jacocoTestReportTask.dependsOn(reportTask)
+            if (shouldCreateTaskForVariant(excludeFlavours, variant, testType)) {
+                createReportTask(project, variant, testType)
             }
         }
+    }
+
+    /**
+     * Check if we are allowed to create code coverage tasks for this variant
+     */
+    private fun shouldCreateTaskForVariant(excludeFlavours: List<String>, variant: BaseVariant, testType: String): Boolean {
+        if (!variant.buildType.isTestCoverageEnabled || excludeFlavours.contains(variant.flavorName.toLowerCase())) {
+            return false
+        }
+
+        // AFAIK, the android tests tasks are only generated for debug build types
+        if (testType == TestTypes.AndroidTest && variant.buildType.name != "debug") {
+            return false
+        }
+
+        return true
     }
 
     /**
@@ -96,7 +112,7 @@ object CodeCoveragePlugin {
         // get the test task for this variant
         val testTask = testTask(project.tasks, variant, testType)
         // get JacocoTaskExtension execution destination
-        val executionData = executionDataFile(testTask)
+        val executionData = executionDataFile(testTask, variant, testType)
 
         val taskName = "${variant.name}${project.name.capitalize()}${testType}CoverageReport"
         return project.tasks.create(taskName, JacocoReport::class.java) { reportTask ->
@@ -104,15 +120,16 @@ object CodeCoveragePlugin {
             reportTask.dependsOn(testTask)
             reportTask.group = "Reporting"
             reportTask.description = "Generates Jacoco coverage reports for the ${variant.name} variant."
-            reportTask.executionData.setFrom(project.files(executionData))
+            reportTask.executionData.setFrom(project.filesTree(project.buildDir, includes = setOf(executionData)))
             reportTask.sourceDirectories.setFrom(project.files(sourceDirs))
 
             // get the java project tree and exclude the defined excluded classes
-            val javaTree = project.fileTree(classesDir, excludes = getFileFilterPatterns())
+            val javaTree = project.filesTree(classesDir, excludes = getFileFilterPatterns())
+
             // if kotlin is available, get the kotlin project tree and exclude the defined excluded classes
             if (hasKotlin(project.plugins)) {
                 val kotlinClassesDir = "${project.buildDir}/tmp/kotlin-classes/${variant.name}"
-                val kotlinTree = project.fileTree(kotlinClassesDir, excludes = getFileFilterPatterns())
+                val kotlinTree = project.filesTree(kotlinClassesDir, excludes = getFileFilterPatterns())
                 reportTask.classDirectories.setFrom(javaTree + kotlinTree)
             } else {
                 reportTask.classDirectories.setFrom(javaTree)
@@ -158,35 +175,26 @@ object CodeCoveragePlugin {
     }
 
     /**
-     * Creates a combined code coverage task
-     */
-    private fun findOrCreateJacocoTestReportTask(tasks: TaskContainer): Task {
-        var task: Task? = tasks.findByName("combinedCoverageReport")
-        if (task == null) {
-            task = tasks.create("combinedCoverageReport") { tsk ->
-                tsk.group = "Reporting"
-            }
-        }
-        return task!!
-    }
-
-    /**
      * Get the test task for this variant
-     * todo - getting for android test
      */
     private fun testTask(tasks: TaskContainer, variant: BaseVariant, testType: String): Task {
-        // todo - activate and solve issue with androidTests code coverage
-        // val name = if (testType == TestTypes.UnitTest) "test${variant.name.capitalize()}UnitTest" else "connected${variant.name.capitalize()}AndroidTest"
-        val name = "test${variant.name.capitalize()}UnitTest"
+        val name = if (testType == TestTypes.UnitTest) "test${variant.name.capitalize()}UnitTest" else "connected${variant.name.capitalize()}AndroidTest"
         return tasks.getByName(name)
     }
 
-    // get JacocoTaskExtension execution destination
-    private fun executionDataFile(testTask: Task): File? {
-        return testTask.extensions.findByType(JacocoTaskExtension::class.java)?.destinationFile
+    /**
+     * get JacocoTaskExtension execution destination
+     */
+    private fun executionDataFile(testTask: Task, variant: BaseVariant, testType: String): String {
+        // Output of those additional tasks are stored in .exec file for unit tests and .ec file for android tests
+        val unitTestFile = "jacoco/${testTask.name}.exec"
+        val androidTestFile = "outputs/code_coverage/${variant.name}AndroidTest/connected/*.ec"
+        return if (testType == TestTypes.UnitTest) unitTestFile else androidTestFile
     }
 
-    // kotlin is available
+    /**
+     * check kotlin is available
+     */
     private fun hasKotlin(plugins: PluginContainer) = plugins.hasPlugin("kotlin-android")
 
     /**
@@ -218,11 +226,15 @@ object CodeCoveragePlugin {
         }
     }
 
-    // get files to exclude
+    /**
+     * get files to exclude
+     */
     private fun getFileFilterPatterns(): Set<String> = DEFAULT_EXCLUDES +
-            (reportExtension.excludeClasses ?: setOf(""))
+            (reportExtension.excludeClasses ?: emptySet())
 
-    // utility method to get the file tree
-    private fun Project.fileTree(dir: Any, excludes: Set<String> = setOf(), includes: Set<String> = setOf()): ConfigurableFileTree =
+    /**
+     * utility method to get the file tree
+     */
+    private fun Project.filesTree(dir: Any, excludes: Set<String> = emptySet(), includes: Set<String> = emptySet()): ConfigurableFileTree =
             fileTree(mapOf("dir" to dir, "excludes" to excludes, "includes" to includes))
 }
