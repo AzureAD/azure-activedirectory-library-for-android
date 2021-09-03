@@ -34,7 +34,9 @@ import org.gradle.api.Task
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.testing.Test
 import org.gradle.testing.jacoco.plugins.JacocoPlugin
+import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 import org.gradle.testing.jacoco.tasks.JacocoReport
 import java.io.File
 
@@ -63,6 +65,8 @@ object CodeCoveragePlugin {
             // apply plugin after android/android-library
             findAndroidPlugin(evaluatedProject.plugins)
 
+            evaluatedProject.configureIncludeNoLocationClasses()
+
             if (reportExtension.unitTests.enabled) {
                 createTask(project, TestTypes.UnitTest)
             }
@@ -71,6 +75,31 @@ object CodeCoveragePlugin {
                 createTask(project, TestTypes.AndroidTest)
             }
         }
+    }
+
+    /**
+     * Apply configuration from [CodeCoverageReportExtension] to the project.
+     * To include Robolectric tests in the Jacoco report, flag -> "includeNolocationClasses" is set to true
+     */
+    private fun Project.configureIncludeNoLocationClasses() {
+        tasks.withType(Test::class.java) { testTask ->
+            testTask.extensions.findByType(JacocoTaskExtension::class.java)?.apply {
+                isIncludeNoLocationClasses = reportExtension.includeNoLocationClasses
+                if (isIncludeNoLocationClasses) {
+                    // This needs to be excluded for JDK 11
+                    // SEE: https://support.circleci.com/hc/en-us/articles/360047926852-Android-Builds-Fail-with-java-lang-ClassNotFoundException-jdk-internal-reflect-GeneratedSerializationConstructorAccessor1-
+                    excludes = listOf("jdk.internal.*")
+                }
+            }
+        }
+    }
+
+    /**
+     * Checks whether android/android-library plugins are available
+     */
+    private fun findAndroidPlugin(plugins: PluginContainer) {
+        plugins.findPlugin("android") ?: plugins.findPlugin("android-library")
+        ?: throw GradleException("You must apply the Android plugin or the Android library plugin before using the jacoco-android plugin")
     }
 
     /**
@@ -164,14 +193,6 @@ object CodeCoveragePlugin {
                 }
             }
         }
-    }
-
-    /**
-     * Checks whether android/android-library plugins are available
-     */
-    private fun findAndroidPlugin(plugins: PluginContainer) {
-        plugins.findPlugin("android") ?: plugins.findPlugin("android-library")
-        ?: throw GradleException("You must apply the Android plugin or the Android library plugin before using the jacoco-android plugin")
     }
 
     /**
