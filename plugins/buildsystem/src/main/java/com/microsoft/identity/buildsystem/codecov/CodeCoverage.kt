@@ -43,7 +43,7 @@ import java.io.File
 /**
  * This class creates code coverage tasks in the given project
  */
-object CodeCoveragePlugin {
+object CodeCoverage {
 
     private lateinit var reportExtension: CodeCoverageReportExtension
 
