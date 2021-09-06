@@ -1,5 +1,12 @@
 # Code Coverage Plugin 
 
+
+## Intro
+- [Code coverage](https://en.wikipedia.org/wiki/Code_coverage) is a software metric used to measure how many lines of our code are executed during automated tests.
+
+- [JaCoCo](https://www.eclemma.org/jacoco/trunk/index.html) is a free Java code coverage tool and the [JaCoCo plugin](https://docs.gradle.org/current/userguide/jacoco_plugin.html) provides code coverage metrics for Java code via integration with JaCoCo.
+
+## Why
 In order to generate [JaCoCo](https://www.jacoco.org/jacoco/trunk/doc/index.html) unit test coverage reports for Android projects you need to create `JacocoReport` tasks and configure them by providing paths to source code, execution data and compiled classes. It's not straightforward since Android projects can have different flavors and build types thus requiring additional paths to be set. This plugin configures these `JacocoReport` tasks automatically.
 
 ## Usage
