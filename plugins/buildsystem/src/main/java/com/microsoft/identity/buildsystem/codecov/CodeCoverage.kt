@@ -150,10 +150,12 @@ object CodeCoverage {
         val testTask = project.tasks.getByName("test")
         // get JacocoTaskExtension execution destination
         val executionData = getJavaExecutionDataFile(project)
+        // get the sources
         val sourceDirs = listOf("src/main/java", "src/main/kotlin")
-
         val taskName = "${project.name.decapitalize()}UnitTestCoverageReport"
+
         project.tasks.create(taskName, JacocoReport::class.java) { reportTask ->
+            // set the task attributes
             reportTask.dependsOn(testTask)
             reportTask.group = "Reporting"
             reportTask.description = "Generates Jacoco coverage reports"
