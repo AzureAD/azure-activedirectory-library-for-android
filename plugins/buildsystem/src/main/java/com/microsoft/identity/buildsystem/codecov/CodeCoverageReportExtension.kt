@@ -39,6 +39,15 @@ open class CodeCoverageReportExtension {
     var excludeClasses: Set<String>? = null // add some classes to exclude
 
     var includeNoLocationClasses: Boolean = true // To include Robolectric tests in the Jacoco report, flag -> "includeNolocationClasses" is set to true
+
+    /**
+     * get files to exclude
+     */
+    val getFileFilterPatterns: Set<String>
+        get() {
+            return DEFAULT_EXCLUDES + (excludeClasses ?: emptySet())
+        }
+
 }
 
 open class ReportConfig(var enabled: Boolean)
