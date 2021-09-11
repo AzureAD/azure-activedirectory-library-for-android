@@ -384,21 +384,21 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     private boolean validTokenCacheItem(String item){
         if (item == null) {
-            Logger.w(TAG, "Bad input. Input was null. ");
+            Logger.w(TAG, "Bad input, was null. ");
             return false;
         }
         item = item.trim();
         if(item.isEmpty()) {
-            Logger.e(TAG, "Bad input. Input was an empty string. ");
+            Logger.e(TAG, "Bad input, was empty string. ");
             return false;
         } else if(!item.contains(":")) {
-            Logger.e(TAG, "Unexpected input. Input doesn't contain any key pairs. ");
+            Logger.e(TAG, "Bad input, doesn't contain key pairs. ");
             return false;
         } else if(item.charAt(0) != '{') {
-            Logger.e(TAG, "Bad input. Beginning input is invalid. Expected opening bracket '{'. ");
+            Logger.e(TAG, "Bad input, start of input is invalid. Expected opening bracket '{'. ");
             return false;
         } else if(item.charAt(item.length()-1) != '}') {
-            Logger.e(TAG, "Bad input. Ending input is invalid. Expected closing bracket '}'. ");
+            Logger.e(TAG, "Bad input, end of input is invalid. Expected closing bracket '}'. ");
             return false;
         } else {
             return true;
