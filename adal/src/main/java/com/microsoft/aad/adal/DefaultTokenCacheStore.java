@@ -169,7 +169,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
             String json = mPrefs.getString(key);
             json = null != json ? json : "";
             String decrypted = decrypt(key, json);
-            if (decrypted != null) {
+            if (validTokenCacheItem(decrypted)) {
                 try {
                     return mGson.fromJson(decrypted, TokenCacheItem.class);
                 } catch (final JsonSyntaxException exception) {
@@ -238,7 +238,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
             final String tokenValue = tokenEntry.getValue();
 
             final String decryptedValue = decrypt(tokenKey, tokenValue);
-            if (decryptedValue != null) {
+            if (validTokenCacheItem(decryptedValue)) {
                 try {
                     final TokenCacheItem tokenCacheItem = mGson.fromJson(decryptedValue, TokenCacheItem.class);
                     tokens.add(tokenCacheItem);
@@ -284,7 +284,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
         while (results.hasNext()) {
             final TokenCacheItem tokenCacheItem = results.next();
-            // MRRT and FRT don't store resource in the token cache item. 
+            // MRRT and FRT don't store resource in the token cache item.
             if (resource.equals(tokenCacheItem.getResource())) {
                 tokenItems.add(tokenCacheItem);
             }
@@ -331,7 +331,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
                 try {
                     this.removeItem(CacheKey.createCacheKey(item));
                 } catch (final AuthenticationException exception) {
-                    // Catch the exception because clearTokensForUser is an API in public 
+                    // Catch the exception because clearTokensForUser is an API in public
                     // interface ITokenCacheQuery.
                     Logger.e(TAG, "Fail to create cache key. ", "", exception.getCode(), exception);
                 }
@@ -382,6 +382,27 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         return timeAhead;
     }
 
+    private boolean validTokenCacheItem(String item){
+        if (item == null) {
+            Logger.w(TAG, "Bad input. Input was null. ");
+            return false;
+        } else if(item.isEmpty()) {
+            Logger.e(TAG, "Bad input. Input was an empty string. ");
+            return false;
+        } else if(item.charAt(0) != '{') {
+            Logger.e(TAG, "Bad input. Beginning input is invalid. ");
+            return false;
+        } else if(item.charAt(item.length()-1) != '}') {
+            Logger.e(TAG, "Bad input. Ending input is invalid. ");
+            return false;
+        } else if(!item.contains("mIsMultiResourceRefreshToken")) {
+            Logger.e(TAG, "Unexpected input. Input doesn't contain an expected key. ");
+            return false;
+        } else {
+            return true;
+        }
+    }
+
     @Override
     public boolean contains(String key) {
         if (key == null) {
@@ -392,3 +413,4 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     }
 
 }
+
