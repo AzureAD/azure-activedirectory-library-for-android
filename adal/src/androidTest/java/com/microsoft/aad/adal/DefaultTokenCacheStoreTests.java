@@ -78,17 +78,6 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
     }
 
     @Test
-    public void test() throws GeneralSecurityException, IOException {
-        TokenCacheItem item = new TokenCacheItem();
-        item.setAccessToken("test");
-
-        Gson gson = new Gson();
-
-        System.out.println(gson.fromJson(gson.toJson(item), TokenCacheItem.class));
-
-    }
-
-    @Test
     public void testCacheItemRetrieval() throws GeneralSecurityException, IOException {
         TokenCacheItem item = mockDefaultCacheStore("Apr 28, 2015 1:09:57 PM").getItem("testkey");
 
