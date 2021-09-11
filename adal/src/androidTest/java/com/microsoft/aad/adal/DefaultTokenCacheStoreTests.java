@@ -30,7 +30,6 @@ import android.content.SharedPreferences;
 import androidx.test.InstrumentationRegistry;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import com.google.gson.Gson;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 
 import org.junit.After;
