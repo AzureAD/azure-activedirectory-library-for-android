@@ -386,14 +386,16 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         if (item == null) {
             Logger.w(TAG, "Bad input. Input was null. ");
             return false;
-        } else if(item.isEmpty()) {
+        }
+        item = item.trim();
+        if(item.isEmpty()) {
             Logger.e(TAG, "Bad input. Input was an empty string. ");
             return false;
         } else if(item.charAt(0) != '{') {
-            Logger.e(TAG, "Bad input. Beginning input is invalid. ");
+            Logger.e(TAG, "Bad input. Beginning input is invalid. Expected opening bracket '{' ");
             return false;
         } else if(item.charAt(item.length()-1) != '}') {
-            Logger.e(TAG, "Bad input. Ending input is invalid. ");
+            Logger.e(TAG, "Bad input. Ending input is invalid. Expected closing bracket '}'");
             return false;
         } else if(!item.contains("mIsMultiResourceRefreshToken")) {
             Logger.e(TAG, "Unexpected input. Input doesn't contain an expected key. ");

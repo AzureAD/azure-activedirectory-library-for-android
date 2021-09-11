@@ -30,6 +30,7 @@ import android.content.SharedPreferences;
 import androidx.test.InstrumentationRegistry;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import com.google.gson.Gson;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 
 import org.junit.After;
@@ -74,6 +75,17 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         DefaultTokenCacheStore store = new DefaultTokenCacheStore(getContext());
         store.removeAll();
         super.tearDown();
+    }
+
+    @Test
+    public void test() throws GeneralSecurityException, IOException {
+        TokenCacheItem item = new TokenCacheItem();
+        item.setAccessToken("test");
+
+        Gson gson = new Gson();
+
+        System.out.println(gson.fromJson(gson.toJson(item), TokenCacheItem.class));
+
     }
 
     @Test
