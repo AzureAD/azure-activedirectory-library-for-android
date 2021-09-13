@@ -1,13 +1,12 @@
 plugins {
     id 'java-gradle-plugin'
     id 'org.jetbrains.kotlin.jvm' version '1.5.30'
-    id 'jacoco'
     id 'maven-publish'
     id 'com.gradle.plugin-publish' version '0.14.0'
 }
 
 group 'com.microsoft.identity'
-version '0.1.2'
+version '0.2.0'
 
 
 pluginBundle {

@@ -27,6 +27,7 @@ import com.android.build.gradle.api.SourceKind
 import org.gradle.api.Project
 import org.gradle.api.tasks.testing.Test
 import org.gradle.testing.jacoco.plugins.JacocoPlugin
+import org.gradle.testing.jacoco.plugins.JacocoPluginExtension
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 import org.gradle.testing.jacoco.tasks.JacocoReport
 import java.io.File
@@ -46,28 +47,29 @@ object CodeCoverage {
         // get the configurations under codeCoverageReport
         reportExtension = project.extensions.create("codeCoverageReport", CodeCoverageReportExtension::class.java)
 
-        // apply jacoco
-        if (project.plugins.withType(JacocoPlugin::class.java).isEmpty()) {
-            project.plugins.apply(JacocoPlugin::class.java)
-        }
-
         // after build file has been evaluated ... add tasks
         project.afterEvaluate { evaluatedProject ->
-            evaluatedProject.configureIncludeNoLocationClasses()
+            evaluatedProject.configure()
 
-            if (isAndroidProject(project)) {
-                addJacocoToAndroid(project)
-            } else if (isJavaProject(project) || isKotlinMultiplatform(project)) {
-                addJacocoToJava(project)
+            if (isAndroidProject(evaluatedProject)) {
+                addJacocoToAndroid(evaluatedProject)
+            } else if (isJavaProject(evaluatedProject) || isKotlinMultiplatform(evaluatedProject)) {
+                addJacocoToJava(evaluatedProject)
             }
         }
     }
 
     /**
-     * Apply configuration from [CodeCoverageReportExtension] to the project.
-     * To include Robolectric tests in the Jacoco report, flag -> "includeNolocationClasses" is set to true
+     * Apply some plugin configuration from [CodeCoverageReportExtension] to the project.
+     * To include Robolectric tests in the Jacoco report, flag -> "includeNolocationClasses" should be set to true
      */
-    private fun Project.configureIncludeNoLocationClasses() {
+    private fun Project.configure() {
+        project.plugins.apply(JacocoPlugin::class.java)
+
+        project.extensions.findByType(JacocoPluginExtension::class.java)?.apply {
+            toolVersion = reportExtension.jacocoVersion
+        }
+
         tasks.withType(Test::class.java) { testTask ->
             testTask.extensions.findByType(JacocoTaskExtension::class.java)?.apply {
                 isIncludeNoLocationClasses = reportExtension.includeNoLocationClasses
@@ -84,6 +86,8 @@ object CodeCoverage {
      * add jacoco tasks to an android project
      */
     private fun addJacocoToAndroid(project: Project) {
+        project.android().jacoco.version = reportExtension.jacocoVersion
+
         if (reportExtension.unitTests.enabled) {
             createTask(project, TestTypes.UnitTest)
         }

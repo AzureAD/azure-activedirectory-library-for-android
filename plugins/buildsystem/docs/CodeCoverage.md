@@ -19,7 +19,7 @@ plugins {
 codeCoverageReport{
     html.enabled = true // by default it's true
     xml.enabled = true // by default it's true
-    csv.enabled = true // by default it's false
+    csv.enabled = true // by default it's true
 
     unitTests.enabled = true // whether code coverage tasks for unit tests will be generated
     androidTests.enabled = true // whether code coverage tasks for instrumentation tests will be generated
