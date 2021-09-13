@@ -34,7 +34,7 @@ import com.microsoft.identity.common.java.util.JWSBuilder;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.security.interfaces.RSAPrivateKey;
+import java.security.PrivateKey;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -138,7 +138,7 @@ class ChallengeResponseBuilder {
             if (deviceCertProxy.isValidIssuer(request.mCertAuthorities)
                     || deviceCertProxy.getThumbPrint() != null && deviceCertProxy.getThumbPrint()
                     .equalsIgnoreCase(request.mThumbprint)) {
-                RSAPrivateKey privateKey = deviceCertProxy.getRSAPrivateKey();
+                PrivateKey privateKey = deviceCertProxy.getPrivateKey();
 
                 if (privateKey == null) {
                     throw new AuthenticationException(ADALError.KEY_CHAIN_PRIVATE_KEY_EXCEPTION);
@@ -149,7 +149,7 @@ class ChallengeResponseBuilder {
                             request.mNonce,
                             request.mSubmitUrl,
                             privateKey,
-                            deviceCertProxy.getRSAPublicKey(),
+                            deviceCertProxy.getPublicKey(),
                             deviceCertProxy.getCertificate()
                     );
 
