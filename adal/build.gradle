@@ -151,7 +151,7 @@ dependencies {
 
     // 'dist' flavor dependencies
     //TODO: we will have to change transitive to true once common4j is published
-    distApi("com.microsoft.identity:common:3.8.0-adjohtest") {
+    distApi("com.microsoft.identity:common:3.6.0-adjohtest") {
         transitive = false
     }
 
