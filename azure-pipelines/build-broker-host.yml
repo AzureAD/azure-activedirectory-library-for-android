@@ -12,6 +12,12 @@ name: $(date:yyyyMMdd)$(rev:.r)
 trigger: none
 pr: none
 
+schedules:
+  - cron: 0 3 * * *
+    branches:
+      include:
+        - master
+
 parameters:
 - name: productFlavors
   displayName: Product Flavor
