@@ -169,7 +169,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
             String json = mPrefs.getString(key);
             json = null != json ? json : "";
             String decrypted = decrypt(key, json);
-            if (validTokenCacheItem(decrypted)) {
+            if (decrypted == null) {
                 try {
                     return mGson.fromJson(decrypted, TokenCacheItem.class);
                 } catch (final JsonSyntaxException exception) {
@@ -238,7 +238,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
             final String tokenValue = tokenEntry.getValue();
 
             final String decryptedValue = decrypt(tokenKey, tokenValue);
-            if (validTokenCacheItem(decryptedValue)) {
+            if (decryptedValue == null) {
                 try {
                     final TokenCacheItem tokenCacheItem = mGson.fromJson(decryptedValue, TokenCacheItem.class);
                     tokens.add(tokenCacheItem);
@@ -389,13 +389,6 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         }
 
         return mPrefs.contains(key);
-    }
-
-    private boolean validTokenCacheItem(String item){
-        if (item == null) {
-            Logger.w(TAG, "Bad input, was null. ");
-            return false;
-        }
     }
 
 }
