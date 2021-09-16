@@ -387,6 +387,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
             Logger.w(TAG, "Bad input, was null. ");
             return false;
         }
+
         item = item.trim();
         if(item.isEmpty()) {
             Logger.e(TAG, "Bad input, was empty string. ");
