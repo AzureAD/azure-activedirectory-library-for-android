@@ -169,7 +169,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
             String json = mPrefs.getString(key);
             json = null != json ? json : "";
             String decrypted = decrypt(key, json);
-            if (decrypted != null) {
+            if (validTokenCacheItem(decrypted)) {
                 try {
                     return mGson.fromJson(decrypted, TokenCacheItem.class);
                 } catch (final JsonSyntaxException exception) {
@@ -238,7 +238,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
             final String tokenValue = tokenEntry.getValue();
 
             final String decryptedValue = decrypt(tokenKey, tokenValue);
-            if (decryptedValue != null) {
+            if (validTokenCacheItem(decryptedValue)) {
                 try {
                     final TokenCacheItem tokenCacheItem = mGson.fromJson(decryptedValue, TokenCacheItem.class);
                     tokens.add(tokenCacheItem);
@@ -389,6 +389,29 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         }
 
         return mPrefs.contains(key);
+    }
+
+    private boolean validTokenCacheItem(String item){
+        if (item == null) {
+            Logger.w(TAG, "Bad input, was null. ");
+            return false;
+        }
+        item = item.trim();
+        if(item.isEmpty()) {
+            Logger.e(TAG, "Bad input, was empty string. ");
+            return false;
+        } else if(!item.contains(":")) {
+            Logger.e(TAG, "Bad input, doesn't contain key pairs. ");
+            return false;
+        } else if(item.charAt(0) != '{') {
+            Logger.e(TAG, "Bad input, start of input is invalid. Expected opening bracket '{'. ");
+            return false;
+        } else if(item.charAt(item.length()-1) != '}') {
+            Logger.e(TAG, "Bad input, end of input is invalid. Expected closing bracket '}'. ");
+            return false;
+        } else {
+            return true;
+        }
     }
 
 }
