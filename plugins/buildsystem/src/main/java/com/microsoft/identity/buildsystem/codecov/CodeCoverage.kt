@@ -147,28 +147,22 @@ object CodeCoverage {
         }
     }
 
-    /**
-     * add jacoco tasks to a java project
-     */
     private fun addJacocoToJava(project: Project) {
-        val testTask = project.tasks.getByName("test")
-        // get JacocoTaskExtension execution destination
-        val executionData = getJavaExecutionDataFile(project)
-        // get the sources
-        val sourceDirs = listOf("src/main/java", "src/main/kotlin")
-        val taskName = "${project.name.decapitalize()}UnitTestCoverageReport"
+        val jacocoTestReportTask = project.tasks.getByName("jacocoTestReport") as JacocoReport
+        project.tasks.getByName("test").apply {
+            finalizedBy(jacocoTestReportTask)
+            jacocoTestReportTask.dependsOn(this)
+        }
 
+        val taskName = "${project.name.decapitalize()}UnitTestCoverageReport"
         project.tasks.create(taskName, JacocoReport::class.java) { reportTask ->
             // set the task attributes
-            reportTask.dependsOn(testTask)
+            reportTask.dependsOn(jacocoTestReportTask)
             reportTask.group = "Reporting"
             reportTask.description = "Generates Jacoco coverage reports"
-            reportTask.executionData.setFrom(project.filesTree(project.buildDir, includes = setOf(executionData)))
-            reportTask.sourceDirectories.setFrom(project.files(sourceDirs))
-            reportTask.classDirectories.setFrom(project.filesTree(project.buildDir, includes = setOf("**/classes/**/main/**"),
-                    excludes = reportExtension.getFileFilterPatterns))
 
-            configureReport(project, reportTask, taskName)
+            // set destination
+            configureReport(project, jacocoTestReportTask, taskName)
         }
     }
 
