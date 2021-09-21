@@ -17,6 +17,7 @@ schedules:
     branches:
       include:
         - master
+    always: true
 
 parameters:
 - name: productFlavors
