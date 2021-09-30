@@ -150,9 +150,8 @@ dependencies {
     snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '4.0.0-RC2', changing: true)
 
     // 'dist' flavor dependencies
-    //TODO: we will have to change transitive to true once common4j is published
     distApi("com.microsoft.identity:common:4.0.0-RC2") {
-        transitive = false
+        transitive = true
     }
 
     // Android Instrumented Test Dependencies
