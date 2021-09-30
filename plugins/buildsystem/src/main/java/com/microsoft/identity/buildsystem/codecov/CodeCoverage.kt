@@ -61,7 +61,6 @@ object CodeCoverage {
 
     /**
      * Apply some plugin configuration from [CodeCoverageReportExtension] to the project.
-     * To include Robolectric tests in the Jacoco report, flag -> "includeNolocationClasses" should be set to true
      */
     private fun Project.configure() {
         project.plugins.apply(JacocoPlugin::class.java)
@@ -72,6 +71,7 @@ object CodeCoverage {
 
         tasks.withType(Test::class.java) { testTask ->
             testTask.extensions.findByType(JacocoTaskExtension::class.java)?.apply {
+                // To include Robolectric tests in the Jacoco report, flag -> "includeNolocationClasses" should be set to true
                 isIncludeNoLocationClasses = reportExtension.includeNoLocationClasses
                 if (isIncludeNoLocationClasses) {
                     // This needs to be excluded for JDK 11
@@ -148,21 +148,22 @@ object CodeCoverage {
     }
 
     private fun addJacocoToJava(project: Project) {
+        val testTask = project.tasks.getByName("test")
         val jacocoTestReportTask = project.tasks.getByName("jacocoTestReport") as JacocoReport
-        project.tasks.getByName("test").apply {
-            finalizedBy(jacocoTestReportTask)
-            jacocoTestReportTask.dependsOn(this)
-        }
 
         val taskName = "${project.name.decapitalize()}UnitTestCoverageReport"
         project.tasks.create(taskName, JacocoReport::class.java) { reportTask ->
             // set the task attributes
-            reportTask.dependsOn(jacocoTestReportTask)
+            reportTask.dependsOn(testTask)
             reportTask.group = "Reporting"
             reportTask.description = "Generates Jacoco coverage reports"
+            reportTask.executionData.setFrom(jacocoTestReportTask.executionData)
+            reportTask.sourceDirectories.setFrom(jacocoTestReportTask.sourceDirectories)
+            reportTask.additionalSourceDirs.setFrom(jacocoTestReportTask.additionalSourceDirs)
+            reportTask.classDirectories.setFrom(jacocoTestReportTask.classDirectories)
 
             // set destination
-            configureReport(project, jacocoTestReportTask, taskName)
+            configureReport(project, reportTask, taskName)
         }
     }
 
