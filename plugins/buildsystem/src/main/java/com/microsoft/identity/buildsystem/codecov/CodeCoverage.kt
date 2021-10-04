@@ -75,7 +75,7 @@ object CodeCoverage {
                 isIncludeNoLocationClasses = reportExtension.includeNoLocationClasses
                 if (isIncludeNoLocationClasses) {
                     // This needs to be excluded for JDK 11
-                    // SEE: https://support.circleci.com/hc/en-us/articles/360047926852-Android-Builds-Fail-with-java-lang-ClassNotFoundException-jdk-internal-reflect-GeneratedSerializationConstructorAccessor1-
+                    // SEE: https://stackoverflow.com/questions/68065743/cannot-run-gradle-test-tasks-because-of-java-lang-noclassdeffounderror-jdk-inte
                     excludes = listOf("jdk.internal.*")
                 }
             }
@@ -89,18 +89,18 @@ object CodeCoverage {
         project.android().jacoco.version = reportExtension.jacocoVersion
 
         if (reportExtension.unitTests.enabled) {
-            createTask(project, TestTypes.UnitTest)
+            createTasks(project, TestTypes.UnitTest)
         }
 
         if (reportExtension.androidTests.enabled) {
-            createTask(project, TestTypes.AndroidTest)
+            createTasks(project, TestTypes.AndroidTest)
         }
     }
 
     /**
      * Creates the code coverage tasks for the different build variants
      */
-    private fun createTask(project: Project, testType: String) {
+    private fun createTasks(project: Project, testType: String) {
         val excludeFlavors = (reportExtension.excludeFlavors ?: emptyList()).map { it.toLowerCase() }
         project.android().variants().all { variant ->
             if (shouldCreateTaskForVariant(excludeFlavors, variant, testType)) {
