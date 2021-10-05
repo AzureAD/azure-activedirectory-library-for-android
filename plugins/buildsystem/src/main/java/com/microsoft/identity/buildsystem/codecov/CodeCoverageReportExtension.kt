@@ -23,7 +23,7 @@
 package com.microsoft.identity.buildsystem.codecov
 
 /**
- * This class controls some of the configurations used by the code coverage plugin
+ * This class controls some of the configurations used by the code coverage plugin.
  */
 open class CodeCoverageReportExtension {
 
