@@ -23,6 +23,7 @@
 package com.microsoft.identity.buildsystem;
 
 import com.android.build.gradle.LibraryExtension;
+import com.microsoft.identity.buildsystem.codecov.CodeCoverage;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -52,6 +53,8 @@ public class BuildPlugin implements Plugin<Project> {
         });
 
         SpotBugs.applySpotBugsPlugin(project);
+
+        CodeCoverage.applyCodeCoveragePlugin(project);
     }
 
     private void applyDesugaringToAndroidProject(final Project project){

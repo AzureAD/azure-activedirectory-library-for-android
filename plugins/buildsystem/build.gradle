@@ -1,11 +1,16 @@
+buildscript {
+    apply from: rootProject.file("gradle/versions.gradle")
+}
+
 plugins {
     id 'java-gradle-plugin'
+    id 'org.jetbrains.kotlin.jvm' version '1.5.30'
     id 'maven-publish'
     id 'com.gradle.plugin-publish' version '0.14.0'
 }
 
 group 'com.microsoft.identity'
-version '0.1.1'
+version '0.2.0'
 
 
 pluginBundle {
@@ -32,10 +37,14 @@ repositories {
 }
 
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${rootProject.ext.jupiterApiVersion}"
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
-    implementation 'com.android.tools.build:gradle:4.1.0'
-    implementation 'gradle.plugin.com.github.spotbugs.snom:spotbugs-gradle-plugin:4.7.1'
+    implementation "com.android.tools.build:gradle:${rootProject.ext.gradleVersion}"
+    implementation "gradle.plugin.com.github.spotbugs.snom:spotbugs-gradle-plugin:${rootProject.ext.spotBugsGradlePluginVersion}"
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${rootProject.ext.kotlinVersion}"
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${rootProject.ext.kotlinVersion}"
+    testImplementation "org.jetbrains.kotlin:kotlin-test:${rootProject.ext.kotlinVersion}"
 }
 
 test {
