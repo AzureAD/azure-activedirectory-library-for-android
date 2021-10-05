@@ -1,5 +1,9 @@
 Plugin Overview: https://github.com/AzureAD/android-complete/blob/master/plugins/buildsystem/docs/Overview.md
 
+Version 0.2.0
+----------------------------
+[MINOR] Added ability to generate code coverage tasks
+
 Version 0.1.1
 ----------------------------
 [MINOR] Add exclude list to SpotBugs Plugin
