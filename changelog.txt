@@ -1,5 +1,7 @@
 v.Next
 ----------
+- [MINOR] Migrate BaseController to common4j (#1636)
+- [MAJOR] Migrate Token Caches to Common4j (#1633)
 - [MINOR] Adapt to migration of shared preferences. (#1624)
 - [PATCH] Adds API23 WebViewClient#onReceivedError overload (#1580)
 - [PATCH] Fixes for MFA setup using Authenticator app.(#1579)
@@ -10,6 +12,7 @@ v.Next
 - [PATCH] Disregard pageload errors for the non-primary frame during interactive auth (#1603)
 - [PATCH] Updates Nimbus version 8.2 -> 9.9 (#1600)
 - [PATCH] Fix for ADAL cache replication to Msal/Common-Cache (#1616)
+- [PATCH] Code coverage addition (#1650)
 
 Version 3.1.3
 -------------
