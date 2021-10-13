@@ -47,6 +47,9 @@ public class AcquireTokenFragment extends Fragment {
     private EditText mOtherAuthority;
     private EditText mLoginhint;
     private EditText mExtraQp;
+    private Button mExtraQpInstanceAware;
+    private EditText mClaims;
+    private Button mClaimsDeviceId;
     private Spinner mResource;
     private Spinner mPromptBehavior;
     private Spinner mClientId;
@@ -80,6 +83,9 @@ public class AcquireTokenFragment extends Fragment {
         mPromptBehavior = (Spinner) view.findViewById(R.id.prompt_behavior);
 
         mExtraQp = (EditText) view.findViewById(R.id.extraQP);
+        mExtraQpInstanceAware = (Button) view.findViewById(R.id.btn_extraQp_instance_aware);
+        mClaims = (EditText) view.findViewById(R.id.claims);
+        mClaimsDeviceId = (Button) view.findViewById(R.id.btn_claims_deviceid);
         mAcquireToken = (Button) view.findViewById(R.id.btn_acquiretoken);
         mAcquireTokenSilent = (Button) view.findViewById(R.id.btn_acquiretokensilent);
         mAcquireTokenWithAssertion = (Button) view.findViewById(R.id.btn_acquireTokenUsingAssertion);
@@ -91,6 +97,22 @@ public class AcquireTokenFragment extends Fragment {
         bindSpinnerChoice(mClientId, Constants.ClientId.class);
         bindSpinnerChoice(mRedirectUri, Constants.RedirectUri.class);
         bindSpinnerChoice(mAssertionType, Constants.AssertionVersion.class);
+
+        mExtraQpInstanceAware.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final String str = "instance_aware=true";
+                mExtraQp.setText(str);
+            }
+        });
+
+        mClaimsDeviceId.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final String str = "{\"access_token\":{\"deviceid\":{\"essential\":true}}}";
+                mClaims.setText(str);
+            }
+        });
 
         mAcquireToken.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -154,6 +176,7 @@ public class AcquireTokenFragment extends Fragment {
 
         final String loginHint = mLoginhint.getText().toString();
         final String extraQp = mExtraQp.getText().toString();
+        final String claims = mClaims.getText().toString();
         final Constants.DataProfile resource = Constants.DataProfile.valueOf(mResource.getSelectedItem().toString());
         final PromptBehavior behavior = PromptBehavior.valueOf(mPromptBehavior.getSelectedItem().toString());
         final Constants.RedirectUri redirectUri = Constants.RedirectUri.valueOf(mRedirectUri.getSelectedItem().toString());
@@ -161,13 +184,14 @@ public class AcquireTokenFragment extends Fragment {
         final boolean useBroker = mUseBroker.isChecked();
         final Constants.AssertionVersion assertionVersion = Constants.AssertionVersion.valueOf(mAssertionType.getSelectedItem().toString());
         final String assertion = mAssertion.getText().toString();
-        return RequestOptions.create(authority, loginHint, extraQp, resource, behavior, clientId, redirectUri, useBroker, assertion, assertionVersion);
+        return RequestOptions.create(authority, loginHint, extraQp, claims, resource, behavior, clientId, redirectUri, useBroker, assertion, assertionVersion);
     }
 
     static class RequestOptions {
         final String mAuthority;
         final String mLoginHint;
         final String mExtraQp;
+        final String mClaims;
         final Constants.DataProfile mResource;
         final PromptBehavior mBehavior;
         final Constants.RedirectUri mRedirectUri;
@@ -177,13 +201,15 @@ public class AcquireTokenFragment extends Fragment {
         final Constants.AssertionVersion mAssertionType;
 
         RequestOptions(final String authority, final String loginHint,
-                       final String extraQp, final Constants.DataProfile dataProfile,
+                       final String extraQp, final String claims,
+                       final Constants.DataProfile dataProfile,
                        final PromptBehavior behavior, final Constants.ClientId clientId,
                        final Constants.RedirectUri redirectUri,
                        final boolean useBroker, final String assertion, final Constants.AssertionVersion assertionType) {
             mAuthority = authority;
             mLoginHint = loginHint;
             mExtraQp = extraQp;
+            mClaims = claims;
             mResource = dataProfile;
             mBehavior = behavior;
             mClientId = clientId;
@@ -193,10 +219,12 @@ public class AcquireTokenFragment extends Fragment {
             mAssertionType = assertionType;
         }
 
-        static RequestOptions create(final String authority, final String loginHint, final String extraQp, final Constants.DataProfile dataProfile,
+        static RequestOptions create(final String authority, final String loginHint, final String extraQp,
+                                     final String claims, final Constants.DataProfile dataProfile,
                                      final PromptBehavior behavior, final Constants.ClientId clientId, final Constants.RedirectUri redirectUri,
                                      final boolean useBroker, final String assertion, final Constants.AssertionVersion assertionType) {
-            return new RequestOptions(authority, loginHint, extraQp, dataProfile, behavior, clientId, redirectUri, useBroker, assertion, assertionType);
+            return new RequestOptions(authority, loginHint, extraQp, claims,
+                    dataProfile, behavior, clientId, redirectUri, useBroker, assertion, assertionType);
         }
 
         String getAuthority() {
@@ -209,6 +237,10 @@ public class AcquireTokenFragment extends Fragment {
 
         String getExtraQp() {
             return mExtraQp;
+        }
+
+        String getClaims() {
+            return mClaims;
         }
 
         Constants.DataProfile getDataProfile() {
