@@ -125,7 +125,7 @@ dependencies {
         exclude module: 'common'
     }
 
-    distImplementation("com.microsoft.aad:adal:3.1.3") {
+    distImplementation(group: 'com.microsoft.aad', name: 'adal', version: "${adalVersion}") {
         exclude module: 'support-v4'
         exclude module: 'android'
         exclude module: 'common'
