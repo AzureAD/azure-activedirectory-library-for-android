@@ -93,6 +93,13 @@ object CodeCoverage {
         }
 
         if (reportExtension.androidTests.enabled) {
+            val androidTestResourcesDirectory = project.file("src/androidTest/resources")
+            val jacocoAgentProperties = File(androidTestResourcesDirectory, "jacoco-agent.properties")
+            if (!jacocoAgentProperties.exists()) {
+                androidTestResourcesDirectory.mkdirs()
+                jacocoAgentProperties.writeText("output=none")
+            }
+
             createTasks(project, TestTypes.AndroidTest)
         }
     }
