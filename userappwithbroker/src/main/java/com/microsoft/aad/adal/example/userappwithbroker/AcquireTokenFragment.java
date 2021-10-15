@@ -101,7 +101,7 @@ public class AcquireTokenFragment extends Fragment {
         mExtraQpInstanceAware.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final String str = "instance_aware=true";
+                final String str = mExtraQp.getText().toString() + "instance_aware=true";
                 mExtraQp.setText(str);
             }
         });
@@ -109,7 +109,7 @@ public class AcquireTokenFragment extends Fragment {
         mClaimsDeviceId.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final String str = "{\"access_token\":{\"deviceid\":{\"essential\":true}}}";
+                final String str = mClaims.getText().toString() + "{\"access_token\":{\"deviceid\":{\"essential\":true}}}";
                 mClaims.setText(str);
             }
         });
