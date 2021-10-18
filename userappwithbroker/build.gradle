@@ -16,8 +16,8 @@ allprojects {
     }
 }
 
-def adalVersion = "3.1.3"
-def commonVersion = "0.0.+"
+def adalVersion = "4.0.0"
+def commonVersion = "4.0.+"
 
 if (project.hasProperty("distAdalVersion")) {
     println "Overriding adal version to dist property " + distAdalVersion
@@ -125,7 +125,7 @@ dependencies {
         exclude module: 'common'
     }
 
-    distImplementation(group: 'com.microsoft.aad', name: 'adal', version: "${adalVersion}") {
+    distImplementation("com.microsoft.aad:adal:${adalVersion}") {
         exclude module: 'support-v4'
         exclude module: 'android'
         exclude module: 'common'
