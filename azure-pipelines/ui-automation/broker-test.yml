@@ -75,14 +75,14 @@ stages:
       inputs:
         tasks: 'msalautomationapp:assembleDistAutoBrokerDebugAndroidTest -PlabSecret=$(AndroidAutomationRunnerAppSecret)'
         publishJUnitResults: false
-      - task: CopyFiles@2
-        displayName: 'Copy apks for later use in the pipeline'
-        inputs:
-          contents: '$(Build.SourcesDirectory)/msalautomationapp/build/outputs/apk/**'
-          targetFolder: '$(Build.ArtifactStagingDirectory)/msal'
-      - publish: '$(Build.ArtifactStagingDirectory)/msal'
-        displayName: 'Publish apks for later use'
-        artifact: msalautomationapks
+    - task: CopyFiles@2
+      displayName: 'Copy apks for later use in the pipeline'
+      inputs:
+        contents: '$(Build.SourcesDirectory)/msalautomationapp/build/outputs/apk/**'
+        targetFolder: '$(Build.ArtifactStagingDirectory)/msal'
+    - publish: '$(Build.ArtifactStagingDirectory)/msal'
+      displayName: 'Publish apks for later use'
+      artifact: msalautomationapks
   # brokerautomationapp
 - stage: 'brokerautomationapp'
   displayName: Broker Automation app
