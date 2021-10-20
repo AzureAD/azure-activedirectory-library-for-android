@@ -234,7 +234,7 @@ stages:
   displayName: ADAL with broker and Broker basic validation test plan
   jobs: 
   - job: 'adal_with_broker'
-    displayName: DAL with broker and Broker basic validation test plan
+    displayName: ADAL with broker and Broker basic validation test plan
     pool:
       vmImage: ubuntu-latest
     variables:
@@ -259,18 +259,18 @@ stages:
           gcloud config set project "$(gCloudProjectId)"
           gcloud firebase test android run \
             --type instrumentation \
-            --app $(Pipeline.Workspace)/brokerautomationapks/$(brokerApp) \
-            --test $(Pipeline.Workspace)/brokerautomationapks/$(brokertestApp) \
+            --app "$(Pipeline.Workspace)/brokerautomationapks/$(brokerApp)" \
+            --test "$(Pipeline.Workspace)/brokerautomationapks/$(brokertestApp)" \
             --device "model=$(deviceId),version=$(deviceAndroidVersion)" \
             --timeout "$(firebaseTimeout)" \
             --other-files \
             "/data/local/tmp/CompanyPortal.apk=$(Pipeline.Workspace)/brokerapks/$(companyPortalApk),\
             /data/local/tmp/Authenticator.apk=$(Pipeline.Workspace)/brokerapks/$(authenticatorApk),\
             /data/local/tmp/AzureSample.apk=$(Pipeline.Workspace)/azuresample/$(azureSampleApk)" \
-            --results-dir $(resultsDir) \
+            --results-dir "$(resultsDir)" \
             --directories-to-pull "/sdcard" \
             --use-orchestrator \
-            --environment-variables clearPackageData=true \
+            --environment-variables "clearPackageData=true" \
             --results-history-name "$(resultsHistoryName)" \
             --test-targets "notPackage com.microsoft.identity.client.broker.automationapp.testpass.local.adal"
     - script: gsutil cp gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml $(Build.SourcesDirectory)
