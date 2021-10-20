@@ -216,7 +216,7 @@ stages:
             --environment-variables "clearPackageData=true" \
             --results-history-name "$(resultsHistoryName)" \
             --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker"
-    - script: gsutil cp gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml $(Build.SourcesDirectory)
+    - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml" "$(Build.SourcesDirectory)"
       displayName: Download Test Result File
       condition: succeededOrFailed()
     - task: PublishTestResults@2
@@ -273,7 +273,7 @@ stages:
             --environment-variables "clearPackageData=true" \
             --results-history-name "$(resultsHistoryName)" \
             --test-targets "notPackage com.microsoft.identity.client.broker.automationapp.testpass.local.adal"
-    - script: gsutil cp gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml $(Build.SourcesDirectory)
+    - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml" "$(Build.SourcesDirectory)"
       displayName: Download Test Result File
       condition: succeededOrFailed()
     - task: PublishTestResults@2
