@@ -185,9 +185,8 @@ stages:
         retryCount: 5
   # Download APKs
     - download: current
-      target: '$(Build.SourcesDirectory)'
     - bash: ls
-      workingDirectory: '$(Build.SourcesDirectory)'
+      workingDirectory: '$(Pipeline.Workspace)'
       displayName: 'Display APKs'
 
 
