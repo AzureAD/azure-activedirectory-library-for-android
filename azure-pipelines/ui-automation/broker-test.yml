@@ -48,10 +48,10 @@ stages:
   # msalautomationapp
 - stage: 'msalautomationapp'
   dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
-  displayName: MSAL Automation app
+  displayName: MSAL Automation APKs
   jobs:
   - job: 'msalautomationapp'
-    displayName: MSAL Automation app
+    displayName: Build and Publish MSAL Automation app
     pool:
       vmImage: ubuntu-latest
     steps:
@@ -87,10 +87,10 @@ stages:
   # brokerautomationapp
 - stage: 'brokerautomationapp'
   dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
-  displayName: Broker Automation app
+  displayName: Broker Automation APKs
   jobs: 
   - job: 'brokerautomationapp'
-    displayName: Broker Automation app
+    displayName: Build and Publish Broker Automation app
     pool:
       vmImage: ubuntu-latest
     steps:
@@ -98,6 +98,11 @@ stages:
       clean: true
       submodules: recursive
       persistCredentials: True
+    - task: CmdLine@1
+      displayName: Set MVN Access Token in Environment
+      inputs:
+        filename: echo
+        arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN]$(mvnAccessToken)'
     - task: AzureKeyVault@2
       displayName: 'Get Key vault AndroidAutomationRunnerAppSecret'
       inputs:
@@ -126,7 +131,7 @@ stages:
   # Brokers
 - stage: 'brokers'
   dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
-  displayName: Download Brokers and Azure Sample
+  displayName: Brokers and Azure Sample APKs
   jobs: 
   - job: 'download_brokers'
     displayName: Download Brokers
@@ -143,6 +148,9 @@ stages:
         itemPattern: '**/*.apk'
         targetPath: '$(Build.ArtifactStagingDirectory)/azuresample'
         buildVersionToDownload: 'latest'
+    - script: mkdir cpauth
+      displayName: 'make cpauth dir'
+      workingDirectory: '$(Build.ArtifactStagingDirectory)'
     - script: curl -L -o $(authenticatorApk) "${{ parameters.authenticatorLink }}"
       displayName: 'Download Authenticator'
       workingDirectory: '$(Build.ArtifactStagingDirectory)/cpauth'
