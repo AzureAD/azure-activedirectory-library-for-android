@@ -79,7 +79,7 @@ stages:
     - task: CopyFiles@2
       displayName: 'Copy apks for later use in the pipeline'
       inputs:
-        contents: '$(Build.SourcesDirectory)/msalautomationapp/build/outputs/apk/**'
+        contents: '$(Build.SourcesDirectory)/msalautomationapp/build/outputs/apk/**/*.apk'
         targetFolder: '$(Build.ArtifactStagingDirectory)/msal'
     - publish: '$(Build.ArtifactStagingDirectory)/msal'
       displayName: 'Publish apks for later use'
@@ -123,7 +123,7 @@ stages:
     - task: CopyFiles@2
       displayName: 'Copy apks for later use in the pipeline'
       inputs:
-        contents: '$(Build.SourcesDirectory)/brokerautomationapp/build/outputs/apk/**'
+        contents: '$(Build.SourcesDirectory)/brokerautomationapp/build/outputs/apk/**/*.apk'
         targetFolder: '$(Build.ArtifactStagingDirectory)/broker'
     - publish: '$(Build.ArtifactStagingDirectory)/broker'
       displayName: 'Publish apks for later use'
