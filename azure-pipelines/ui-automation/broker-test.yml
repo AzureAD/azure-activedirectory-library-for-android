@@ -185,7 +185,7 @@ stages:
         retryCount: 5
   # Download APKs
     - download: current
-    - script: ls -lh *.apk
+    - bash: ls
       displayName: 'Rename APKs'
 
 
