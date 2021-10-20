@@ -76,14 +76,14 @@ stages:
       inputs:
         tasks: 'msalautomationapp:assembleDistAutoBrokerDebugAndroidTest -PlabSecret=$(AndroidAutomationRunnerAppSecret)'
         publishJUnitResults: false
-      - task: CopyFiles@2
-        displayName: 'Copy apks for later use in the pipeline'
-        inputs:
-          contents: '$(Build.SourcesDirectory)/msalautomationapp/build/outputs/apk/**'
-          targetFolder: '$(Build.ArtifactStagingDirectory)/msal'
-      - publish: '$(Build.ArtifactStagingDirectory)/msal'
-        displayName: 'Publish apks for later use'
-        artifact: msalautomationapks
+    - task: CopyFiles@2
+      displayName: 'Copy apks for later use in the pipeline'
+      inputs:
+        contents: '$(Build.SourcesDirectory)/msalautomationapp/build/outputs/apk/**'
+        targetFolder: '$(Build.ArtifactStagingDirectory)/msal'
+    - publish: '$(Build.ArtifactStagingDirectory)/msal'
+      displayName: 'Publish apks for later use'
+      artifact: msalautomationapks
   # brokerautomationapp
 - stage: 'brokerautomationapp'
   dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
@@ -115,14 +115,14 @@ stages:
       inputs:
         tasks: 'brokerautomationapp:assembleDistAutoBrokerDebugAndroidTest -PlabSecret=$(AndroidAutomationRunnerAppSecret)'
         publishJUnitResults: false
-      - task: CopyFiles@2
-        displayName: 'Copy apks for later use in the pipeline'
-        inputs:
-          contents: '$(Build.SourcesDirectory)/brokerautomationapp/build/outputs/apk/**'
-          targetFolder: '$(Build.ArtifactStagingDirectory)/broker'
-      - publish: '$(Build.ArtifactStagingDirectory)/broker'
-        displayName: 'Publish apks for later use'
-        artifact: brokerautomationapks
+    - task: CopyFiles@2
+      displayName: 'Copy apks for later use in the pipeline'
+      inputs:
+        contents: '$(Build.SourcesDirectory)/brokerautomationapp/build/outputs/apk/**'
+        targetFolder: '$(Build.ArtifactStagingDirectory)/broker'
+    - publish: '$(Build.ArtifactStagingDirectory)/broker'
+      displayName: 'Publish apks for later use'
+      artifact: brokerautomationapks
   # Brokers
 - stage: 'brokers'
   dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
@@ -141,7 +141,7 @@ stages:
         definition: '$(azureSamplePipelineId)'
         artifactName: AzureSample
         itemPattern: '**/*.apk'
-        targetPath: ''$(Build.ArtifactStagingDirectory)/azuresample'
+        targetPath: '$(Build.ArtifactStagingDirectory)/azuresample'
         buildVersionToDownload: 'latest'
     - script: curl -L -o $(authenticatorApk) "${{ parameters.authenticatorLink }}"
       displayName: 'Download Authenticator'
@@ -151,10 +151,10 @@ stages:
       workingDirectory: '$(Build.ArtifactStagingDirectory)/cpauth'
     - publish: $(Build.ArtifactStagingDirectory)/cpauth
       displayName: 'Publish Broker apks for later use'
-      artifactName: brokerapks
+      artifact: brokerapks
     - publish: $(Build.ArtifactStagingDirectory)/azuresample
       displayName: 'Publish Azure Sample apk for later use'
-      artifactName: azuresample
+      artifact: azuresample
   # test
 - stage: 'msal_with_broker'
   dependsOn:
