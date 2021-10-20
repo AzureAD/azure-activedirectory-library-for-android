@@ -225,8 +225,8 @@ stages:
       inputs:
         testResultsFiles: '*test_result*.xml'
         searchFolder: $(Build.SourcesDirectory)
-        testRunTitle: 'MSAL UI Automation - Build # $(Build.BuildNumber)'
-  # MSAL with Broker Test Plan stage
+        testRunTitle: 'msal automation app results - Build # $(Build.BuildNumber)'
+  # basic Broker and ADAL with Broker Test Plan stage
 - stage: 'adal_with_broker'
   dependsOn:
   - brokerautomationapp
@@ -282,4 +282,4 @@ stages:
       inputs:
         testResultsFiles: '*test_result*.xml'
         searchFolder: $(Build.SourcesDirectory)
-        testRunTitle: 'MSAL UI Automation - Build # $(Build.BuildNumber)'
+        testRunTitle: 'broker automation app results - Build # $(Build.BuildNumber)'
