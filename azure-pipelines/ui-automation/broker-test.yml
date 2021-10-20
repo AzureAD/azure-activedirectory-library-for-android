@@ -185,7 +185,7 @@ stages:
         retryCount: 5
   # Download APKs
     - download: current
-      path: $(Build.SourcesDirectory)
+      target: '$(Build.SourcesDirectory)'
     - bash: ls
       workingDirectory: '$(Build.SourcesDirectory)'
       displayName: 'Display APKs'
