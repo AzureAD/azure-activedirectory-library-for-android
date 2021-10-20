@@ -47,8 +47,9 @@ parameters:
 stages:
   # msalautomationapp
 - stage: 'msalautomationapp'
+  dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
   displayName: MSAL Automation app
-  jobs: 
+  jobs:
   - job: 'msalautomationapp'
     displayName: MSAL Automation app
     pool:
@@ -85,6 +86,7 @@ stages:
         artifact: msalautomationapks
   # brokerautomationapp
 - stage: 'brokerautomationapp'
+  dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
   displayName: Broker Automation app
   jobs: 
   - job: 'brokerautomationapp'
@@ -123,6 +125,7 @@ stages:
         artifact: brokerautomationapks
   # Brokers
 - stage: 'brokers'
+  dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
   displayName: Download Brokers and Azure Sample
   jobs: 
   - job: 'download_brokers'
