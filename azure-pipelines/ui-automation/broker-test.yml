@@ -168,7 +168,6 @@ stages:
 - stage: 'msal_with_broker'
   dependsOn:
   - msalautomationapp
-  - brokerautomationapp
   - brokers
   displayName: Running MSAL with Broker Test Plan
   jobs: 
@@ -228,7 +227,6 @@ stages:
   # MSAL with Broker Test Plan stage
 - stage: 'adal_with_broker'
   dependsOn:
-  - msalautomationapp
   - brokerautomationapp
   - brokers
   displayName: ADAL with broker and Broker basic validation test plan
