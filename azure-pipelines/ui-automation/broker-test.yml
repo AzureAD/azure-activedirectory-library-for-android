@@ -185,8 +185,10 @@ stages:
         retryCount: 5
   # Download APKs
     - download: current
+      path: $(Build.SourcesDirectory)
     - bash: ls
-      displayName: 'Rename APKs'
+      workingDirectory: '$(Build.SourcesDirectory)'
+      displayName: 'Display APKs'
 
 
 
