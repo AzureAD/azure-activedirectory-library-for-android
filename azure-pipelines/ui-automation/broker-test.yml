@@ -202,18 +202,18 @@ stages:
           gcloud config set project "$(gCloudProjectId)"
           gcloud firebase test android run \
             --type instrumentation \
-            --app $(Pipeline.Workspace)/msalautomationapks/$(msalApp) \
-            --test $(Pipeline.Workspace)/msalautomationapks/$(msaltestApp) \
+            --app "$(Pipeline.Workspace)/msalautomationapks/$(msalApp)" \
+            --test "$(Pipeline.Workspace)/msalautomationapks/$(msaltestApp)" \
             --device "model=$(deviceId),version=$(deviceAndroidVersion)" \
             --timeout "$(firebaseTimeout)" \
             --other-files \
             "/data/local/tmp/CompanyPortal.apk=$(Pipeline.Workspace)/brokerapks/$(companyPortalApk),\
             /data/local/tmp/Authenticator.apk=$(Pipeline.Workspace)/brokerapks/$(authenticatorApk),\
             /data/local/tmp/AzureSample.apk=$(Pipeline.Workspace)/azuresample/$(azureSampleApk)" \
-            --results-dir $(resultsDir) \
+            --results-dir "$(resultsDir)" \
             --directories-to-pull "/sdcard" \
             --use-orchestrator \
-            --environment-variables clearPackageData=true \
+            --environment-variables "clearPackageData=true" \
             --results-history-name "$(resultsHistoryName)" \
             --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker"
     - script: gsutil cp gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml $(Build.SourcesDirectory)
