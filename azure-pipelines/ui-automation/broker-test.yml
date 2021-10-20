@@ -191,9 +191,6 @@ stages:
         secureFile: AndroidFirebaseServiceAccountKey.json
         retryCount: 5
     - download: current
-    - bash: ls
-      workingDirectory: '$(Pipeline.Workspace)'
-      displayName: 'Display APKs'
     - script: gcloud version
       displayName: 'Check gcloud version'
     - task: Bash@3
@@ -202,7 +199,7 @@ stages:
         targetType: inline
         script: |
           gcloud auth activate-service-account --key-file "$(gcServiceAccountKey.secureFilePath)"
-          gcloud config set project $(gCloudProjectId)
+          gcloud config set project "$(gCloudProjectId)"
           gcloud firebase test android run \
             --type instrumentation \
             --app $(Pipeline.Workspace)/msalautomationapks/$(msalApp) \
@@ -251,9 +248,6 @@ stages:
         secureFile: AndroidFirebaseServiceAccountKey.json
         retryCount: 5
     - download: current
-    - bash: ls
-      workingDirectory: '$(Pipeline.Workspace)'
-      displayName: 'Display APKs'
     - script: gcloud version
       displayName: 'Check gcloud version'
     - task: Bash@3
@@ -262,7 +256,7 @@ stages:
         targetType: inline
         script: |
           gcloud auth activate-service-account --key-file "$(gcServiceAccountKey.secureFilePath)"
-          gcloud config set project $(gCloudProjectId)
+          gcloud config set project "$(gCloudProjectId)"
           gcloud firebase test android run \
             --type instrumentation \
             --app $(Pipeline.Workspace)/brokerautomationapks/$(brokerApp) \
