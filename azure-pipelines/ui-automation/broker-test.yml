@@ -226,7 +226,7 @@ stages:
         searchFolder: $(Build.SourcesDirectory)
         testRunTitle: 'MSAL UI Automation - Build # $(Build.BuildNumber)'
   # MSAL with Broker Test Plan stage
-- stage: 'msal_with_broker'
+- stage: 'adal_with_broker'
   dependsOn:
   - msalautomationapp
   - brokerautomationapp
