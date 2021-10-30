@@ -160,9 +160,29 @@ stages:
     - script: curl -L -o $(authenticatorApk) "${{ parameters.authenticatorLink }}"
       displayName: 'Download Authenticator'
       workingDirectory: '$(Build.ArtifactStagingDirectory)/cpauth'
+      enabled: false
     - script:  curl -L -o $(companyPortalApk) "${{ parameters.companyPortalLink }}"
       displayName: 'Download Company Portal'
       workingDirectory: '$(Build.ArtifactStagingDirectory)/cpauth'
+      enabled: false
+    - task: UniversalPackages@0
+      inputs:
+        command: 'download'
+        downloadDirectory: '$(Build.ArtifactStagingDirectory)/cpauth'
+        feedsToUse: 'external'
+        externalFeedCredentials: 'AmGusain-TestBrokerCI'
+        feedDownloadExternal: 'AmGusain-Test'
+        packageDownloadExternal: 'com.azure.authenticator'
+        versionDownloadExternal: '*'
+    - task: UniversalPackages@0
+      inputs:
+        command: 'download'
+        downloadDirectory: '$(Build.ArtifactStagingDirectory)/cpauth'
+        feedsToUse: 'external'
+        externalFeedCredentials: 'AmGusain-TestBrokerCI'
+        feedDownloadExternal: 'AmGusain-Test'
+        packageDownloadExternal: 'com.microsoft.windowsintune.companyportal-signed'
+        versionDownloadExternal: '*'
     - publish: $(Build.ArtifactStagingDirectory)/cpauth
       displayName: 'Publish Broker apks for later use'
       artifact: brokerapks
@@ -207,8 +227,8 @@ stages:
             --device "model=$(deviceId),version=$(deviceAndroidVersion)" \
             --timeout "$(firebaseTimeout)" \
             --other-files \
-            "/data/local/tmp/CompanyPortal.apk=$(Pipeline.Workspace)/brokerapks/$(companyPortalApk),\
-            /data/local/tmp/Authenticator.apk=$(Pipeline.Workspace)/brokerapks/$(authenticatorApk),\
+            "/data/local/tmp/CompanyPortal.apk=$(Pipeline.Workspace)/brokerapks/com.microsoft.windowsintune.companyportal-signed.apk,\
+            /data/local/tmp/Authenticator.apk=$(Pipeline.Workspace)/brokerapks/app-production-universal-release-signed.apk,\
             /data/local/tmp/AzureSample.apk=$(Pipeline.Workspace)/azuresample/$(azureSampleApk)" \
             --results-dir "$(resultsDir)" \
             --directories-to-pull "/sdcard" \
