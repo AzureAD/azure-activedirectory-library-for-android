@@ -39,9 +39,11 @@ parameters:
 - name: companyPortalLink
   displayName: Company Portal RC Link
   type: string
+  default: ""
 - name: authenticatorLink
   displayName: Authenticator RC Link
   type: string
+  default: ""
 
 stages:
   # msalautomationapp
