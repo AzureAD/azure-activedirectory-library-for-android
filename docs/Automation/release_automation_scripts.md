@@ -45,6 +45,10 @@ The script takes two arguments as follows:
 
 ## Broker Release
 
+We can run Broker automation during releases both locally as well
+
+### Locally
+
 Run the [Broker Release Automation Script](../../BrokerReleaseAutomation.ps1) located in Android-Complete project. 
 
 The script can be run as follows:
@@ -56,6 +60,18 @@ The script takes two arguments as follows:
 - **labSecret** - the secret required to use LAB API. More details here: [LabSetup.md](labsetup.md)
 - **authenticatorApkPath** - the path to Authenticator APK pointing to broker version (typically an RC build) that we are trying to test
 - **companyPortalApkPath** - the path to Company Portal APK pointing to broker version (typically an RC build) that we are trying to test
+
+### Pipelines
+
+- Run the [Azure Sample PROD App Pipeline](https://dev.azure.com/IdentityDivision/IDDP/_build?definitionId=1278) by supplying the `distMsalVersion` in the pipeline variables
+
+- Wait for the above pipeline to finish, then move on to next step
+
+- Run the [Broker Release Test Pipeline](https://identitydivision.visualstudio.com/Engineering/_build?definitionId=1490) and supply
+  * `msal_branch` and `broker_branch` in the pipeline variables
+  * [Company Portal RC Link](https://install.appcenter.ms/orgs/Intune-Windroid/apps/Intune-Android-Company-Portal-Broker) and [Authenticator RC Link](https://install.appcenter.ms/orgs/authapp-t7qc/apps/Microsoft-Authenticator-Android-Broker) in the pipeline arguments
+
+![brokerVersion](./images/brokerReleasePipeline.png)
 
 ## ADAL with Common Release
 

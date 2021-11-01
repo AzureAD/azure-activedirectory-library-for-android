@@ -59,6 +59,7 @@ Before we go into the specifics of running tests, let's review where these tests
 - MSAL Automation App
   
   - Contains all MSAL Tests (with and without Broker)
+  - Contains Broker with WPJ API Tests Cases
 
 - Broker Automation App
   
@@ -120,6 +121,8 @@ Some of our UI Automation Tests require installing additional apps on the device
   - Required when running tests against BrokerHost as the broker app
   
   - APK must be dropped in the `/data/local/tmp` directory and be named as `BrokerHost.apk`
+  
+  - For WPJ API test cases two APKs must be dropped in the `/data/local/tmp` directory and be named as `BrokerHostRC.apk` and `BrokerHostProd.apk`
 
 - **AzureSample**
   
