@@ -378,7 +378,7 @@ Federated sign-in may fail when attempting to authenticate using the Azure Activ
 
 ### Querying cache items
 
-ADAL provides Default cache in SharedPrefrecens with some simple cache query fucntions. You can get the current cache from AuthenticationContext with:
+ADAL provides Default cache in SharedPrefrences with some simple cache query fucntions. You can get the current cache from AuthenticationContext with:
 
 ```java
 ITokenCacheStore cache = mContext.getCache();
