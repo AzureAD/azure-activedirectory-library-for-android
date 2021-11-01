@@ -69,6 +69,7 @@ import javax.security.auth.x500.X500Principal;
  * to store. API SDK >= 18 has more security with AndroidKeyStore.
  * Note: {@link StorageHelper} is designed for the ADAL internal encryption/decryption.
  * Don't take dependency on it for external use.
+ * just testing
  */
 public class StorageHelper {
     private static final String TAG = "StorageHelper";

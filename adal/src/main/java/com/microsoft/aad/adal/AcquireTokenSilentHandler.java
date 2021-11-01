@@ -418,6 +418,7 @@ class AcquireTokenSilentHandler {
      * Old version of ADAL doesn't mark token stored in regular RT entry as MRRT even it is. The logic to look for
      * MRRT is when RT is not found or found RT is also MRRT. To support the old behavior, do a separate check on
      * the existence for MRRT token entry.
+     * just testing
      */
     private boolean isMRRTEntryExisted() throws AuthenticationException {
         final TokenCacheItem mrrtItem;

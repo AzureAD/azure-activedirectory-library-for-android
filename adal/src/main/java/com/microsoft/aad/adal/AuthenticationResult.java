@@ -41,6 +41,7 @@ import static com.microsoft.identity.common.java.AuthenticationConstants.AAD.BEA
 /**
  * Result class to keep code, token and other info Serializable properties Mark
  * temp properties as Transient if you dont want to keep them in serialization.
+ * just testing
  */
 public class AuthenticationResult implements Serializable {
 
