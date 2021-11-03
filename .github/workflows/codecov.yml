@@ -26,7 +26,7 @@ jobs:
         run: ./gradlew clean adal:assembleLocal
 
       - name: Run Coverage
-        run: ./gradlew adal:localDebugAdalUnitTestCoverageReport -Plabtest -ProbolectricSdkVersion=$ROBOELECTRIC_SDK_VERSION
+        run: ./gradlew adal:localDebugAdalUnitTestCoverageReport -ProbolectricSdkVersion=$ROBOELECTRIC_SDK_VERSION
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
