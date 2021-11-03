@@ -497,9 +497,8 @@ public class AuthenticationParameters {
                 params.put(key, value);
             }
 
-            if (params
-                    .isEmpty()) { // To match the existing expected behavior, an Exception is
-                                  // thrown.
+            if (params.isEmpty()) { // To match the existing expected behavior, an Exception is
+                // thrown.
                 Logger.w(TAG + methodName, "Parsed params were empty.");
                 throw new ResourceAuthenticationChallengeException(AUTH_HEADER_INVALID_FORMAT);
             }

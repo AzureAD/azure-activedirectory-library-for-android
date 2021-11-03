@@ -67,7 +67,7 @@ class TokenCacheAccessor {
     private final ITokenCacheStore mTokenCacheStore;
     private String
             mAuthority; // Remove final to update the authority when preferred cache location is not
-                        // the same as passed in authority
+    // the same as passed in authority
     private final String mTelemetryRequestId;
     private boolean mUseCommonCache = false;
     private ADALOAuth2TokenCache mCommonCache = null;
