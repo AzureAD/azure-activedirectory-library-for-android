@@ -22,6 +22,9 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.Test;
@@ -29,9 +32,6 @@ import org.junit.runner.RunWith;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 @RunWith(AndroidJUnit4.class)
 public final class AggregatedDispatcherTest {
@@ -44,7 +44,8 @@ public final class AggregatedDispatcherTest {
 
     @Test
     public void testEmptyEvents() {
-        final AggregatedDispatcher dispatcher = new AggregatedDispatcher(new AggregatedTelemetryTestClass());
+        final AggregatedDispatcher dispatcher =
+                new AggregatedDispatcher(new AggregatedTelemetryTestClass());
         // Empty events should not throw
         dispatcher.flush(CONSTANT_REQUEST_ID);
 

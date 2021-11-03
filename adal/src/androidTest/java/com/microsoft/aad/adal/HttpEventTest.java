@@ -23,6 +23,14 @@
 
 package com.microsoft.aad.adal;
 
+import static com.microsoft.aad.adal.TelemetryUtils.CliTelemInfo;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.Test;
@@ -33,13 +41,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.microsoft.aad.adal.TelemetryUtils.CliTelemInfo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 @RunWith(AndroidJUnit4.class)
 public final class HttpEventTest {
@@ -85,7 +86,10 @@ public final class HttpEventTest {
 
         // The path should be here
         assertNotNull(dispatchMap.get(EventStrings.HTTP_PATH));
-        assertTrue(dispatchMap.get(EventStrings.HTTP_PATH).equals("https://login.microsoftonline.com/oauth2/"));
+        assertTrue(
+                dispatchMap
+                        .get(EventStrings.HTTP_PATH)
+                        .equals("https://login.microsoftonline.com/oauth2/"));
         assertTrue(dispatchMap.get(EventStrings.HTTP_EVENT_COUNT).equals("1"));
     }
 
@@ -103,7 +107,10 @@ public final class HttpEventTest {
         event2.processEvent(dispatchMap);
 
         assertTrue(dispatchMap.get(EventStrings.OAUTH_ERROR_CODE).isEmpty());
-        assertTrue(dispatchMap.get(EventStrings.HTTP_RESPONSE_CODE).equals(String.valueOf(HttpURLConnection.HTTP_OK)));
+        assertTrue(
+                dispatchMap
+                        .get(EventStrings.HTTP_RESPONSE_CODE)
+                        .equals(String.valueOf(HttpURLConnection.HTTP_OK)));
     }
 
     @Test

@@ -55,7 +55,6 @@ import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.java.constants.OAuth2ErrorCode;
 import com.microsoft.identity.common.java.constants.OAuth2SubErrorCode;
-import com.microsoft.identity.common.java.interfaces.IPlatformComponents;
 import com.microsoft.identity.common.java.interfaces.INameValueStorage;
 import com.microsoft.identity.common.java.interfaces.IPlatformComponents;
 
@@ -89,7 +88,8 @@ class BrokerProxy implements IBrokerProxy {
 
     private static final String KEY_ACCOUNT_LIST_DELIM = "|";
 
-    private static final String KEY_SHARED_PREF_ACCOUNT_LIST = "com.microsoft.aad.adal.account.list";
+    private static final String KEY_SHARED_PREF_ACCOUNT_LIST =
+            "com.microsoft.aad.adal.account.list";
 
     private static final String KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL = "AppAccountsForTokenRemoval";
 
@@ -99,8 +99,7 @@ class BrokerProxy implements IBrokerProxy {
 
     private static final String AUTHENTICATOR_CANCELS_REQUEST = "Authenticator cancels the request";
 
-    BrokerProxy() {
-    }
+    BrokerProxy() {}
 
     BrokerProxy(final Context ctx) {
         mContext = ctx;
@@ -122,7 +121,8 @@ class BrokerProxy implements IBrokerProxy {
      */
     @Override
     public SwitchToBroker canSwitchToBroker(final String authorityUrlStr) {
-        // TODO: Get CompanyPortal to verify that they can also switch to broker when acquiring token with ADAL.
+        // TODO: Get CompanyPortal to verify that they can also switch to broker when acquiring
+        // token with ADAL.
 
         final String methodName = ":canSwitchToBroker";
         final URL authorityUrl;
@@ -130,34 +130,43 @@ class BrokerProxy implements IBrokerProxy {
             authorityUrl = new URL(authorityUrlStr);
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException(
-                    ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL.name()
-            );
+                    ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL.name());
         }
-        boolean canSwitchToBroker = AuthenticationSettings.INSTANCE.getUseBroker()
-                && verifyAuthenticator(mAcctManager)
-                && !UrlExtensions.isADFSAuthority(authorityUrl);
+        boolean canSwitchToBroker =
+                AuthenticationSettings.INSTANCE.getUseBroker()
+                        && verifyAuthenticator(mAcctManager)
+                        && !UrlExtensions.isADFSAuthority(authorityUrl);
 
         // We don't need any permissions if the broker has the service supported.
-        // checkAccount will also be skipped. checkAccount is looking for a matching Authenticator, and if it doesn't
-        // AccountChooserActivity supported, we'll need to make sure there is an account existed; otherwise account can
-        // be added directly from the AccountChooser. If the broker supports the new service, it MUST support AccountChooser,
+        // checkAccount will also be skipped. checkAccount is looking for a matching Authenticator,
+        // and if it doesn't
+        // AccountChooserActivity supported, we'll need to make sure there is an account existed;
+        // otherwise account can
+        // be added directly from the AccountChooser. If the broker supports the new service, it
+        // MUST support AccountChooser,
         // no need to do checkAccount.
         if (!canSwitchToBroker) {
-            Logger.v(TAG + methodName, "Broker auth is turned off or no valid broker is available on the device, cannot switch to broker.");
+            Logger.v(
+                    TAG + methodName,
+                    "Broker auth is turned off or no valid broker is available on the device, cannot switch to broker.");
             return SwitchToBroker.CANNOT_SWITCH_TO_BROKER;
         }
 
         if (!isBrokerAccountServiceSupported()) {
             canSwitchToBroker = canSwitchToBroker && checkAccount(mAcctManager, "", "");
             if (!canSwitchToBroker) {
-                Logger.v(TAG + methodName, "No valid account existed in broker, cannot switch to broker for auth.");
+                Logger.v(
+                        TAG + methodName,
+                        "No valid account existed in broker, cannot switch to broker for auth.");
                 return SwitchToBroker.CANNOT_SWITCH_TO_BROKER;
             }
 
             try {
                 verifyBrokerPermissionsAPI23AndHigher();
             } catch (final UsageAuthenticationException exception) {
-                Logger.v(TAG + methodName, "Missing GET_ACCOUNTS permission, cannot switch to broker.");
+                Logger.v(
+                        TAG + methodName,
+                        "Missing GET_ACCOUNTS permission, cannot switch to broker.");
                 return SwitchToBroker.NEED_PERMISSIONS_TO_SWITCH_TO_BROKER;
             }
         }
@@ -177,13 +186,16 @@ class BrokerProxy implements IBrokerProxy {
         return true;
     }
 
-    public boolean verifyBrokerForSilentRequest(AuthenticationRequest request) throws AuthenticationException {
+    public boolean verifyBrokerForSilentRequest(AuthenticationRequest request)
+            throws AuthenticationException {
         // If we cannot switch to broker, return the result from local flow.
-        final BrokerProxy.SwitchToBroker switchToBrokerFlag = canSwitchToBroker(request.getAuthority());
+        final BrokerProxy.SwitchToBroker switchToBrokerFlag =
+                canSwitchToBroker(request.getAuthority());
         if (switchToBrokerFlag == SwitchToBroker.CAN_SWITCH_TO_BROKER) {
             return verifyUser(request.getLoginHint(), request.getUserId());
-        } else if (switchToBrokerFlag == BrokerProxy.SwitchToBroker.NEED_PERMISSIONS_TO_SWITCH_TO_BROKER) {
-            //For android M and above
+        } else if (switchToBrokerFlag
+                == BrokerProxy.SwitchToBroker.NEED_PERMISSIONS_TO_SWITCH_TO_BROKER) {
+            // For android M and above
             throw new UsageAuthenticationException(
                     ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,
                     "Broker related permissions are missing for GET_ACCOUNTS");
@@ -268,11 +280,13 @@ class BrokerProxy implements IBrokerProxy {
 
     private String checkPermission(final String permissionName) {
         final PackageManager pm = mContext.getPackageManager();
-        if (pm.checkPermission(permissionName, mContext.getPackageName()) != PackageManager.PERMISSION_GRANTED) {
+        if (pm.checkPermission(permissionName, mContext.getPackageName())
+                != PackageManager.PERMISSION_GRANTED) {
             Logger.w(
                     TAG,
                     "Broker related permissions are missing for " + permissionName,
-                    "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
+                    "",
+                    ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
             return permissionName + ' ';
         }
 
@@ -282,10 +296,15 @@ class BrokerProxy implements IBrokerProxy {
     private void verifyNotOnMainThread() {
         final Looper looper = Looper.myLooper();
         if (looper != null && looper == mContext.getMainLooper()) {
-            final IllegalStateException exception = new IllegalStateException(
-                    "calling this from your main thread can lead to deadlock");
-            Logger.e(TAG, "calling this from your main thread can lead to deadlock and/or ANRs", "",
-                    ADALError.DEVELOPER_CALLING_ON_MAIN_THREAD, exception);
+            final IllegalStateException exception =
+                    new IllegalStateException(
+                            "calling this from your main thread can lead to deadlock");
+            Logger.e(
+                    TAG,
+                    "calling this from your main thread can lead to deadlock and/or ANRs",
+                    "",
+                    ADALError.DEVELOPER_CALLING_ON_MAIN_THREAD,
+                    exception);
             if (mContext.getApplicationInfo().targetSdkVersion >= Build.VERSION_CODES.FROYO) {
                 throw exception;
             }
@@ -295,7 +314,9 @@ class BrokerProxy implements IBrokerProxy {
     private Account findAccount(String accountName, Account[] accountList) {
         if (accountList != null) {
             for (Account account : accountList) {
-                if (account != null && account.name != null && account.name.equalsIgnoreCase(accountName)) {
+                if (account != null
+                        && account.name != null
+                        && account.name.equalsIgnoreCase(accountName)) {
                     return account;
                 }
             }
@@ -307,7 +328,9 @@ class BrokerProxy implements IBrokerProxy {
     private UserInfo findUserInfo(String userid, UserInfo[] userList) {
         if (userList != null) {
             for (UserInfo user : userList) {
-                if (user != null && !TextUtils.isEmpty(user.getUserId()) && user.getUserId().equalsIgnoreCase(userid)) {
+                if (user != null
+                        && !TextUtils.isEmpty(user.getUserId())
+                        && user.getUserId().equalsIgnoreCase(userid)) {
                     return user;
                 }
             }
@@ -320,17 +343,21 @@ class BrokerProxy implements IBrokerProxy {
      * Gets accessToken from Broker component.
      */
     @Override
-    public AuthenticationResult getAuthTokenInBackground(final AuthenticationRequest request, final BrokerEvent brokerEvent)
+    public AuthenticationResult getAuthTokenInBackground(
+            final AuthenticationRequest request, final BrokerEvent brokerEvent)
             throws AuthenticationException {
 
         verifyNotOnMainThread();
 
         final Bundle requestBundle = getBrokerOptions(request);
 
-        // check if broker supports the new service, if it does not we need to switch back to the old way
+        // check if broker supports the new service, if it does not we need to switch back to the
+        // old way
         final Bundle bundleResult;
         if (isBrokerAccountServiceSupported()) {
-            bundleResult = BrokerAccountServiceHandler.getInstance().getAuthToken(mContext, requestBundle, brokerEvent);
+            bundleResult =
+                    BrokerAccountServiceHandler.getInstance()
+                            .getAuthToken(mContext, requestBundle, brokerEvent);
         } else {
             bundleResult = getAuthTokenFromAccountManager(request, requestBundle);
         }
@@ -343,8 +370,8 @@ class BrokerProxy implements IBrokerProxy {
         return getResultFromBrokerResponse(bundleResult, request);
     }
 
-    private Bundle getAuthTokenFromAccountManager(final AuthenticationRequest request,
-                                                  final Bundle requestBundle)
+    private Bundle getAuthTokenFromAccountManager(
+            final AuthenticationRequest request, final Bundle requestBundle)
             throws AuthenticationException {
         // if there is not any user added to account, it returns empty
         final String methodName = ":getAuthTokenFromAccountManager";
@@ -360,44 +387,81 @@ class BrokerProxy implements IBrokerProxy {
                 // AuthenticatorService is handling the request at
                 // AccountManager.
                 //
-                final AccountManagerFuture<Bundle> result = mAcctManager.getAuthToken(targetAccount,
-                        AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
-                        requestBundle, false,
-                        null, //set to null to avoid callback
-                        mHandler);
+                final AccountManagerFuture<Bundle> result =
+                        mAcctManager.getAuthToken(
+                                targetAccount,
+                                AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
+                                requestBundle,
+                                false,
+                                null, // set to null to avoid callback
+                                mHandler);
 
                 // Making blocking request here
                 Logger.v(TAG + methodName, "Received result from broker");
                 bundleResult = result.getResult();
             } catch (final OperationCanceledException e) {
-                // Error code AUTH_FAILED_CANCELLED will be thrown if the request was canceled for any reason.
-                Logger.e(TAG + methodName, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.AUTH_FAILED_CANCELLED, e);
-                throw new AuthenticationException(ADALError.AUTH_FAILED_CANCELLED, e.getMessage(), e);
+                // Error code AUTH_FAILED_CANCELLED will be thrown if the request was canceled for
+                // any reason.
+                Logger.e(
+                        TAG + methodName,
+                        AUTHENTICATOR_CANCELS_REQUEST,
+                        "",
+                        ADALError.AUTH_FAILED_CANCELLED,
+                        e);
+                throw new AuthenticationException(
+                        ADALError.AUTH_FAILED_CANCELLED, e.getMessage(), e);
             } catch (final AuthenticatorException e) {
-                // Error code BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN will be thrown if there was an error
-                // communicating with the authenticator or if the authenticator returned an invalid response.
-                if (!StringExtensions.isNullOrBlank(e.getMessage()) && e.getMessage().contains(OAuth2ErrorCode.INVALID_GRANT)) {
-                    Logger.e(TAG + methodName, AUTHENTICATOR_CANCELS_REQUEST,
+                // Error code BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN will be thrown if there was an
+                // error
+                // communicating with the authenticator or if the authenticator returned an invalid
+                // response.
+                if (!StringExtensions.isNullOrBlank(e.getMessage())
+                        && e.getMessage().contains(OAuth2ErrorCode.INVALID_GRANT)) {
+                    Logger.e(
+                            TAG + methodName,
+                            AUTHENTICATOR_CANCELS_REQUEST,
                             "Acquire token failed with 'invalid grant' error, cannot proceed with silent request.",
                             ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
-                    throw new AuthenticationException(ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, e.getMessage());
+                    throw new AuthenticationException(
+                            ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, e.getMessage());
                 } else {
-                    Logger.e(TAG + methodName, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN);
-                    throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN, e.getMessage());
+                    Logger.e(
+                            TAG + methodName,
+                            AUTHENTICATOR_CANCELS_REQUEST,
+                            "",
+                            ADALError.BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN);
+                    throw new AuthenticationException(
+                            ADALError.BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN, e.getMessage());
                 }
             } catch (final IOException e) {
                 //  Error code BROKER_AUTHENTICATOR_IO_EXCEPTION will be thrown
-                //  when Authenticator gets problem from webrequest or file read/write or network error
-                Logger.e(TAG + methodName, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION);
+                //  when Authenticator gets problem from webrequest or file read/write or network
+                // error
+                Logger.e(
+                        TAG + methodName,
+                        AUTHENTICATOR_CANCELS_REQUEST,
+                        "",
+                        ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION);
 
-                if (e.getMessage() != null && e.getMessage().contains(ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE.getDescription())) {
-                    throw new AuthenticationException(ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
+                if (e.getMessage() != null
+                        && e.getMessage()
+                                .contains(
+                                        ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE
+                                                .getDescription())) {
+                    throw new AuthenticationException(
+                            ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
                             "Received error from broker, errorCode: " + e.getMessage());
-                } else if (e.getMessage() != null && e.getMessage().contains(ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION.getDescription())) {
-                    throw new AuthenticationException(ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION,
+                } else if (e.getMessage() != null
+                        && e.getMessage()
+                                .contains(
+                                        ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION
+                                                .getDescription())) {
+                    throw new AuthenticationException(
+                            ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION,
                             "Received error from broker, errorCode: " + e.getMessage());
                 } else {
-                    throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION, e.getMessage(), e);
+                    throw new AuthenticationException(
+                            ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION, e.getMessage(), e);
                 }
             }
 
@@ -410,7 +474,8 @@ class BrokerProxy implements IBrokerProxy {
     }
 
     private boolean isBrokerAccountServiceSupported() {
-        final Intent brokerAccountServiceIntent = BrokerAccountServiceHandler.getIntentForBrokerAccountService(mContext);
+        final Intent brokerAccountServiceIntent =
+                BrokerAccountServiceHandler.getIntentForBrokerAccountService(mContext);
         return isServiceSupported(mContext, brokerAccountServiceIntent);
     }
 
@@ -439,16 +504,20 @@ class BrokerProxy implements IBrokerProxy {
                     targetAccount = findAccount(matchingUser.getDisplayableId(), accountList);
                 }
             } catch (IOException | AuthenticatorException | OperationCanceledException e) {
-                Logger.e(TAG + methodName, "Exception is thrown when trying to get target account.",
-                        e.getMessage(), ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION, e);
+                Logger.e(
+                        TAG + methodName,
+                        "Exception is thrown when trying to get target account.",
+                        e.getMessage(),
+                        ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION,
+                        e);
             }
         }
 
         return targetAccount;
     }
 
-    private AuthenticationResult getResultFromBrokerResponse(final Bundle bundleResult,
-                                                             final AuthenticationRequest request)
+    private AuthenticationResult getResultFromBrokerResponse(
+            final Bundle bundleResult, final AuthenticationRequest request)
             throws AuthenticationException {
         final String methodName = ":getResultFromBrokerResponse";
         if (bundleResult == null) {
@@ -459,7 +528,8 @@ class BrokerProxy implements IBrokerProxy {
         final String msg = bundleResult.getString(AccountManager.KEY_ERROR_MESSAGE);
 
         final String oauth2ErrorCode = bundleResult.getString(AuthenticationConstants.OAuth2.ERROR);
-        final String oauth2ErrorDescription = bundleResult.getString(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION);
+        final String oauth2ErrorDescription =
+                bundleResult.getString(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION);
         final TelemetryUtils.CliTelemInfo cliTelemInfo = getCliTelemInfoFromBundle(bundleResult);
 
         if (!StringExtensions.isNullOrBlank(msg)) {
@@ -478,10 +548,12 @@ class BrokerProxy implements IBrokerProxy {
                     adalErrorCode = ADALError.AUTH_FAILED_CANCELLED;
                     break;
                 case AccountManager.ERROR_CODE_NETWORK_ERROR:
-                    if (msg.contains(ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION.getDescription())) {
+                    if (msg.contains(
+                            ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION.getDescription())) {
                         adalErrorCode = ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION;
                         break;
-                    } else if (msg.contains(ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE.getDescription())) {
+                    } else if (msg.contains(
+                            ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE.getDescription())) {
                         adalErrorCode = ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE;
                         break;
                     } else {
@@ -492,7 +564,8 @@ class BrokerProxy implements IBrokerProxy {
                     adalErrorCode = ADALError.BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN;
             }
 
-            final AuthenticationException authException = new AuthenticationException(adalErrorCode, msg);
+            final AuthenticationException authException =
+                    new AuthenticationException(adalErrorCode, msg);
 
             // Set Spe Ring / Client Telemetry
             authException.setSpeRing(cliTelemInfo.getSpeRing());
@@ -502,13 +575,14 @@ class BrokerProxy implements IBrokerProxy {
 
             throw authException;
         } else if (!StringExtensions.isNullOrBlank(oauth2ErrorCode) && request.isSilent()) {
-            final AuthenticationException exception = getAuthenticationExceptionForResult(
-                    oauth2ErrorCode,
-                    oauth2ErrorDescription,
-                    bundleResult
-            );
-            final Serializable responseBody = bundleResult.getSerializable(AuthenticationConstants.OAuth2.HTTP_RESPONSE_BODY);
-            final Serializable responseHeaders = bundleResult.getSerializable(AuthenticationConstants.OAuth2.HTTP_RESPONSE_HEADER);
+            final AuthenticationException exception =
+                    getAuthenticationExceptionForResult(
+                            oauth2ErrorCode, oauth2ErrorDescription, bundleResult);
+            final Serializable responseBody =
+                    bundleResult.getSerializable(AuthenticationConstants.OAuth2.HTTP_RESPONSE_BODY);
+            final Serializable responseHeaders =
+                    bundleResult.getSerializable(
+                            AuthenticationConstants.OAuth2.HTTP_RESPONSE_HEADER);
 
             if (null != responseBody && responseBody instanceof HashMap) {
                 exception.setHttpResponseBody((HashMap) responseBody);
@@ -518,10 +592,12 @@ class BrokerProxy implements IBrokerProxy {
                 exception.setHttpResponseHeaders((HashMap) responseHeaders);
             }
 
-            exception.setServiceStatusCode(bundleResult.getInt(AuthenticationConstants.OAuth2.HTTP_STATUS_CODE));
+            exception.setServiceStatusCode(
+                    bundleResult.getInt(AuthenticationConstants.OAuth2.HTTP_STATUS_CODE));
             throw exception;
         } else {
-            boolean initialRequest = bundleResult.getBoolean(AuthenticationConstants.Broker.ACCOUNT_INITIAL_REQUEST);
+            boolean initialRequest =
+                    bundleResult.getBoolean(AuthenticationConstants.Broker.ACCOUNT_INITIAL_REQUEST);
             if (initialRequest) {
                 // Initial request from app to Authenticator needs to launch
                 // prompt
@@ -530,31 +606,39 @@ class BrokerProxy implements IBrokerProxy {
 
             // IDtoken is not present in the current broker user model
             UserInfo userinfo = UserInfo.getUserInfoFromBrokerResult(bundleResult);
-            final String tenantId = bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID,
-                    "");
-            final String idToken = bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_IDTOKEN, "");
+            final String tenantId =
+                    bundleResult.getString(
+                            AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID, "");
+            final String idToken =
+                    bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_IDTOKEN, "");
 
             final Date expires;
             if (bundleResult.getLong(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE) == 0) {
-                Logger.v(TAG + methodName, "Broker doesn't return expire date, set it current date plus one hour");
+                Logger.v(
+                        TAG + methodName,
+                        "Broker doesn't return expire date, set it current date plus one hour");
                 final Calendar currentTime = new GregorianCalendar();
-                currentTime.add(Calendar.SECOND, AuthenticationConstants.DEFAULT_EXPIRATION_TIME_SEC);
+                currentTime.add(
+                        Calendar.SECOND, AuthenticationConstants.DEFAULT_EXPIRATION_TIME_SEC);
                 expires = currentTime.getTime();
             } else {
-                expires = new Date(bundleResult.getLong(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE));
+                expires =
+                        new Date(
+                                bundleResult.getLong(
+                                        AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE));
             }
 
-            final AuthenticationResult result = new AuthenticationResult(
-                    bundleResult.getString(AccountManager.KEY_AUTHTOKEN),
-                    "",
-                    expires,
-                    false,
-                    userinfo,
-                    tenantId,
-                    idToken,
-                    null,
-                    request.getClientId()
-            );
+            final AuthenticationResult result =
+                    new AuthenticationResult(
+                            bundleResult.getString(AccountManager.KEY_AUTHTOKEN),
+                            "",
+                            expires,
+                            false,
+                            userinfo,
+                            tenantId,
+                            idToken,
+                            null,
+                            request.getClientId());
 
             // set the x-ms-clitelem data
             result.setCliTelemInfo(cliTelemInfo);
@@ -572,14 +656,19 @@ class BrokerProxy implements IBrokerProxy {
         return cliTelemInfo;
     }
 
-    private AuthenticationException getAuthenticationExceptionForResult(final String oauth2ErrorCode,
-                                                                        final String oauth2ErrorDescription,
-                                                                        final Bundle bundleResult) {
-        final String message = String.format("Received error from broker, errorCode: %s; ErrorDescription: %s",
-                oauth2ErrorCode, oauth2ErrorDescription);
+    private AuthenticationException getAuthenticationExceptionForResult(
+            final String oauth2ErrorCode,
+            final String oauth2ErrorDescription,
+            final Bundle bundleResult) {
+        final String message =
+                String.format(
+                        "Received error from broker, errorCode: %s; ErrorDescription: %s",
+                        oauth2ErrorCode, oauth2ErrorDescription);
 
-        // check the response body for the "unauthorized_client" error and the "protection_policy_required" suberror
-        final Serializable responseBody = bundleResult.getSerializable(AuthenticationConstants.OAuth2.HTTP_RESPONSE_BODY);
+        // check the response body for the "unauthorized_client" error and the
+        // "protection_policy_required" suberror
+        final Serializable responseBody =
+                bundleResult.getSerializable(AuthenticationConstants.OAuth2.HTTP_RESPONSE_BODY);
         final TelemetryUtils.CliTelemInfo cliTelemInfo = getCliTelemInfoFromBundle(bundleResult);
 
         AuthenticationException authenticationException = null;
@@ -589,32 +678,34 @@ class BrokerProxy implements IBrokerProxy {
             final String error = responseMap.get(AuthenticationConstants.OAuth2.ERROR);
             final String suberror = responseMap.get(AuthenticationConstants.OAuth2.SUBERROR);
 
-            if (!StringExtensions.isNullOrBlank(error) && !StringExtensions.isNullOrBlank(suberror) &&
-                    OAuth2ErrorCode.UNAUTHORIZED_CLIENT.compareTo(error) == 0 &&
-                    OAuth2SubErrorCode.PROTECTION_POLICY_REQUIRED.compareTo(suberror) == 0) {
+            if (!StringExtensions.isNullOrBlank(error)
+                    && !StringExtensions.isNullOrBlank(suberror)
+                    && OAuth2ErrorCode.UNAUTHORIZED_CLIENT.compareTo(error) == 0
+                    && OAuth2SubErrorCode.PROTECTION_POLICY_REQUIRED.compareTo(suberror) == 0) {
 
-                final String accountUpn = bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_NAME);
-                final String accountUserId = bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID);
-                final String tenantId = bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID);
-                final String authorityUrl = bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY);
+                final String accountUpn =
+                        bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_NAME);
+                final String accountUserId =
+                        bundleResult.getString(
+                                AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID);
+                final String tenantId =
+                        bundleResult.getString(
+                                AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID);
+                final String authorityUrl =
+                        bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY);
 
-                AuthenticationException exception = new IntuneAppProtectionPolicyRequiredException(
-                        message,
-                        accountUpn,
-                        accountUserId,
-                        tenantId,
-                        authorityUrl
-                );
+                AuthenticationException exception =
+                        new IntuneAppProtectionPolicyRequiredException(
+                                message, accountUpn, accountUserId, tenantId, authorityUrl);
 
                 authenticationException = exception;
             }
         }
 
         if (null == authenticationException) {
-            authenticationException = new AuthenticationException(
-                    ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED,
-                    message
-            );
+            authenticationException =
+                    new AuthenticationException(
+                            ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, message);
         }
 
         authenticationException.setSpeRing(cliTelemInfo.getSpeRing());
@@ -636,7 +727,8 @@ class BrokerProxy implements IBrokerProxy {
             return;
         }
 
-        final INameValueStorage<String> prefs = mComponents.getNameValueStore(KEY_SHARED_PREF_ACCOUNT_LIST, String.class);
+        final INameValueStorage<String> prefs =
+                mComponents.getNameValueStore(KEY_SHARED_PREF_ACCOUNT_LIST, String.class);
         String accountList = prefs.get(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL);
         accountList = null != accountList ? accountList : "";
         if (!accountList.contains(KEY_ACCOUNT_LIST_DELIM + accountName)) {
@@ -650,43 +742,53 @@ class BrokerProxy implements IBrokerProxy {
      */
     @Override
     public void removeAccounts() {
-        new Thread(new Runnable() {
+        new Thread(
+                        new Runnable() {
 
-            @Override
-            public void run() {
-                if (isBrokerAccountServiceSupported()) {
-                    BrokerAccountServiceHandler.getInstance().removeAccounts(mContext);
-                } else {
-                    removeAccountFromAccountManager();
-                }
-            }
-        }).start();
+                            @Override
+                            public void run() {
+                                if (isBrokerAccountServiceSupported()) {
+                                    BrokerAccountServiceHandler.getInstance()
+                                            .removeAccounts(mContext);
+                                } else {
+                                    removeAccountFromAccountManager();
+                                }
+                            }
+                        })
+                .start();
     }
 
     private void removeAccountFromAccountManager() {
         final String methodName = ":removeAccountFromAccountManager";
         // getAuthToken call will execute in async as well
         Logger.v(TAG + methodName, "Try to remove account from account manager.");
-        Account[] accountList = mAcctManager
-                .getAccountsByType(BROKER_ACCOUNT_TYPE);
+        Account[] accountList = mAcctManager.getAccountsByType(BROKER_ACCOUNT_TYPE);
         if (accountList.length != 0) {
             for (Account targetAccount : accountList) {
-                Logger.v(TAG + methodName, "Remove tokens for account. ", "Account: " + targetAccount.name, null);
+                Logger.v(
+                        TAG + methodName,
+                        "Remove tokens for account. ",
+                        "Account: " + targetAccount.name,
+                        null);
 
                 Bundle brokerOptions = new Bundle();
-                brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS,
+                brokerOptions.putString(
+                        AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS,
                         AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS_VALUE);
 
                 // only this API call sets calling UID. We are
                 // setting
                 // special value to indicate that tokens for this
                 // calling UID will be cleaned from this account
-                mAcctManager.getAuthToken(targetAccount, AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
-                        brokerOptions, false,
+                mAcctManager.getAuthToken(
+                        targetAccount,
+                        AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
+                        brokerOptions,
+                        false,
                         null /*
-                         * set to null to avoid callback
-                         */, mHandler);
-
+                              * set to null to avoid callback
+                              */,
+                        mHandler);
             }
         }
     }
@@ -696,16 +798,25 @@ class BrokerProxy implements IBrokerProxy {
      * from calling app's activity to control the lifetime of the activity.
      */
     @Override
-    public Intent getIntentForBrokerActivity(final AuthenticationRequest request, final BrokerEvent brokerEvent)
+    public Intent getIntentForBrokerActivity(
+            final AuthenticationRequest request, final BrokerEvent brokerEvent)
             throws AuthenticationException {
         final String methodName = ":getIntentForBrokerActivity";
         final Bundle requestBundle = getBrokerOptions(request);
         final Intent intent;
         if (isBrokerAccountServiceSupported()) {
-            intent = BrokerAccountServiceHandler.getInstance().getIntentForInteractiveRequest(mContext, brokerEvent);
+            intent =
+                    BrokerAccountServiceHandler.getInstance()
+                            .getIntentForInteractiveRequest(mContext, brokerEvent);
             if (intent == null) {
-                Logger.e(TAG, "Received null intent from broker interactive request.", null, ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING);
-                throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, "Received null intent from broker interactive request.");
+                Logger.e(
+                        TAG,
+                        "Received null intent from broker interactive request.",
+                        null,
+                        ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING);
+                throw new AuthenticationException(
+                        ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING,
+                        "Received null intent from broker interactive request.");
             } else {
                 intent.putExtras(requestBundle);
             }
@@ -714,15 +825,21 @@ class BrokerProxy implements IBrokerProxy {
         }
 
         if (intent != null) {
-            intent.putExtra(AuthenticationConstants.Broker.BROKER_REQUEST,
+            intent.putExtra(
+                    AuthenticationConstants.Broker.BROKER_REQUEST,
                     AuthenticationConstants.Broker.BROKER_REQUEST);
 
             // Only the new broker with PRT support can read the new PromptBehavior force_prompt.
             // If talking to the old broker, and PromptBehavior is set as force_prompt, reset it as
             // Always.
-            if (!isBrokerWithPRTSupport(intent) && PromptBehavior.FORCE_PROMPT == request.getPrompt()) {
-                Logger.v(TAG + methodName, "FORCE_PROMPT is set for broker auth via old version of broker app, reset to ALWAYS.");
-                intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT, PromptBehavior.Always.name());
+            if (!isBrokerWithPRTSupport(intent)
+                    && PromptBehavior.FORCE_PROMPT == request.getPrompt()) {
+                Logger.v(
+                        TAG + methodName,
+                        "FORCE_PROMPT is set for broker auth via old version of broker app, reset to ALWAYS.");
+                intent.putExtra(
+                        AuthenticationConstants.Broker.ACCOUNT_PROMPT,
+                        PromptBehavior.Always.name());
             }
         }
 
@@ -744,8 +861,7 @@ class BrokerProxy implements IBrokerProxy {
                             addAccountOptions,
                             null,
                             null,
-                            mHandler
-                    );
+                            mHandler);
 
             // Making blocking request here
             Bundle bundleResult = result.getResult();
@@ -755,15 +871,30 @@ class BrokerProxy implements IBrokerProxy {
             // Add flag to this intent to signal that request is for broker logic
 
         } catch (OperationCanceledException e) {
-            Logger.e(TAG + methodName, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.AUTH_FAILED_CANCELLED, e);
+            Logger.e(
+                    TAG + methodName,
+                    AUTHENTICATOR_CANCELS_REQUEST,
+                    "",
+                    ADALError.AUTH_FAILED_CANCELLED,
+                    e);
         } catch (AuthenticatorException e) {
             //
             // TODO add retry logic since authenticator is not responding to
             // the request
-            Logger.e(TAG + methodName, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, e);
+            Logger.e(
+                    TAG + methodName,
+                    AUTHENTICATOR_CANCELS_REQUEST,
+                    "",
+                    ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING,
+                    e);
         } catch (IOException e) {
             // Authenticator gets problem from webrequest or file read/write
-            Logger.e(TAG + methodName, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION, e);
+            Logger.e(
+                    TAG + methodName,
+                    AUTHENTICATOR_CANCELS_REQUEST,
+                    "",
+                    ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION,
+                    e);
         }
 
         return intent;
@@ -788,27 +919,43 @@ class BrokerProxy implements IBrokerProxy {
      * {@inheritDoc}
      */
     @Override
-    public String getBrokerAppVersion(final String brokerAppPackageName) throws NameNotFoundException {
-        final PackageInfo packageInfo = mContext.getPackageManager().getPackageInfo(brokerAppPackageName, 0);
+    public String getBrokerAppVersion(final String brokerAppPackageName)
+            throws NameNotFoundException {
+        final PackageInfo packageInfo =
+                mContext.getPackageManager().getPackageInfo(brokerAppPackageName, 0);
 
-        return "VersionName=" + packageInfo.versionName + ";VersonCode=" + PackageInfoCompat.getLongVersionCode(packageInfo) + ".";
+        return "VersionName="
+                + packageInfo.versionName
+                + ";VersonCode="
+                + PackageInfoCompat.getLongVersionCode(packageInfo)
+                + ".";
     }
 
     private Bundle getBrokerOptions(final AuthenticationRequest request) {
         Bundle brokerOptions = new Bundle();
         // request needs to be parcelable to send across process
         brokerOptions.putInt(AuthenticationConstants.Browser.REQUEST_ID, request.getRequestId());
-        brokerOptions.putInt(AuthenticationConstants.Broker.EXPIRATION_BUFFER, AuthenticationSettings.INSTANCE.getExpirationBuffer());
-        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY, request.getAuthority());
-        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_RESOURCE, request.getResource());
-        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_REDIRECT, request.getRedirectUri());
-        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY, request.getClientId());
-        brokerOptions.putString(AuthenticationConstants.Broker.ADAL_VERSION_KEY, request.getVersion());
-        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID, request.getUserId());
-        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_EXTRA_QUERY_PARAM,
+        brokerOptions.putInt(
+                AuthenticationConstants.Broker.EXPIRATION_BUFFER,
+                AuthenticationSettings.INSTANCE.getExpirationBuffer());
+        brokerOptions.putString(
+                AuthenticationConstants.Broker.ACCOUNT_AUTHORITY, request.getAuthority());
+        brokerOptions.putString(
+                AuthenticationConstants.Broker.ACCOUNT_RESOURCE, request.getResource());
+        brokerOptions.putString(
+                AuthenticationConstants.Broker.ACCOUNT_REDIRECT, request.getRedirectUri());
+        brokerOptions.putString(
+                AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY, request.getClientId());
+        brokerOptions.putString(
+                AuthenticationConstants.Broker.ADAL_VERSION_KEY, request.getVersion());
+        brokerOptions.putString(
+                AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID, request.getUserId());
+        brokerOptions.putString(
+                AuthenticationConstants.Broker.ACCOUNT_EXTRA_QUERY_PARAM,
                 request.getExtraQueryParamsAuthentication());
         if (request.getCorrelationId() != null) {
-            brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CORRELATIONID,
+            brokerOptions.putString(
+                    AuthenticationConstants.Broker.ACCOUNT_CORRELATIONID,
                     request.getCorrelationId().toString());
         }
 
@@ -821,30 +968,31 @@ class BrokerProxy implements IBrokerProxy {
         brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_NAME, username);
 
         if (request.getPrompt() != null) {
-            brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_PROMPT, request.getPrompt().name());
+            brokerOptions.putString(
+                    AuthenticationConstants.Broker.ACCOUNT_PROMPT, request.getPrompt().name());
         }
 
         if (request.isClaimsChallengePresent() || request.getClientCapabilities() != null) {
-            brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CLAIMS,
+            brokerOptions.putString(
+                    AuthenticationConstants.Broker.ACCOUNT_CLAIMS,
                     AuthenticationContext.mergeClaimsWithClientCapabilities(
-                            request.getClaimsChallenge(),
-                            request.getClientCapabilities()
-                    )
-            );
+                            request.getClaimsChallenge(), request.getClientCapabilities()));
         }
 
         if (request.getForceRefresh() || request.isClaimsChallengePresent()) {
-            // set force refresh to true if claims challenge is present, ad-accounts and adal-unity consumes this parameter
+            // set force refresh to true if claims challenge is present, ad-accounts and adal-unity
+            // consumes this parameter
             // to refresh token if claims is present on Request.
-            // Note: Even though client capabilities are sent as claims, they should not be treated as claims set to request and
+            // Note: Even though client capabilities are sent as claims, they should not be treated
+            // as claims set to request and
             // token should not be refreshed if they are present.
-            brokerOptions.putString(AuthenticationConstants.Broker.BROKER_FORCE_REFRESH, Boolean.toString(true));
+            brokerOptions.putString(
+                    AuthenticationConstants.Broker.BROKER_FORCE_REFRESH, Boolean.toString(true));
         }
 
         brokerOptions.putString(AuthenticationConstants.AAD.APP_VERSION, request.getAppVersion());
 
         brokerOptions.putString(AuthenticationConstants.AAD.APP_PACKAGE_NAME, request.getAppName());
-
 
         return brokerOptions;
     }
@@ -860,8 +1008,10 @@ class BrokerProxy implements IBrokerProxy {
         }
 
         // Only new broker with PRT support will send down the value and the version will be v2
-        final String brokerVersion = intent.getStringExtra(AuthenticationConstants.Broker.BROKER_VERSION);
-        return AuthenticationConstants.Broker.BROKER_PROTOCOL_VERSION.equalsIgnoreCase(brokerVersion);
+        final String brokerVersion =
+                intent.getStringExtra(AuthenticationConstants.Broker.BROKER_VERSION);
+        return AuthenticationConstants.Broker.BROKER_PROTOCOL_VERSION.equalsIgnoreCase(
+                brokerVersion);
     }
 
     /**
@@ -904,8 +1054,9 @@ class BrokerProxy implements IBrokerProxy {
                 // For new broker with PRT support, both company portal and
                 // azure authenticator will be able to support multi-user.
                 final BrokerValidator brokerValidator = new BrokerValidator(mContext);
-                if (brokerValidator.isValidBrokerPackage(authenticator.packageName) || authenticator.packageName
-                        .equalsIgnoreCase(AuthenticationSettings.INSTANCE.getBrokerPackageName())) {
+                if (brokerValidator.isValidBrokerPackage(authenticator.packageName)
+                        || authenticator.packageName.equalsIgnoreCase(
+                                AuthenticationSettings.INSTANCE.getBrokerPackageName())) {
                     // Existing broker logic only connects to broker for token
                     // requests if account exists. New version can allow to
                     // add accounts through Adal.
@@ -936,10 +1087,17 @@ class BrokerProxy implements IBrokerProxy {
                 UserInfo matchingUser = findUserInfo(uniqueId, users);
                 return matchingUser != null;
             } catch (IOException | AuthenticatorException | OperationCanceledException e) {
-                Logger.e(TAG + methodName, "Exception thrown when verifying accounts in broker. ", e.getMessage(), ADALError.BROKER_AUTHENTICATOR_EXCEPTION, e);
+                Logger.e(
+                        TAG + methodName,
+                        "Exception thrown when verifying accounts in broker. ",
+                        e.getMessage(),
+                        ADALError.BROKER_AUTHENTICATOR_EXCEPTION,
+                        e);
             }
 
-            Logger.v(TAG + methodName, "It could not check the uniqueid from broker. It is not using broker");
+            Logger.v(
+                    TAG + methodName,
+                    "It could not check the uniqueid from broker. It is not using broker");
             return false;
         }
 
@@ -988,7 +1146,8 @@ class BrokerProxy implements IBrokerProxy {
      * @throws OperationCanceledException
      */
     @Override
-    public UserInfo[] getBrokerUsers() throws OperationCanceledException, AuthenticatorException, IOException {
+    public UserInfo[] getBrokerUsers()
+            throws OperationCanceledException, AuthenticatorException, IOException {
         // Calling this on main thread will cause exception since this is
         // waiting on AccountManagerFuture
         if (Looper.myLooper() == Looper.getMainLooper()) {
@@ -1002,31 +1161,50 @@ class BrokerProxy implements IBrokerProxy {
         return getUserInfoFromAccountManager();
     }
 
-    private UserInfo[] getUserInfoFromAccountManager() throws OperationCanceledException, AuthenticatorException, IOException {
+    private UserInfo[] getUserInfoFromAccountManager()
+            throws OperationCanceledException, AuthenticatorException, IOException {
         final String methodName = ":getUserInfoFromAccountManager";
         final Account[] accountList = mAcctManager.getAccountsByType(BROKER_ACCOUNT_TYPE);
         final Bundle bundle = new Bundle();
         bundle.putBoolean(DATA_USER_INFO, true);
-        Logger.v(TAG + methodName, "Retrieve all the accounts from account manager with broker account type, "
-                + "and the account length is: " + accountList.length);
+        Logger.v(
+                TAG + methodName,
+                "Retrieve all the accounts from account manager with broker account type, "
+                        + "and the account length is: "
+                        + accountList.length);
 
-        // accountList will never be null, getAccountsByType will return an empty list if no matching account returned.
+        // accountList will never be null, getAccountsByType will return an empty list if no
+        // matching account returned.
         // get info for each user
         final UserInfo[] users = new UserInfo[accountList.length];
         for (int i = 0; i < accountList.length; i++) {
 
             // Use AccountManager Api method to get extended user info
-            final AccountManagerFuture<Bundle> result = mAcctManager.updateCredentials(accountList[i],
-                    AuthenticationConstants.Broker.AUTHTOKEN_TYPE, bundle, null, null, null);
+            final AccountManagerFuture<Bundle> result =
+                    mAcctManager.updateCredentials(
+                            accountList[i],
+                            AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
+                            bundle,
+                            null,
+                            null,
+                            null);
             Logger.v(TAG + methodName, "Waiting for userinfo retrieval result from Broker.");
             final Bundle userInfoBundle = result.getResult();
 
-            users[i] = new UserInfo(
-                    userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID),
-                    userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME),
-                    userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME),
-                    userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER),
-                    userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE));
+            users[i] =
+                    new UserInfo(
+                            userInfoBundle.getString(
+                                    AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID),
+                            userInfoBundle.getString(
+                                    AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME),
+                            userInfoBundle.getString(
+                                    AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME),
+                            userInfoBundle.getString(
+                                    AuthenticationConstants.Broker
+                                            .ACCOUNT_USERINFO_IDENTITY_PROVIDER),
+                            userInfoBundle.getString(
+                                    AuthenticationConstants.Broker
+                                            .ACCOUNT_USERINFO_USERID_DISPLAYABLE));
         }
 
         return users;

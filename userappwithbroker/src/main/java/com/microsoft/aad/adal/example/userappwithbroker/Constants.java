@@ -56,7 +56,6 @@ public class Constants {
         OFFICE_ONEDRIVE("6a9b9266-8161-4a7b-913a-a9eda19da220"),
         SIMPLE("00000002-0000-0000-c000-000000000000");
 
-
         private final String text;
 
         DataProfile(String s) {
@@ -67,7 +66,6 @@ public class Constants {
             return text;
         }
     }
-
 
     enum ClientId {
         ADFSV4("4b0db8c2-9f26-4417-8bde-3f0e3656f8e0"),
@@ -94,15 +92,21 @@ public class Constants {
 
     enum RedirectUri {
         Regular(BuildConfig.REGULAR_REDIDRECT_URI),
-        Regular2("msauth://com.microsoft.aad.adal.userappwithbroker/L8kGVGYgNOaxbhn9Y7vR%2F6LIEG8%3D"),
+        Regular2(
+                "msauth://com.microsoft.aad.adal.userappwithbroker/L8kGVGYgNOaxbhn9Y7vR%2F6LIEG8%3D"),
         Mooncake("msauth://com.msft.identity.client.sample.local/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D"),
-        Mooncake1( "msauth://com.microsoft.aad.adal.userappwithbroker/QK0hWtPIQviyU3IX8AhunaS0IY4%3D"),
-        Mooncake2( "msauth://com.microsoft.aad.adal.userappwithbroker/L8kGVGYgNOaxbhn9Y7vR%2F6LIEG8%3D"),
-        Mooncake3( "msauth://com.microsoft.aad.adal.userappwithbroker/IcB5PxIyvbLkbFVtBI%2FitkW%2Fejk%3D"),
-        Mooncake4( "msauth://com.microsoft.aad.adal.userappwithbroker/2%2BQqCWt1ilKg0IrfKT6CkdMpPqk%3D"),
+        Mooncake1(
+                "msauth://com.microsoft.aad.adal.userappwithbroker/QK0hWtPIQviyU3IX8AhunaS0IY4%3D"),
+        Mooncake2(
+                "msauth://com.microsoft.aad.adal.userappwithbroker/L8kGVGYgNOaxbhn9Y7vR%2F6LIEG8%3D"),
+        Mooncake3(
+                "msauth://com.microsoft.aad.adal.userappwithbroker/IcB5PxIyvbLkbFVtBI%2FitkW%2Fejk%3D"),
+        Mooncake4(
+                "msauth://com.microsoft.aad.adal.userappwithbroker/2%2BQqCWt1ilKg0IrfKT6CkdMpPqk%3D"),
         Broker("urn:ietf:wg:oauth:2.0:oob"),
         LABS("msauth://com.microsoft.aad.adal.userappwithbroker/2%2BQqCWt1ilKg0IrfKT6CkdMpPqk%3D"),
-        LABSDEBUG("msauth://com.microsoft.aad.adal.userappwithbroker/1wIqXSqBj7w%2bh11ZifsnqwgyKrY%3d");
+        LABSDEBUG(
+                "msauth://com.microsoft.aad.adal.userappwithbroker/1wIqXSqBj7w%2bh11ZifsnqwgyKrY%3d");
 
         private final String text;
 

@@ -70,7 +70,11 @@ final class ADFSWebFingerValidator {
             throw new IllegalArgumentException("WebFingerMetadata cannot be null");
         }
 
-        Logger.v(TAG + methodName, "Verifying trust authority. ", authority.toString() + metadata.toString(), null);
+        Logger.v(
+                TAG + methodName,
+                "Verifying trust authority. ",
+                authority.toString() + metadata.toString(),
+                null);
         if (metadata.getLinks() != null) {
             for (Link link : metadata.getLinks()) {
                 try {
@@ -89,5 +93,4 @@ final class ADFSWebFingerValidator {
         }
         return false;
     }
-
 }

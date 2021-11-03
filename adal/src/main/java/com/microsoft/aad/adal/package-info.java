@@ -28,4 +28,3 @@
  * @since 1.0
  */
 package com.microsoft.aad.adal;
-

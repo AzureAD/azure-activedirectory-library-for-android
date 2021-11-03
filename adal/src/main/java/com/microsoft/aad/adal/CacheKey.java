@@ -37,7 +37,8 @@ public final class CacheKey extends com.microsoft.identity.common.java.adal.cach
      * @return String value of the {@link CacheKey} to save token.
      * @throws AuthenticationException
      */
-    public static String createCacheKey(@NonNull final TokenCacheItem item) throws AuthenticationException {
+    public static String createCacheKey(@NonNull final TokenCacheItem item)
+            throws AuthenticationException {
         if (item == null) {
             throw new IllegalArgumentException("TokenCacheItem");
         }
@@ -53,28 +54,15 @@ public final class CacheKey extends com.microsoft.identity.common.java.adal.cach
         switch (tokenEntryType) {
             case REGULAR_TOKEN_ENTRY:
                 return createCacheKeyForRTEntry(
-                        item.getAuthority(),
-                        item.getResource(),
-                        item.getClientId(),
-                        userid
-                );
+                        item.getAuthority(), item.getResource(), item.getClientId(), userid);
             case MRRT_TOKEN_ENTRY:
-                return createCacheKeyForMRRT(
-                        item.getAuthority(),
-                        item.getClientId(),
-                        userid
-                );
+                return createCacheKeyForMRRT(item.getAuthority(), item.getClientId(), userid);
             case FRT_TOKEN_ENTRY:
-                return createCacheKeyForFRT(
-                        item.getAuthority(),
-                        item.getFamilyClientId(),
-                        userid
-                );
+                return createCacheKeyForFRT(item.getAuthority(), item.getFamilyClientId(), userid);
             default:
                 throw new AuthenticationException(
                         ADALError.INVALID_TOKEN_CACHE_ITEM,
-                        "Cannot create cachekey from given token item"
-                );
+                        "Cannot create cachekey from given token item");
         }
     }
 }

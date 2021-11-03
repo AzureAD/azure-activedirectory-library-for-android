@@ -83,7 +83,8 @@ final class APIEvent extends DefaultEvent {
     }
 
     void setExtendedExpiresOnSetting(final boolean extendedExpiresOnSetting) {
-        setProperty(EventStrings.EXTENDED_EXPIRES_ON_SETTING, String.valueOf(extendedExpiresOnSetting));
+        setProperty(
+                EventStrings.EXTENDED_EXPIRES_ON_SETTING, String.valueOf(extendedExpiresOnSetting));
     }
 
     void setPromptBehavior(final String promptBehavior) {
@@ -162,14 +163,12 @@ final class APIEvent extends DefaultEvent {
     void setServerSubErrorCode(final String subErrorCode) {
         if (null != subErrorCode && !subErrorCode.equals("0")) {
             setProperty(EventStrings.SERVER_SUBERROR_CODE, subErrorCode.trim());
-
         }
     }
 
     void setRefreshTokenAge(final String tokenAge) {
         if (!StringExtensions.isNullOrBlank(tokenAge)) {
             setProperty(EventStrings.TOKEN_AGE, tokenAge.trim());
-
         }
     }
 
@@ -193,16 +192,24 @@ final class APIEvent extends DefaultEvent {
             final String name = eventKeyValuePair.getKey();
 
             // API Event specific parameters, push all except the time values
-            if (name.equals(EventStrings.AUTHORITY_TYPE) || name.equals(EventStrings.API_DEPRECATED)
+            if (name.equals(EventStrings.AUTHORITY_TYPE)
+                    || name.equals(EventStrings.API_DEPRECATED)
                     || name.equals(EventStrings.AUTHORITY_VALIDATION)
                     || name.equals(EventStrings.EXTENDED_EXPIRES_ON_SETTING)
-                    || name.equals(EventStrings.PROMPT_BEHAVIOR) || name.equals(EventStrings.WAS_SUCCESSFUL)
-                    || name.equals(EventStrings.IDP_NAME) || name.equals(EventStrings.TENANT_ID)
-                    || name.equals(EventStrings.USER_ID) || name.equals(EventStrings.LOGIN_HINT)
-                    || name.equals(EventStrings.RESPONSE_TIME) || name.equals(EventStrings.CORRELATION_ID)
-                    || name.equals(EventStrings.REQUEST_ID) || name.equals(EventStrings.API_ID)
-                    || name.equals(EventStrings.API_ERROR_CODE) || name.equals(EventStrings.SERVER_ERROR_CODE)
-                    || name.equals(EventStrings.SERVER_SUBERROR_CODE) || name.equals(EventStrings.TOKEN_AGE)
+                    || name.equals(EventStrings.PROMPT_BEHAVIOR)
+                    || name.equals(EventStrings.WAS_SUCCESSFUL)
+                    || name.equals(EventStrings.IDP_NAME)
+                    || name.equals(EventStrings.TENANT_ID)
+                    || name.equals(EventStrings.USER_ID)
+                    || name.equals(EventStrings.LOGIN_HINT)
+                    || name.equals(EventStrings.RESPONSE_TIME)
+                    || name.equals(EventStrings.CORRELATION_ID)
+                    || name.equals(EventStrings.REQUEST_ID)
+                    || name.equals(EventStrings.API_ID)
+                    || name.equals(EventStrings.API_ERROR_CODE)
+                    || name.equals(EventStrings.SERVER_ERROR_CODE)
+                    || name.equals(EventStrings.SERVER_SUBERROR_CODE)
+                    || name.equals(EventStrings.TOKEN_AGE)
                     || name.equals(EventStrings.SPE_INFO)) {
                 dispatchMap.put(name, eventKeyValuePair.getValue());
             }

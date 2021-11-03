@@ -1,5 +1,6 @@
 // This code is from Google developer site. It may be altered from original
-// Google Licence info from http://android-developers.blogspot.com/2013/08/some-securerandom-thoughts.html
+// Google Licence info from
+// http://android-developers.blogspot.com/2013/08/some-securerandom-thoughts.html
 
 // This software is provided 'as-is', without any express or implied
 // warranty.  In no event will Google be held liable for any damages
@@ -43,7 +44,8 @@ public final class PRNGFixes {
 
     private static final int VERSION_CODE_JELLY_BEAN_MR2 = 18;
 
-    private static final byte[] BUILD_FINGERPRINT_AND_DEVICE_SERIAL = getBuildFingerprintAndDeviceSerial();
+    private static final byte[] BUILD_FINGERPRINT_AND_DEVICE_SERIAL =
+            getBuildFingerprintAndDeviceSerial();
 
     private static final int ONE_KB = 1024;
 
@@ -52,8 +54,7 @@ public final class PRNGFixes {
     /**
      * Hidden constructor to prevent instantiation.
      */
-    private PRNGFixes() {
-    }
+    private PRNGFixes() {}
 
     /**
      * Applies OpenSSL fix and installs LinuxPRNGSecureRandom.
@@ -82,18 +83,29 @@ public final class PRNGFixes {
         try {
             // Mix in the device- and invocation-specific seed.
             Class.forName("org.apache.harmony.xnet.provider.jsse.NativeCrypto")
-                    .getMethod("RAND_seed", byte[].class).invoke(null, generateSeed());
+                    .getMethod("RAND_seed", byte[].class)
+                    .invoke(null, generateSeed());
             // Mix output of Linux PRNG into OpenSSL's PRNG
-            int bytesRead = (Integer) Class
-                    .forName("org.apache.harmony.xnet.provider.jsse.NativeCrypto")
-                    .getMethod("RAND_load_file", String.class, long.class)
-                    .invoke(null, "/dev/urandom", ONE_KB);
+            int bytesRead =
+                    (Integer)
+                            Class.forName("org.apache.harmony.xnet.provider.jsse.NativeCrypto")
+                                    .getMethod("RAND_load_file", String.class, long.class)
+                                    .invoke(null, "/dev/urandom", ONE_KB);
             if (bytesRead != ONE_KB) {
-                throw new IOException("Unexpected number of bytes read from Linux PRNG: "
-                        + bytesRead);
+                throw new IOException(
+                        "Unexpected number of bytes read from Linux PRNG: " + bytesRead);
             }
-        } catch (IOException | ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            Logger.e(TAG + methodName, "Failed to seed OpenSSL PRNG. ", "", ADALError.DEVICE_PRNG_FIX_ERROR, e);
+        } catch (IOException
+                | ClassNotFoundException
+                | NoSuchMethodException
+                | IllegalAccessException
+                | InvocationTargetException e) {
+            Logger.e(
+                    TAG + methodName,
+                    "Failed to seed OpenSSL PRNG. ",
+                    "",
+                    ADALError.DEVICE_PRNG_FIX_ERROR,
+                    e);
             throw new SecurityException("Failed to seed OpenSSL PRNG", e);
         }
     }
@@ -117,7 +129,8 @@ public final class PRNGFixes {
         Provider[] secureRandomProviders = Security.getProviders("SecureRandom.SHA1PRNG");
         if (secureRandomProviders == null
                 || secureRandomProviders.length < 1
-                || !LinuxPRNGSecureRandomProvider.class.equals(secureRandomProviders[0].getClass())) {
+                || !LinuxPRNGSecureRandomProvider.class.equals(
+                        secureRandomProviders[0].getClass())) {
             Logger.v(TAG + methodName, "Insert provider as LinuxPRNGSecureRandomProvider.");
             Security.insertProviderAt(new LinuxPRNGSecureRandomProvider(), 1);
         }
@@ -125,14 +138,16 @@ public final class PRNGFixes {
         // Log info about providers
         // Different libraries could apply same prng fixes with different namespace
         SecureRandom rng1 = new SecureRandom();
-        Logger.i(TAG + methodName,
+        Logger.i(
+                TAG + methodName,
                 "LinuxPRNGSecureRandomProvider for SecureRandom. ",
                 "Provider: " + rng1.getProvider().getClass().getName());
 
         SecureRandom rng2;
         try {
             rng2 = SecureRandom.getInstance("SHA1PRNG");
-            Logger.i(TAG + methodName,
+            Logger.i(
+                    TAG + methodName,
                     "LinuxPRNGSecureRandomProvider for SecureRandom with alg SHA1PRNG. ",
                     "Provider: " + rng2.getProvider().getClass().getName());
         } catch (NoSuchAlgorithmException e) {
@@ -149,8 +164,10 @@ public final class PRNGFixes {
         private static final long serialVersionUID = 1L;
 
         LinuxPRNGSecureRandomProvider() {
-            super("LinuxPRNG", 1.0, "A Linux-specific random number provider that uses"
-                    + " /dev/urandom");
+            super(
+                    "LinuxPRNG",
+                    1.0,
+                    "A Linux-specific random number provider that uses" + " /dev/urandom");
             // Although /dev/urandom is not a SHA-1 PRNG, some apps
             // explicitly request a SHA1PRNG SecureRandom and we thus need to
             // prevent them from getting the default implementation whose output
@@ -215,7 +232,8 @@ public final class PRNGFixes {
             } catch (IOException e) {
                 // On a small fraction of devices /dev/urandom is not writable.
                 // Log and ignore.
-                Logger.w(PRNGFixes.class.getSimpleName(), "Failed to mix seed into " + URANDOM_FILE);
+                Logger.w(
+                        PRNGFixes.class.getSimpleName(), "Failed to mix seed into " + URANDOM_FILE);
             } finally {
                 mSeeded = true;
             }
@@ -258,8 +276,8 @@ public final class PRNGFixes {
                     try {
                         sUrandomIn = new DataInputStream(new FileInputStream(URANDOM_FILE));
                     } catch (IOException e) {
-                        throw new SecurityException("Failed to open " + URANDOM_FILE
-                                + " for reading", e);
+                        throw new SecurityException(
+                                "Failed to open " + URANDOM_FILE + " for reading", e);
                     }
                 }
                 return sUrandomIn;

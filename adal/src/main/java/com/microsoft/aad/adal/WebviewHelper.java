@@ -119,10 +119,10 @@ public class WebviewHelper {
 
             Intent resultIntent = new Intent();
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, finalUrl);
-            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
-                    authRequest);
-            resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID,
-                    authRequest.getRequestId());
+            resultIntent.putExtra(
+                    AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO, authRequest);
+            resultIntent.putExtra(
+                    AuthenticationConstants.Browser.REQUEST_ID, authRequest.getRequestId());
 
             return resultIntent;
         }
@@ -133,8 +133,8 @@ public class WebviewHelper {
     private AuthenticationRequest getAuthenticationRequestFromIntent(Intent callingIntent) {
         AuthenticationRequest authRequest = null;
 
-        Serializable request = callingIntent
-                .getSerializableExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE);
+        Serializable request =
+                callingIntent.getSerializableExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE);
 
         if (request instanceof AuthenticationRequest) {
             authRequest = (AuthenticationRequest) request;
@@ -155,17 +155,18 @@ public class WebviewHelper {
 
         ChallengeResponseBuilder certHandler = new ChallengeResponseBuilder(jwsBuilder);
 
-        final ChallengeResponse challengeResponse = certHandler
-                .getChallengeResponseFromUri(challengeUrl);
+        final ChallengeResponse challengeResponse =
+                certHandler.getChallengeResponseFromUri(challengeUrl);
 
         final HashMap<String, String> headers = new HashMap<String, String>();
-        headers.put(AuthenticationConstants.Broker.CHALLENGE_RESPONSE_HEADER,
+        headers.put(
+                AuthenticationConstants.Broker.CHALLENGE_RESPONSE_HEADER,
                 challengeResponse.getAuthorizationHeaderValue());
 
         String loadUrl = challengeResponse.getSubmitUrl();
 
-        HashMap<String, String> parameters = StringExtensions
-                .getUrlParameters(challengeResponse.getSubmitUrl());
+        HashMap<String, String> parameters =
+                StringExtensions.getUrlParameters(challengeResponse.getSubmitUrl());
 
         Logger.i(TAG, "Get submit url. ", "SubmitUrl:" + challengeResponse.getSubmitUrl());
 

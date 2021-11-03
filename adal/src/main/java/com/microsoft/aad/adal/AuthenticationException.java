@@ -24,6 +24,7 @@
 package com.microsoft.aad.adal;
 
 import android.content.Context;
+
 import androidx.annotation.Nullable;
 
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
@@ -49,17 +50,13 @@ public class AuthenticationException extends Exception {
 
     private HashMap<String, List<String>> mHttpResponseHeaders = null;
 
-    @Nullable
-    private String mSpeRing;
+    @Nullable private String mSpeRing;
 
-    @Nullable
-    private String mRefreshTokenAge;
+    @Nullable private String mRefreshTokenAge;
 
-    @Nullable
-    private String mCliTelemErrorCode;
+    @Nullable private String mCliTelemErrorCode;
 
-    @Nullable
-    private String mCliTelemSubErrorCode;
+    @Nullable private String mCliTelemSubErrorCode;
 
     /**
      * Default constructor for {@link AuthenticationException}.
@@ -107,11 +104,14 @@ public class AuthenticationException extends Exception {
             mServiceStatusCode = ((AuthenticationException) throwable).getServiceStatusCode();
 
             if (null != ((AuthenticationException) throwable).getHttpResponseBody()) {
-                mHttpResponseBody = new HashMap<>(((AuthenticationException) throwable).getHttpResponseBody());
+                mHttpResponseBody =
+                        new HashMap<>(((AuthenticationException) throwable).getHttpResponseBody());
             }
 
             if (null != ((AuthenticationException) throwable).getHttpResponseHeaders()) {
-                mHttpResponseHeaders = new HashMap<>(((AuthenticationException) throwable).getHttpResponseHeaders());
+                mHttpResponseHeaders =
+                        new HashMap<>(
+                                ((AuthenticationException) throwable).getHttpResponseHeaders());
             }
         }
     }
@@ -135,8 +135,8 @@ public class AuthenticationException extends Exception {
      * @param response  HTTP web response
      * @param throwable {@link Throwable}
      */
-    public AuthenticationException(ADALError code, String details, HttpWebResponse response,
-                                   Throwable throwable) {
+    public AuthenticationException(
+            ADALError code, String details, HttpWebResponse response, Throwable throwable) {
         this(code, details, throwable);
         setHttpResponse(response);
     }
@@ -206,7 +206,9 @@ public class AuthenticationException extends Exception {
                 try {
                     mHttpResponseBody = new HashMap<>(HashMapExtensions.getJsonResponse(response));
                 } catch (final JSONException exception) {
-                    Logger.e(AuthenticationException.class.getSimpleName(), "Json exception",
+                    Logger.e(
+                            AuthenticationException.class.getSimpleName(),
+                            "Json exception",
                             ExceptionExtensions.getExceptionMessage(exception),
                             ADALError.SERVER_INVALID_JSON_RESPONSE);
                 }

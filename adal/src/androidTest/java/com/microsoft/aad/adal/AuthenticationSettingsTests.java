@@ -23,15 +23,15 @@
 
 package com.microsoft.aad.adal;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import junit.framework.Assert;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * settings to use in ADAL
@@ -50,14 +50,19 @@ public class AuthenticationSettingsTests {
         final String packagename = "com.anotherapp";
         AuthenticationSettings.INSTANCE.setActivityPackageName(packagename);
 
-        assertEquals("same packagename", packagename,
+        assertEquals(
+                "same packagename",
+                packagename,
                 AuthenticationSettings.INSTANCE.getActivityPackageName());
     }
 
     @Test
     public void testTimeOut() {
         // verify setter/getter for timeout
-        assertEquals("default timeout", READ_TIMEOUT_2, AuthenticationSettings.INSTANCE.getReadTimeOut());
+        assertEquals(
+                "default timeout",
+                READ_TIMEOUT_2,
+                AuthenticationSettings.INSTANCE.getReadTimeOut());
 
         // Modify
         AuthenticationSettings.INSTANCE.setReadTimeOut(READ_TIMEOUT_1);
@@ -77,13 +82,19 @@ public class AuthenticationSettingsTests {
     @Test
     public void testHardwareAcceleration() {
         // verify setter/getter for WebView hardwareAcceleration
-        //By default it should be enable
-        assertEquals("isWebViewHardwareAccelerated", true, AuthenticationSettings.INSTANCE.getDisableWebViewHardwareAcceleration());
+        // By default it should be enable
+        assertEquals(
+                "isWebViewHardwareAccelerated",
+                true,
+                AuthenticationSettings.INSTANCE.getDisableWebViewHardwareAcceleration());
 
         // Modify
         AuthenticationSettings.INSTANCE.setDisableWebViewHardwareAcceleration(false);
 
         // Now it should be disable
-        assertEquals("isWebViewHardwareAccelerated", false, AuthenticationSettings.INSTANCE.getDisableWebViewHardwareAcceleration());
+        assertEquals(
+                "isWebViewHardwareAccelerated",
+                false,
+                AuthenticationSettings.INSTANCE.getDisableWebViewHardwareAcceleration());
     }
 }

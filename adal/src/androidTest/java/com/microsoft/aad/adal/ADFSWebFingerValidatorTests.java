@@ -22,7 +22,6 @@
 //  THE SOFTWARE.
 package com.microsoft.aad.adal;
 
-
 import androidx.test.filters.SmallTest;
 
 import junit.framework.TestCase;
@@ -38,24 +37,19 @@ public class ADFSWebFingerValidatorTests extends TestCase {
     @SmallTest
     public void testTrustedRealmFieldInitialized()
             throws NoSuchFieldException, IllegalAccessException {
-        final Field trustedRealmURI = ADFSWebFingerValidator.class.getDeclaredField("TRUSTED_REALM_REL");
+        final Field trustedRealmURI =
+                ADFSWebFingerValidator.class.getDeclaredField("TRUSTED_REALM_REL");
         trustedRealmURI.setAccessible(true);
         assertEquals(
                 trustedRealmURI.get(null).toString(),
-                "http://schemas.microsoft.com/rel/trusted-realm"
-        );
+                "http://schemas.microsoft.com/rel/trusted-realm");
     }
 
     @SmallTest
     public void testRealmIsTrustedEmptyMetadata() throws URISyntaxException {
         final URI testAuthority = new URI("https://fs.ngctest.nttest.microsoft.com/adfs/ls/");
         final WebFingerMetadata metadata = new WebFingerMetadata();
-        assertFalse(
-                ADFSWebFingerValidator.realmIsTrusted(
-                        testAuthority,
-                        metadata
-                )
-        );
+        assertFalse(ADFSWebFingerValidator.realmIsTrusted(testAuthority, metadata));
     }
 
     public void testRealmIsTrusted() throws URISyntaxException {
@@ -71,11 +65,6 @@ public class ADFSWebFingerValidatorTests extends TestCase {
 
         metadata.setLinks(links);
 
-        assertTrue(
-                ADFSWebFingerValidator.realmIsTrusted(
-                        testAuthority,
-                        metadata
-                )
-        );
+        assertTrue(ADFSWebFingerValidator.realmIsTrusted(testAuthority, metadata));
     }
 }

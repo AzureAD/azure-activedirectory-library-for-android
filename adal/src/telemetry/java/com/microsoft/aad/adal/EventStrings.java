@@ -159,11 +159,14 @@ final class EventStrings {
     static final String AUTHORITY_VALIDATION_NOT_DONE = "not_done";
 
     // Broker account service related events
-    static final String BROKER_ACCOUNT_SERVICE_STARTS_BINDING = EVENT_PREFIX + "broker_account_service_starts_binding";
+    static final String BROKER_ACCOUNT_SERVICE_STARTS_BINDING =
+            EVENT_PREFIX + "broker_account_service_starts_binding";
 
-    static final String BROKER_ACCOUNT_SERVICE_BINDING_SUCCEED = EVENT_PREFIX + "broker_account_service_binding_succeed";
+    static final String BROKER_ACCOUNT_SERVICE_BINDING_SUCCEED =
+            EVENT_PREFIX + "broker_account_service_binding_succeed";
 
-    static final String BROKER_ACCOUNT_SERVICE_CONNECTED = EVENT_PREFIX + "broker_account_service_connected";
+    static final String BROKER_ACCOUNT_SERVICE_CONNECTED =
+            EVENT_PREFIX + "broker_account_service_connected";
 
     // API ID
     static final String API_ID = EVENT_PREFIX + "api_id";

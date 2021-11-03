@@ -58,16 +58,17 @@ final class SSOStateSerializer {
      * lightweight TokenCacheItem, FamilyTokenCacheItemAdapter is used here to
      * register custom serializer.
      */
-    private static final Gson GSON = new GsonBuilder()
-            .registerTypeAdapter(TokenCacheItem.class, new TokenCacheItemSerializationAdapater())
-            .create();
+    private static final Gson GSON =
+            new GsonBuilder()
+                    .registerTypeAdapter(
+                            TokenCacheItem.class, new TokenCacheItemSerializationAdapater())
+                    .create();
 
     /**
      * No args constructor for use in serialization for Gson to prevent usage of sun.misc.Unsafe.
      */
     @SuppressWarnings("unused")
-    private SSOStateSerializer() {
-    }
+    private SSOStateSerializer() {}
 
     /**
      * constructor with an input item in type TokenCacheItem. We take
@@ -96,7 +97,8 @@ final class SSOStateSerializer {
     @SuppressWarnings("PMD")
     private TokenCacheItem getTokenItem() throws AuthenticationException {
         if (mTokenCacheItems == null || mTokenCacheItems.isEmpty()) {
-            throw new AuthenticationException(ADALError.TOKEN_CACHE_ITEM_NOT_FOUND,
+            throw new AuthenticationException(
+                    ADALError.TOKEN_CACHE_ITEM_NOT_FOUND,
                     "There is no token cache item in the SSOStateContainer.");
         }
         return mTokenCacheItems.get(0);
@@ -120,7 +122,8 @@ final class SSOStateSerializer {
      * @return TokenCacheItem
      * @throws AuthenticationException
      */
-    private TokenCacheItem internalDeserialize(final String serializedBlob) throws AuthenticationException {
+    private TokenCacheItem internalDeserialize(final String serializedBlob)
+            throws AuthenticationException {
         try {
             final JSONObject jsonObject = new JSONObject(serializedBlob);
             if (jsonObject.getInt("version") == this.getVersion()) {
@@ -128,7 +131,8 @@ final class SSOStateSerializer {
             } else {
                 throw new DeserializationAuthenticationException(
                         "Fail to deserialize because the blob version is incompatible. The version of the serializedBlob is "
-                                + jsonObject.getInt("version") + ". And the target class version is "
+                                + jsonObject.getInt("version")
+                                + ". And the target class version is "
                                 + this.getVersion());
             }
         } catch (final JsonParseException | JSONException exception) {

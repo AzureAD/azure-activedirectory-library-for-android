@@ -53,10 +53,7 @@ class HttpUtil {
                     error = ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE;
 
                     com.microsoft.identity.common.internal.logging.Logger.warn(
-                            "HttpUtil",
-                            "Unrecognized error code: "
-                                    + errorCode
-                    );
+                            "HttpUtil", "Unrecognized error code: " + errorCode);
             }
 
             throw new AuthenticationException(error, errorMessage);

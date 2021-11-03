@@ -73,14 +73,15 @@ final class CacheEvent extends DefaultEvent {
 
         final List<Map.Entry<String, String>> eventList = getEventList();
 
-        // We are keeping track of the number of Cache Events here, first time we insert the CACHE_EVENT_COUNT in the
+        // We are keeping track of the number of Cache Events here, first time we insert the
+        // CACHE_EVENT_COUNT in the
         // map, next time onwards, we read the value of it and increment by one.
         final String count = dispatchMap.get(EventStrings.CACHE_EVENT_COUNT);
         if (count == null) {
             dispatchMap.put(EventStrings.CACHE_EVENT_COUNT, "1");
         } else {
-            dispatchMap.put(EventStrings.CACHE_EVENT_COUNT,
-                    Integer.toString(Integer.parseInt(count) + 1));
+            dispatchMap.put(
+                    EventStrings.CACHE_EVENT_COUNT, Integer.toString(Integer.parseInt(count) + 1));
         }
 
         dispatchMap.put(EventStrings.TOKEN_TYPE_IS_FRT, "");
@@ -94,8 +95,10 @@ final class CacheEvent extends DefaultEvent {
         for (Map.Entry<String, String> eventKeyValuePair : eventList) {
             final String name = eventKeyValuePair.getKey();
 
-            if (name.equals(EventStrings.TOKEN_TYPE_IS_FRT) || name.equals(EventStrings.TOKEN_TYPE_IS_RT)
-                    || name.equals(EventStrings.TOKEN_TYPE_IS_MRRT) || name.equals(EventStrings.SPE_INFO)) {
+            if (name.equals(EventStrings.TOKEN_TYPE_IS_FRT)
+                    || name.equals(EventStrings.TOKEN_TYPE_IS_RT)
+                    || name.equals(EventStrings.TOKEN_TYPE_IS_MRRT)
+                    || name.equals(EventStrings.SPE_INFO)) {
                 dispatchMap.put(name, eventKeyValuePair.getValue());
             }
         }

@@ -25,8 +25,6 @@ package com.microsoft.aad.adal;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.util.Base64;
 
@@ -52,24 +50,20 @@ public class HttpDialogTests {
     @SuppressLint("PackageManagerGetSignatures")
     @Before
     protected void setUp() throws Exception {
-        mContext = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext();
+        mContext =
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+                        .getContext();
 
         System.setProperty(
                 "dexmaker.dexcache",
-                androidx.test.platform.app.InstrumentationRegistry
-                        .getInstrumentation()
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
                         .getTargetContext()
                         .getCacheDir()
-                        .getPath()
-        );
+                        .getPath());
 
         System.setProperty(
                 "org.mockito.android.target",
-                ApplicationProvider
-                        .getApplicationContext()
-                        .getCacheDir()
-                        .getPath()
-        );
+                ApplicationProvider.getApplicationContext().getCacheDir().getPath());
 
         // Broker App can be signed with multiple certificates. It will look
         // all of them
@@ -82,8 +76,8 @@ public class HttpDialogTests {
             break;
         }
         AuthenticationSettings.INSTANCE.setBrokerSignature(mTestTag);
-        AuthenticationSettings.INSTANCE
-                .setBrokerPackageName(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
+        AuthenticationSettings.INSTANCE.setBrokerPackageName(
+                AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         Logger.d(TAG, "mTestSignature is set");
     }
 }

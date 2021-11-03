@@ -23,6 +23,25 @@
 
 package com.microsoft.aad.adal;
 
+import static androidx.test.InstrumentationRegistry.getInstrumentation;
+
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION;
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL;
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR;
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;
@@ -64,23 +83,6 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import static androidx.test.InstrumentationRegistry.getInstrumentation;
-import static com.microsoft.aad.adal.AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
-import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION;
-import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL;
-import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR;
-import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 /**
  * Unit test to verify buttons, webview and other items.
  */
@@ -103,61 +105,70 @@ public class AuthenticationActivityUnitTest {
 
     @SuppressWarnings("checkstyle:visibilitymodifier")
     @Rule
-    public final ActivityTestRule<AuthenticationActivity> mActivityRule = new ActivityTestRule<>(AuthenticationActivity.class, true, false);
+    public final ActivityTestRule<AuthenticationActivity> mActivityRule =
+            new ActivityTestRule<>(AuthenticationActivity.class, true, false);
 
     @Before
     public void setUp() throws Exception {
         System.setProperty(
                 "dexmaker.dexcache",
-                androidx.test.platform.app.InstrumentationRegistry
-                        .getInstrumentation()
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
                         .getTargetContext()
                         .getCacheDir()
-                        .getPath()
-        );
+                        .getPath());
 
         System.setProperty(
                 "org.mockito.android.target",
-                ApplicationProvider
-                        .getApplicationContext()
-                        .getCacheDir()
-                        .getPath()
-        );
+                ApplicationProvider.getApplicationContext().getCacheDir().getPath());
 
-        mIntentToStartActivity = new Intent(
-                InstrumentationRegistry.getInstrumentation().getTargetContext(),
-                AuthenticationActivity.class
-        );
+        mIntentToStartActivity =
+                new Intent(
+                        InstrumentationRegistry.getInstrumentation().getTargetContext(),
+                        AuthenticationActivity.class);
 
         Object authorizationRequest = getTestRequest();
-        mIntentToStartActivity.putExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE,
+        mIntentToStartActivity.putExtra(
+                AuthenticationConstants.Browser.REQUEST_MESSAGE,
                 (Serializable) authorizationRequest);
         if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
             // use same key for tests
-            SecretKeyFactory keyFactory = SecretKeyFactory
-                    .getInstance("PBEWithSHA256And256BitAES-CBC-BC");
+            SecretKeyFactory keyFactory =
+                    SecretKeyFactory.getInstance("PBEWithSHA256And256BitAES-CBC-BC");
             final int iterations = 100;
             final int keySize = 256;
-            SecretKey tempkey = keyFactory.generateSecret(new PBEKeySpec("test".toCharArray(),
-                    "abcdedfdfd".getBytes(StandardCharsets.UTF_8), iterations, keySize));
+            SecretKey tempkey =
+                    keyFactory.generateSecret(
+                            new PBEKeySpec(
+                                    "test".toCharArray(),
+                                    "abcdedfdfd".getBytes(StandardCharsets.UTF_8),
+                                    iterations,
+                                    keySize));
             SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
             AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
         }
     }
 
-    private Object getTestRequest() throws ClassNotFoundException, NoSuchMethodException,
-            IllegalArgumentException, InstantiationException, IllegalAccessException,
-            InvocationTargetException, NoSuchFieldException {
+    private Object getTestRequest()
+            throws ClassNotFoundException, NoSuchMethodException, IllegalArgumentException,
+                    InstantiationException, IllegalAccessException, InvocationTargetException,
+                    NoSuchFieldException {
 
         Class<?> c = Class.forName("com.microsoft.aad.adal.AuthenticationRequest");
 
         // getConstructor() returns only public constructors,
 
-        Constructor<?> constructor = c.getDeclaredConstructor(String.class, String.class,
-                String.class, String.class, String.class, boolean.class);
+        Constructor<?> constructor =
+                c.getDeclaredConstructor(
+                        String.class,
+                        String.class,
+                        String.class,
+                        String.class,
+                        String.class,
+                        boolean.class);
         constructor.setAccessible(true);
-        Object o = constructor.newInstance(TEST_AUTHORITY, "client", "resource", "redirect",
-                "loginhint", false);
+        Object o =
+                constructor.newInstance(
+                        TEST_AUTHORITY, "client", "resource", "redirect", "loginhint", false);
         ReflectionUtils.setFieldValue(o, "mRequestId", TEST_REQUEST_ID);
         ReflectionUtils.setFieldValue(o, "mCorrelationId", UUID.randomUUID());
 
@@ -168,37 +179,40 @@ public class AuthenticationActivityUnitTest {
     public void testLayout() throws Throwable {
         mActivityRule.launchActivity(mIntentToStartActivity);
         // Webview
-        final WebView webview = mActivityRule.getActivity().findViewById(R.id.authentication_activity_webView);
+        final WebView webview =
+                mActivityRule.getActivity().findViewById(R.id.authentication_activity_webView);
         assertNotNull(webview);
 
-        mActivityRule.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                // Javascript enabled
-                assertTrue(webview.getSettings().getJavaScriptEnabled());
-            }
-        });
+        mActivityRule.runOnUiThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        // Javascript enabled
+                        assertTrue(webview.getSettings().getJavaScriptEnabled());
+                    }
+                });
     }
 
     @Test
-    public void testReturnToCaller() throws IllegalArgumentException, NoSuchFieldException,
-            IllegalAccessException, InvocationTargetException, ClassNotFoundException,
-            NoSuchMethodException, InstantiationException {
+    public void testReturnToCaller()
+            throws IllegalArgumentException, NoSuchFieldException, IllegalAccessException,
+                    InvocationTargetException, ClassNotFoundException, NoSuchMethodException,
+                    InstantiationException {
 
         mActivityRule.launchActivity(mIntentToStartActivity);
 
-        Method returnToCaller = ReflectionUtils.getTestMethod(mActivityRule.getActivity(), "returnToCaller",
-                int.class, Intent.class);
+        Method returnToCaller =
+                ReflectionUtils.getTestMethod(
+                        mActivityRule.getActivity(), "returnToCaller", int.class, Intent.class);
 
         // call null intent
-        returnToCaller.invoke(mActivityRule.getActivity(), BROWSER_CODE_CANCEL,
-                null);
+        returnToCaller.invoke(mActivityRule.getActivity(), BROWSER_CODE_CANCEL, null);
         assertTrue(mActivityRule.getActivity().isFinishing());
 
         // verify result code that includes requestid
         Intent data = assertFinishCalledWithResult(BROWSER_CODE_CANCEL);
-        assertEquals(TEST_REQUEST_ID,
-                data.getIntExtra(AuthenticationConstants.Browser.REQUEST_ID, 0));
+        assertEquals(
+                TEST_REQUEST_ID, data.getIntExtra(AuthenticationConstants.Browser.REQUEST_ID, 0));
     }
 
     /**
@@ -212,25 +226,28 @@ public class AuthenticationActivityUnitTest {
         MockDeviceCertProxy.reset();
         MockDeviceCertProxy.setIsValidIssuer(true);
         MockDeviceCertProxy.setPrivateKey(null);
-        final String url = AuthenticationConstants.Broker.PKEYAUTH_REDIRECT
-                + "?Nonce=nonce1234&CertAuthorities=ABC&Version=1.0&SubmitUrl=submiturl&Context=serverContext";
+        final String url =
+                AuthenticationConstants.Broker.PKEYAUTH_REDIRECT
+                        + "?Nonce=nonce1234&CertAuthorities=ABC&Version=1.0&SubmitUrl=submiturl&Context=serverContext";
         final WebViewClient client = getCustomWebViewClient();
-        mActivityRule.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                WebView mockview = new WebView(mActivityRule.getActivity().getApplicationContext());
-                try {
-                    ReflectionUtils.setFieldValue(mActivityRule.getActivity(), "mSpinner", null);
-                } catch (NoSuchFieldException e) {
-                    e.printStackTrace();
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                }
-                // Act
-                client.shouldOverrideUrlLoading(mockview, url);
-            }
-        });
-
+        mActivityRule.runOnUiThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        WebView mockview =
+                                new WebView(mActivityRule.getActivity().getApplicationContext());
+                        try {
+                            ReflectionUtils.setFieldValue(
+                                    mActivityRule.getActivity(), "mSpinner", null);
+                        } catch (NoSuchFieldException e) {
+                            e.printStackTrace();
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        }
+                        // Act
+                        client.shouldOverrideUrlLoading(mockview, url);
+                    }
+                });
 
         // Verify result code that includes requestid. Activity will set the
         // result back to caller.
@@ -245,14 +262,16 @@ public class AuthenticationActivityUnitTest {
         }
 
         Intent data = assertFinishCalledWithResult(BROWSER_CODE_AUTHENTICATION_EXCEPTION);
-        Serializable serialazable = data
-                .getSerializableExtra(AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION);
+        Serializable serialazable =
+                data.getSerializableExtra(
+                        AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION);
         AuthenticationException exception = (AuthenticationException) serialazable;
         assertNotNull("Exception is not null", exception);
-        assertEquals("Exception has AdalError for key", ADALError.KEY_CHAIN_PRIVATE_KEY_EXCEPTION,
+        assertEquals(
+                "Exception has AdalError for key",
+                ADALError.KEY_CHAIN_PRIVATE_KEY_EXCEPTION,
                 exception.getCode());
     }
-
 
     @Test
     public void testWebviewSslprotectedredirectURL() throws Throwable {
@@ -264,20 +283,23 @@ public class AuthenticationActivityUnitTest {
         final String url = "https://login.microsoftonline.com/";
         final WebViewClient client = getCustomWebViewClient();
 
-        mActivityRule.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                WebView mockview = new WebView(mActivityRule.getActivity().getApplicationContext());
-                try {
-                    ReflectionUtils.setFieldValue(mActivityRule.getActivity(), "mSpinner", null);
-                } catch (NoSuchFieldException e) {
-                    e.printStackTrace();
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                }
-                assertEquals(false, client.shouldOverrideUrlLoading(mockview, url));
-            }
-        });
+        mActivityRule.runOnUiThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        WebView mockview =
+                                new WebView(mActivityRule.getActivity().getApplicationContext());
+                        try {
+                            ReflectionUtils.setFieldValue(
+                                    mActivityRule.getActivity(), "mSpinner", null);
+                        } catch (NoSuchFieldException e) {
+                            e.printStackTrace();
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        }
+                        assertEquals(false, client.shouldOverrideUrlLoading(mockview, url));
+                    }
+                });
     }
 
     @Test
@@ -288,28 +310,30 @@ public class AuthenticationActivityUnitTest {
          */
         final String url = "about:blank";
         final WebViewClient client = getCustomWebViewClient();
-        mActivityRule.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                WebView mockview = new WebView(mActivityRule.getActivity().getApplicationContext());
-                try {
-                    ReflectionUtils.setFieldValue(mActivityRule.getActivity(), "mSpinner", null);
-                } catch (NoSuchFieldException e) {
-                    e.printStackTrace();
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                }
-                assertEquals(true, client.shouldOverrideUrlLoading(mockview, url));
-            }
-        });
+        mActivityRule.runOnUiThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        WebView mockview =
+                                new WebView(mActivityRule.getActivity().getApplicationContext());
+                        try {
+                            ReflectionUtils.setFieldValue(
+                                    mActivityRule.getActivity(), "mSpinner", null);
+                        } catch (NoSuchFieldException e) {
+                            e.printStackTrace();
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        }
+                        assertEquals(true, client.shouldOverrideUrlLoading(mockview, url));
+                    }
+                });
     }
 
-
-    private WebViewClient getCustomWebViewClient() throws NoSuchMethodException,
-            ClassNotFoundException, InstantiationException, IllegalAccessException,
-            IllegalArgumentException, InvocationTargetException {
-        Class clazz = Class
-                .forName("com.microsoft.aad.adal.AuthenticationActivity$CustomWebViewClient");
+    private WebViewClient getCustomWebViewClient()
+            throws NoSuchMethodException, ClassNotFoundException, InstantiationException,
+                    IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+        Class clazz =
+                Class.forName("com.microsoft.aad.adal.AuthenticationActivity$CustomWebViewClient");
         Constructor[] constructors = clazz.getDeclaredConstructors();
         constructors[0].setAccessible(true);
         return (WebViewClient) constructors[0].newInstance(mActivityRule.getActivity());
@@ -320,164 +344,200 @@ public class AuthenticationActivityUnitTest {
      * response returns idtoken info
      */
     @Test
-    public void testBrokerReturnUserInfo() throws IllegalArgumentException, NoSuchFieldException,
-            IllegalAccessException, InvocationTargetException, ClassNotFoundException,
-            NoSuchMethodException, InstantiationException, InterruptedException, ExecutionException {
+    public void testBrokerReturnUserInfo()
+            throws IllegalArgumentException, NoSuchFieldException, IllegalAccessException,
+                    InvocationTargetException, ClassNotFoundException, NoSuchMethodException,
+                    InstantiationException, InterruptedException, ExecutionException {
         mActivityRule.launchActivity(mIntentToStartActivity);
-        String urlRequest = "http://taskapp/?code=AwABAAAAvPM1KaPlrEqdFSBzjqfTGMgw4YlsUtpp6LtqhSXUApDSgwF7HWFTPxA9ZKafC_NUbwToIMQl86JD09cKDlRI-2_oxx3o0U3cyFwBGeBvKkBDiP89zMj7hPhe6inwRgjLKbL0qla6OIV9gm54_rrCow3G1bWsH5zuXM3j5YWNV-e9K14G6r6B9Z8etd0a_CgNO7_GkleEHw3voXbJL7v8eeW74tLHHSA46wO0T8JRrnhrUydHGzCSLDJQaYyL5FlQQhkZcN5L6I0G472VEpXNwaviEAkNNcg3BPfe2PUswjwM_OqUBz5xE6KwqJ40GQS53eghcVeZNEUNZXG0KzKbxwDgsPFNQ6XZcaK0uZGmzRm8z8xz9hqfPEJtAl7kAhJ1tltL0nuC-0VoyBEdMLo2JyAA&state=YT1odHRwczovL2xvZ2luLndpbmRvd3MubmV0L29tZXJjYW50ZXN0Lm9ubWljcm9zb2Z0LmNvbSZyPWh0dHBzOi8vb21lcmNhbnRlc3Qub25taWNyb3NvZnQuY29tL0FsbEhhbmRzVHJ5&session_state=cba8edc9-91b8-4bb9-8510-2ff9db663258";
+        String urlRequest =
+                "http://taskapp/?code=AwABAAAAvPM1KaPlrEqdFSBzjqfTGMgw4YlsUtpp6LtqhSXUApDSgwF7HWFTPxA9ZKafC_NUbwToIMQl86JD09cKDlRI-2_oxx3o0U3cyFwBGeBvKkBDiP89zMj7hPhe6inwRgjLKbL0qla6OIV9gm54_rrCow3G1bWsH5zuXM3j5YWNV-e9K14G6r6B9Z8etd0a_CgNO7_GkleEHw3voXbJL7v8eeW74tLHHSA46wO0T8JRrnhrUydHGzCSLDJQaYyL5FlQQhkZcN5L6I0G472VEpXNwaviEAkNNcg3BPfe2PUswjwM_OqUBz5xE6KwqJ40GQS53eghcVeZNEUNZXG0KzKbxwDgsPFNQ6XZcaK0uZGmzRm8z8xz9hqfPEJtAl7kAhJ1tltL0nuC-0VoyBEdMLo2JyAA&state=YT1odHRwczovL2xvZ2luLndpbmRvd3MubmV0L29tZXJjYW50ZXN0Lm9ubWljcm9zb2Z0LmNvbSZyPWh0dHBzOi8vb21lcmNhbnRlc3Qub25taWNyb3NvZnQuY29tL0FsbEhhbmRzVHJ5&session_state=cba8edc9-91b8-4bb9-8510-2ff9db663258";
         MockWebRequestHandler webrequest = setMockWebResponse();
-        ReflectionUtils.setFieldValue(mActivityRule.getActivity(), "mWebRequestHandler", webrequest);
+        ReflectionUtils.setFieldValue(
+                mActivityRule.getActivity(), "mWebRequestHandler", webrequest);
         String username = "admin@aaltests.onmicrosoft.com";
-        final AuthenticationRequest authRequest = new AuthenticationRequest(
-                "https://login.windows.net/test.test.com",
-                "https://omercantest.onmicrosoft.com/AllHandsTry", "client", "redirect", username, UUID.randomUUID(),
-                false);
-        Method setAcctName = ReflectionUtils.getTestMethod(authRequest, "setBrokerAccountName",
-                String.class);
+        final AuthenticationRequest authRequest =
+                new AuthenticationRequest(
+                        "https://login.windows.net/test.test.com",
+                        "https://omercantest.onmicrosoft.com/AllHandsTry",
+                        "client",
+                        "redirect",
+                        username,
+                        UUID.randomUUID(),
+                        false);
+        Method setAcctName =
+                ReflectionUtils.getTestMethod(authRequest, "setBrokerAccountName", String.class);
         setAcctName.invoke(authRequest, username);
         AsyncTask<String, ?, ?> tokenTask = (AsyncTask<String, ?, ?>) getTokenTask();
-        Method executeDirect = ReflectionUtils.getTestMethod(tokenTask, "doInBackground",
-                String[].class);
-        Method executePostResult = ReflectionUtils.getTestMethod(tokenTask, "onPostExecute",
-                Class.forName("com.microsoft.aad.adal.AuthenticationActivity$TokenTaskResult"));
+        Method executeDirect =
+                ReflectionUtils.getTestMethod(tokenTask, "doInBackground", String[].class);
+        Method executePostResult =
+                ReflectionUtils.getTestMethod(
+                        tokenTask,
+                        "onPostExecute",
+                        Class.forName(
+                                "com.microsoft.aad.adal.AuthenticationActivity$TokenTaskResult"));
         AccountManager mockAct = mock(AccountManager.class);
-        Account userAccount = new Account(username,
-                BROKER_ACCOUNT_TYPE);
+        Account userAccount = new Account(username, BROKER_ACCOUNT_TYPE);
         when(mockAct.getAccountsByType(BROKER_ACCOUNT_TYPE))
-                .thenReturn(new Account[]{
-                        userAccount
-                });
+                .thenReturn(new Account[] {userAccount});
         ReflectionUtils.setFieldValue(tokenTask, "mRequest", authRequest);
         ReflectionUtils.setFieldValue(tokenTask, "mPackageName", "testpackagename");
         ReflectionUtils.setFieldValue(tokenTask, "mAccountManager", mockAct);
         ReflectionUtils.setFieldValue(tokenTask, "mRequestHandler", webrequest);
         ReflectionUtils.setFieldValue(tokenTask, "mAppCallingUID", TEST_CALLING_UID);
-        Object result = executeDirect.invoke(tokenTask, (Object) new String[]{
-                urlRequest
-        });
+        Object result = executeDirect.invoke(tokenTask, (Object) new String[] {urlRequest});
 
         executePostResult.invoke(tokenTask, result);
 
         // Verification from returned intent data
         Intent data = assertFinishCalledWithResult(TOKEN_BROKER_RESPONSE);
-        assertEquals("token is same in the result", "TokentestBroker",
+        assertEquals(
+                "token is same in the result",
+                "TokentestBroker",
                 data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN));
-        assertEquals("Name is same in the result", "admin@aaltests.onmicrosoft.com",
+        assertEquals(
+                "Name is same in the result",
+                "admin@aaltests.onmicrosoft.com",
                 data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_NAME));
-        assertEquals("UserId is same in the result", "4f859989-a2ff-411e-9048-c322247ac62c",
+        assertEquals(
+                "UserId is same in the result",
+                "4f859989-a2ff-411e-9048-c322247ac62c",
                 data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID));
         assertEquals(
                 "UserId is same in the result",
                 "admin@aaltests.onmicrosoft.com",
-                data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE));
-        assertNotNull(data
-                .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME));
-        assertNotNull(data
-                .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME));
+                data.getStringExtra(
+                        AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE));
+        assertNotNull(
+                data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME));
+        assertNotNull(
+                data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME));
     }
 
     @Test
-    public void testBrokerReturnUserInfoSingleUser() throws IllegalArgumentException,
-            NoSuchFieldException, IllegalAccessException, InvocationTargetException,
-            ClassNotFoundException, NoSuchMethodException, InstantiationException,
-            InterruptedException, ExecutionException {
+    public void testBrokerReturnUserInfoSingleUser()
+            throws IllegalArgumentException, NoSuchFieldException, IllegalAccessException,
+                    InvocationTargetException, ClassNotFoundException, NoSuchMethodException,
+                    InstantiationException, InterruptedException, ExecutionException {
         mActivityRule.launchActivity(mIntentToStartActivity);
-        String urlRequest = "http://taskapp/?code=AwABAAAAvPM1KaPlrEqdFSBzjqfTGMgw4YlsUtpp6LtqhSXUApDSgwF7HWFTPxA9ZKafC_NUbwToIMQl86JD09cKDlRI-2_oxx3o0U3cyFwBGeBvKkBDiP89zMj7hPhe6inwRgjLKbL0qla6OIV9gm54_rrCow3G1bWsH5zuXM3j5YWNV-e9K14G6r6B9Z8etd0a_CgNO7_GkleEHw3voXbJL7v8eeW74tLHHSA46wO0T8JRrnhrUydHGzCSLDJQaYyL5FlQQhkZcN5L6I0G472VEpXNwaviEAkNNcg3BPfe2PUswjwM_OqUBz5xE6KwqJ40GQS53eghcVeZNEUNZXG0KzKbxwDgsPFNQ6XZcaK0uZGmzRm8z8xz9hqfPEJtAl7kAhJ1tltL0nuC-0VoyBEdMLo2JyAA&state=YT1odHRwczovL2xvZ2luLndpbmRvd3MubmV0L29tZXJjYW50ZXN0Lm9ubWljcm9zb2Z0LmNvbSZyPWh0dHBzOi8vb21lcmNhbnRlc3Qub25taWNyb3NvZnQuY29tL0FsbEhhbmRzVHJ5&session_state=cba8edc9-91b8-4bb9-8510-2ff9db663258";
+        String urlRequest =
+                "http://taskapp/?code=AwABAAAAvPM1KaPlrEqdFSBzjqfTGMgw4YlsUtpp6LtqhSXUApDSgwF7HWFTPxA9ZKafC_NUbwToIMQl86JD09cKDlRI-2_oxx3o0U3cyFwBGeBvKkBDiP89zMj7hPhe6inwRgjLKbL0qla6OIV9gm54_rrCow3G1bWsH5zuXM3j5YWNV-e9K14G6r6B9Z8etd0a_CgNO7_GkleEHw3voXbJL7v8eeW74tLHHSA46wO0T8JRrnhrUydHGzCSLDJQaYyL5FlQQhkZcN5L6I0G472VEpXNwaviEAkNNcg3BPfe2PUswjwM_OqUBz5xE6KwqJ40GQS53eghcVeZNEUNZXG0KzKbxwDgsPFNQ6XZcaK0uZGmzRm8z8xz9hqfPEJtAl7kAhJ1tltL0nuC-0VoyBEdMLo2JyAA&state=YT1odHRwczovL2xvZ2luLndpbmRvd3MubmV0L29tZXJjYW50ZXN0Lm9ubWljcm9zb2Z0LmNvbSZyPWh0dHBzOi8vb21lcmNhbnRlc3Qub25taWNyb3NvZnQuY29tL0FsbEhhbmRzVHJ5&session_state=cba8edc9-91b8-4bb9-8510-2ff9db663258";
         MockWebRequestHandler webrequest = setMockWebResponse();
-        ReflectionUtils.setFieldValue(mActivityRule.getActivity(), "mWebRequestHandler", webrequest);
-        final AuthenticationRequest authRequest = new AuthenticationRequest(
-                "https://login.windows.net/test.test.com",
-                "https://omercantest.onmicrosoft.com/AllHandsTry", "client", "redirect",
-                "different@aaltests.onmicrosoft.com", UUID.randomUUID(), false);
+        ReflectionUtils.setFieldValue(
+                mActivityRule.getActivity(), "mWebRequestHandler", webrequest);
+        final AuthenticationRequest authRequest =
+                new AuthenticationRequest(
+                        "https://login.windows.net/test.test.com",
+                        "https://omercantest.onmicrosoft.com/AllHandsTry",
+                        "client",
+                        "redirect",
+                        "different@aaltests.onmicrosoft.com",
+                        UUID.randomUUID(),
+                        false);
         AsyncTask<String, ?, ?> tokenTask = (AsyncTask<String, ?, ?>) getTokenTask();
-        Method executeDirect = ReflectionUtils.getTestMethod(tokenTask, "doInBackground",
-                String[].class);
-        Method executePostResult = ReflectionUtils.getTestMethod(tokenTask, "onPostExecute",
-                Class.forName("com.microsoft.aad.adal.AuthenticationActivity$TokenTaskResult"));
+        Method executeDirect =
+                ReflectionUtils.getTestMethod(tokenTask, "doInBackground", String[].class);
+        Method executePostResult =
+                ReflectionUtils.getTestMethod(
+                        tokenTask,
+                        "onPostExecute",
+                        Class.forName(
+                                "com.microsoft.aad.adal.AuthenticationActivity$TokenTaskResult"));
         AccountManager mockAct = mock(AccountManager.class);
-        when(mockAct.getAccountsByType(BROKER_ACCOUNT_TYPE))
-                .thenReturn(new Account[]{});
+        when(mockAct.getAccountsByType(BROKER_ACCOUNT_TYPE)).thenReturn(new Account[] {});
         ReflectionUtils.setFieldValue(tokenTask, "mRequest", authRequest);
         ReflectionUtils.setFieldValue(tokenTask, "mPackageName", "testpackagename");
         ReflectionUtils.setFieldValue(tokenTask, "mAccountManager", mockAct);
         ReflectionUtils.setFieldValue(tokenTask, "mRequestHandler", webrequest);
         ReflectionUtils.setFieldValue(tokenTask, "mAppCallingUID", TEST_CALLING_UID);
-        Object result = executeDirect.invoke(tokenTask, (Object) new String[]{
-                urlRequest
-        });
+        Object result = executeDirect.invoke(tokenTask, (Object) new String[] {urlRequest});
 
         executePostResult.invoke(tokenTask, result);
 
         // Verification from returned intent data
         Intent data = assertFinishCalledWithResult(BROWSER_CODE_ERROR);
-        assertTrue("Returns error about user",
+        assertTrue(
+                "Returns error about user",
                 data.getStringExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE)
                         .contains(ADALError.BROKER_SINGLE_USER_EXPECTED.getDescription()));
-
     }
 
     @Test
-    public void testBrokerSaveCacheKey() throws IllegalArgumentException, NoSuchFieldException,
-            IllegalAccessException, InvocationTargetException, ClassNotFoundException,
-            NoSuchMethodException, InstantiationException, InterruptedException, ExecutionException {
+    public void testBrokerSaveCacheKey()
+            throws IllegalArgumentException, NoSuchFieldException, IllegalAccessException,
+                    InvocationTargetException, ClassNotFoundException, NoSuchMethodException,
+                    InstantiationException, InterruptedException, ExecutionException {
         mActivityRule.launchActivity(mIntentToStartActivity);
-        String urlRequest = "http://taskapp/?code=AwABAAAAvPM1KaPlrEqdFSBzjqfTGMgw4YlsUtpp6LtqhSXUApDSgwF7HWFTPxA9ZKafC_NUbwToIMQl86JD09cKDlRI-2_oxx3o0U3cyFwBGeBvKkBDiP89zMj7hPhe6inwRgjLKbL0qla6OIV9gm54_rrCow3G1bWsH5zuXM3j5YWNV-e9K14G6r6B9Z8etd0a_CgNO7_GkleEHw3voXbJL7v8eeW74tLHHSA46wO0T8JRrnhrUydHGzCSLDJQaYyL5FlQQhkZcN5L6I0G472VEpXNwaviEAkNNcg3BPfe2PUswjwM_OqUBz5xE6KwqJ40GQS53eghcVeZNEUNZXG0KzKbxwDgsPFNQ6XZcaK0uZGmzRm8z8xz9hqfPEJtAl7kAhJ1tltL0nuC-0VoyBEdMLo2JyAA&state=YT1odHRwczovL2xvZ2luLndpbmRvd3MubmV0L29tZXJjYW50ZXN0Lm9ubWljcm9zb2Z0LmNvbSZyPWh0dHBzOi8vb21lcmNhbnRlc3Qub25taWNyb3NvZnQuY29tL0FsbEhhbmRzVHJ5&session_state=cba8edc9-91b8-4bb9-8510-2ff9db663258";
+        String urlRequest =
+                "http://taskapp/?code=AwABAAAAvPM1KaPlrEqdFSBzjqfTGMgw4YlsUtpp6LtqhSXUApDSgwF7HWFTPxA9ZKafC_NUbwToIMQl86JD09cKDlRI-2_oxx3o0U3cyFwBGeBvKkBDiP89zMj7hPhe6inwRgjLKbL0qla6OIV9gm54_rrCow3G1bWsH5zuXM3j5YWNV-e9K14G6r6B9Z8etd0a_CgNO7_GkleEHw3voXbJL7v8eeW74tLHHSA46wO0T8JRrnhrUydHGzCSLDJQaYyL5FlQQhkZcN5L6I0G472VEpXNwaviEAkNNcg3BPfe2PUswjwM_OqUBz5xE6KwqJ40GQS53eghcVeZNEUNZXG0KzKbxwDgsPFNQ6XZcaK0uZGmzRm8z8xz9hqfPEJtAl7kAhJ1tltL0nuC-0VoyBEdMLo2JyAA&state=YT1odHRwczovL2xvZ2luLndpbmRvd3MubmV0L29tZXJjYW50ZXN0Lm9ubWljcm9zb2Z0LmNvbSZyPWh0dHBzOi8vb21lcmNhbnRlc3Qub25taWNyb3NvZnQuY29tL0FsbEhhbmRzVHJ5&session_state=cba8edc9-91b8-4bb9-8510-2ff9db663258";
         MockWebRequestHandler webrequest = setMockWebResponse();
         String username = "admin@aaltests.onmicrosoft.com";
-        final AuthenticationRequest authRequest = new AuthenticationRequest(
-                "https://login.windows.net/test.test.com",
-                "https://omercantest.onmicrosoft.com/AllHandsTry", "client", "redirect", username, UUID.randomUUID(),
-                false);
-        Method setAcctName = ReflectionUtils.getTestMethod(authRequest, "setBrokerAccountName",
-                String.class);
+        final AuthenticationRequest authRequest =
+                new AuthenticationRequest(
+                        "https://login.windows.net/test.test.com",
+                        "https://omercantest.onmicrosoft.com/AllHandsTry",
+                        "client",
+                        "redirect",
+                        username,
+                        UUID.randomUUID(),
+                        false);
+        Method setAcctName =
+                ReflectionUtils.getTestMethod(authRequest, "setBrokerAccountName", String.class);
         setAcctName.invoke(authRequest, username);
         AsyncTask<String, ?, ?> tokenTask = (AsyncTask<String, ?, ?>) getTokenTask();
-        Method executeDirect = ReflectionUtils.getTestMethod(tokenTask, "doInBackground",
-                String[].class);
-        Method executePostResult = ReflectionUtils.getTestMethod(tokenTask, "onPostExecute",
-                Class.forName("com.microsoft.aad.adal.AuthenticationActivity$TokenTaskResult"));
+        Method executeDirect =
+                ReflectionUtils.getTestMethod(tokenTask, "doInBackground", String[].class);
+        Method executePostResult =
+                ReflectionUtils.getTestMethod(
+                        tokenTask,
+                        "onPostExecute",
+                        Class.forName(
+                                "com.microsoft.aad.adal.AuthenticationActivity$TokenTaskResult"));
         final int additionalCallerCacheKeys = 333;
         AccountManager mockAct = mock(AccountManager.class);
 
-        when(
-                mockAct.getUserData(
+        when(mockAct.getUserData(
                         any(Account.class),
-                        eq(AuthenticationConstants.Broker.USERDATA_CALLER_CACHEKEYS + additionalCallerCacheKeys))
-        ).thenReturn("test");
+                        eq(
+                                AuthenticationConstants.Broker.USERDATA_CALLER_CACHEKEYS
+                                        + additionalCallerCacheKeys)))
+                .thenReturn("test");
 
-        Account userAccount = new Account(username,
-                BROKER_ACCOUNT_TYPE);
+        Account userAccount = new Account(username, BROKER_ACCOUNT_TYPE);
 
-        when(
-                mockAct.getAccountsByType(
-                        BROKER_ACCOUNT_TYPE)
-        ).thenReturn(new Account[]{userAccount});
+        when(mockAct.getAccountsByType(BROKER_ACCOUNT_TYPE))
+                .thenReturn(new Account[] {userAccount});
 
         ReflectionUtils.setFieldValue(tokenTask, "mRequest", authRequest);
         ReflectionUtils.setFieldValue(tokenTask, "mPackageName", "testpackagename");
         ReflectionUtils.setFieldValue(tokenTask, "mAccountManager", mockAct);
         ReflectionUtils.setFieldValue(tokenTask, "mRequestHandler", webrequest);
         ReflectionUtils.setFieldValue(tokenTask, "mAppCallingUID", TEST_CALLING_UID);
-        Object result = executeDirect.invoke(tokenTask, (Object) new String[]{
-                urlRequest
-        });
+        Object result = executeDirect.invoke(tokenTask, (Object) new String[] {urlRequest});
 
         executePostResult.invoke(tokenTask, result);
 
         // Verification from returned intent data
         Intent data = assertFinishCalledWithResult(TOKEN_BROKER_RESPONSE);
         final int numerOfCalls = 8;
-        verify(mockAct, times(numerOfCalls)).setUserData(any(Account.class), Mockito.nullable(String.class), Mockito.nullable(String.class));
+        verify(mockAct, times(numerOfCalls))
+                .setUserData(
+                        any(Account.class),
+                        Mockito.nullable(String.class),
+                        Mockito.nullable(String.class));
     }
 
-    private MockWebRequestHandler setMockWebResponse() throws NoSuchFieldException,
-            IllegalAccessException {
+    private MockWebRequestHandler setMockWebResponse()
+            throws NoSuchFieldException, IllegalAccessException {
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
-        String idToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiJlNzBiMTE1ZS1hYzBhLTQ4MjMtODVkYS04ZjRiN2I0ZjAwZTYiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8zMGJhYTY2Ni04ZGY4LTQ4ZTctOTdlNi03N2NmZDA5OTU5NjMvIiwibmJmIjoxMzc2NDI4MzEwLCJleHAiOjEzNzY0NTcxMTAsInZlciI6IjEuMCIsInRpZCI6IjMwYmFhNjY2LThkZjgtNDhlNy05N2U2LTc3Y2ZkMDk5NTk2MyIsIm9pZCI6IjRmODU5OTg5LWEyZmYtNDExZS05MDQ4LWMzMjIyNDdhYzYyYyIsInVwbiI6ImFkbWluQGFhbHRlc3RzLm9ubWljcm9zb2Z0LmNvbSIsInVuaXF1ZV9uYW1lIjoiYWRtaW5AYWFsdGVzdHMub25taWNyb3NvZnQuY29tIiwic3ViIjoiVDU0V2hGR1RnbEJMN1VWYWtlODc5UkdhZEVOaUh5LXNjenNYTmFxRF9jNCIsImZhbWlseV9uYW1lIjoiU2VwZWhyaSIsImdpdmVuX25hbWUiOiJBZnNoaW4ifQ.";
-        String json = "{\"id_token\":"
-                + idToken
-                + ",\"access_token\":\"TokentestBroker\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\"}";
-        ReflectionUtils.setFieldValue(mActivityRule.getActivity(), "mWebRequestHandler", webrequest);
+        String idToken =
+                "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiJlNzBiMTE1ZS1hYzBhLTQ4MjMtODVkYS04ZjRiN2I0ZjAwZTYiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8zMGJhYTY2Ni04ZGY4LTQ4ZTctOTdlNi03N2NmZDA5OTU5NjMvIiwibmJmIjoxMzc2NDI4MzEwLCJleHAiOjEzNzY0NTcxMTAsInZlciI6IjEuMCIsInRpZCI6IjMwYmFhNjY2LThkZjgtNDhlNy05N2U2LTc3Y2ZkMDk5NTk2MyIsIm9pZCI6IjRmODU5OTg5LWEyZmYtNDExZS05MDQ4LWMzMjIyNDdhYzYyYyIsInVwbiI6ImFkbWluQGFhbHRlc3RzLm9ubWljcm9zb2Z0LmNvbSIsInVuaXF1ZV9uYW1lIjoiYWRtaW5AYWFsdGVzdHMub25taWNyb3NvZnQuY29tIiwic3ViIjoiVDU0V2hGR1RnbEJMN1VWYWtlODc5UkdhZEVOaUh5LXNjenNYTmFxRF9jNCIsImZhbWlseV9uYW1lIjoiU2VwZWhyaSIsImdpdmVuX25hbWUiOiJBZnNoaW4ifQ.";
+        String json =
+                "{\"id_token\":"
+                        + idToken
+                        + ",\"access_token\":\"TokentestBroker\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\"}";
+        ReflectionUtils.setFieldValue(
+                mActivityRule.getActivity(), "mWebRequestHandler", webrequest);
         webrequest.setReturnResponse(new HttpWebResponse(HttpURLConnection.HTTP_OK, json, null));
         return webrequest;
     }
@@ -487,73 +547,83 @@ public class AuthenticationActivityUnitTest {
         mActivityRule.launchActivity(mIntentToStartActivity);
         final TestLogResponse logResponse = new TestLogResponse();
         logResponse.listenForLogMessage(
-                "Webview onResume register broadcast receiver for request. ",
-                null);
+                "Webview onResume register broadcast receiver for request. ", null);
         ReflectionUtils.setFieldValue(mActivityRule.getActivity(), "mRegisterReceiver", true);
-        final Method methodOnResume = ReflectionUtils.getTestMethod(mActivityRule.getActivity(), "onResume");
-        mActivityRule.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    methodOnResume.invoke(mActivityRule.getActivity());
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                } catch (InvocationTargetException e) {
-                    e.printStackTrace();
-                }
+        final Method methodOnResume =
+                ReflectionUtils.getTestMethod(mActivityRule.getActivity(), "onResume");
+        mActivityRule.runOnUiThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            methodOnResume.invoke(mActivityRule.getActivity());
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        } catch (InvocationTargetException e) {
+                            e.printStackTrace();
+                        }
 
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
 
-                // get field value to check
-                assertTrue("verify log message",
-                        logResponse.getMessage().contains("Webview onResume register broadcast"));
-            }
-        });
+                        // get field value to check
+                        assertTrue(
+                                "verify log message",
+                                logResponse
+                                        .getMessage()
+                                        .contains("Webview onResume register broadcast"));
+                    }
+                });
     }
 
     @Test
     public void testOnBackPressed() throws Throwable {
         mActivityRule.launchActivity(mIntentToStartActivity);
 
-        mActivityRule.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mActivityRule.getActivity().onBackPressed();
-            }
-        });
+        mActivityRule.runOnUiThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        mActivityRule.getActivity().onBackPressed();
+                    }
+                });
 
         assertTrue(mActivityRule.getActivity().isFinishing());
 
         // verify result code that includes requestid
         Intent data = assertFinishCalledWithResult(BROWSER_CODE_CANCEL);
-        assertEquals(TEST_REQUEST_ID,
-                data.getIntExtra(AuthenticationConstants.Browser.REQUEST_ID, 0));
+        assertEquals(
+                TEST_REQUEST_ID, data.getIntExtra(AuthenticationConstants.Browser.REQUEST_ID, 0));
     }
 
     @Test
-    public void testOnRestart() throws IllegalArgumentException, ClassNotFoundException,
-            NoSuchMethodException, InstantiationException, IllegalAccessException,
-            InvocationTargetException, NoSuchFieldException, InterruptedException {
+    public void testOnRestart()
+            throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
+                    InstantiationException, IllegalAccessException, InvocationTargetException,
+                    NoSuchFieldException, InterruptedException {
 
         mActivityRule.launchActivity(mIntentToStartActivity);
 
         ReflectionUtils.setFieldValue(mActivityRule.getActivity(), "mRegisterReceiver", false);
-        Method methodOnResume = ReflectionUtils.getTestMethod(mActivityRule.getActivity(), "onRestart");
+        Method methodOnResume =
+                ReflectionUtils.getTestMethod(mActivityRule.getActivity(), "onRestart");
 
         methodOnResume.invoke(mActivityRule.getActivity());
 
         // get field value to check
-        boolean fieldVal = (Boolean) ReflectionUtils.getFieldValue(mActivityRule.getActivity(), "mRegisterReceiver");
+        boolean fieldVal =
+                (Boolean)
+                        ReflectionUtils.getFieldValue(
+                                mActivityRule.getActivity(), "mRegisterReceiver");
         assertTrue("RestartWebview set to true", fieldVal);
     }
 
     @Test
-    public void testEmptyIntentData() throws IllegalArgumentException, NoSuchFieldException,
-            IllegalAccessException {
+    public void testEmptyIntentData()
+            throws IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
 
         mIntentToStartActivity.putExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE, "");
         mActivityRule.launchActivity(mIntentToStartActivity);
@@ -562,25 +632,29 @@ public class AuthenticationActivityUnitTest {
 
         // verify result code
         Intent data = assertFinishCalledWithResult(BROWSER_CODE_ERROR);
-        assertEquals(AuthenticationConstants.Browser.WEBVIEW_INVALID_REQUEST,
+        assertEquals(
+                AuthenticationConstants.Browser.WEBVIEW_INVALID_REQUEST,
                 data.getStringExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE));
     }
 
     @Test
-    public void testReceiver() throws NoSuchFieldException, IllegalArgumentException,
-            IllegalAccessException, ClassNotFoundException, NoSuchMethodException,
-            InstantiationException, InvocationTargetException, InterruptedException {
+    public void testReceiver()
+            throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException,
+                    ClassNotFoundException, NoSuchMethodException, InstantiationException,
+                    InvocationTargetException, InterruptedException {
 
         mActivityRule.launchActivity(mIntentToStartActivity);
-        String broadcastCancelMsg1 = "ActivityBroadcastReceiver onReceive action is for cancelling Authentication Activity";
+        String broadcastCancelMsg1 =
+                "ActivityBroadcastReceiver onReceive action is for cancelling Authentication Activity";
         String broadcastCancelMsg2 = "Waiting requestId is same and cancelling this activity";
 
         // Test onReceive call with wrong request id
         TestLogResponse response = new TestLogResponse();
         final CountDownLatch signal = new CountDownLatch(1);
         response.listenForLogMessage(broadcastCancelMsg1, signal);
-        BroadcastReceiver receiver = (BroadcastReceiver) ReflectionUtils.getFieldValue(mActivityRule.getActivity(),
-                "mReceiver");
+        BroadcastReceiver receiver =
+                (BroadcastReceiver)
+                        ReflectionUtils.getFieldValue(mActivityRule.getActivity(), "mReceiver");
         final Intent intent = new Intent(AuthenticationConstants.Browser.ACTION_CANCEL);
         final Bundle extras = new Bundle();
         intent.putExtras(extras);
@@ -590,7 +664,8 @@ public class AuthenticationActivityUnitTest {
 
         // Test onReceive call with correct request id
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
-        assertTrue("log the message for correct Intent",
+        assertTrue(
+                "log the message for correct Intent",
                 response.getMessage().contains(broadcastCancelMsg1));
 
         // update requestId to match the AuthenticationRequest
@@ -604,15 +679,16 @@ public class AuthenticationActivityUnitTest {
 
         // verify that it received intent
         signal2.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
-        assertTrue("log the message for correct Intent",
+        assertTrue(
+                "log the message for correct Intent",
                 response2.getMessage().contains(broadcastCancelMsg2));
     }
 
     @Test
-    public void testWebviewHardwareAccelerationDisable() throws IllegalArgumentException,
-            NoSuchFieldException, IllegalAccessException {
+    public void testWebviewHardwareAccelerationDisable()
+            throws IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
 
-        //By default hardware acceleration should be enable.
+        // By default hardware acceleration should be enable.
         assertTrue(AuthenticationSettings.INSTANCE.getDisableWebViewHardwareAcceleration());
 
         // Disable webview hardware acceleration
@@ -621,7 +697,8 @@ public class AuthenticationActivityUnitTest {
         mActivityRule.launchActivity(mIntentToStartActivity);
 
         // get field value to check
-        WebView webView = (WebView) ReflectionUtils.getFieldValue(mActivityRule.getActivity(), "mWebView");
+        WebView webView =
+                (WebView) ReflectionUtils.getFieldValue(mActivityRule.getActivity(), "mWebView");
 
         // Assert WebView is not null
         assertNotNull("WebView:: ", webView);
@@ -634,23 +711,24 @@ public class AuthenticationActivityUnitTest {
     }
 
     @Test
-    public void testWebviewHardwareAccelerationEnable() throws IllegalArgumentException,
-            NoSuchFieldException, IllegalAccessException {
+    public void testWebviewHardwareAccelerationEnable()
+            throws IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
 
         mActivityRule.launchActivity(mIntentToStartActivity);
         // get field value to check
-        WebView webView = (WebView) ReflectionUtils.getFieldValue(mActivityRule.getActivity(), "mWebView");
+        WebView webView =
+                (WebView) ReflectionUtils.getFieldValue(mActivityRule.getActivity(), "mWebView");
 
         // Assert WebView is not null
         assertNotNull("WebView:: ", webView);
 
-        // In case if webview is hardware accelerated then 
+        // In case if webview is hardware accelerated then
         // its layer type should not be LAYER_TYPE_SOFTWARE
         assertNotSame("LayerType", WebView.LAYER_TYPE_SOFTWARE, webView.getLayerType());
     }
 
-    protected Intent assertFinishCalledWithResult(int resultCode) throws NoSuchFieldException,
-            IllegalArgumentException, IllegalAccessException {
+    protected Intent assertFinishCalledWithResult(int resultCode)
+            throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
         assertTrue(mActivityRule.getActivity().isFinishing());
         Field f = Activity.class.getDeclaredField("mResultCode");
         f.setAccessible(true);
@@ -662,9 +740,9 @@ public class AuthenticationActivityUnitTest {
         return (Intent) f.get(mActivityRule.getActivity());
     }
 
-    private Object getTokenTask() throws ClassNotFoundException, NoSuchMethodException,
-            InstantiationException, IllegalAccessException, IllegalArgumentException,
-            InvocationTargetException {
+    private Object getTokenTask()
+            throws ClassNotFoundException, NoSuchMethodException, InstantiationException,
+                    IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         Class<?> c = Class.forName("com.microsoft.aad.adal.AuthenticationActivity$TokenTask");
         Constructor<?> constructorParams = c.getConstructor(mActivityRule.getActivity().getClass());
         constructorParams.setAccessible(true);

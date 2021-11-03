@@ -80,7 +80,8 @@ public final class Telemetry {
      * @param dispatcher the IDispatcher interface to be registered
      * @param aggregationRequired true if client wants a single event per call to AcquireToken, false otherwise
      */
-    public synchronized void registerDispatcher(final IDispatcher dispatcher, final boolean aggregationRequired) {
+    public synchronized void registerDispatcher(
+            final IDispatcher dispatcher, final boolean aggregationRequired) {
         if (aggregationRequired) {
             mDispatcher = new AggregatedDispatcher(dispatcher);
         } else {
@@ -98,7 +99,9 @@ public final class Telemetry {
             return;
         }
 
-        mEventTracking.put(new AbstractMap.SimpleEntry<>(requestId, eventName), Long.toString(System.currentTimeMillis()));
+        mEventTracking.put(
+                new AbstractMap.SimpleEntry<>(requestId, eventName),
+                Long.toString(System.currentTimeMillis()));
     }
 
     void stopEvent(final String requestId, final IEvents events, final String eventName) {
@@ -107,9 +110,11 @@ public final class Telemetry {
             return;
         }
 
-        final String startTime = mEventTracking.remove(new AbstractMap.SimpleEntry<>(requestId, eventName));
+        final String startTime =
+                mEventTracking.remove(new AbstractMap.SimpleEntry<>(requestId, eventName));
 
-        // If we did not get anything back from the dictionary, most likely its a bug that stopEvent was called without
+        // If we did not get anything back from the dictionary, most likely its a bug that stopEvent
+        // was called without
         // a corresponding startEvent
         if (StringExtensions.isNullOrBlank(startTime)) {
             Logger.w(TAG, "Stop Event called without a corresponding start_event", "", null);
@@ -117,7 +122,7 @@ public final class Telemetry {
         }
 
         long startTimeLong = Long.parseLong(startTime);
-        long stopTimeLong  = System.currentTimeMillis();
+        long stopTimeLong = System.currentTimeMillis();
         long diffTime = stopTimeLong - startTimeLong;
 
         final String stopTime = Long.toString(stopTimeLong);

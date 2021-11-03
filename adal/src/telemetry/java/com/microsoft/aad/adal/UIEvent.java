@@ -53,13 +53,15 @@ final class UIEvent extends DefaultEvent {
     public void processEvent(final Map<String, String> dispatchMap) {
         final List<Map.Entry<String, String>> eventList = getEventList();
 
-        // We are keeping track of the number of UI Events here, first time we insert the UI_EVENT_COUNT into the map
+        // We are keeping track of the number of UI Events here, first time we insert the
+        // UI_EVENT_COUNT into the map
         // next time onwards, we read the value of it and increment by one.
         final String count = dispatchMap.get(EventStrings.UI_EVENT_COUNT);
         if (count == null) {
             dispatchMap.put(EventStrings.UI_EVENT_COUNT, "1");
         } else {
-            dispatchMap.put(EventStrings.UI_EVENT_COUNT, Integer.toString(Integer.parseInt(count) + 1));
+            dispatchMap.put(
+                    EventStrings.UI_EVENT_COUNT, Integer.toString(Integer.parseInt(count) + 1));
         }
 
         if (dispatchMap.containsKey(EventStrings.USER_CANCEL)) {

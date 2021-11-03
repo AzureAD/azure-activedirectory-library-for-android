@@ -37,6 +37,15 @@ import android.view.MenuItem;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+
 import com.google.android.material.navigation.NavigationView;
 import com.microsoft.aad.adal.AuthenticationCallback;
 import com.microsoft.aad.adal.AuthenticationContext;
@@ -62,27 +71,20 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-
 /**
  * Sample for acquiring token via broker.
  */
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener,
-        AcquireTokenFragment.OnFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity
+        implements NavigationView.OnNavigationItemSelectedListener,
+                AcquireTokenFragment.OnFragmentInteractionListener {
 
     private static final String TAG = "UserAppWithBroker.Main";
 
     private SharedPreferences mSharedPreference;
     private Context mApplicationContext;
 
-    private static final String SHARED_PREFERENCE_STORE_USER_UNIQUEID = "user.app.withbroker.uniqueidstorage";
+    private static final String SHARED_PREFERENCE_STORE_USER_UNIQUEID =
+            "user.app.withbroker.uniqueidstorage";
 
     private String mLoginhint;
 
@@ -108,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mContentMain = (RelativeLayout) findViewById(R.id.content_main);
 
         final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        //setSupportActionBar(toolbar);
+        // setSupportActionBar(toolbar);
 
         final DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, 0, 0);
@@ -168,69 +170,94 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void onAcquireTokenClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
         prepareRequestParameters(requestOptions);
 
-        callAcquireTokenWithResource(requestOptions.getDataProfile().getText(), requestOptions.getBehavior(),
-                requestOptions.getLoginHint(), requestOptions.getClientId().getText(), requestOptions.getRedirectUri().getText(), requestOptions.getExtraQp());
+        callAcquireTokenWithResource(
+                requestOptions.getDataProfile().getText(),
+                requestOptions.getBehavior(),
+                requestOptions.getLoginHint(),
+                requestOptions.getClientId().getText(),
+                requestOptions.getRedirectUri().getText(),
+                requestOptions.getExtraQp());
     }
 
     @Override
-    public void onAcquireTokenSilentClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
+    public void onAcquireTokenSilentClicked(
+            final AcquireTokenFragment.RequestOptions requestOptions) {
 
         prepareRequestParameters(requestOptions);
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                String uId = getUserIdBasedOnUPN(requestOptions.getLoginHint(), requestOptions.getAuthority());
+        new Thread(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                String uId =
+                                        getUserIdBasedOnUPN(
+                                                requestOptions.getLoginHint(),
+                                                requestOptions.getAuthority());
 
-                if (TextUtils.isEmpty(uId)) {
-                    try {
-                        final UserInfo[] userInfos = mAuthContext.getBrokerUsers();
+                                if (TextUtils.isEmpty(uId)) {
+                                    try {
+                                        final UserInfo[] userInfos = mAuthContext.getBrokerUsers();
 
-                        for (UserInfo userInfo : userInfos) {
-                            if (userInfo.getDisplayableId().equalsIgnoreCase(requestOptions.getLoginHint())) {
-                                uId = userInfo.getUserId();
-                                break;
+                                        for (UserInfo userInfo : userInfos) {
+                                            if (userInfo.getDisplayableId()
+                                                    .equalsIgnoreCase(
+                                                            requestOptions.getLoginHint())) {
+                                                uId = userInfo.getUserId();
+                                                break;
+                                            }
+                                        }
+                                    } catch (final OperationCanceledException
+                                            | AuthenticatorException
+                                            | IOException e) {
+                                        showMessage(
+                                                "getBrokerUsers call to broker failed: "
+                                                        + e.getMessage());
+                                    }
+                                }
+
+                                if (!TextUtils.isEmpty(uId)) {
+                                    callAcquireTokenSilent(
+                                            requestOptions.getDataProfile().getText(),
+                                            uId,
+                                            requestOptions.getClientId().getText());
+                                } else {
+                                    showMessage(
+                                            "No uId matching the provided upn, cannot proceed with silent call");
+                                }
                             }
-                        }
-                    } catch (final OperationCanceledException | AuthenticatorException | IOException e) {
-                        showMessage("getBrokerUsers call to broker failed: " + e.getMessage());
-                    }
-                }
-
-                if (!TextUtils.isEmpty(uId)) {
-                    callAcquireTokenSilent(requestOptions.getDataProfile().getText(),
-                            uId,
-                            requestOptions.getClientId().getText());
-                } else {
-                    showMessage("No uId matching the provided upn, cannot proceed with silent call");
-                }
-            }
-        }).start();
-
+                        })
+                .start();
     }
 
     @Override
-    public void onAcquireTokenWithAssertionClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
+    public void onAcquireTokenWithAssertionClicked(
+            final AcquireTokenFragment.RequestOptions requestOptions) {
 
         prepareRequestParameters(requestOptions);
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                String uId = requestOptions.getLoginHint();
+        new Thread(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                String uId = requestOptions.getLoginHint();
 
-                if(requestOptions.getAssertionType().getAssertionVersion() == null){
-                    showMessage("Assertion type is selected as None");
-                } else if(TextUtils.isEmpty(uId)) {
-                    showMessage("No uId has been provided, cannot proceed with silent call");
-                } else {
-                    callAcquireTokenSilentWithAssertion(requestOptions.getAssertion(), requestOptions.getAssertionType().getAssertionVersion(),
-                            requestOptions.getDataProfile().getText(), uId,
-                            requestOptions.getClientId().getText());
-                }
-            }
-        }).start();
-
+                                if (requestOptions.getAssertionType().getAssertionVersion()
+                                        == null) {
+                                    showMessage("Assertion type is selected as None");
+                                } else if (TextUtils.isEmpty(uId)) {
+                                    showMessage(
+                                            "No uId has been provided, cannot proceed with silent call");
+                                } else {
+                                    callAcquireTokenSilentWithAssertion(
+                                            requestOptions.getAssertion(),
+                                            requestOptions.getAssertionType().getAssertionVersion(),
+                                            requestOptions.getDataProfile().getText(),
+                                            uId,
+                                            requestOptions.getClientId().getText());
+                                }
+                            }
+                        })
+                .start();
     }
 
     void prepareRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions) {
@@ -238,7 +265,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mAuthority = mRequestAuthority;
         mAuthContext = new AuthenticationContext(mApplicationContext, mAuthority, true);
 
-        //TODO: We can add UX to set or not set this
+        // TODO: We can add UX to set or not set this
         mAuthContext.setClientCapabilites(new ArrayList<>(Arrays.asList("CP1")));
         AuthenticationSettings.INSTANCE.setUseBroker(requestOptions.getUseBroker());
         mLoginhint = requestOptions.getLoginHint();
@@ -256,13 +283,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void showMessage(final String msg) {
         Log.v(TAG, msg);
-        getHandler().post(new Runnable() {
+        getHandler()
+                .post(
+                        new Runnable() {
 
-            @Override
-            public void run() {
-                Toast.makeText(MainActivity.this, msg, Toast.LENGTH_LONG).show();
-            }
-        });
+                            @Override
+                            public void run() {
+                                Toast.makeText(MainActivity.this, msg, Toast.LENGTH_LONG).show();
+                            }
+                        });
     }
 
     /**
@@ -294,23 +323,34 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         try {
             // For API version lower than 18, you have to provide the secret key. The secret key
             // needs to be 256 bits. You can use the following way to generate the secret key. And
-            // use AuthenticationSettings.Instance.setSecretKey(secretKeyBytes) to supply us the key.
-            // For API version 18 and above, we use android keystore to generate keypair, and persist
-            // the keypair in AndroidKeyStore. Current investigation shows 1)Keystore may be locked with
+            // use AuthenticationSettings.Instance.setSecretKey(secretKeyBytes) to supply us the
+            // key.
+            // For API version 18 and above, we use android keystore to generate keypair, and
+            // persist
+            // the keypair in AndroidKeyStore. Current investigation shows 1)Keystore may be locked
+            // with
             // a lock screen, if calling app has a lot of background activity, keystore cannot be
-            // accessed when locked, we'll be unable to decrypt the cache items 2) AndroidKeystore could
+            // accessed when locked, we'll be unable to decrypt the cache items 2) AndroidKeystore
+            // could
             // be reset when gesture to unlock the device is changed.
             // We do recommend the calling app the supply us the key with the above two limitations.
             if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
                 // use same key for tests
-                SecretKeyFactory keyFactory = SecretKeyFactory
-                        .getInstance("PBEWithSHA256And256BitAES-CBC-BC");
-                SecretKey tempkey = keyFactory.generateSecret(new PBEKeySpec("test".toCharArray(),
-                        "abcdedfdfd".getBytes("UTF-8"), 100, 256));
+                SecretKeyFactory keyFactory =
+                        SecretKeyFactory.getInstance("PBEWithSHA256And256BitAES-CBC-BC");
+                SecretKey tempkey =
+                        keyFactory.generateSecret(
+                                new PBEKeySpec(
+                                        "test".toCharArray(),
+                                        "abcdedfdfd".getBytes("UTF-8"),
+                                        100,
+                                        256));
                 SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
                 AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
             }
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException | UnsupportedEncodingException ex) {
+        } catch (NoSuchAlgorithmException
+                | InvalidKeySpecException
+                | UnsupportedEncodingException ex) {
             showMessage("Fail to generate secret key:" + ex.getMessage());
         }
 
@@ -322,15 +362,28 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Telemetry.getInstance().registerDispatcher(telemetryDispatcher, true);
     }
 
-    private void callAcquireTokenWithResource(final String resource, PromptBehavior prompt, final String loginHint,
-                                              final String clientId, final String redirectUri, final String extraQp) {
-        mAuthContext.acquireToken(MainActivity.this, resource, clientId, redirectUri, loginHint,
-                prompt, extraQp, new AuthenticationCallback<AuthenticationResult>() {
+    private void callAcquireTokenWithResource(
+            final String resource,
+            PromptBehavior prompt,
+            final String loginHint,
+            final String clientId,
+            final String redirectUri,
+            final String extraQp) {
+        mAuthContext.acquireToken(
+                MainActivity.this,
+                resource,
+                clientId,
+                redirectUri,
+                loginHint,
+                prompt,
+                extraQp,
+                new AuthenticationCallback<AuthenticationResult>() {
 
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {
                         mAuthResult = authenticationResult;
-                        showMessage("Response from broker: " + authenticationResult.getAccessToken());
+                        showMessage(
+                                "Response from broker: " + authenticationResult.getAccessToken());
 
                         // Update this user for next call
                         if (authenticationResult.getUserInfo() != null) {
@@ -351,30 +404,47 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      * To make the sample app easier, the saved data will be keyed by displayable id.
      */
     private void saveUserIdFromAuthenticationResult(final AuthenticationResult authResult) {
-        mSharedPreference = getSharedPreferences(SHARED_PREFERENCE_STORE_USER_UNIQUEID, MODE_PRIVATE);
+        mSharedPreference =
+                getSharedPreferences(SHARED_PREFERENCE_STORE_USER_UNIQUEID, MODE_PRIVATE);
         if (null != authResult) {
             if (null != authResult.getAuthority()) {
                 final SharedPreferences.Editor prefEditor = mSharedPreference.edit();
-                if (null != authResult.getUserInfo() && null != authResult.getUserInfo().getDisplayableId()) {
+                if (null != authResult.getUserInfo()
+                        && null != authResult.getUserInfo().getDisplayableId()) {
                     prefEditor.putString(
-                            (authResult.getUserInfo().getDisplayableId().trim() + ":" + authResult.getAuthority() + ":authority").toLowerCase(),
+                            (authResult.getUserInfo().getDisplayableId().trim()
+                                            + ":"
+                                            + authResult.getAuthority()
+                                            + ":authority")
+                                    .toLowerCase(),
                             authResult.getAuthority().trim().toLowerCase());
                 } else {
-                    final Toast toast = Toast.makeText(mApplicationContext,
-                            "Warning: the result authority is null," +
-                                    "Silent auth for Sovereign account will fail. ", Toast.LENGTH_SHORT);
+                    final Toast toast =
+                            Toast.makeText(
+                                    mApplicationContext,
+                                    "Warning: the result authority is null,"
+                                            + "Silent auth for Sovereign account will fail. ",
+                                    Toast.LENGTH_SHORT);
                     toast.show();
                 }
 
                 if (null != authResult.getUserInfo()
                         && null != authResult.getUserInfo().getDisplayableId()
                         && null != authResult.getUserInfo().getUserId()) {
-                    prefEditor.putString((authResult.getUserInfo().getDisplayableId().trim() + ":" + authResult.getAuthority() + ":userId").toLowerCase(),
+                    prefEditor.putString(
+                            (authResult.getUserInfo().getDisplayableId().trim()
+                                            + ":"
+                                            + authResult.getAuthority()
+                                            + ":userId")
+                                    .toLowerCase(),
                             authResult.getUserInfo().getUserId().trim().toLowerCase());
                 } else {
-                    final Toast toast = Toast.makeText(mApplicationContext,
-                            "Warning: the result userInfo is null. " +
-                                    "Silent auth without userID will fail. ", Toast.LENGTH_SHORT);
+                    final Toast toast =
+                            Toast.makeText(
+                                    mApplicationContext,
+                                    "Warning: the result userInfo is null. "
+                                            + "Silent auth without userID will fail. ",
+                                    Toast.LENGTH_SHORT);
                     toast.show();
                 }
 
@@ -388,28 +458,38 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      * by displayable id.
      */
     private String getUserIdBasedOnUPN(final String upn, final String requestAuthority) {
-        mSharedPreference = getSharedPreferences(SHARED_PREFERENCE_STORE_USER_UNIQUEID, MODE_PRIVATE);
-        return mSharedPreference.getString((upn.trim() + ":" + requestAuthority.trim() + ":userId").toLowerCase(), null);
+        mSharedPreference =
+                getSharedPreferences(SHARED_PREFERENCE_STORE_USER_UNIQUEID, MODE_PRIVATE);
+        return mSharedPreference.getString(
+                (upn.trim() + ":" + requestAuthority.trim() + ":userId").toLowerCase(), null);
     }
 
     /**
      * Silent acquire token call. Requires to pass the user unique id. If user unique id is not passed,
      * silent call to broker will be skipped.
      */
-    private void callAcquireTokenSilent(final String resource, final String userUniqueId, final String clientId) {
-        mAuthContext.acquireTokenSilentAsync(resource, clientId, userUniqueId, new AuthenticationCallback<AuthenticationResult>() {
+    private void callAcquireTokenSilent(
+            final String resource, final String userUniqueId, final String clientId) {
+        mAuthContext.acquireTokenSilentAsync(
+                resource,
+                clientId,
+                userUniqueId,
+                new AuthenticationCallback<AuthenticationResult>() {
 
-            @Override
-            public void onSuccess(AuthenticationResult authenticationResult) {
-                mAuthResult = authenticationResult;
-                showMessage("Response from broker: " + authenticationResult.getAccessToken());
-            }
+                    @Override
+                    public void onSuccess(AuthenticationResult authenticationResult) {
+                        mAuthResult = authenticationResult;
+                        showMessage(
+                                "Response from broker: " + authenticationResult.getAccessToken());
+                    }
 
-            @Override
-            public void onError(Exception exc) {
-                showMessage("Error occurred when acquiring token silently: " + exc.getMessage());
-            }
-        });
+                    @Override
+                    public void onError(Exception exc) {
+                        showMessage(
+                                "Error occurred when acquiring token silently: "
+                                        + exc.getMessage());
+                    }
+                });
     }
 
     /**
@@ -417,12 +497,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      * silent call to broker will be skipped. If the assertion is passed then token acquisition using
      * assertion will be called.
      */
-    private void callAcquireTokenSilentWithAssertion(final String assertion, final String version, final String resource,
-                                        final String userUniqueId, final String clientId) {
+    private void callAcquireTokenSilentWithAssertion(
+            final String assertion,
+            final String version,
+            final String resource,
+            final String userUniqueId,
+            final String clientId) {
         String messageException = "";
 
         try {
-            mAuthResult = mAuthContext.acquireTokenSilentSyncWithAssertion(assertion, version, resource, clientId, userUniqueId);
+            mAuthResult =
+                    mAuthContext.acquireTokenSilentSyncWithAssertion(
+                            assertion, version, resource, clientId, userUniqueId);
         } catch (final AuthenticationException authenticationException) {
             messageException += "Authentication Exception";
         } catch (final InterruptedException InterruptedException) {
@@ -437,10 +523,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private String getAuthorityBasedOnUPN(final String upn, final String requestAuthority) {
-        mSharedPreference = getSharedPreferences(SHARED_PREFERENCE_STORE_USER_UNIQUEID, MODE_PRIVATE);
-        return mSharedPreference.getString((upn.trim() + ":" + requestAuthority.trim() + ":authority").toLowerCase(), null);
+        mSharedPreference =
+                getSharedPreferences(SHARED_PREFERENCE_STORE_USER_UNIQUEID, MODE_PRIVATE);
+        return mSharedPreference.getString(
+                (upn.trim() + ":" + requestAuthority.trim() + ":authority").toLowerCase(), null);
     }
-
 }
 
 class SampleTelemetry implements IDispatcher {

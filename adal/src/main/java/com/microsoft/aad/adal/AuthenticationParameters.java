@@ -53,7 +53,8 @@ public class AuthenticationParameters {
     /**
      * WWW-Authenticate header is missing authorization_uri.
      */
-    public static final String AUTH_HEADER_MISSING_AUTHORITY = "WWW-Authenticate header is missing authorization_uri.";
+    public static final String AUTH_HEADER_MISSING_AUTHORITY =
+            "WWW-Authenticate header is missing authorization_uri.";
 
     /**
      * Invalid authentication header format.
@@ -63,12 +64,14 @@ public class AuthenticationParameters {
     /**
      * WWW-Authenticate header was expected in the response.
      */
-    public static final String AUTH_HEADER_MISSING = "WWW-Authenticate header was expected in the response";
+    public static final String AUTH_HEADER_MISSING =
+            "WWW-Authenticate header was expected in the response";
 
     /**
      * Unauthorized http response (status code 401) was expected.
      */
-    public static final String AUTH_HEADER_WRONG_STATUS = "Unauthorized http response (status code 401) was expected";
+    public static final String AUTH_HEADER_WRONG_STATUS =
+            "Unauthorized http response (status code 401) was expected";
 
     /**
      * Constant Authenticate header: WWW-Authenticate.
@@ -127,8 +130,7 @@ public class AuthenticationParameters {
     /**
      * Creates AuthenticationParameters.
      */
-    public AuthenticationParameters() {
-    }
+    public AuthenticationParameters() {}
 
     AuthenticationParameters(String authority, String resource) {
         mAuthority = authority;
@@ -154,8 +156,8 @@ public class AuthenticationParameters {
      * @param resourceUrl Url for resource to query for 401 response.
      * @param callback    {@link AuthenticationParamCallback}
      */
-    public static void createFromResourceUrl(Context context, final URL resourceUrl,
-                                             final AuthenticationParamCallback callback) {
+    public static void createFromResourceUrl(
+            Context context, final URL resourceUrl, final AuthenticationParamCallback callback) {
 
         if (callback == null) {
             throw new IllegalArgumentException("callback");
@@ -164,34 +166,39 @@ public class AuthenticationParameters {
         Logger.v(TAG, "createFromResourceUrl");
         final Handler handler = new Handler(context.getMainLooper());
 
-        sThreadExecutor.submit(new Runnable() {
-            @Override
-            public void run() {
-                final Map<String, String> headers = new HashMap<>();
-                headers.put(WebRequestHandler.HEADER_ACCEPT, WebRequestHandler.HEADER_ACCEPT_JSON);
-
-                final HttpWebResponse webResponse;
-                try {
-                    webResponse = sWebRequest.sendGet(resourceUrl, headers);
-                    try {
-                        onCompleted(null, parseResponse(webResponse));
-                    } catch (ResourceAuthenticationChallengeException exc) {
-                        onCompleted(exc, null);
-                    }
-                } catch (IOException e) {
-                    onCompleted(e, null);
-                }
-            }
-
-            void onCompleted(final Exception exception, final AuthenticationParameters param) {
-                handler.post(new Runnable() {
+        sThreadExecutor.submit(
+                new Runnable() {
                     @Override
                     public void run() {
-                        callback.onCompleted(exception, param);
+                        final Map<String, String> headers = new HashMap<>();
+                        headers.put(
+                                WebRequestHandler.HEADER_ACCEPT,
+                                WebRequestHandler.HEADER_ACCEPT_JSON);
+
+                        final HttpWebResponse webResponse;
+                        try {
+                            webResponse = sWebRequest.sendGet(resourceUrl, headers);
+                            try {
+                                onCompleted(null, parseResponse(webResponse));
+                            } catch (ResourceAuthenticationChallengeException exc) {
+                                onCompleted(exc, null);
+                            }
+                        } catch (IOException e) {
+                            onCompleted(e, null);
+                        }
+                    }
+
+                    void onCompleted(
+                            final Exception exception, final AuthenticationParameters param) {
+                        handler.post(
+                                new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        callback.onCompleted(exception, param);
+                                    }
+                                });
                     }
                 });
-            }
-        });
     }
 
     /**
@@ -202,8 +209,8 @@ public class AuthenticationParameters {
      * @return {@link AuthenticationParameters}
      * @throws {@link ResourceAuthenticationChallengeException}
      */
-    public static AuthenticationParameters createFromResponseAuthenticateHeader(final String authenticateHeader)
-            throws ResourceAuthenticationChallengeException {
+    public static AuthenticationParameters createFromResponseAuthenticateHeader(
+            final String authenticateHeader) throws ResourceAuthenticationChallengeException {
         final String methodName = ":createFromResponseAuthenticateHeader";
         if (StringExtensions.isNullOrBlank(authenticateHeader)) {
             Logger.w(TAG + methodName, "authenticateHeader was null/empty.");
@@ -289,7 +296,8 @@ public class AuthenticationParameters {
         /**
          * Regex sequence to parse schemes from WWW-Authenticate header values.
          */
-        private static final Pattern REGEX_STRING_TOKEN_WITH_SCHEME = Pattern.compile("^([^\\s|^=]+)[\\s|\\t]+([^=]*=[^=]*)+$");
+        private static final Pattern REGEX_STRING_TOKEN_WITH_SCHEME =
+                Pattern.compile("^([^\\s|^=]+)[\\s|\\t]+([^=]*=[^=]*)+$");
 
         /**
          * Comma+space suffix used to preserve formatting during parsing.
@@ -343,7 +351,8 @@ public class AuthenticationParameters {
          * @throws ResourceAuthenticationChallengeException If a parsing error is encountered or
          *                                                  the String is malformed.
          */
-        static Challenge parseChallenge(final String challenge) throws ResourceAuthenticationChallengeException {
+        static Challenge parseChallenge(final String challenge)
+                throws ResourceAuthenticationChallengeException {
             final String methodName = ":parseChallenge";
             if (StringExtensions.isNullOrBlank(challenge)) {
                 Logger.w(TAG + methodName, "Cannot parse null/empty challenge.");
@@ -351,8 +360,17 @@ public class AuthenticationParameters {
             }
             final String scheme = parseScheme(challenge);
             Logger.i(TAG + methodName, "Parsing scheme", "Scheme value [" + scheme + "]");
-            Logger.i(TAG + methodName, "Removing scheme from source challenge", "[" + challenge + "]");
-            Logger.v(TAG + methodName, "Parsing challenge substr. Total length: " + challenge.length() + " Scheme index: " + scheme.length() + 1);
+            Logger.i(
+                    TAG + methodName,
+                    "Removing scheme from source challenge",
+                    "[" + challenge + "]");
+            Logger.v(
+                    TAG + methodName,
+                    "Parsing challenge substr. Total length: "
+                            + challenge.length()
+                            + " Scheme index: "
+                            + scheme.length()
+                            + 1);
             final String challengeSansScheme = challenge.substring(scheme.length() + 1);
             final Map<String, String> params = parseParams(challengeSansScheme);
             return new Challenge(scheme, params);
@@ -366,7 +384,8 @@ public class AuthenticationParameters {
          * @throws ResourceAuthenticationChallengeException If a parsing error is encountered or
          *                                                  the String is malformed.
          */
-        private static String parseScheme(String challenge) throws ResourceAuthenticationChallengeException {
+        private static String parseScheme(String challenge)
+                throws ResourceAuthenticationChallengeException {
             final String methodName = ":parseScheme";
 
             if (StringExtensions.isNullOrBlank(challenge)) {
@@ -378,19 +397,29 @@ public class AuthenticationParameters {
             final int indexOfFirstTab = challenge.indexOf('\t');
             // We want to grab the lesser of these values so long as they're > -1...
             if (indexOfFirstSpace < 0 && indexOfFirstTab < 0) {
-                Logger.w(TAG + methodName, "Couldn't locate space/tab char - returning input String");
+                Logger.w(
+                        TAG + methodName,
+                        "Couldn't locate space/tab char - returning input String");
                 return challenge;
             }
 
-            Logger.v(TAG + methodName, "Parsing scheme with indices: indexOfFirstSpace[" + indexOfFirstSpace + "] indexOfFirstTab[" + indexOfFirstTab + "]");
+            Logger.v(
+                    TAG + methodName,
+                    "Parsing scheme with indices: indexOfFirstSpace["
+                            + indexOfFirstSpace
+                            + "] indexOfFirstTab["
+                            + indexOfFirstTab
+                            + "]");
 
             // If there is a space and it occurs before the first tab character.
-            if (indexOfFirstSpace > -1 && (indexOfFirstSpace < indexOfFirstTab || indexOfFirstTab < 0)) {
+            if (indexOfFirstSpace > -1
+                    && (indexOfFirstSpace < indexOfFirstTab || indexOfFirstTab < 0)) {
                 return challenge.substring(0, indexOfFirstSpace);
             }
 
             // If there is a tab character and it occurs before the first space character.
-            if (indexOfFirstTab > -1 && (indexOfFirstTab < indexOfFirstSpace || indexOfFirstSpace < 0)) {
+            if (indexOfFirstTab > -1
+                    && (indexOfFirstTab < indexOfFirstSpace || indexOfFirstSpace < 0)) {
                 return challenge.substring(0, indexOfFirstTab);
             }
 
@@ -407,7 +436,8 @@ public class AuthenticationParameters {
          * @throws ResourceAuthenticationChallengeException If a parsing error is encountered or
          *                                                  the String is malformed.
          */
-        private static Map<String, String> parseParams(String challengeSansScheme) throws ResourceAuthenticationChallengeException {
+        private static Map<String, String> parseParams(String challengeSansScheme)
+                throws ResourceAuthenticationChallengeException {
             final String methodName = ":parseParams";
             if (StringExtensions.isNullOrBlank(challengeSansScheme)) {
                 Logger.w(TAG + methodName, "ChallengeSansScheme was null/empty");
@@ -416,14 +446,28 @@ public class AuthenticationParameters {
 
             // Split on unquoted commas
             final Map<String, String> params = new HashMap<>();
-            Logger.i(TAG + methodName, "Splitting on unquoted commas...", "in-value [" + challengeSansScheme + "]");
-            final String[] splitOnUnquotedCommas = challengeSansScheme.split(REGEX_SPLIT_UNQUOTED_COMMA, -1);
-            Logger.i(TAG + methodName, "Splitting on unquoted commas...", "out-value [" + Arrays.toString(splitOnUnquotedCommas) + "]");
+            Logger.i(
+                    TAG + methodName,
+                    "Splitting on unquoted commas...",
+                    "in-value [" + challengeSansScheme + "]");
+            final String[] splitOnUnquotedCommas =
+                    challengeSansScheme.split(REGEX_SPLIT_UNQUOTED_COMMA, -1);
+            Logger.i(
+                    TAG + methodName,
+                    "Splitting on unquoted commas...",
+                    "out-value [" + Arrays.toString(splitOnUnquotedCommas) + "]");
             for (final String paramSet : splitOnUnquotedCommas) {
                 // Split keys/values by the '='
-                Logger.i(TAG + methodName, "Splitting on unquoted equals...", "in-value [" + paramSet + "]");
-                final String[] splitOnUnquotedEquals = paramSet.split(REGEX_SPLIT_UNQUOTED_EQUALS, -1);
-                Logger.i(TAG + methodName, "Splitting on unquoted equals...", "out-value [" + Arrays.toString(splitOnUnquotedEquals) + "]");
+                Logger.i(
+                        TAG + methodName,
+                        "Splitting on unquoted equals...",
+                        "in-value [" + paramSet + "]");
+                final String[] splitOnUnquotedEquals =
+                        paramSet.split(REGEX_SPLIT_UNQUOTED_EQUALS, -1);
+                Logger.i(
+                        TAG + methodName,
+                        "Splitting on unquoted equals...",
+                        "out-value [" + Arrays.toString(splitOnUnquotedEquals) + "]");
 
                 // We should now have a left-side and right-side
                 if (splitOnUnquotedEquals.length != 2) {
@@ -441,7 +485,8 @@ public class AuthenticationParameters {
                 // if there is already a mapping for this key, we've seen this value before
                 // and should log a warning that this header looks fishy....
                 if (params.containsKey(key)) {
-                    Logger.w(TAG,
+                    Logger.w(
+                            TAG,
                             "Key/value pair list contains redundant key. ",
                             "Redundant key: " + key,
                             ADALError.DEVELOPER_BEARER_HEADER_MULTIPLE_ITEMS);
@@ -452,7 +497,9 @@ public class AuthenticationParameters {
                 params.put(key, value);
             }
 
-            if (params.isEmpty()) { // To match the existing expected behavior, an Exception is thrown.
+            if (params
+                    .isEmpty()) { // To match the existing expected behavior, an Exception is
+                                  // thrown.
                 Logger.w(TAG + methodName, "Parsed params were empty.");
                 throw new ResourceAuthenticationChallengeException(AUTH_HEADER_INVALID_FORMAT);
             }
@@ -468,7 +515,8 @@ public class AuthenticationParameters {
          * @throws ResourceAuthenticationChallengeException If a parsing error is encountered or
          *                                                  the String is malformed.
          */
-        static List<Challenge> parseChallenges(final String strChallenges) throws ResourceAuthenticationChallengeException {
+        static List<Challenge> parseChallenges(final String strChallenges)
+                throws ResourceAuthenticationChallengeException {
             final String methodName = ":parseChallenges";
 
             if (StringExtensions.isNullOrBlank(strChallenges)) {
@@ -480,7 +528,10 @@ public class AuthenticationParameters {
             final List<Challenge> challenges = new ArrayList<>();
 
             try { // Separate the challenges.
-                Logger.i(TAG + methodName, "Separating challenges...", "input[" + strChallenges + "]");
+                Logger.i(
+                        TAG + methodName,
+                        "Separating challenges...",
+                        "input[" + strChallenges + "]");
                 List<String> strChallengesList = separateChallenges(strChallenges);
 
                 // Add each to the out-List
@@ -488,10 +539,18 @@ public class AuthenticationParameters {
                     challenges.add(parseChallenge(challenge));
                 }
             } catch (ResourceAuthenticationChallengeException e) {
-                Logger.w(TAG + methodName, "Encountered error during parsing...", e.getMessage(), null);
+                Logger.w(
+                        TAG + methodName,
+                        "Encountered error during parsing...",
+                        e.getMessage(),
+                        null);
                 throw e;
             } catch (Exception e) {
-                Logger.w(TAG + methodName, "Encountered error during parsing...", e.getMessage(), null);
+                Logger.w(
+                        TAG + methodName,
+                        "Encountered error during parsing...",
+                        e.getMessage(),
+                        null);
                 throw new ResourceAuthenticationChallengeException(AUTH_HEADER_INVALID_FORMAT);
             }
 
@@ -505,7 +564,8 @@ public class AuthenticationParameters {
          * @param challenges The challenge values to parse.
          * @return A List of separated challenges.
          */
-        private static List<String> separateChallenges(final String challenges) throws ResourceAuthenticationChallengeException {
+        private static List<String> separateChallenges(final String challenges)
+                throws ResourceAuthenticationChallengeException {
             final String methodName = ":separateChallenges";
 
             if (StringExtensions.isNullOrBlank(challenges)) {
@@ -514,11 +574,18 @@ public class AuthenticationParameters {
             }
 
             // Split the supplied String on those commas which are not constrained by quotes
-            Logger.i(TAG + methodName, "Splitting input String on unquoted commas", "input[" + challenges + "]");
+            Logger.i(
+                    TAG + methodName,
+                    "Splitting input String on unquoted commas",
+                    "input[" + challenges + "]");
             String[] splitOnUnquotedCommas = challenges.split(REGEX_SPLIT_UNQUOTED_COMMA, -1);
-            Logger.i(TAG + methodName, "Splitting input String on unquoted commas", "output[" + Arrays.toString(splitOnUnquotedCommas) + "]");
+            Logger.i(
+                    TAG + methodName,
+                    "Splitting input String on unquoted commas",
+                    "output[" + Arrays.toString(splitOnUnquotedCommas) + "]");
             sanitizeWhitespace(splitOnUnquotedCommas);
-            List<String> tokensContainingScheme = extractTokensContainingScheme(splitOnUnquotedCommas);
+            List<String> tokensContainingScheme =
+                    extractTokensContainingScheme(splitOnUnquotedCommas);
 
             // init an array to store the out-values
             String[] outStrings = new String[tokensContainingScheme.size()];
@@ -543,7 +610,10 @@ public class AuthenticationParameters {
          *                               scheme element.
          * @param outStrings             The output array, modified in-place.
          */
-        private static void writeParsedChallenges(String[] splitOnUnquotedCommas, List<String> tokensContainingScheme, String[] outStrings) {
+        private static void writeParsedChallenges(
+                String[] splitOnUnquotedCommas,
+                List<String> tokensContainingScheme,
+                String[] outStrings) {
             int ii = -1; // Out-value index
             for (final String token : splitOnUnquotedCommas) {
                 if (tokensContainingScheme.contains(token)) {
@@ -574,7 +644,8 @@ public class AuthenticationParameters {
          * @param strArry The String array to inspect.
          * @return A List of scheme-containing String tokens.
          */
-        private static List<String> extractTokensContainingScheme(final String[] strArry) throws ResourceAuthenticationChallengeException {
+        private static List<String> extractTokensContainingScheme(final String[] strArry)
+                throws ResourceAuthenticationChallengeException {
             final List<String> tokensContainingScheme = new ArrayList<>();
 
             for (final String token : strArry) {
@@ -592,7 +663,8 @@ public class AuthenticationParameters {
          * @param token The String token to inspect.
          * @return True, if it contains a scheme. False otherwise.
          */
-        private static boolean containsScheme(final String token) throws ResourceAuthenticationChallengeException {
+        private static boolean containsScheme(final String token)
+                throws ResourceAuthenticationChallengeException {
             final String methodName = ":containsScheme";
 
             if (StringExtensions.isNullOrBlank(token)) {
@@ -603,7 +675,8 @@ public class AuthenticationParameters {
             Logger.i(TAG + methodName, "Testing token contains scheme", "input[" + token + "]");
             final Matcher matcher = REGEX_STRING_TOKEN_WITH_SCHEME.matcher(token);
             final boolean match = matcher.matches();
-            Logger.i(TAG + methodName, "Testing String contains scheme", "Matches? [" + match + "]");
+            Logger.i(
+                    TAG + methodName, "Testing String contains scheme", "Matches? [" + match + "]");
             return match;
         }
 
@@ -621,7 +694,8 @@ public class AuthenticationParameters {
         }
     }
 
-    private static AuthenticationParameters parseResponse(HttpWebResponse webResponse) throws ResourceAuthenticationChallengeException {
+    private static AuthenticationParameters parseResponse(HttpWebResponse webResponse)
+            throws ResourceAuthenticationChallengeException {
         // Depending on the service side implementation for this resource
         if (webResponse.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
             Map<String, List<String>> responseHeaders = webResponse.getResponseHeaders();

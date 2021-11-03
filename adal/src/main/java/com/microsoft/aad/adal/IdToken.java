@@ -72,16 +72,20 @@ class IdToken {
             this.mUpn = responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_UPN);
             this.mEmail = responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_EMAIL);
             this.mGivenName = responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_GIVEN_NAME);
-            this.mFamilyName = responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_FAMILY_NAME);
-            this.mIdentityProvider = responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_IDENTITY_PROVIDER);
+            this.mFamilyName =
+                    responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_FAMILY_NAME);
+            this.mIdentityProvider =
+                    responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_IDENTITY_PROVIDER);
             this.mObjectId = responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_OBJECT_ID);
-            final String expiration = responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_PASSWORD_EXPIRATION);
+            final String expiration =
+                    responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_PASSWORD_EXPIRATION);
 
             if (!StringExtensions.isNullOrBlank(expiration)) {
                 this.mPasswordExpiration = Long.parseLong(expiration);
             }
 
-            this.mPasswordChangeUrl = responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_PASSWORD_CHANGE_URL);
+            this.mPasswordChangeUrl =
+                    responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_PASSWORD_CHANGE_URL);
         }
     }
 
@@ -138,12 +142,23 @@ class IdToken {
             final String decodedBody = new String(data, "UTF-8");
             return HashMapExtensions.jsonStringAsMap(decodedBody);
         } catch (UnsupportedEncodingException exception) {
-            Logger.e(TAG + methodName, "The encoding is not supported.", "", ADALError.ENCODING_IS_NOT_SUPPORTED, exception);
-            throw new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED, exception.getMessage(), exception);
+            Logger.e(
+                    TAG + methodName,
+                    "The encoding is not supported.",
+                    "",
+                    ADALError.ENCODING_IS_NOT_SUPPORTED,
+                    exception);
+            throw new AuthenticationException(
+                    ADALError.ENCODING_IS_NOT_SUPPORTED, exception.getMessage(), exception);
         } catch (JSONException exception) {
-            Logger.e(TAG + methodName, "Failed to parse the decoded body into JsonObject.", "",
-                    ADALError.JSON_PARSE_ERROR, exception);
-            throw new AuthenticationException(ADALError.JSON_PARSE_ERROR, exception.getMessage(), exception);
+            Logger.e(
+                    TAG + methodName,
+                    "Failed to parse the decoded body into JsonObject.",
+                    "",
+                    ADALError.JSON_PARSE_ERROR,
+                    exception);
+            throw new AuthenticationException(
+                    ADALError.JSON_PARSE_ERROR, exception.getMessage(), exception);
         }
     }
 
@@ -155,7 +170,8 @@ class IdToken {
         if (invalidDot == -1 && firstDot > 0 && secondDot > 0) {
             return idToken.substring(firstDot + 1, secondDot);
         } else {
-            throw new AuthenticationException(ADALError.IDTOKEN_PARSING_FAILURE, "Failed to extract the ClientID");
+            throw new AuthenticationException(
+                    ADALError.IDTOKEN_PARSING_FAILURE, "Failed to extract the ClientID");
         }
     }
 }

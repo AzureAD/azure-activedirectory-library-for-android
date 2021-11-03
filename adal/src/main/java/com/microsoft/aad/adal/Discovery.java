@@ -83,8 +83,8 @@ class Discovery {
      * Sync set of valid hosts to skip query to server if host was verified
      * before.
      */
-    private static final Set<String> AAD_WHITELISTED_HOSTS = Collections
-            .synchronizedSet(new HashSet<String>());
+    private static final Set<String> AAD_WHITELISTED_HOSTS =
+            Collections.synchronizedSet(new HashSet<String>());
 
     /**
      * Sync map of validated AD FS authorities and domains. Skips query to server
@@ -116,7 +116,8 @@ class Discovery {
     void validateAuthorityADFS(final URL authorizationEndpoint, final String domain)
             throws AuthenticationException {
         if (StringExtensions.isNullOrBlank(domain)) {
-            throw new IllegalArgumentException("Cannot validate AD FS Authority with domain [null]");
+            throw new IllegalArgumentException(
+                    "Cannot validate AD FS Authority with domain [null]");
         }
         validateADFS(authorizationEndpoint, domain);
     }
@@ -130,7 +131,8 @@ class Discovery {
 
         final String authorityHost = authorizationEndpoint.getHost().toLowerCase(Locale.US);
         final String trustedHost;
-        if (AAD_WHITELISTED_HOSTS.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) {
+        if (AAD_WHITELISTED_HOSTS.contains(
+                authorizationEndpoint.getHost().toLowerCase(Locale.US))) {
             trustedHost = authorityHost;
         } else {
             trustedHost = TRUSTED_QUERY_INSTANCE;
@@ -155,8 +157,7 @@ class Discovery {
         } catch (URISyntaxException e) {
             throw new AuthenticationException(
                     ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL,
-                    "Authority URL/URI must be RFC 2396 compliant to use AD FS validation"
-            );
+                    "Authority URL/URI must be RFC 2396 compliant to use AD FS validation");
         }
 
         // First, consult the cache
@@ -172,12 +173,9 @@ class Discovery {
         // Get the WebFinger metadata
         final WebFingerMetadata webFingerMetadata =
                 new WebFingerMetadataRequestor() // create the requestor
-                        .requestMetadata(// request the data
-                                new WebFingerMetadataRequestParameters(// using these params
-                                        authorizationEndpoint,
-                                        drsMetadata
-                                )
-                        );
+                        .requestMetadata( // request the data
+                                new WebFingerMetadataRequestParameters( // using these params
+                                        authorizationEndpoint, drsMetadata));
 
         // Verify trust
         if (!ADFSWebFingerValidator.realmIsTrusted(authorityUri, webFingerMetadata)) {
@@ -204,9 +202,14 @@ class Discovery {
         mCorrelationId = requestCorrelationId;
     }
 
-    static URL constructAuthorityUrl(final URL originalAuthority, final String host) throws MalformedURLException {
+    static URL constructAuthorityUrl(final URL originalAuthority, final String host)
+            throws MalformedURLException {
         final String path = originalAuthority.getPath().replaceFirst("/", "");
-        final Uri.Builder builder = new Uri.Builder().scheme(originalAuthority.getProtocol()).authority(host).appendPath(path);
+        final Uri.Builder builder =
+                new Uri.Builder()
+                        .scheme(originalAuthority.getProtocol())
+                        .authority(host)
+                        .appendPath(path);
         return new URL(builder.build().toString());
     }
 
@@ -216,24 +219,29 @@ class Discovery {
     private void initValidList() {
         // mValidHosts is a sync set
         if (AAD_WHITELISTED_HOSTS.isEmpty()) {
-            AAD_WHITELISTED_HOSTS.add("login.windows.net"); // Microsoft Azure Worldwide - Used in validation scenarios where host is not this list
+            AAD_WHITELISTED_HOSTS.add(
+                    "login.windows.net"); // Microsoft Azure Worldwide - Used in validation
+                                          // scenarios where host is not this list
             AAD_WHITELISTED_HOSTS.add("login.microsoftonline.com"); // Microsoft Azure Worldwide
             AAD_WHITELISTED_HOSTS.add("login.chinacloudapi.cn"); // Microsoft Azure China
             AAD_WHITELISTED_HOSTS.add("login.microsoftonline.de"); // Microsoft Azure Germany
-            AAD_WHITELISTED_HOSTS.add("login-us.microsoftonline.com"); // Microsoft Azure US Government
+            AAD_WHITELISTED_HOSTS.add(
+                    "login-us.microsoftonline.com"); // Microsoft Azure US Government
             AAD_WHITELISTED_HOSTS.add("login.microsoftonline.us"); // Microsoft Azure US
         }
     }
 
-    private void performInstanceDiscovery(final URL authorityUrl, final String trustedHost) throws AuthenticationException {
-        // Look up authority cache again. since we only allow one authority validation request goes out at one time, in case the
+    private void performInstanceDiscovery(final URL authorityUrl, final String trustedHost)
+            throws AuthenticationException {
+        // Look up authority cache again. since we only allow one authority validation request goes
+        // out at one time, in case the
         // map has already been filled in.
         final String methodName = ":performInstanceDiscovery";
         if (AuthorityValidationMetadataCache.containsAuthorityHost(authorityUrl)) {
             return;
         }
 
-        //Check if the network connection available
+        // Check if the network connection available
         HttpUtil.throwIfNetworkNotAvailable(mContext);
 
         // It will query prod instance to verify the authority
@@ -246,26 +254,44 @@ class Discovery {
 
             // Set the Cloud instance discovery metadata on the AAD IdentityProvider
             AzureActiveDirectory.initializeCloudMetadata(
-                    authorityUrl.getHost().toLowerCase(Locale.US),
-                    discoveryResponse
-            );
+                    authorityUrl.getHost().toLowerCase(Locale.US), discoveryResponse);
 
-            AuthorityValidationMetadataCache.processInstanceDiscoveryMetadata(authorityUrl, discoveryResponse);
+            AuthorityValidationMetadataCache.processInstanceDiscoveryMetadata(
+                    authorityUrl, discoveryResponse);
             if (!AuthorityValidationMetadataCache.containsAuthorityHost(authorityUrl)) {
                 ArrayList<String> aliases = new ArrayList<String>();
                 aliases.add(authorityUrl.getHost());
-                AuthorityValidationMetadataCache.updateInstanceDiscoveryMap(authorityUrl.getHost(),
-                        new InstanceDiscoveryMetadata(authorityUrl.getHost(), authorityUrl.getHost(), aliases));
+                AuthorityValidationMetadataCache.updateInstanceDiscoveryMap(
+                        authorityUrl.getHost(),
+                        new InstanceDiscoveryMetadata(
+                                authorityUrl.getHost(), authorityUrl.getHost(), aliases));
             }
             result = AuthorityValidationMetadataCache.isAuthorityValidated(authorityUrl);
         } catch (JSONException e) {
-            Logger.e(TAG + methodName, "Error when validating authority. ", "", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE, e);
-            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE, e.getMessage(), e);
-        } catch (SocketTimeoutException e){
-            Logger.e(TAG + methodName, "Error when validating authority. ", "", ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE, e);
-            throw new AuthenticationException(ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE, e.getMessage(), e);
-        } catch (IOException e){
-            Logger.e(TAG + methodName, "Error when validating authority. ", "", ADALError.IO_EXCEPTION, e);
+            Logger.e(
+                    TAG + methodName,
+                    "Error when validating authority. ",
+                    "",
+                    ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE,
+                    e);
+            throw new AuthenticationException(
+                    ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE, e.getMessage(), e);
+        } catch (SocketTimeoutException e) {
+            Logger.e(
+                    TAG + methodName,
+                    "Error when validating authority. ",
+                    "",
+                    ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
+                    e);
+            throw new AuthenticationException(
+                    ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE, e.getMessage(), e);
+        } catch (IOException e) {
+            Logger.e(
+                    TAG + methodName,
+                    "Error when validating authority. ",
+                    "",
+                    ADALError.IO_EXCEPTION,
+                    e);
             throw new AuthenticationException(ADALError.IO_EXCEPTION, e.getMessage(), e);
         }
 
@@ -275,7 +301,8 @@ class Discovery {
         }
     }
 
-    private Map<String, String> sendRequest(final URL queryUrl) throws IOException, JSONException, AuthenticationException {
+    private Map<String, String> sendRequest(final URL queryUrl)
+            throws IOException, JSONException, AuthenticationException {
 
         Logger.v(TAG, "Sending discovery request to query url. ", "queryUrl: " + queryUrl, null);
         final Map<String, String> headers = new HashMap<>();
@@ -296,8 +323,8 @@ class Discovery {
             // parse discovery response to find tenant info
             final Map<String, String> discoveryResponse = parseResponse(webResponse);
             if (discoveryResponse.containsKey(AuthenticationConstants.OAuth2.ERROR_CODES)) {
-                final String errorCodes = discoveryResponse.get(
-                        AuthenticationConstants.OAuth2.ERROR_CODES);
+                final String errorCodes =
+                        discoveryResponse.get(AuthenticationConstants.OAuth2.ERROR_CODES);
                 ClientMetrics.INSTANCE.setLastError(errorCodes);
                 throw new AuthenticationException(
                         ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE,
@@ -311,11 +338,13 @@ class Discovery {
         }
     }
 
-    static void verifyAuthorityValidInstance(final URL authorizationEndpoint) throws AuthenticationException {
+    static void verifyAuthorityValidInstance(final URL authorizationEndpoint)
+            throws AuthenticationException {
         // For comparison purposes, convert to lowercase Locale.US
         // getProtocol returns scheme and it is available if it is absolute url
         // Authority is in the form of https://Instance/tenant/somepath
-        if (authorizationEndpoint == null || StringExtensions.isNullOrBlank(authorizationEndpoint.getHost())
+        if (authorizationEndpoint == null
+                || StringExtensions.isNullOrBlank(authorizationEndpoint.getHost())
                 || !authorizationEndpoint.getProtocol().equals("https")
                 || !StringExtensions.isNullOrBlank(authorizationEndpoint.getQuery())
                 || !StringExtensions.isNullOrBlank(authorizationEndpoint.getRef())
@@ -344,9 +373,12 @@ class Discovery {
      * @return https://hostname/common
      */
     private String getAuthorizationCommonEndpoint(final URL authorizationEndpointUrl) {
-        return new Uri.Builder().scheme("https")
+        return new Uri.Builder()
+                .scheme("https")
                 .authority(authorizationEndpointUrl.getHost())
-                .appendPath(AUTHORIZATION_COMMON_ENDPOINT).build().toString();
+                .appendPath(AUTHORIZATION_COMMON_ENDPOINT)
+                .build()
+                .toString();
     }
 
     /**

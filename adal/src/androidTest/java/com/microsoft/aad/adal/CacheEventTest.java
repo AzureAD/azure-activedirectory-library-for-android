@@ -23,6 +23,8 @@
 
 package com.microsoft.aad.adal;
 
+import static org.junit.Assert.assertTrue;
+
 import android.text.TextUtils;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
@@ -32,8 +34,6 @@ import org.junit.runner.RunWith;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.junit.Assert.assertTrue;
 
 @RunWith(AndroidJUnit4.class)
 public final class CacheEventTest {
@@ -83,5 +83,4 @@ public final class CacheEventTest {
 
         assertTrue(dispatchMap.isEmpty());
     }
-
 }

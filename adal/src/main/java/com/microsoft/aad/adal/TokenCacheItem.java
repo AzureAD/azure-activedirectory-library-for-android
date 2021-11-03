@@ -23,8 +23,8 @@
 
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.java.util.DateExtensions;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.java.util.DateExtensions;
 
 import java.io.Serializable;
 import java.util.Calendar;
@@ -100,7 +100,8 @@ public class TokenCacheItem implements Serializable {
     /**
      * Construct cache item with given authority and returned auth result.
      */
-    private TokenCacheItem(final String authority, final AuthenticationResult authenticationResult) {
+    private TokenCacheItem(
+            final String authority, final AuthenticationResult authenticationResult) {
         if (authenticationResult == null) {
             throw new IllegalArgumentException("authenticationResult");
         }
@@ -134,7 +135,11 @@ public class TokenCacheItem implements Serializable {
      * @param authResult required authentication result to create regular token cache item.
      * @return TokenCacheItem
      */
-    public static TokenCacheItem createRegularTokenCacheItem(final String authority, final String resource, final String clientId, final AuthenticationResult authResult) {
+    public static TokenCacheItem createRegularTokenCacheItem(
+            final String authority,
+            final String resource,
+            final String clientId,
+            final AuthenticationResult authResult) {
         final TokenCacheItem item = new TokenCacheItem(authority, authResult);
         item.setClientId(clientId);
         item.setResource(resource);
@@ -151,7 +156,8 @@ public class TokenCacheItem implements Serializable {
      * @param authResult required authentication result to create multi-resource refresh token cache item.
      * @return TokenCacheItem
      */
-    public static TokenCacheItem createMRRTTokenCacheItem(final String authority, final String clientId, final AuthenticationResult authResult) {
+    public static TokenCacheItem createMRRTTokenCacheItem(
+            final String authority, final String clientId, final AuthenticationResult authResult) {
         final TokenCacheItem item = new TokenCacheItem(authority, authResult);
         item.setClientId(clientId);
 
@@ -166,7 +172,8 @@ public class TokenCacheItem implements Serializable {
      * @param authResult required authentication result to create FRRT refresh token cache item.
      * @return TokenCacheItem
      */
-    public static TokenCacheItem createFRRTTokenCacheItem(final String authority, final AuthenticationResult authResult) {
+    public static TokenCacheItem createFRRTTokenCacheItem(
+            final String authority, final AuthenticationResult authResult) {
         return new TokenCacheItem(authority, authResult);
     }
 
@@ -393,7 +400,7 @@ public class TokenCacheItem implements Serializable {
      * expired time, else return false.
      */
     public final boolean isExtendedLifetimeValid() {
-        //extended lifetime is only valid if it contains an access token
+        // extended lifetime is only valid if it contains an access token
         if (mExtendedExpiresOn != null && !StringExtensions.isNullOrBlank(mAccessToken)) {
             return !isTokenExpired(mExtendedExpiresOn);
         }
@@ -413,7 +420,6 @@ public class TokenCacheItem implements Serializable {
         }
     }
 
-
     /**
      * Checks expiration time.
      *
@@ -422,11 +428,18 @@ public class TokenCacheItem implements Serializable {
      */
     public static boolean isTokenExpired(final Date expiresOn) {
         Calendar calendarWithBuffer = Calendar.getInstance();
-        calendarWithBuffer.add(Calendar.SECOND,
-                AuthenticationSettings.INSTANCE.getExpirationBuffer());
+        calendarWithBuffer.add(
+                Calendar.SECOND, AuthenticationSettings.INSTANCE.getExpirationBuffer());
         Date validity = calendarWithBuffer.getTime();
-        Logger.i(TAG, "Check token expiration time.", "expiresOn:" + expiresOn + " timeWithBuffer:" + calendarWithBuffer.getTime()
-                + " Buffer:" + AuthenticationSettings.INSTANCE.getExpirationBuffer());
+        Logger.i(
+                TAG,
+                "Check token expiration time.",
+                "expiresOn:"
+                        + expiresOn
+                        + " timeWithBuffer:"
+                        + calendarWithBuffer.getTime()
+                        + " Buffer:"
+                        + AuthenticationSettings.INSTANCE.getExpirationBuffer());
 
         return expiresOn != null && expiresOn.before(validity);
     }

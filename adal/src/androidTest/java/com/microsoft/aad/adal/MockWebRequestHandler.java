@@ -63,8 +63,9 @@ class MockWebRequestHandler implements IWebRequestHandler {
     }
 
     @Override
-    public HttpWebResponse sendPost(URL url, Map<String, String> headers, byte[] content,
-                                    String contentType) throws IOException {
+    public HttpWebResponse sendPost(
+            URL url, Map<String, String> headers, byte[] content, String contentType)
+            throws IOException {
         mRequestUrl = url;
         mRequestHeaders = headers;
         if (content != null) {
@@ -107,5 +108,4 @@ class MockWebRequestHandler implements IWebRequestHandler {
     public void setClientVersion(String clientVersion) {
         mClientVersion = clientVersion;
     }
-
 }

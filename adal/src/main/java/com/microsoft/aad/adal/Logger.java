@@ -59,24 +59,34 @@ public class Logger {
         switch (logLevel) {
             case Error:
                 com.microsoft.identity.common.internal.logging.Logger.getInstance()
-                        .setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel.ERROR);
+                        .setLogLevel(
+                                com.microsoft.identity.common.internal.logging.Logger.LogLevel
+                                        .ERROR);
                 break;
             case Warn:
                 com.microsoft.identity.common.internal.logging.Logger.getInstance()
-                        .setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel.WARN);
+                        .setLogLevel(
+                                com.microsoft.identity.common.internal.logging.Logger.LogLevel
+                                        .WARN);
                 break;
             case Info:
                 com.microsoft.identity.common.internal.logging.Logger.getInstance()
-                        .setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel.INFO);
+                        .setLogLevel(
+                                com.microsoft.identity.common.internal.logging.Logger.LogLevel
+                                        .INFO);
                 break;
             case Verbose:
                 com.microsoft.identity.common.internal.logging.Logger.getInstance()
-                        .setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel.VERBOSE);
+                        .setLogLevel(
+                                com.microsoft.identity.common.internal.logging.Logger.LogLevel
+                                        .VERBOSE);
                 break;
             case Debug:
-                //The debug level is deprecated and removed in common core.
+                // The debug level is deprecated and removed in common core.
                 com.microsoft.identity.common.internal.logging.Logger.getInstance()
-                        .setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel.INFO);
+                        .setLogLevel(
+                                com.microsoft.identity.common.internal.logging.Logger.LogLevel
+                                        .INFO);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown logLevel");
@@ -91,49 +101,80 @@ public class Logger {
      *                       output the logs to the designated places.
      */
     public synchronized void setExternalLogger(ILogger externalLogger) {
-        com.microsoft.identity.common.internal.logging.Logger.getInstance().setExternalLogger(new ILoggerCallback() {
-            @Override
-            public void log(String tag, com.microsoft.identity.common.internal.logging.Logger.LogLevel logLevel, String message, boolean containsPII) {
-                if (mExternalLogger != null) {
-                    if (!com.microsoft.identity.common.internal.logging.Logger.getAllowPii() && containsPII) {
-                        return;
-                    } else {
+        com.microsoft.identity.common.internal.logging.Logger.getInstance()
+                .setExternalLogger(
+                        new ILoggerCallback() {
+                            @Override
+                            public void log(
+                                    String tag,
+                                    com.microsoft.identity.common.internal.logging.Logger.LogLevel
+                                            logLevel,
+                                    String message,
+                                    boolean containsPII) {
+                                if (mExternalLogger != null) {
+                                    if (!com.microsoft.identity.common.internal.logging.Logger
+                                                    .getAllowPii()
+                                            && containsPII) {
+                                        return;
+                                    } else {
 
-                        ADALError adalError = mapMessageToAdalError(message);
+                                        ADALError adalError = mapMessageToAdalError(message);
 
-                        switch (logLevel) {
-                            case ERROR:
-                                mExternalLogger.Log(tag, message, null, LogLevel.Error, adalError);
-                                break;
-                            case WARN:
-                                mExternalLogger.Log(tag, message, null, LogLevel.Warn, adalError);
-                                break;
-                            case VERBOSE:
-                                mExternalLogger.Log(tag, message, null, LogLevel.Verbose, adalError);
-                                break;
-                            case INFO:
-                                mExternalLogger.Log(tag, message, null, LogLevel.Info, adalError);
-                                break;
-                            default:
-                                throw new IllegalArgumentException("Unknown logLevel");
-                        }
-                    }
-                }
-            }
+                                        switch (logLevel) {
+                                            case ERROR:
+                                                mExternalLogger.Log(
+                                                        tag,
+                                                        message,
+                                                        null,
+                                                        LogLevel.Error,
+                                                        adalError);
+                                                break;
+                                            case WARN:
+                                                mExternalLogger.Log(
+                                                        tag,
+                                                        message,
+                                                        null,
+                                                        LogLevel.Warn,
+                                                        adalError);
+                                                break;
+                                            case VERBOSE:
+                                                mExternalLogger.Log(
+                                                        tag,
+                                                        message,
+                                                        null,
+                                                        LogLevel.Verbose,
+                                                        adalError);
+                                                break;
+                                            case INFO:
+                                                mExternalLogger.Log(
+                                                        tag,
+                                                        message,
+                                                        null,
+                                                        LogLevel.Info,
+                                                        adalError);
+                                                break;
+                                            default:
+                                                throw new IllegalArgumentException(
+                                                        "Unknown logLevel");
+                                        }
+                                    }
+                                }
+                            }
 
-            private ADALError mapMessageToAdalError(final String message) {
-                ADALError mappedError = null;
+                            private ADALError mapMessageToAdalError(final String message) {
+                                ADALError mappedError = null;
 
-                for (final ADALError adalError : ADALError.values()) {
-                    if (null != message && message.contains(adalError.name() + ":")) {
-                        mappedError = adalError;
-                        break;
-                    }
-                }
+                                for (final ADALError adalError : ADALError.values()) {
+                                    if (null != message
+                                            && message.contains(adalError.name() + ":")) {
+                                        mappedError = adalError;
+                                        break;
+                                    }
+                                }
 
-                return mappedError;
-            }
-        });
+                                return mappedError;
+                            }
+                        });
 
         mExternalLogger = externalLogger;
     }
@@ -207,60 +248,96 @@ public class Logger {
          * @param level             The {@link Logger.LogLevel} for the generated message.
          * @param errorCode         The error code.
          */
-        void Log(String tag, String message, String additionalMessage, LogLevel level,
-                 ADALError errorCode);
+        void Log(
+                String tag,
+                String message,
+                String additionalMessage,
+                LogLevel level,
+                ADALError errorCode);
     }
 
-    private void commonCoreWrapper(String tag, String message, String additionalMessage, LogLevel logLevel,
-                                   ADALError errorCode, Throwable throwable) {
+    private void commonCoreWrapper(
+            String tag,
+            String message,
+            String additionalMessage,
+            LogLevel logLevel,
+            ADALError errorCode,
+            Throwable throwable) {
         switch (logLevel) {
             case Error:
                 if (!StringExtensions.isNullOrBlank(message)) {
-                    com.microsoft.identity.common.internal.logging.Logger.error(tag, Logger.getInstance().getCorrelationId(),
-                            (errorCode == null ? "" : errorCode.name() + ":") + formatMessage(message), null);
+                    com.microsoft.identity.common.internal.logging.Logger.error(
+                            tag,
+                            Logger.getInstance().getCorrelationId(),
+                            (errorCode == null ? "" : errorCode.name() + ":")
+                                    + formatMessage(message),
+                            null);
                 }
 
                 if (!StringExtensions.isNullOrBlank(additionalMessage)) {
-                    com.microsoft.identity.common.internal.logging.Logger.errorPII(tag, Logger.getInstance().getCorrelationId(),
-                            (errorCode == null ? "" : errorCode.name() + ":") + formatMessage(additionalMessage), throwable);
+                    com.microsoft.identity.common.internal.logging.Logger.errorPII(
+                            tag,
+                            Logger.getInstance().getCorrelationId(),
+                            (errorCode == null ? "" : errorCode.name() + ":")
+                                    + formatMessage(additionalMessage),
+                            throwable);
                 }
                 break;
             case Warn:
                 if (!StringExtensions.isNullOrBlank(message)) {
-                    com.microsoft.identity.common.internal.logging.Logger.warn(tag, Logger.getInstance().getCorrelationId(),
-                            (errorCode == null ? "" : errorCode.name() + ":") + formatMessage(message));
+                    com.microsoft.identity.common.internal.logging.Logger.warn(
+                            tag,
+                            Logger.getInstance().getCorrelationId(),
+                            (errorCode == null ? "" : errorCode.name() + ":")
+                                    + formatMessage(message));
                 }
 
                 if (!StringExtensions.isNullOrBlank(additionalMessage)) {
-                    com.microsoft.identity.common.internal.logging.Logger.warnPII(tag, Logger.getInstance().getCorrelationId(),
-                            (errorCode == null ? "" : errorCode.name() + ":") + formatMessage(additionalMessage));
+                    com.microsoft.identity.common.internal.logging.Logger.warnPII(
+                            tag,
+                            Logger.getInstance().getCorrelationId(),
+                            (errorCode == null ? "" : errorCode.name() + ":")
+                                    + formatMessage(additionalMessage));
                 }
                 break;
             case Info:
                 if (!StringExtensions.isNullOrBlank(message)) {
-                    com.microsoft.identity.common.internal.logging.Logger.info(tag, Logger.getInstance().getCorrelationId(),
-                            (errorCode == null ? "" : errorCode.name() + ":") + formatMessage(message));
+                    com.microsoft.identity.common.internal.logging.Logger.info(
+                            tag,
+                            Logger.getInstance().getCorrelationId(),
+                            (errorCode == null ? "" : errorCode.name() + ":")
+                                    + formatMessage(message));
                 }
 
                 if (!StringExtensions.isNullOrBlank(additionalMessage)) {
-                    com.microsoft.identity.common.internal.logging.Logger.infoPII(tag, Logger.getInstance().getCorrelationId(),
-                            (errorCode == null ? "" : errorCode.name() + ":") + formatMessage(additionalMessage));
+                    com.microsoft.identity.common.internal.logging.Logger.infoPII(
+                            tag,
+                            Logger.getInstance().getCorrelationId(),
+                            (errorCode == null ? "" : errorCode.name() + ":")
+                                    + formatMessage(additionalMessage));
                 }
                 break;
             case Verbose:
                 if (!StringExtensions.isNullOrBlank(message)) {
-                    com.microsoft.identity.common.internal.logging.Logger.verbose(tag, Logger.getInstance().getCorrelationId(),
-                            (errorCode == null ? "" : errorCode.name() + ":") + formatMessage(message));
+                    com.microsoft.identity.common.internal.logging.Logger.verbose(
+                            tag,
+                            Logger.getInstance().getCorrelationId(),
+                            (errorCode == null ? "" : errorCode.name() + ":")
+                                    + formatMessage(message));
                 }
 
                 if (!StringExtensions.isNullOrBlank(additionalMessage)) {
-                    com.microsoft.identity.common.internal.logging.Logger.verbosePII(tag, Logger.getInstance().getCorrelationId(),
-                            (errorCode == null ? "" : errorCode.name() + ":") + formatMessage(additionalMessage));
+                    com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                            tag,
+                            Logger.getInstance().getCorrelationId(),
+                            (errorCode == null ? "" : errorCode.name() + ":")
+                                    + formatMessage(additionalMessage));
                 }
                 break;
             case Debug:
-                //The debug level is deprecated and removed in common core.
-                com.microsoft.identity.common.internal.logging.Logger.info(tag, Logger.getInstance().mCorrelationId, formatMessage(message));
+                // The debug level is deprecated and removed in common core.
+                com.microsoft.identity.common.internal.logging.Logger.info(
+                        tag, Logger.getInstance().mCorrelationId, formatMessage(message));
                 break;
             default:
                 throw new IllegalArgumentException("Unknown loglevel");
@@ -296,7 +373,8 @@ public class Logger {
      */
     @Deprecated
     public static void i(String tag, String message, String additionalMessage) {
-        Logger.getInstance().commonCoreWrapper(tag, message, additionalMessage, LogLevel.Info, null, null);
+        Logger.getInstance()
+                .commonCoreWrapper(tag, message, additionalMessage, LogLevel.Info, null, null);
     }
 
     /**
@@ -312,8 +390,10 @@ public class Logger {
      * Logs informational messages with error codes.
      */
     @Deprecated
-    public static void i(String tag, String message, String additionalMessage, ADALError errorCode) {
-        Logger.getInstance().commonCoreWrapper(tag, message, additionalMessage, LogLevel.Info, errorCode, null);
+    public static void i(
+            String tag, String message, String additionalMessage, ADALError errorCode) {
+        Logger.getInstance()
+                .commonCoreWrapper(tag, message, additionalMessage, LogLevel.Info, errorCode, null);
     }
 
     /**
@@ -344,8 +424,11 @@ public class Logger {
      * Logs verbose message with error code.
      */
     @Deprecated
-    public static void v(String tag, String message, String additionalMessage, ADALError errorCode) {
-        Logger.getInstance().commonCoreWrapper(tag, message, additionalMessage, LogLevel.Verbose, errorCode, null);
+    public static void v(
+            String tag, String message, String additionalMessage, ADALError errorCode) {
+        Logger.getInstance()
+                .commonCoreWrapper(
+                        tag, message, additionalMessage, LogLevel.Verbose, errorCode, null);
     }
 
     /**
@@ -361,8 +444,10 @@ public class Logger {
      * Logs warning message.
      */
     @Deprecated
-    public static void w(String tag, String message, String additionalMessage, ADALError errorCode) {
-        Logger.getInstance().commonCoreWrapper(tag, message, additionalMessage, LogLevel.Warn, errorCode, null);
+    public static void w(
+            String tag, String message, String additionalMessage, ADALError errorCode) {
+        Logger.getInstance()
+                .commonCoreWrapper(tag, message, additionalMessage, LogLevel.Warn, errorCode, null);
     }
 
     /**
@@ -393,8 +478,11 @@ public class Logger {
      * Logs error message.
      */
     @Deprecated
-    public static void e(String tag, String message, String additionalMessage, ADALError errorCode) {
-        Logger.getInstance().commonCoreWrapper(tag, message, additionalMessage, LogLevel.Error, errorCode, null);
+    public static void e(
+            String tag, String message, String additionalMessage, ADALError errorCode) {
+        Logger.getInstance()
+                .commonCoreWrapper(
+                        tag, message, additionalMessage, LogLevel.Error, errorCode, null);
     }
 
     /**
@@ -411,9 +499,15 @@ public class Logger {
      * Logs error message.
      */
     @Deprecated
-    public static void e(String tag, String message, String additionalMessage, ADALError errorCode,
-                  Throwable throwable) {
-        Logger.getInstance().commonCoreWrapper(tag, message, additionalMessage, LogLevel.Error, errorCode, throwable);
+    public static void e(
+            String tag,
+            String message,
+            String additionalMessage,
+            ADALError errorCode,
+            Throwable throwable) {
+        Logger.getInstance()
+                .commonCoreWrapper(
+                        tag, message, additionalMessage, LogLevel.Error, errorCode, throwable);
     }
 
     /**

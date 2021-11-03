@@ -37,7 +37,7 @@ class DefaultDispatcher {
 
     private DefaultDispatcher() {
         mDispatcher = null;
-   }
+    }
 
     DefaultDispatcher(final IDispatcher dispatcher) {
         mDispatcher = dispatcher;
@@ -47,8 +47,7 @@ class DefaultDispatcher {
      * Flush is intentionally blank here, events are dispatched as they are received.
      * @param requestId
      */
-    synchronized void flush(final String requestId) {
-    }
+    synchronized void flush(final String requestId) {}
 
     void receive(final String requestId, final IEvents events) {
         if (mDispatcher == null) {

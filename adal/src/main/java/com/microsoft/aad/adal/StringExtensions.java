@@ -43,16 +43,18 @@ public final class StringExtensions {
      * @return boolean if the string was null or blank
      */
     public static boolean isNullOrBlank(String param) {
-        return com.microsoft.identity.common.adal.internal.util.StringExtensions.isNullOrBlank(param);
+        return com.microsoft.identity.common.adal.internal.util.StringExtensions.isNullOrBlank(
+                param);
     }
 
-    public static String createHash(String msg) throws NoSuchAlgorithmException,
-            UnsupportedEncodingException {
+    public static String createHash(String msg)
+            throws NoSuchAlgorithmException, UnsupportedEncodingException {
         return com.microsoft.identity.common.adal.internal.util.StringExtensions.createHash(msg);
     }
 
     public static String encodeBase64URLSafeString(final byte[] bytes)
             throws UnsupportedEncodingException {
-        return com.microsoft.identity.common.adal.internal.util.StringExtensions.encodeBase64URLSafeString(bytes);
+        return com.microsoft.identity.common.adal.internal.util.StringExtensions
+                .encodeBase64URLSafeString(bytes);
     }
 }

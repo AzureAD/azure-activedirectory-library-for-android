@@ -24,13 +24,14 @@
 package com.microsoft.aad.adal.example.userappwithbroker;
 
 import android.os.Bundle;
-import androidx.fragment.app.Fragment;
 import android.text.method.ScrollingMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+
+import androidx.fragment.app.Fragment;
 
 /**
  * Logger fragment for displaying all the logs.
@@ -46,7 +47,10 @@ public class LogFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
+    public View onCreateView(
+            final LayoutInflater inflater,
+            final ViewGroup container,
+            final Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_log, container, false);
 
         mTextView = (TextView) view.findViewById(R.id.txt_log);
@@ -57,13 +61,14 @@ public class LogFragment extends Fragment {
         mTextView.setMovementMethod(new ScrollingMovementMethod());
 
         mClearLogButton = (Button) view.findViewById(R.id.btn_clearLogs);
-        mClearLogButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mTextView.setText("");
-                ((ADALSampleApp) getActivity().getApplication()).clearLogs();
-            }
-        });
+        mClearLogButton.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mTextView.setText("");
+                        ((ADALSampleApp) getActivity().getApplication()).clearLogs();
+                    }
+                });
         return view;
     }
 

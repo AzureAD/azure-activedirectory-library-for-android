@@ -23,6 +23,8 @@
 
 package com.microsoft.aad.adal;
 
+import static com.microsoft.aad.adal.ADALError.ARGUMENT_EXCEPTION;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -48,8 +50,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import static com.microsoft.aad.adal.ADALError.ARGUMENT_EXCEPTION;
-
 /**
  * Store/Retrieve TokenCacheItem from SharedPreferencesFileManager.
  * SharedPreferencesFileManager saves items when it is committed in an atomic operation.
@@ -66,9 +66,8 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     private Context mContext;
 
-    private Gson mGson = new GsonBuilder()
-            .registerTypeAdapter(Date.class, new DateTimeAdapter())
-            .create();
+    private Gson mGson =
+            new GsonBuilder().registerTypeAdapter(Date.class, new DateTimeAdapter()).create();
 
     @SuppressLint("StaticFieldLeak")
     private static StorageHelper sHelper;
@@ -86,39 +85,38 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
         mContext = context;
 
-        if (!StringExtensions.isNullOrBlank(AuthenticationSettings.INSTANCE
-                .getSharedPrefPackageName())) {
+        if (!StringExtensions.isNullOrBlank(
+                AuthenticationSettings.INSTANCE.getSharedPrefPackageName())) {
             try {
                 // Context is created from specified packagename in order to
                 // use same file. Reading private data is only allowed if apps specify same
                 // sharedUserId. Android OS will assign same UID, if they
                 // are signed with same certificates.
-                mContext = context.createPackageContext(
-                        AuthenticationSettings.INSTANCE.getSharedPrefPackageName(),
-                        Context.MODE_PRIVATE);
+                mContext =
+                        context.createPackageContext(
+                                AuthenticationSettings.INSTANCE.getSharedPrefPackageName(),
+                                Context.MODE_PRIVATE);
             } catch (NameNotFoundException e) {
-                throw new IllegalArgumentException("Package name:"
-                        + AuthenticationSettings.INSTANCE.getSharedPrefPackageName()
-                        + " is not found");
+                throw new IllegalArgumentException(
+                        "Package name:"
+                                + AuthenticationSettings.INSTANCE.getSharedPrefPackageName()
+                                + " is not found");
             }
         }
 
-        mPrefs = SharedPreferencesFileManager.getSharedPreferences(
-                mContext,
-                SHARED_PREFERENCE_NAME,
-                null
-        );
+        mPrefs =
+                SharedPreferencesFileManager.getSharedPreferences(
+                        mContext, SHARED_PREFERENCE_NAME, null);
 
-        // Check upfront when initializing DefaultTokenCacheStore. 
-        // If it's under API 18 and secretkey is not provided, we should fail upfront to inform 
-        // notify developers. 
+        // Check upfront when initializing DefaultTokenCacheStore.
+        // If it's under API 18 and secretkey is not provided, we should fail upfront to inform
+        // notify developers.
         validateSecretKeySetting();
     }
 
     Context getContext() {
         return mContext.getApplicationContext();
     }
-
 
     /**
      * Method that allows to mock StorageHelper class and use custom encryption in UTs.
@@ -173,7 +171,12 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
                 try {
                     return mGson.fromJson(decrypted, TokenCacheItem.class);
                 } catch (final JsonSyntaxException exception) {
-                    Logger.e(TAG, "Fail to parse Json. ", exception.getMessage(), ARGUMENT_EXCEPTION, exception);
+                    Logger.e(
+                            TAG,
+                            "Fail to parse Json. ",
+                            exception.getMessage(),
+                            ARGUMENT_EXCEPTION,
+                            exception);
                 }
             }
         }
@@ -240,10 +243,16 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
             final String decryptedValue = decrypt(tokenKey, tokenValue);
             if (decryptedValue != null) {
                 try {
-                    final TokenCacheItem tokenCacheItem = mGson.fromJson(decryptedValue, TokenCacheItem.class);
+                    final TokenCacheItem tokenCacheItem =
+                            mGson.fromJson(decryptedValue, TokenCacheItem.class);
                     tokens.add(tokenCacheItem);
                 } catch (final JsonSyntaxException exception) {
-                    Logger.e(TAG, "Fail to parse Json. ", exception.getMessage(), ARGUMENT_EXCEPTION, exception);
+                    Logger.e(
+                            TAG,
+                            "Fail to parse Json. ",
+                            exception.getMessage(),
+                            ARGUMENT_EXCEPTION,
+                            exception);
                 }
             }
         }
@@ -263,7 +272,8 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
         while (results.hasNext()) {
             final TokenCacheItem tokenCacheItem = results.next();
-            if (tokenCacheItem.getUserInfo() != null && !users.contains(tokenCacheItem.getUserInfo().getUserId())) {
+            if (tokenCacheItem.getUserInfo() != null
+                    && !users.contains(tokenCacheItem.getUserInfo().getUserId())) {
                 users.add(tokenCacheItem.getUserInfo().getUserId());
             }
         }
@@ -284,7 +294,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
         while (results.hasNext()) {
             final TokenCacheItem tokenCacheItem = results.next();
-            // MRRT and FRT don't store resource in the token cache item. 
+            // MRRT and FRT don't store resource in the token cache item.
             if (resource.equals(tokenCacheItem.getResource())) {
                 tokenItems.add(tokenCacheItem);
             }
@@ -331,7 +341,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
                 try {
                     this.removeItem(CacheKey.createCacheKey(item));
                 } catch (final AuthenticationException exception) {
-                    // Catch the exception because clearTokensForUser is an API in public 
+                    // Catch the exception because clearTokensForUser is an API in public
                     // interface ITokenCacheQuery.
                     Logger.e(TAG, "Fail to create cache key. ", "", exception.getCode(), exception);
                 }
@@ -356,15 +366,15 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
             }
         }
 
-
         return tokenItems;
     }
 
     private void validateSecretKeySetting() {
         final byte[] secretKeyData = AuthenticationSettings.INSTANCE.getSecretKeyData();
         if (secretKeyData == null && Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            throw new IllegalArgumentException("Secret key must be provided for API < 18. "
-                    + "Use AuthenticationSettings.INSTANCE.setSecretKey()");
+            throw new IllegalArgumentException(
+                    "Secret key must be provided for API < 18. "
+                            + "Use AuthenticationSettings.INSTANCE.setSecretKey()");
         }
     }
 
@@ -390,5 +400,4 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
         return mPrefs.contains(key);
     }
-
 }

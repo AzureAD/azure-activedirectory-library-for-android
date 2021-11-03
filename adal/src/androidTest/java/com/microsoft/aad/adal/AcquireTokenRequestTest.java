@@ -23,6 +23,25 @@
 
 package com.microsoft.aad.adal;
 
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE;
+import static com.microsoft.identity.common.java.AuthenticationConstants.UIRequest.BROWSER_FLOW;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;
@@ -81,24 +100,6 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import static com.microsoft.aad.adal.AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
-import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE;
-import static com.microsoft.identity.common.java.AuthenticationConstants.UIRequest.BROWSER_FLOW;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 /**
  * Tests for {@link AcquireTokenRequest}.
  */
@@ -111,6 +112,7 @@ public final class AcquireTokenRequestTest {
      * Check case-insensitive lookup
      */
     private static final String VALID_AUTHORITY = "https://login.windows.net/test.onmicrosoft.com";
+
     private static final int ACTIVITY_TIME_OUT = 1000;
     private static final int MINUS_MINUTE = 10;
     private static final int EXTEND_MINUS_MINUTE = 60;
@@ -124,20 +126,14 @@ public final class AcquireTokenRequestTest {
         Logger.d(TAG, "setup key at settings");
         System.setProperty(
                 "dexmaker.dexcache",
-                androidx.test.platform.app.InstrumentationRegistry
-                        .getInstrumentation()
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
                         .getTargetContext()
                         .getCacheDir()
-                        .getPath()
-        );
+                        .getPath());
 
         System.setProperty(
                 "org.mockito.android.target",
-                ApplicationProvider
-                        .getApplicationContext()
-                        .getCacheDir()
-                        .getPath()
-        );
+                ApplicationProvider.getApplicationContext().getCacheDir().getPath());
 
         if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
             // use same key for tests
@@ -146,29 +142,24 @@ public final class AcquireTokenRequestTest {
             final int iterationCount = 100;
             final int keyLength = 256;
 
-            final SecretKey tempkey = keyFactory.generateSecret(
-                    new PBEKeySpec("test".toCharArray(),
-                            "abcdedfdfd".getBytes(StandardCharsets.UTF_8),
-                            iterationCount,
-                            keyLength
-                    )
-            );
+            final SecretKey tempkey =
+                    keyFactory.generateSecret(
+                            new PBEKeySpec(
+                                    "test".toCharArray(),
+                                    "abcdedfdfd".getBytes(StandardCharsets.UTF_8),
+                                    iterationCount,
+                                    keyLength));
 
             final SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
             AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
         }
 
-        final InstanceDiscoveryMetadata metadata = new InstanceDiscoveryMetadata(
-                "login.microsoftonline.com",
-                "login.windows.net"
-        );
+        final InstanceDiscoveryMetadata metadata =
+                new InstanceDiscoveryMetadata("login.microsoftonline.com", "login.windows.net");
 
         final AzureActiveDirectoryCloud cloud = CoreAdapter.asAadCloud(metadata);
 
-        AuthorityValidationMetadataCache.updateInstanceDiscoveryMap(
-                "login.windows.net",
-                metadata
-        );
+        AuthorityValidationMetadataCache.updateInstanceDiscoveryMap("login.windows.net", metadata);
 
         AzureActiveDirectory.putCloud("login.windows.net", cloud);
     }
@@ -186,15 +177,16 @@ public final class AcquireTokenRequestTest {
     @Test
     public void testFavorLocalCacheValidATInLocalCache()
             throws PackageManager.NameNotFoundException, OperationCanceledException, IOException,
-            AuthenticatorException, InterruptedException {
+                    AuthenticatorException, InterruptedException {
 
         // Make sure AT is not expired
-        final ITokenCacheStore cacheStore = getTokenCache(
-                getExpireDate(MINUS_MINUTE),
-                false, // store mrrt
-                false, // store frt
-                null // ext expires
-        );
+        final ITokenCacheStore cacheStore =
+                getTokenCache(
+                        getExpireDate(MINUS_MINUTE),
+                        false, // store mrrt
+                        false, // store frt
+                        null // ext expires
+                        );
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAccountManagerGetAccountBehavior(mockedAccountManager);
@@ -204,20 +196,15 @@ public final class AcquireTokenRequestTest {
 
         prepareAuthForBrokerCall();
 
-        final AuthenticationContext authContext = new AuthenticationContext(
-                mockContext,
-                VALID_AUTHORITY,
-                false,
-                cacheStore
-        );
+        final AuthenticationContext authContext =
+                new AuthenticationContext(mockContext, VALID_AUTHORITY, false, cacheStore);
 
         final TestAuthCallback callback = new TestAuthCallback();
         authContext.acquireTokenSilentAsync(
                 "resource", // resource
                 "clientid", // client id
                 TEST_USERID,
-                callback
-        );
+                callback);
 
         final CountDownLatch signal = new CountDownLatch(1);
         signal.await(ACTIVITY_TIME_OUT, TimeUnit.MILLISECONDS);
@@ -236,14 +223,15 @@ public final class AcquireTokenRequestTest {
     @Test
     public void testFavorLocalCacheUseLocalRTFailsSwitchToBroker()
             throws PackageManager.NameNotFoundException, OperationCanceledException, IOException,
-            AuthenticatorException, InterruptedException, JSONException {
+                    AuthenticatorException, InterruptedException, JSONException {
         // Make sure AT is expired
-        final ITokenCacheStore cacheStore = getTokenCache(
-                getExpireDate(-MINUS_MINUTE),
-                true, // store mrrt
-                true, // store frt
-                null // ext expires
-        );
+        final ITokenCacheStore cacheStore =
+                getTokenCache(
+                        getExpireDate(-MINUS_MINUTE),
+                        true, // store mrrt
+                        true, // store frt
+                        null // ext expires
+                        );
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAccountManagerGetAccountBehavior(mockedAccountManager);
@@ -257,108 +245,69 @@ public final class AcquireTokenRequestTest {
 
         prepareAuthForBrokerCall();
 
-        final AuthenticationContext authContext = new AuthenticationContext(
-                mockContext,
-                VALID_AUTHORITY,
-                false, // validate authority
-                cacheStore
-        );
+        final AuthenticationContext authContext =
+                new AuthenticationContext(
+                        mockContext,
+                        VALID_AUTHORITY,
+                        false, // validate authority
+                        cacheStore);
 
         final TestAuthCallback callback = new TestAuthCallback();
 
-        authContext.acquireTokenSilentAsync(
-                "resource",
-                "clientid",
-                TEST_USERID,
-                callback
-        );
+        authContext.acquireTokenSilentAsync("resource", "clientid", TEST_USERID, callback);
 
         final CountDownLatch signal = new CountDownLatch(1);
         signal.await(ACTIVITY_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // verify getAuthToken called once
-        verify(
-                mockedAccountManager,
-                times(1)
-        ).getAuthToken(
-                Mockito.any(Account.class),
-                Matchers.anyString(),
-                Matchers.any(Bundle.class),
-                Matchers.eq(false),
-                (AccountManagerCallback<Bundle>) Matchers.eq(null),
-                Matchers.any(Handler.class)
-        );
+        verify(mockedAccountManager, times(1))
+                .getAuthToken(
+                        Mockito.any(Account.class),
+                        Matchers.anyString(),
+                        Matchers.any(Bundle.class),
+                        Matchers.eq(false),
+                        (AccountManagerCallback<Bundle>) Matchers.eq(null),
+                        Matchers.any(Handler.class));
 
         // verify returned AT is as expected
         assertNull(callback.getCallbackException());
         assertNotNull(callback.getCallbackResult());
         assertEquals(
-                "I am an access token from broker",
-                callback.getCallbackResult().getAccessToken()
-        );
+                "I am an access token from broker", callback.getCallbackResult().getAccessToken());
 
-        //verify local cache is not cleared
+        // verify local cache is not cleared
         assertNull(
                 cacheStore.getItem(
                         CacheKey.createCacheKeyForRTEntry(
                                 VALID_AUTHORITY,
                                 "resource", // resource
                                 "clientid", // client id
-                                TEST_USERID
-                        )
-                )
-        );
+                                TEST_USERID)));
 
         assertNull(
                 cacheStore.getItem(
                         CacheKey.createCacheKeyForRTEntry(
-                                VALID_AUTHORITY,
-                                "resource",
-                                "clientid",
-                                TEST_UPN
-                        )
-                )
-        );
+                                VALID_AUTHORITY, "resource", "clientid", TEST_UPN)));
 
         assertNull(
                 cacheStore.getItem(
-                        CacheKey.createCacheKeyForMRRT(
-                                VALID_AUTHORITY,
-                                "clientid",
-                                TEST_UPN
-                        )
-                )
-        );
+                        CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, "clientid", TEST_UPN)));
 
         assertNull(
                 cacheStore.getItem(
-                        CacheKey.createCacheKeyForMRRT(
-                                VALID_AUTHORITY,
-                                "clientid",
-                                TEST_USERID
-                        )
-                )
-        );
+                        CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, "clientid", TEST_USERID)));
+
+        assertNull(
+                cacheStore.getItem(
+                        CacheKey.createCacheKeyForFRT(
+                                VALID_AUTHORITY, AuthenticationConstants.MS_FAMILY_ID, TEST_UPN)));
 
         assertNull(
                 cacheStore.getItem(
                         CacheKey.createCacheKeyForFRT(
                                 VALID_AUTHORITY,
                                 AuthenticationConstants.MS_FAMILY_ID,
-                                TEST_UPN
-                        )
-                )
-        );
-
-        assertNull(
-                cacheStore.getItem(
-                        CacheKey.createCacheKeyForFRT(
-                                VALID_AUTHORITY,
-                                AuthenticationConstants.MS_FAMILY_ID,
-                                TEST_USERID
-                        )
-                )
-        );
+                                TEST_USERID)));
 
         assertFalse(authContext.getCache().getAll().hasNext());
         cacheStore.removeAll();
@@ -370,16 +319,17 @@ public final class AcquireTokenRequestTest {
      */
     @Test
     public void testFavorLocalCacheUseLocalRTFailsWithInvalidGrantSwitchToBroker()
-            throws PackageManager.NameNotFoundException, OperationCanceledException,
-            IOException, AuthenticatorException, InterruptedException, JSONException {
+            throws PackageManager.NameNotFoundException, OperationCanceledException, IOException,
+                    AuthenticatorException, InterruptedException, JSONException {
 
         // Make sure AT is expired
-        final ITokenCacheStore cacheStore = getTokenCache(
-                getExpireDate(-MINUS_MINUTE),
-                true, // store mrt
-                false, // store frt
-                null // ext expires
-        );
+        final ITokenCacheStore cacheStore =
+                getTokenCache(
+                        getExpireDate(-MINUS_MINUTE),
+                        true, // store mrt
+                        false, // store frt
+                        null // ext expires
+                        );
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAccountManagerGetAccountBehavior(mockedAccountManager);
@@ -391,12 +341,12 @@ public final class AcquireTokenRequestTest {
         prepareFailedHttpUrlConnection("invalid_grant");
         prepareAuthForBrokerCall();
 
-        final AuthenticationContext authContext = new AuthenticationContext(
-                mockContext,
-                VALID_AUTHORITY,
-                false, // validate authority
-                cacheStore
-        );
+        final AuthenticationContext authContext =
+                new AuthenticationContext(
+                        mockContext,
+                        VALID_AUTHORITY,
+                        false, // validate authority
+                        cacheStore);
 
         final CountDownLatch signal = new CountDownLatch(1);
         authContext.acquireTokenSilentAsync(
@@ -407,35 +357,27 @@ public final class AcquireTokenRequestTest {
                     @Override
                     public void onSuccess(final AuthenticationResult result) {
                         // verify getAuthToken called once
-                        verify(
-                                mockedAccountManager,
-                                times(1)
-                        ).getAuthToken(
-                                Mockito.any(Account.class),
-                                Matchers.anyString(),
-                                Matchers.any(Bundle.class),
-                                Matchers.eq(false),
-                                (AccountManagerCallback<Bundle>) Matchers.eq(null),
-                                Matchers.any(Handler.class)
-                        );
+                        verify(mockedAccountManager, times(1))
+                                .getAuthToken(
+                                        Mockito.any(Account.class),
+                                        Matchers.anyString(),
+                                        Matchers.any(Bundle.class),
+                                        Matchers.eq(false),
+                                        (AccountManagerCallback<Bundle>) Matchers.eq(null),
+                                        Matchers.any(Handler.class));
 
                         assertNotNull(result);
 
-                        assertEquals(
-                                "I am an access token from broker",
-                                result.getAccessToken()
-                        );
+                        assertEquals("I am an access token from broker", result.getAccessToken());
 
-                        //verify local cache is cleared
+                        // verify local cache is cleared
                         assertNull(
                                 cacheStore.getItem(
                                         CacheKey.createCacheKeyForRTEntry(
                                                 VALID_AUTHORITY,
                                                 "resource",
-                                                "clientid", TEST_USERID
-                                        )
-                                )
-                        );
+                                                "clientid",
+                                                TEST_USERID)));
 
                         assertNull(
                                 cacheStore.getItem(
@@ -443,30 +385,17 @@ public final class AcquireTokenRequestTest {
                                                 VALID_AUTHORITY,
                                                 "resource",
                                                 "clientid",
-                                                TEST_UPN
-                                        )
-                                )
-                        );
+                                                TEST_UPN)));
 
                         assertNull(
                                 cacheStore.getItem(
                                         CacheKey.createCacheKeyForMRRT(
-                                                VALID_AUTHORITY,
-                                                "clientid",
-                                                TEST_UPN
-                                        )
-                                )
-                        );
+                                                VALID_AUTHORITY, "clientid", TEST_UPN)));
 
                         assertNull(
                                 cacheStore.getItem(
                                         CacheKey.createCacheKeyForMRRT(
-                                                VALID_AUTHORITY,
-                                                "clientid",
-                                                TEST_USERID
-                                        )
-                                )
-                        );
+                                                VALID_AUTHORITY, "clientid", TEST_USERID)));
 
                         assertFalse(authContext.getCache().getAll().hasNext());
                         cacheStore.removeAll();
@@ -477,8 +406,7 @@ public final class AcquireTokenRequestTest {
                     public void onError(final Exception exc) {
                         fail();
                     }
-                }
-        );
+                });
 
         signal.await();
     }
@@ -489,15 +417,16 @@ public final class AcquireTokenRequestTest {
      */
     @Test
     public void testFavorLocalCacheUseLocalRTSucceeds()
-            throws PackageManager.NameNotFoundException, OperationCanceledException,
-            IOException, AuthenticatorException, InterruptedException, JSONException {
+            throws PackageManager.NameNotFoundException, OperationCanceledException, IOException,
+                    AuthenticatorException, InterruptedException, JSONException {
         // Make sure AT is expired
-        final ITokenCacheStore cacheStore = getTokenCache(
-                getExpireDate(-MINUS_MINUTE),
-                false, // store mrrt
-                false, // store frt
-                null // ext expires
-        );
+        final ITokenCacheStore cacheStore =
+                getTokenCache(
+                        getExpireDate(-MINUS_MINUTE),
+                        false, // store mrrt
+                        false, // store frt
+                        null // ext expires
+                        );
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAccountManagerGetAccountBehavior(mockedAccountManager);
@@ -506,50 +435,39 @@ public final class AcquireTokenRequestTest {
         final FileMockContext mockContext = createMockContext();
         mockContext.setMockedAccountManager(mockedAccountManager);
 
-        //mock HttpUrlConnection for refresh token request
+        // mock HttpUrlConnection for refresh token request
         prepareSuccessHttpUrlConnection();
 
         prepareAuthForBrokerCall();
 
-        final AuthenticationContext authContext = new AuthenticationContext(
-                mockContext,
-                VALID_AUTHORITY,
-                false, // validate authority
-                cacheStore
-        );
+        final AuthenticationContext authContext =
+                new AuthenticationContext(
+                        mockContext,
+                        VALID_AUTHORITY,
+                        false, // validate authority
+                        cacheStore);
 
         final TestAuthCallback callback = new TestAuthCallback();
 
-        authContext.acquireTokenSilentAsync(
-                "resource",
-                "clientid",
-                TEST_USERID,
-                callback
-        );
+        authContext.acquireTokenSilentAsync("resource", "clientid", TEST_USERID, callback);
 
         final CountDownLatch signal = new CountDownLatch(1);
         signal.await(ACTIVITY_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // verify getAuthToken not called
-        verify(
-                mockedAccountManager,
-                times(0)
-        ).getAuthToken(
-                Mockito.any(Account.class),
-                Matchers.anyString(),
-                Matchers.any(Bundle.class),
-                Matchers.eq(false),
-                (AccountManagerCallback<Bundle>) Matchers.eq(null),
-                Matchers.any(Handler.class)
-        );
+        verify(mockedAccountManager, times(0))
+                .getAuthToken(
+                        Mockito.any(Account.class),
+                        Matchers.anyString(),
+                        Matchers.any(Bundle.class),
+                        Matchers.eq(false),
+                        (AccountManagerCallback<Bundle>) Matchers.eq(null),
+                        Matchers.any(Handler.class));
 
         // verify returned AT is as expected
         assertNull(callback.getCallbackException());
         assertNotNull(callback.getCallbackResult());
-        assertEquals(
-                "I am a new access token",
-                callback.getCallbackResult().getAccessToken()
-        );
+        assertEquals("I am a new access token", callback.getCallbackResult().getAccessToken());
 
         assertTrue(cacheStore.getAll().hasNext());
         cacheStore.removeAll();
@@ -558,15 +476,11 @@ public final class AcquireTokenRequestTest {
     @Test
     public void testBothLocalAndBrokerSilentAuthFailedSwitchedToBrokerForInteractive()
             throws OperationCanceledException, IOException, AuthenticatorException,
-            PackageManager.NameNotFoundException, InterruptedException, JSONException {
+                    PackageManager.NameNotFoundException, InterruptedException, JSONException {
 
         // Make sure AT is expired
-        final ITokenCacheStore cacheStore = getTokenCache(
-                getExpireDate(-MINUS_MINUTE),
-                false,
-                false,
-                null
-        );
+        final ITokenCacheStore cacheStore =
+                getTokenCache(getExpireDate(-MINUS_MINUTE), false, false, null);
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAccountManagerGetAccountBehavior(mockedAccountManager);
@@ -579,26 +493,28 @@ public final class AcquireTokenRequestTest {
         prepareFailedHttpUrlConnection("invalid_request");
         prepareAuthForBrokerCall();
 
-        final AuthenticationContext authContext = new AuthenticationContext(
-                mockContext,
-                VALID_AUTHORITY,
-                false, // validate authority
-                cacheStore
-        );
+        final AuthenticationContext authContext =
+                new AuthenticationContext(
+                        mockContext,
+                        VALID_AUTHORITY,
+                        false, // validate authority
+                        cacheStore);
 
         final TestAuthCallback callback = new TestAuthCallback();
 
         final CountDownLatch latch = new CountDownLatch(1);
         final Activity mockedActivity = Mockito.mock(Activity.class);
 
-        doAnswer(new Answer() {
-                     @Override
-                     public Void answer(final InvocationOnMock invocation) {
-                         latch.countDown();
-                         return null;
-                     }
-                 }
-        ).when(mockedActivity).startActivityForResult(Mockito.any(Intent.class), Mockito.anyInt());
+        doAnswer(
+                        new Answer() {
+                            @Override
+                            public Void answer(final InvocationOnMock invocation) {
+                                latch.countDown();
+                                return null;
+                            }
+                        })
+                .when(mockedActivity)
+                .startActivityForResult(Mockito.any(Intent.class), Mockito.anyInt());
 
         authContext.acquireToken(
                 mockedActivity,
@@ -606,36 +522,29 @@ public final class AcquireTokenRequestTest {
                 "clientid",
                 authContext.getRedirectUriForBroker(),
                 TEST_UPN,
-                callback
-        );
+                callback);
 
         latch.await();
 
         // verify getAuthToken called once
-        verify(
-                mockedAccountManager,
-                times(1)
-        ).getAuthToken(
-                Mockito.any(Account.class),
-                Matchers.anyString(),
-                Matchers.any(Bundle.class),
-                Matchers.eq(false),
-                (AccountManagerCallback<Bundle>) Matchers.eq(null),
-                Matchers.any(Handler.class)
-        );
+        verify(mockedAccountManager, times(1))
+                .getAuthToken(
+                        Mockito.any(Account.class),
+                        Matchers.anyString(),
+                        Matchers.any(Bundle.class),
+                        Matchers.eq(false),
+                        (AccountManagerCallback<Bundle>) Matchers.eq(null),
+                        Matchers.any(Handler.class));
 
-        verify(
-                mockedAccountManager,
-                times(1)
-        ).addAccount(
-                Matchers.refEq(BROKER_ACCOUNT_TYPE),
-                anyString(),
-                (String[]) Matchers.eq(null),
-                Matchers.any(Bundle.class),
-                (Activity) Matchers.eq(null),
-                (AccountManagerCallback<Bundle>) Matchers.eq(null),
-                Matchers.any(Handler.class)
-        );
+        verify(mockedAccountManager, times(1))
+                .addAccount(
+                        Matchers.refEq(BROKER_ACCOUNT_TYPE),
+                        anyString(),
+                        (String[]) Matchers.eq(null),
+                        Matchers.any(Bundle.class),
+                        (Activity) Matchers.eq(null),
+                        (AccountManagerCallback<Bundle>) Matchers.eq(null),
+                        Matchers.any(Handler.class));
 
         assertFalse(cacheStore.getAll().hasNext());
         cacheStore.removeAll();
@@ -644,14 +553,10 @@ public final class AcquireTokenRequestTest {
     @Test
     public void testLocalSilentFailedBrokerSilentReturnErrorCannotTryWithInteractive()
             throws OperationCanceledException, IOException, AuthenticatorException,
-            PackageManager.NameNotFoundException, InterruptedException, JSONException {
+                    PackageManager.NameNotFoundException, InterruptedException, JSONException {
         // Make sure AT is expired
-        final ITokenCacheStore cacheStore = getTokenCache(
-                getExpireDate(-MINUS_MINUTE),
-                false,
-                false,
-                null
-        );
+        final ITokenCacheStore cacheStore =
+                getTokenCache(getExpireDate(-MINUS_MINUTE), false, false, null);
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAccountManagerGetAccountBehavior(mockedAccountManager);
@@ -664,8 +569,8 @@ public final class AcquireTokenRequestTest {
         prepareFailedHttpUrlConnection("invalid_request");
         prepareAuthForBrokerCall();
 
-        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
-                VALID_AUTHORITY, false, cacheStore);
+        final AuthenticationContext authContext =
+                new AuthenticationContext(mockContext, VALID_AUTHORITY, false, cacheStore);
         final TestAuthCallback callback = new TestAuthCallback();
 
         authContext.acquireToken(
@@ -674,37 +579,30 @@ public final class AcquireTokenRequestTest {
                 "clientid",
                 authContext.getRedirectUriForBroker(),
                 TEST_UPN,
-                callback
-        );
+                callback);
 
         final CountDownLatch signal = new CountDownLatch(1);
         signal.await(ACTIVITY_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // verify getAuthToken called once
-        verify(
-                mockedAccountManager,
-                times(1)
-        ).getAuthToken(
-                Mockito.any(Account.class),
-                Matchers.anyString(),
-                Matchers.any(Bundle.class),
-                Matchers.eq(false),
-                (AccountManagerCallback<Bundle>) Matchers.eq(null),
-                Matchers.any(Handler.class)
-        );
+        verify(mockedAccountManager, times(1))
+                .getAuthToken(
+                        Mockito.any(Account.class),
+                        Matchers.anyString(),
+                        Matchers.any(Bundle.class),
+                        Matchers.eq(false),
+                        (AccountManagerCallback<Bundle>) Matchers.eq(null),
+                        Matchers.any(Handler.class));
 
-        verify(
-                mockedAccountManager,
-                times(0)
-        ).addAccount(
-                Matchers.refEq(BROKER_ACCOUNT_TYPE),
-                anyString(),
-                (String[]) Matchers.eq(null),
-                Matchers.any(Bundle.class),
-                (Activity) Matchers.eq(null),
-                (AccountManagerCallback<Bundle>) Matchers.eq(null),
-                Matchers.any(Handler.class)
-        );
+        verify(mockedAccountManager, times(0))
+                .addAccount(
+                        Matchers.refEq(BROKER_ACCOUNT_TYPE),
+                        anyString(),
+                        (String[]) Matchers.eq(null),
+                        Matchers.any(Bundle.class),
+                        (Activity) Matchers.eq(null),
+                        (AccountManagerCallback<Bundle>) Matchers.eq(null),
+                        Matchers.any(Handler.class));
 
         assertFalse(cacheStore.getAll().hasNext());
         cacheStore.removeAll();
@@ -714,20 +612,16 @@ public final class AcquireTokenRequestTest {
     public void testMultipleATExistForSameClientAppAndResource()
             throws PackageManager.NameNotFoundException, InterruptedException {
         // insert multiple ATs for the same client app and resource
-        final ITokenCacheStore cacheStore = getTokenCache(
-                getExpireDate(MINUS_MINUTE),
-                false,
-                false,
-                null
-        );
+        final ITokenCacheStore cacheStore =
+                getTokenCache(getExpireDate(MINUS_MINUTE), false, false, null);
 
         final String resource = "resource";
         final String clientId = "clientid";
         insertTokenForDifferentUser(clientId, resource, getExpireDate(MINUS_MINUTE), cacheStore);
 
         final FileMockContext mockContext = createMockContext();
-        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
-                VALID_AUTHORITY, false, cacheStore);
+        final AuthenticationContext authContext =
+                new AuthenticationContext(mockContext, VALID_AUTHORITY, false, cacheStore);
 
         final CountDownLatch latch = new CountDownLatch(1);
         authContext.acquireTokenSilentAsync(
@@ -743,12 +637,12 @@ public final class AcquireTokenRequestTest {
                     @Override
                     public void onError(final Exception exc) {
                         assertTrue(exc instanceof AuthenticationException);
-                        final AuthenticationException authenticationException = (AuthenticationException) exc;
+                        final AuthenticationException authenticationException =
+                                (AuthenticationException) exc;
 
                         assertEquals(
                                 authenticationException.getCode(),
-                                ADALError.AUTH_FAILED_USER_MISMATCH
-                        );
+                                ADALError.AUTH_FAILED_USER_MISMATCH);
 
                         latch.countDown();
                     }
@@ -759,12 +653,8 @@ public final class AcquireTokenRequestTest {
     @Test
     public void testMutipleMRRTExistForTheSameApp()
             throws PackageManager.NameNotFoundException, InterruptedException {
-        final ITokenCacheStore cacheStore = getTokenCache(
-                getExpireDate(MINUS_MINUTE),
-                true,
-                false,
-                null
-        );
+        final ITokenCacheStore cacheStore =
+                getTokenCache(getExpireDate(MINUS_MINUTE), true, false, null);
 
         final String resource = "resource";
         final String clientId = "clientid";
@@ -772,12 +662,12 @@ public final class AcquireTokenRequestTest {
         insertTokenForDifferentUser(clientId, resource, getExpireDate(MINUS_MINUTE), cacheStore);
 
         final FileMockContext mockContext = createMockContext();
-        final AuthenticationContext authContext = new AuthenticationContext(
-                mockContext,
-                VALID_AUTHORITY,
-                false, // validate authority
-                cacheStore
-        );
+        final AuthenticationContext authContext =
+                new AuthenticationContext(
+                        mockContext,
+                        VALID_AUTHORITY,
+                        false, // validate authority
+                        cacheStore);
 
         final CountDownLatch latch = new CountDownLatch(1);
         authContext.acquireTokenSilentAsync(
@@ -793,12 +683,12 @@ public final class AcquireTokenRequestTest {
                     @Override
                     public void onError(final Exception exc) {
                         assertTrue(exc instanceof AuthenticationException);
-                        final AuthenticationException authenticationException = (AuthenticationException) exc;
+                        final AuthenticationException authenticationException =
+                                (AuthenticationException) exc;
 
                         assertEquals(
                                 authenticationException.getCode(),
-                                ADALError.AUTH_FAILED_USER_MISMATCH
-                        );
+                                ADALError.AUTH_FAILED_USER_MISMATCH);
 
                         latch.countDown();
                     }
@@ -806,10 +696,11 @@ public final class AcquireTokenRequestTest {
         latch.await();
     }
 
-    private void insertTokenForDifferentUser(final String clientId,
-                                             final String resource,
-                                             final Date expiresOn,
-                                             final ITokenCacheStore cacheStore) {
+    private void insertTokenForDifferentUser(
+            final String clientId,
+            final String resource,
+            final Date expiresOn,
+            final ITokenCacheStore cacheStore) {
         final String anotherUpn = "another_upn";
         final String anotherUserId = "another_userid";
         final UserInfo userInfo = new UserInfo();
@@ -817,123 +708,81 @@ public final class AcquireTokenRequestTest {
         userInfo.setUserId(anotherUserId);
         final String idToken = "I am a different id token";
 
-        final AuthenticationResult result = new AuthenticationResult(
-                "different at", // access token
-                "different rt", // refresh token
-                expiresOn,
-                false, // is broad
-                userInfo,
-                "", // tenant id
-                idToken,
-                null, // ext expires
-                clientId
-        );
+        final AuthenticationResult result =
+                new AuthenticationResult(
+                        "different at", // access token
+                        "different rt", // refresh token
+                        expiresOn,
+                        false, // is broad
+                        userInfo,
+                        "", // tenant id
+                        idToken,
+                        null, // ext expires
+                        clientId);
 
-        final TokenCacheItem differentTokenItem = TokenCacheItem.createRegularTokenCacheItem(
-                VALID_AUTHORITY,
-                resource,
-                clientId,
-                result
-        );
+        final TokenCacheItem differentTokenItem =
+                TokenCacheItem.createRegularTokenCacheItem(
+                        VALID_AUTHORITY, resource, clientId, result);
 
         cacheStore.setItem(
                 CacheKey.createCacheKeyForRTEntry(
-                        VALID_AUTHORITY,
-                        resource,
-                        clientId,
-                        anotherUserId
-                ), differentTokenItem
-        );
+                        VALID_AUTHORITY, resource, clientId, anotherUserId),
+                differentTokenItem);
 
         cacheStore.setItem(
-                CacheKey.createCacheKeyForRTEntry(
-                        VALID_AUTHORITY,
-                        resource,
-                        clientId,
-                        anotherUpn
-                ), differentTokenItem
-        );
+                CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, resource, clientId, anotherUpn),
+                differentTokenItem);
 
         cacheStore.setItem(
-                CacheKey.createCacheKeyForRTEntry(
-                        VALID_AUTHORITY,
-                        resource,
-                        clientId,
-                        null
-                ), differentTokenItem
-        );
+                CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, resource, clientId, null),
+                differentTokenItem);
 
-        final TokenCacheItem mrrtItem = TokenCacheItem.createMRRTTokenCacheItem(
-                VALID_AUTHORITY,
-                clientId,
-                result
-        );
+        final TokenCacheItem mrrtItem =
+                TokenCacheItem.createMRRTTokenCacheItem(VALID_AUTHORITY, clientId, result);
 
         cacheStore.setItem(
-                CacheKey.createCacheKeyForMRRT(
-                        VALID_AUTHORITY,
-                        clientId,
-                        anotherUpn),
-                mrrtItem
-        );
+                CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, clientId, anotherUpn), mrrtItem);
 
         cacheStore.setItem(
-                CacheKey.createCacheKeyForMRRT(
-                        VALID_AUTHORITY,
-                        clientId,
-                        anotherUserId),
-                mrrtItem
-        );
+                CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, clientId, anotherUserId), mrrtItem);
 
         cacheStore.setItem(
-                CacheKey.createCacheKeyForMRRT(
-                        VALID_AUTHORITY,
-                        clientId,
-                        null
-                ), mrrtItem
-        );
+                CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, clientId, null), mrrtItem);
     }
 
     public void testEmbeddedAuthCacheSkippedWhenClaimsSent()
-            throws PackageManager.NameNotFoundException, IOException,
-            InterruptedException, JSONException {
+            throws PackageManager.NameNotFoundException, IOException, InterruptedException,
+                    JSONException {
         // Make sure AT is not expired
-        final ITokenCacheStore cacheStore = getTokenCache(
-                getExpireDate(MINUS_MINUTE),
-                false,
-                false,
-                null
-        );
+        final ITokenCacheStore cacheStore =
+                getTokenCache(getExpireDate(MINUS_MINUTE), false, false, null);
 
         final FileMockContext mockContext = createMockContext();
         final PackageManager packageManager = mockContext.getPackageManager();
 
-        when(packageManager.resolveActivity(
-                Mockito.any(Intent.class),
-                Mockito.anyInt()
-        )).thenReturn(Mockito.mock(ResolveInfo.class));
+        when(packageManager.resolveActivity(Mockito.any(Intent.class), Mockito.anyInt()))
+                .thenReturn(Mockito.mock(ResolveInfo.class));
 
         final HttpURLConnection mockedConnection =
                 prepareFailedHttpUrlConnection("invalid_request");
 
-        final AuthenticationContext authContext = new AuthenticationContext(
-                mockContext,
-                VALID_AUTHORITY,
-                false,
-                cacheStore
-        );
+        final AuthenticationContext authContext =
+                new AuthenticationContext(mockContext, VALID_AUTHORITY, false, cacheStore);
 
         final TestAuthCallback callback = new TestAuthCallback();
         final CountDownLatch latch = new CountDownLatch(1);
         final Activity mockedActivity = Mockito.mock(Activity.class);
 
-        doAnswer(new Answer() {
-            @Override
-            public Object answer(final InvocationOnMock invocation) {
-                latch.countDown();
-                return null;
-            }
-        }).when(mockedActivity).startActivityForResult(Mockito.any(Intent.class), Mockito.anyInt());
+        doAnswer(
+                        new Answer() {
+                            @Override
+                            public Object answer(final InvocationOnMock invocation) {
+                                latch.countDown();
+                                return null;
+                            }
+                        })
+                .when(mockedActivity)
+                .startActivityForResult(Mockito.any(Intent.class), Mockito.anyInt());
 
         authContext.acquireToken(
                 mockedActivity,
@@ -944,8 +793,7 @@ public final class AcquireTokenRequestTest {
                 PromptBehavior.Auto,
                 null,
                 "testClaims",
-                callback
-        );
+                callback);
 
         latch.await();
 
@@ -955,27 +803,21 @@ public final class AcquireTokenRequestTest {
     public void testEmbeddedAuthCacheNotSkippedClaimsSentInExtraQp()
             throws PackageManager.NameNotFoundException, InterruptedException {
         // Make sure AT is not expired
-        final ITokenCacheStore cacheStore = getTokenCache(
-                getExpireDate(MINUS_MINUTE),
-                false,
-                false,
-                null
-        );
+        final ITokenCacheStore cacheStore =
+                getTokenCache(getExpireDate(MINUS_MINUTE), false, false, null);
 
         final FileMockContext mockContext = createMockContext();
         final PackageManager packageManager = mockContext.getPackageManager();
 
-        when(packageManager.resolveActivity(
-                Mockito.any(Intent.class),
-                Mockito.anyInt())
-        ).thenReturn(Mockito.mock(ResolveInfo.class));
+        when(packageManager.resolveActivity(Mockito.any(Intent.class), Mockito.anyInt()))
+                .thenReturn(Mockito.mock(ResolveInfo.class));
 
-        final AuthenticationContext authContext = new AuthenticationContext(
-                mockContext,
-                VALID_AUTHORITY,
-                false, // validate authority
-                cacheStore
-        );
+        final AuthenticationContext authContext =
+                new AuthenticationContext(
+                        mockContext,
+                        VALID_AUTHORITY,
+                        false, // validate authority
+                        cacheStore);
 
         final CountDownLatch latch = new CountDownLatch(1);
 
@@ -999,21 +841,16 @@ public final class AcquireTokenRequestTest {
                     public void onError(final Exception exc) {
                         fail();
                     }
-                }
-        );
+                });
 
         latch.await();
     }
 
     public void testClaimsSentInBothClaimParameterAndExtraQP()
             throws PackageManager.NameNotFoundException, IOException, OperationCanceledException,
-            AuthenticatorException {
-        final ITokenCacheStore cacheStore = getTokenCache(
-                getExpireDate(-MINUS_MINUTE),
-                false,
-                false,
-                null
-        );
+                    AuthenticatorException {
+        final ITokenCacheStore cacheStore =
+                getTokenCache(getExpireDate(-MINUS_MINUTE), false, false, null);
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAccountManagerGetAccountBehavior(mockedAccountManager);
@@ -1023,8 +860,8 @@ public final class AcquireTokenRequestTest {
         final FileMockContext mockContext = createMockContext();
         mockContext.setMockedAccountManager(mockedAccountManager);
 
-        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
-                VALID_AUTHORITY, false, cacheStore);
+        final AuthenticationContext authContext =
+                new AuthenticationContext(mockContext, VALID_AUTHORITY, false, cacheStore);
 
         try {
             authContext.acquireToken(
@@ -1036,19 +873,18 @@ public final class AcquireTokenRequestTest {
                     PromptBehavior.Auto,
                     "claims=testClaims234", // extra qp
                     "testClaims123", // claims
-                    new TestAuthCallback()
-            );
+                    new TestAuthCallback());
 
             fail("Expect exception to be thrown.");
         } catch (final Exception e) {
             assertTrue(e instanceof IllegalArgumentException);
         }
 
-        final IWindowComponent fragment = new IWindowComponent() {
-            @Override
-            public void startActivityForResult(Intent intent, int requestCode) {
-            }
-        };
+        final IWindowComponent fragment =
+                new IWindowComponent() {
+                    @Override
+                    public void startActivityForResult(Intent intent, int requestCode) {}
+                };
 
         try {
             authContext.acquireToken(
@@ -1060,8 +896,7 @@ public final class AcquireTokenRequestTest {
                     PromptBehavior.Auto,
                     "claims=testClaims234", // extra qp
                     "testClaims123", // claims
-                    new TestAuthCallback()
-            );
+                    new TestAuthCallback());
 
             fail("Expect exception to be thrown.");
         } catch (final Exception e) {
@@ -1077,8 +912,7 @@ public final class AcquireTokenRequestTest {
                     PromptBehavior.Auto,
                     "claims=testClaims234",
                     "testClaims123",
-                    new TestAuthCallback()
-            );
+                    new TestAuthCallback());
             fail("Expect exception to be thrown.");
         } catch (final Exception e) {
             assertTrue(e instanceof IllegalArgumentException);
@@ -1086,15 +920,10 @@ public final class AcquireTokenRequestTest {
     }
 
     public void testBrokerAuthCacheSkippedWhenClaimsSent()
-            throws PackageManager.NameNotFoundException, IOException,
-            OperationCanceledException, AuthenticatorException,
-            InterruptedException, JSONException {
-        final ITokenCacheStore cacheStore = getTokenCache(
-                getExpireDate(-MINUS_MINUTE),
-                false,
-                false,
-                null
-        );
+            throws PackageManager.NameNotFoundException, IOException, OperationCanceledException,
+                    AuthenticatorException, InterruptedException, JSONException {
+        final ITokenCacheStore cacheStore =
+                getTokenCache(getExpireDate(-MINUS_MINUTE), false, false, null);
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAccountManagerGetAccountBehavior(mockedAccountManager);
@@ -1108,23 +937,26 @@ public final class AcquireTokenRequestTest {
                 prepareFailedHttpUrlConnection("invalid_request");
         prepareAuthForBrokerCall();
 
-        final AuthenticationContext authContext = new AuthenticationContext(
-                mockContext,
-                VALID_AUTHORITY,
-                false, // calidate authority
-                cacheStore
-        );
+        final AuthenticationContext authContext =
+                new AuthenticationContext(
+                        mockContext,
+                        VALID_AUTHORITY,
+                        false, // calidate authority
+                        cacheStore);
 
         final TestAuthCallback callback = new TestAuthCallback();
         final CountDownLatch latch = new CountDownLatch(1);
         final Activity mockedActivity = Mockito.mock(Activity.class);
-        doAnswer(new Answer() {
-            @Override
-            public Object answer(InvocationOnMock invocation) {
-                latch.countDown();
-                return null;
-            }
-        }).when(mockedActivity).startActivityForResult(Mockito.any(Intent.class), Mockito.anyInt());
+        doAnswer(
+                        new Answer() {
+                            @Override
+                            public Object answer(InvocationOnMock invocation) {
+                                latch.countDown();
+                                return null;
+                            }
+                        })
+                .when(mockedActivity)
+                .startActivityForResult(Mockito.any(Intent.class), Mockito.anyInt());
 
         authContext.acquireToken(
                 mockedActivity,
@@ -1135,31 +967,29 @@ public final class AcquireTokenRequestTest {
                 PromptBehavior.Auto,
                 "",
                 "testClaims123",
-                callback
-        );
+                callback);
 
         latch.await();
 
-        // make sure no getAuthToken call made and no request to token endpoint(If there is one, there will be interaction with mocked httpUrlConnection).
-        Mockito.verify(
-                mockedAccountManager,
-                never()
-        ).getAuthToken(
-                Mockito.any(Account.class),
-                Matchers.anyString(),
-                Matchers.any(Bundle.class),
-                Matchers.eq(false),
-                (AccountManagerCallback<Bundle>) Matchers.eq(null),
-                Matchers.any(Handler.class)
-        );
+        // make sure no getAuthToken call made and no request to token endpoint(If there is one,
+        // there will be interaction with mocked httpUrlConnection).
+        Mockito.verify(mockedAccountManager, never())
+                .getAuthToken(
+                        Mockito.any(Account.class),
+                        Matchers.anyString(),
+                        Matchers.any(Bundle.class),
+                        Matchers.eq(false),
+                        (AccountManagerCallback<Bundle>) Matchers.eq(null),
+                        Matchers.any(Handler.class));
 
         Mockito.verifyZeroInteractions(mockedConnection);
     }
 
-    private ITokenCacheStore getTokenCache(final Date expiresOn,
-                                           final boolean storeMRRT,
-                                           final boolean storeFRT,
-                                           final Date extendedExpiresOn) {
+    private ITokenCacheStore getTokenCache(
+            final Date expiresOn,
+            final boolean storeMRRT,
+            final boolean storeFRT,
+            final Date extendedExpiresOn) {
         // prepare valid item in cache
         final UserInfo userInfo = new UserInfo();
         userInfo.setDisplayableId(TEST_UPN);
@@ -1172,164 +1002,111 @@ public final class AcquireTokenRequestTest {
 
         final AuthenticationResult result;
         if (extendedExpiresOn == null) {
-            result = new AuthenticationResult(
-                    accessToken,
-                    refreshToken,
-                    expiresOn,
-                    storeMRRT,
-                    userInfo,
-                    "", // tenant id
-                    idToken,
-                    null, // ext expires
-                    clientId
-            );
+            result =
+                    new AuthenticationResult(
+                            accessToken,
+                            refreshToken,
+                            expiresOn,
+                            storeMRRT,
+                            userInfo,
+                            "", // tenant id
+                            idToken,
+                            null, // ext expires
+                            clientId);
         } else {
-            result = new AuthenticationResult(
-                    accessToken,
-                    refreshToken,
-                    expiresOn,
-                    storeMRRT,
-                    userInfo,
-                    "", // tenant id
-                    idToken,
-                    extendedExpiresOn,
-                    clientId
-            );
+            result =
+                    new AuthenticationResult(
+                            accessToken,
+                            refreshToken,
+                            expiresOn,
+                            storeMRRT,
+                            userInfo,
+                            "", // tenant id
+                            idToken,
+                            extendedExpiresOn,
+                            clientId);
         }
 
-        final ITokenCacheStore cacheStore = new DefaultTokenCacheStore(
-                InstrumentationRegistry.getContext()
-        );
+        final ITokenCacheStore cacheStore =
+                new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
 
         cacheStore.removeAll();
         final TokenCacheItem regularRTItem =
                 TokenCacheItem.createRegularTokenCacheItem(
-                        VALID_AUTHORITY,
-                        resource,
-                        clientId,
-                        result
-                );
+                        VALID_AUTHORITY, resource, clientId, result);
 
         cacheStore.setItem(
-                CacheKey.createCacheKeyForRTEntry(
-                        VALID_AUTHORITY,
-                        resource,
-                        clientId,
-                        TEST_USERID
-                ),
-                regularRTItem
-        );
+                CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, resource, clientId, TEST_USERID),
+                regularRTItem);
 
         cacheStore.setItem(
-                CacheKey.createCacheKeyForRTEntry(
-                        VALID_AUTHORITY,
-                        resource,
-                        clientId,
-                        TEST_UPN
-                ),
-                regularRTItem
-        );
+                CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, resource, clientId, TEST_UPN),
+                regularRTItem);
 
         cacheStore.setItem(
-                CacheKey.createCacheKeyForRTEntry(
-                        VALID_AUTHORITY,
-                        resource,
-                        clientId,
-                        null
-                ),
-                regularRTItem
-        );
+                CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, resource, clientId, null),
+                regularRTItem);
 
         if (storeMRRT) {
-            final TokenCacheItem mrrtItem = TokenCacheItem.createMRRTTokenCacheItem(
-                    VALID_AUTHORITY,
-                    clientId,
-                    result
-            );
+            final TokenCacheItem mrrtItem =
+                    TokenCacheItem.createMRRTTokenCacheItem(VALID_AUTHORITY, clientId, result);
             cacheStore.setItem(
-                    CacheKey.createCacheKeyForMRRT(
-                            VALID_AUTHORITY,
-                            clientId,
-                            TEST_UPN
-                    ),
-                    mrrtItem
-            );
+                    CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, clientId, TEST_UPN), mrrtItem);
 
             cacheStore.setItem(
-                    CacheKey.createCacheKeyForMRRT(
-                            VALID_AUTHORITY,
-                            clientId,
-                            TEST_USERID
-                    ),
-                    mrrtItem
-            );
+                    CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, clientId, TEST_USERID),
+                    mrrtItem);
             cacheStore.setItem(
-                    CacheKey.createCacheKeyForMRRT(
-                            VALID_AUTHORITY,
-                            clientId,
-                            null
-                    ),
-                    mrrtItem
-            );
+                    CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, clientId, null), mrrtItem);
         }
 
         if (storeFRT) {
             result.setFamilyClientId(AuthenticationConstants.MS_FAMILY_ID);
 
-            final TokenCacheItem frtItem = TokenCacheItem.createFRRTTokenCacheItem(
-                    VALID_AUTHORITY,
-                    result
-            );
+            final TokenCacheItem frtItem =
+                    TokenCacheItem.createFRRTTokenCacheItem(VALID_AUTHORITY, result);
 
             cacheStore.setItem(
                     CacheKey.createCacheKeyForFRT(
-                            VALID_AUTHORITY,
-                            AuthenticationConstants.MS_FAMILY_ID,
-                            TEST_USERID
-                    ),
-                    frtItem
-            );
+                            VALID_AUTHORITY, AuthenticationConstants.MS_FAMILY_ID, TEST_USERID),
+                    frtItem);
 
             cacheStore.setItem(
                     CacheKey.createCacheKeyForFRT(
-                            VALID_AUTHORITY,
-                            AuthenticationConstants.MS_FAMILY_ID,
-                            TEST_UPN
-                    ),
-                    frtItem
-            );
+                            VALID_AUTHORITY, AuthenticationConstants.MS_FAMILY_ID, TEST_UPN),
+                    frtItem);
         }
 
         return cacheStore;
     }
 
     @Test
-    public void testVerifyBrokerRedirectUriValid() throws PackageManager.NameNotFoundException,
-            InterruptedException, OperationCanceledException, IOException, AuthenticatorException {
+    public void testVerifyBrokerRedirectUriValid()
+            throws PackageManager.NameNotFoundException, InterruptedException,
+                    OperationCanceledException, IOException, AuthenticatorException {
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAddAccountCall(mockedAccountManager);
 
-        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final FileMockContext mockContext =
+                new FileMockContext(InstrumentationRegistry.getContext());
         mockContext.setMockedAccountManager(mockedAccountManager);
         mockContext.setMockedPackageManager(getMockedPackageManager());
 
         AuthenticationSettings.INSTANCE.setUseBroker(true);
 
-        final AuthenticationContext authContext = new AuthenticationContext(
-                mockContext,
-                VALID_AUTHORITY,
-                false // validate authority
-        );
+        final AuthenticationContext authContext =
+                new AuthenticationContext(
+                        mockContext, VALID_AUTHORITY, false // validate authority
+                        );
 
-        //test@case valid redirect uri
+        // test@case valid redirect uri
         final String testRedirectUri =
                 "msauth://"
                         + mockContext.getPackageName()
                         + "/"
                         + URLEncoder.encode(
-                        AuthenticationConstants.Broker.COMPANY_PORTAL_APP_RELEASE_SIGNATURE,
-                        AuthenticationConstants.ENCODING_UTF8
-                );
+                                AuthenticationConstants.Broker.COMPANY_PORTAL_APP_RELEASE_SIGNATURE,
+                                AuthenticationConstants.ENCODING_UTF8);
 
         final TestAuthCallback callback = new TestAuthCallback();
 
@@ -1339,8 +1116,7 @@ public final class AcquireTokenRequestTest {
                 "clientid",
                 testRedirectUri,
                 "loginHint",
-                callback
-        );
+                callback);
 
         final CountDownLatch signal = new CountDownLatch(1);
         signal.await(ACTIVITY_TIME_OUT, TimeUnit.MILLISECONDS);
@@ -1362,11 +1138,8 @@ public final class AcquireTokenRequestTest {
         final FileMockContext mockContext = createMockContext();
 
         AuthenticationSettings.INSTANCE.setUseBroker(true);
-        final AuthenticationContext authContext = new AuthenticationContext(
-                mockContext,
-                VALID_AUTHORITY,
-                false
-        );
+        final AuthenticationContext authContext =
+                new AuthenticationContext(mockContext, VALID_AUTHORITY, false);
         final String testRedirectUri = "http://helloApp";
 
         final TestAuthCallback callback = new TestAuthCallback();
@@ -1376,8 +1149,7 @@ public final class AcquireTokenRequestTest {
                 "clientid",
                 testRedirectUri,
                 "loginHint",
-                callback
-        );
+                callback);
 
         final CountDownLatch signal = new CountDownLatch(1);
         signal.await(ACTIVITY_TIME_OUT, TimeUnit.MILLISECONDS);
@@ -1385,20 +1157,21 @@ public final class AcquireTokenRequestTest {
         assertNotNull(callback.getCallbackException());
         assertTrue(callback.getCallbackException() instanceof UsageAuthenticationException);
 
-        final UsageAuthenticationException usageAuthenticationException
-                = (UsageAuthenticationException) callback.getCallbackException();
+        final UsageAuthenticationException usageAuthenticationException =
+                (UsageAuthenticationException) callback.getCallbackException();
         assertTrue(usageAuthenticationException.getMessage().contains("prefix"));
     }
 
     @Test
-    public void testVerifyBrokerRedirectUriInvalidPackageName() throws NoSuchAlgorithmException,
-            PackageManager.NameNotFoundException, InterruptedException {
+    public void testVerifyBrokerRedirectUriInvalidPackageName()
+            throws NoSuchAlgorithmException, PackageManager.NameNotFoundException,
+                    InterruptedException {
         final FileMockContext mockContext = createMockContext();
 
         prepareAuthForBrokerCall();
         final TestAuthCallback callback = new TestAuthCallback();
-        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
-                VALID_AUTHORITY, false);
+        final AuthenticationContext authContext =
+                new AuthenticationContext(mockContext, VALID_AUTHORITY, false);
         final String testRedirectUri = "msauth://testapp/" + getEncodedTestingSignature();
 
         authContext.acquireToken(
@@ -1407,8 +1180,7 @@ public final class AcquireTokenRequestTest {
                 "clientid",
                 testRedirectUri,
                 "loginHint",
-                callback
-        );
+                callback);
 
         final CountDownLatch signal = new CountDownLatch(1);
         signal.await(ACTIVITY_TIME_OUT, TimeUnit.MILLISECONDS);
@@ -1416,8 +1188,8 @@ public final class AcquireTokenRequestTest {
         assertNotNull(callback.getCallbackException());
         assertTrue(callback.getCallbackException() instanceof UsageAuthenticationException);
 
-        final UsageAuthenticationException usageAuthenticationException
-                = (UsageAuthenticationException) callback.getCallbackException();
+        final UsageAuthenticationException usageAuthenticationException =
+                (UsageAuthenticationException) callback.getCallbackException();
 
         assertTrue(usageAuthenticationException.getMessage().contains("package name"));
     }
@@ -1432,16 +1204,13 @@ public final class AcquireTokenRequestTest {
 
         final TestAuthCallback callback = new TestAuthCallback();
 
-        final AuthenticationContext authContext = new AuthenticationContext(
-                mockContext,
-                VALID_AUTHORITY,
-                false // validate authority
-        );
+        final AuthenticationContext authContext =
+                new AuthenticationContext(
+                        mockContext, VALID_AUTHORITY, false // validate authority
+                        );
 
         final String testRedirectUri =
-                "msauth://"
-                        + mockContext.getPackageName()
-                        + "/falsesignH070%3D";
+                "msauth://" + mockContext.getPackageName() + "/falsesignH070%3D";
 
         authContext.acquireToken(
                 Mockito.mock(Activity.class),
@@ -1449,65 +1218,58 @@ public final class AcquireTokenRequestTest {
                 "clientid",
                 testRedirectUri,
                 "loginHint",
-                callback
-        );
+                callback);
 
         final CountDownLatch signal = new CountDownLatch(1);
         signal.await(ACTIVITY_TIME_OUT, TimeUnit.MILLISECONDS);
 
         assertNotNull(callback.getCallbackException());
         assertTrue(callback.getCallbackException() instanceof UsageAuthenticationException);
-        final UsageAuthenticationException usageAuthenticationException
-                = (UsageAuthenticationException) callback.getCallbackException();
+        final UsageAuthenticationException usageAuthenticationException =
+                (UsageAuthenticationException) callback.getCallbackException();
         assertTrue(usageAuthenticationException.getMessage().contains("signature"));
     }
-
 
     /**
      * Test for returning a valid stale AT when ExtendedLifetime is on and the server is down.
      */
     @Test
     public void testResiliencyTokenReturnExtendedLifetimeOnMinServerError()
-            throws PackageManager.NameNotFoundException, IOException,
-            InterruptedException, JSONException {
+            throws PackageManager.NameNotFoundException, IOException, InterruptedException,
+                    JSONException {
         // make sure AT's expires_in is expired and ext_expires_in is not expired
-        final ITokenCacheStore cacheStore = getTokenCache(
-                getExpireDate(-MINUS_MINUTE),
-                false,
-                false,
-                getExpireDate(EXTEND_MINUS_MINUTE)
-        );
+        final ITokenCacheStore cacheStore =
+                getTokenCache(
+                        getExpireDate(-MINUS_MINUTE),
+                        false,
+                        false,
+                        getExpireDate(EXTEND_MINUS_MINUTE));
 
         final FileMockContext mockContext = createMockContext();
-        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
-                VALID_AUTHORITY, false, cacheStore);
+        final AuthenticationContext authContext =
+                new AuthenticationContext(mockContext, VALID_AUTHORITY, false, cacheStore);
         authContext.setExtendedLifetimeEnabled(true);
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
 
-        Mockito.when(
-                mockedConnection.getOutputStream()
-        ).thenReturn(Mockito.mock(OutputStream.class));
+        Mockito.when(mockedConnection.getOutputStream())
+                .thenReturn(Mockito.mock(OutputStream.class));
 
-        Mockito.when(
-                mockedConnection.getInputStream()
-        ).thenReturn(
-                Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")),
-                Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT"))
-        );
+        Mockito.when(mockedConnection.getInputStream())
+                .thenReturn(
+                        Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")),
+                        Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")));
 
-        Mockito.when(
-                mockedConnection.getResponseCode()
-        ).thenReturn(HttpURLConnection.HTTP_INTERNAL_ERROR, HttpURLConnection.HTTP_INTERNAL_ERROR);
+        Mockito.when(mockedConnection.getResponseCode())
+                .thenReturn(
+                        HttpURLConnection.HTTP_INTERNAL_ERROR,
+                        HttpURLConnection.HTTP_INTERNAL_ERROR);
 
         try {
-            final AuthenticationResult result = authContext.acquireTokenSilentSync(
-                    "resource",
-                    "clientid",
-                    TEST_USERID
-            );
+            final AuthenticationResult result =
+                    authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
             verify(mockedConnection, times(2)).getInputStream();
             assertNotNull(result);
             assertTrue(result.getAccessToken().equals("I am an AT"));
@@ -1522,51 +1284,40 @@ public final class AcquireTokenRequestTest {
     }
 
     public void testResiliencyTokenReturnExtendedLifetimeOnMaxServerError()
-            throws PackageManager.NameNotFoundException, IOException,
-            InterruptedException, JSONException {
+            throws PackageManager.NameNotFoundException, IOException, InterruptedException,
+                    JSONException {
         // make sure AT's expires_in is expired and ext_expires_in is not expired
-        final ITokenCacheStore cacheStore = getTokenCache(
-                getExpireDate(-MINUS_MINUTE),
-                false,
-                false,
-                getExpireDate(EXTEND_MINUS_MINUTE)
-        );
+        final ITokenCacheStore cacheStore =
+                getTokenCache(
+                        getExpireDate(-MINUS_MINUTE),
+                        false,
+                        false,
+                        getExpireDate(EXTEND_MINUS_MINUTE));
 
         final FileMockContext mockContext = createMockContext();
 
-        final AuthenticationContext authContext = new AuthenticationContext(
-                mockContext,
-                VALID_AUTHORITY,
-                false,
-                cacheStore
-        );
+        final AuthenticationContext authContext =
+                new AuthenticationContext(mockContext, VALID_AUTHORITY, false, cacheStore);
         authContext.setExtendedLifetimeEnabled(true);
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
 
-        Mockito.when(
-                mockedConnection.getOutputStream()
-        ).thenReturn(Mockito.mock(OutputStream.class));
+        Mockito.when(mockedConnection.getOutputStream())
+                .thenReturn(Mockito.mock(OutputStream.class));
 
-        Mockito.when(
-                mockedConnection.getInputStream()
-        ).thenReturn(
-                Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")),
-                Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT"))
-        );
+        Mockito.when(mockedConnection.getInputStream())
+                .thenReturn(
+                        Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")),
+                        Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")));
 
-        Mockito.when(
-                mockedConnection.getResponseCode()
-        ).thenReturn(MAX_RESILIENCY_ERROR_CODE, MAX_RESILIENCY_ERROR_CODE);
+        Mockito.when(mockedConnection.getResponseCode())
+                .thenReturn(MAX_RESILIENCY_ERROR_CODE, MAX_RESILIENCY_ERROR_CODE);
 
         try {
-            final AuthenticationResult result = authContext.acquireTokenSilentSync(
-                    "resource",
-                    "clientid",
-                    TEST_USERID
-            );
+            final AuthenticationResult result =
+                    authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
 
             verify(mockedConnection, times(2)).getInputStream();
             assertNotNull(result);
@@ -1587,44 +1338,37 @@ public final class AcquireTokenRequestTest {
      */
     @Test
     public void testResiliencyTokenReturnExtendedLifetimeOnwithRetryFail()
-            throws PackageManager.NameNotFoundException, IOException,
-            InterruptedException, JSONException {
+            throws PackageManager.NameNotFoundException, IOException, InterruptedException,
+                    JSONException {
         // make sure AT's expires_in is expired and ext_expires_in is not expired
-        final ITokenCacheStore cacheStore = getTokenCache(
-                getExpireDate(-MINUS_MINUTE),
-                false,
-                false,
-                getExpireDate(EXTEND_MINUS_MINUTE)
-        );
+        final ITokenCacheStore cacheStore =
+                getTokenCache(
+                        getExpireDate(-MINUS_MINUTE),
+                        false,
+                        false,
+                        getExpireDate(EXTEND_MINUS_MINUTE));
 
         final FileMockContext mockContext = createMockContext();
-        final AuthenticationContext authContext = new AuthenticationContext(
-                mockContext,
-                VALID_AUTHORITY,
-                false,
-                cacheStore
-        );
+        final AuthenticationContext authContext =
+                new AuthenticationContext(mockContext, VALID_AUTHORITY, false, cacheStore);
         authContext.setExtendedLifetimeEnabled(true);
 
-        //mock http response
+        // mock http response
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
 
-        Mockito.when(
-                mockedConnection.getOutputStream()
-        ).thenReturn(Mockito.mock(OutputStream.class));
+        Mockito.when(mockedConnection.getOutputStream())
+                .thenReturn(Mockito.mock(OutputStream.class));
 
-        Mockito.when(
-                mockedConnection.getInputStream()
-        ).thenReturn(
-                Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")),
-                Util.createInputStream(Util.getErrorResponseBody("HTTP_BAD_GATEWAY"))
-        );
+        Mockito.when(mockedConnection.getInputStream())
+                .thenReturn(
+                        Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")),
+                        Util.createInputStream(Util.getErrorResponseBody("HTTP_BAD_GATEWAY")));
 
-        Mockito.when(
-                mockedConnection.getResponseCode()
-        ).thenReturn(HttpURLConnection.HTTP_GATEWAY_TIMEOUT, HttpURLConnection.HTTP_NOT_FOUND);
+        Mockito.when(mockedConnection.getResponseCode())
+                .thenReturn(
+                        HttpURLConnection.HTTP_GATEWAY_TIMEOUT, HttpURLConnection.HTTP_NOT_FOUND);
 
         try {
             authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
@@ -1637,8 +1381,7 @@ public final class AcquireTokenRequestTest {
 
             assertSame(
                     ((AuthenticationException) exception.getCause()).getCode(),
-                    ADALError.SERVER_ERROR
-            );
+                    ADALError.SERVER_ERROR);
         } finally {
             cacheStore.removeAll();
         }
@@ -1650,40 +1393,30 @@ public final class AcquireTokenRequestTest {
      */
     @Test
     public void testResiliencyTokenReturnExtendedLifetimeOnwithExpiredStaleAT()
-            throws PackageManager.NameNotFoundException, IOException,
-            InterruptedException, JSONException {
+            throws PackageManager.NameNotFoundException, IOException, InterruptedException,
+                    JSONException {
         // make sure AT's expires_in is expired and ext_expires_in is expired
-        final ITokenCacheStore cacheStore = getTokenCache(
-                getExpireDate(-MINUS_MINUTE),
-                false,
-                false,
-                getExpireDate(-1)
-        );
+        final ITokenCacheStore cacheStore =
+                getTokenCache(getExpireDate(-MINUS_MINUTE), false, false, getExpireDate(-1));
 
         final FileMockContext mockContext = createMockContext();
-        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
-                VALID_AUTHORITY, false, cacheStore);
+        final AuthenticationContext authContext =
+                new AuthenticationContext(mockContext, VALID_AUTHORITY, false, cacheStore);
         authContext.setExtendedLifetimeEnabled(true);
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
 
-        Mockito.when(
-                mockedConnection.getOutputStream()
-        ).thenReturn(Mockito.mock(OutputStream.class));
+        Mockito.when(mockedConnection.getOutputStream())
+                .thenReturn(Mockito.mock(OutputStream.class));
 
-        Mockito.when(
-                mockedConnection.getInputStream()
-        ).thenReturn(
-                Util.createInputStream(
-                        Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")
-                )
-        );
+        Mockito.when(mockedConnection.getInputStream())
+                .thenReturn(
+                        Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")));
 
-        Mockito.when(
-                mockedConnection.getResponseCode()
-        ).thenReturn(HttpURLConnection.HTTP_GATEWAY_TIMEOUT);
+        Mockito.when(mockedConnection.getResponseCode())
+                .thenReturn(HttpURLConnection.HTTP_GATEWAY_TIMEOUT);
 
         try {
             authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
@@ -1695,8 +1428,7 @@ public final class AcquireTokenRequestTest {
             assertTrue(exception.getCause() instanceof AuthenticationException);
             assertSame(
                     ((AuthenticationException) exception.getCause()).getCode(),
-                    ADALError.SERVER_ERROR
-            );
+                    ADALError.SERVER_ERROR);
         } finally {
             cacheStore.removeAll();
         }
@@ -1708,47 +1440,40 @@ public final class AcquireTokenRequestTest {
      */
     @Test
     public void testResiliencyTokenReturnExtendedLifetimeOnwithValidRetry()
-            throws PackageManager.NameNotFoundException, IOException,
-            InterruptedException, JSONException {
+            throws PackageManager.NameNotFoundException, IOException, InterruptedException,
+                    JSONException {
         // make sure AT's expires_in is expired and ext_expires_in is not expired
-        final ITokenCacheStore cacheStore = getTokenCache(
-                getExpireDate(-MINUS_MINUTE),
-                false,
-                false,
-                getExpireDate(EXTEND_MINUS_MINUTE)
-        );
+        final ITokenCacheStore cacheStore =
+                getTokenCache(
+                        getExpireDate(-MINUS_MINUTE),
+                        false,
+                        false,
+                        getExpireDate(EXTEND_MINUS_MINUTE));
 
         final FileMockContext mockContext = createMockContext();
-        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
-                VALID_AUTHORITY, false, cacheStore);
+        final AuthenticationContext authContext =
+                new AuthenticationContext(mockContext, VALID_AUTHORITY, false, cacheStore);
         authContext.setExtendedLifetimeEnabled(true);
 
-        //mock http response
+        // mock http response
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
 
-        Mockito.when(
-                mockedConnection.getOutputStream()
-        ).thenReturn(Mockito.mock(OutputStream.class));
+        Mockito.when(mockedConnection.getOutputStream())
+                .thenReturn(Mockito.mock(OutputStream.class));
 
-        Mockito.when(
-                mockedConnection.getInputStream()
-        ).thenReturn(
-                Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")),
-                Util.createInputStream(Util.getSuccessTokenResponse(false, false))
-        );
+        Mockito.when(mockedConnection.getInputStream())
+                .thenReturn(
+                        Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")),
+                        Util.createInputStream(Util.getSuccessTokenResponse(false, false)));
 
-        Mockito.when(
-                mockedConnection.getResponseCode()
-        ).thenReturn(HttpURLConnection.HTTP_GATEWAY_TIMEOUT, HttpURLConnection.HTTP_OK);
+        Mockito.when(mockedConnection.getResponseCode())
+                .thenReturn(HttpURLConnection.HTTP_GATEWAY_TIMEOUT, HttpURLConnection.HTTP_OK);
 
         try {
-            final AuthenticationResult result = authContext.acquireTokenSilentSync(
-                    "resource",
-                    "clientid",
-                    TEST_USERID
-            );
+            final AuthenticationResult result =
+                    authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
 
             verify(mockedConnection, times(2)).getInputStream();
             assertNotNull(result);
@@ -1767,175 +1492,38 @@ public final class AcquireTokenRequestTest {
      */
     @Test
     public void testResiliencyTokenReturnExtendedLifetimeOff()
-            throws PackageManager.NameNotFoundException, IOException,
-            InterruptedException, JSONException {
+            throws PackageManager.NameNotFoundException, IOException, InterruptedException,
+                    JSONException {
         // make sure AT's expires_in is expired and ext_expires_in is not expired
-        final ITokenCacheStore cacheStore = getTokenCache(
-                getExpireDate(-MINUS_MINUTE),
-                false,
-                false,
-                getExpireDate(EXTEND_MINUS_MINUTE)
-        );
+        final ITokenCacheStore cacheStore =
+                getTokenCache(
+                        getExpireDate(-MINUS_MINUTE),
+                        false,
+                        false,
+                        getExpireDate(EXTEND_MINUS_MINUTE));
 
         final FileMockContext mockContext = createMockContext();
-        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
-                VALID_AUTHORITY, false, cacheStore);
+        final AuthenticationContext authContext =
+                new AuthenticationContext(mockContext, VALID_AUTHORITY, false, cacheStore);
         authContext.setExtendedLifetimeEnabled(false);
 
-        //mock http response
+        // mock http response
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
 
-        Mockito.when(
-                mockedConnection.getOutputStream()
-        ).thenReturn(Mockito.mock(OutputStream.class));
+        Mockito.when(mockedConnection.getOutputStream())
+                .thenReturn(Mockito.mock(OutputStream.class));
 
-        Mockito.when(
-                mockedConnection.getInputStream()
-        ).thenReturn(
-                Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")),
-                Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT"))
-        );
+        Mockito.when(mockedConnection.getInputStream())
+                .thenReturn(
+                        Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")),
+                        Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")));
 
-        Mockito.when(
-                mockedConnection.getResponseCode()
-        ).thenReturn(HttpURLConnection.HTTP_GATEWAY_TIMEOUT, HttpURLConnection.HTTP_GATEWAY_TIMEOUT);
-
-        try {
-            authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
-            fail("Expect an exception");
-        } catch (final AuthenticationException exception) {
-            verify(mockedConnection, times(2)).getInputStream();
-            assertNotNull(exception);
-            assertSame(exception.getCode(), ADALError.AUTH_FAILED_NO_TOKEN);
-            assertTrue(exception.getCause() instanceof AuthenticationException);
-            assertSame(((AuthenticationException) exception.getCause()).getCode(), ADALError.SERVER_ERROR);
-        } finally {
-            cacheStore.removeAll();
-        }
-    }
-
-    /**
-     * Test for throwing exception when the request is rejected by server through there is a valid
-     * stale AT in the cache and the ExtendedLifetime is on.
-     */
-    @Test
-    public void testResiliencyTokenReturnExtendedLifetimeOnwithoutRetry()
-            throws PackageManager.NameNotFoundException, IOException,
-            InterruptedException, JSONException {
-        // make sure AT's expires_in is expired and ext_expires_in is not expired
-        final ITokenCacheStore cacheStore = getTokenCache(
-                getExpireDate(-MINUS_MINUTE),
-                false,
-                false,
-                getExpireDate(EXTEND_MINUS_MINUTE)
-        );
-
-        final FileMockContext mockContext = createMockContext();
-        final AuthenticationContext authContext = new AuthenticationContext(
-                mockContext,
-                VALID_AUTHORITY,
-                false,
-                cacheStore
-        );
-
-        authContext.setExtendedLifetimeEnabled(true);
-
-        //mock http response
-        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
-        Util.prepareMockedUrlConnection(mockedConnection);
-
-        Mockito.when(
-                mockedConnection.getOutputStream()
-        ).thenReturn(Mockito.mock(OutputStream.class));
-
-        Mockito.when(
-                mockedConnection.getInputStream()
-        ).thenReturn(Util.createInputStream(Util.getErrorResponseBody("HTTP_CONFLICT")));
-
-        Mockito.when(
-                mockedConnection.getResponseCode()
-        ).thenReturn(MAX_RESILIENCY_ERROR_CODE + 1); //status code 600
-
-        try {
-            authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
-            fail("Expect an exception");
-        } catch (final AuthenticationException exception) {
-            verify(mockedConnection, times(1)).getInputStream();
-            assertNotNull(exception);
-            assertSame(exception.getCode(), ADALError.AUTH_FAILED_NO_TOKEN);
-            assertTrue(exception.getCause() instanceof AuthenticationException);
-            assertSame(((AuthenticationException) exception.getCause()).getCode(), ADALError.SERVER_ERROR);
-        } finally {
-            cacheStore.removeAll();
-        }
-    }
-
-    public void testResiliencyTokenReturnExtendedLifetimeOnwithNullAccessTokenCacheItem()
-            throws PackageManager.NameNotFoundException, IOException, InterruptedException, JSONException {
-        // make sure AT's expires_in is expired and ext_expires_in is expired
-        final ITokenCacheStore cacheStore = getTokenCache(
-                getExpireDate(-MINUS_MINUTE),
-                true,
-                true,
-                getExpireDate(EXTEND_MINUS_MINUTE)
-        );
-
-        cacheStore.removeItem(
-                CacheKey.createCacheKeyForRTEntry(
-                        VALID_AUTHORITY,
-                        "resource",
-                        "clientId",
-                        TEST_USERID)
-        );
-
-        cacheStore.removeItem(
-                CacheKey.createCacheKeyForRTEntry(
-                        VALID_AUTHORITY,
-                        "resource",
-                        "clientId",
-                        TEST_UPN)
-        );
-
-        cacheStore.getItem(
-                CacheKey.createCacheKeyForMRRT(
-                        VALID_AUTHORITY,
-                        "clientId",
-                        TEST_USERID)
-        ).setFamilyClientId(AuthenticationConstants.MS_FAMILY_ID);
-
-        cacheStore.getItem(
-                CacheKey.createCacheKeyForMRRT(
-                        VALID_AUTHORITY,
-                        "clientId",
-                        TEST_UPN)
-        ).setFamilyClientId(AuthenticationConstants.MS_FAMILY_ID);
-
-        final FileMockContext mockContext = createMockContext();
-        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
-                VALID_AUTHORITY, false, cacheStore);
-        authContext.setExtendedLifetimeEnabled(true);
-
-        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
-        Util.prepareMockedUrlConnection(mockedConnection);
-
-        Mockito.when(
-                mockedConnection.getOutputStream()
-        ).thenReturn(Mockito.mock(OutputStream.class));
-
-        Mockito.when(
-                mockedConnection.getInputStream()
-        ).thenReturn(
-                Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")),
-                Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT"))
-        );
-
-        Mockito.when(
-                mockedConnection.getResponseCode()
-        ).thenReturn(HttpURLConnection.HTTP_GATEWAY_TIMEOUT, HttpURLConnection.HTTP_GATEWAY_TIMEOUT);
+        Mockito.when(mockedConnection.getResponseCode())
+                .thenReturn(
+                        HttpURLConnection.HTTP_GATEWAY_TIMEOUT,
+                        HttpURLConnection.HTTP_GATEWAY_TIMEOUT);
 
         try {
             authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
@@ -1947,8 +1535,124 @@ public final class AcquireTokenRequestTest {
             assertTrue(exception.getCause() instanceof AuthenticationException);
             assertSame(
                     ((AuthenticationException) exception.getCause()).getCode(),
-                    ADALError.SERVER_ERROR
-            );
+                    ADALError.SERVER_ERROR);
+        } finally {
+            cacheStore.removeAll();
+        }
+    }
+
+    /**
+     * Test for throwing exception when the request is rejected by server through there is a valid
+     * stale AT in the cache and the ExtendedLifetime is on.
+     */
+    @Test
+    public void testResiliencyTokenReturnExtendedLifetimeOnwithoutRetry()
+            throws PackageManager.NameNotFoundException, IOException, InterruptedException,
+                    JSONException {
+        // make sure AT's expires_in is expired and ext_expires_in is not expired
+        final ITokenCacheStore cacheStore =
+                getTokenCache(
+                        getExpireDate(-MINUS_MINUTE),
+                        false,
+                        false,
+                        getExpireDate(EXTEND_MINUS_MINUTE));
+
+        final FileMockContext mockContext = createMockContext();
+        final AuthenticationContext authContext =
+                new AuthenticationContext(mockContext, VALID_AUTHORITY, false, cacheStore);
+
+        authContext.setExtendedLifetimeEnabled(true);
+
+        // mock http response
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
+        Util.prepareMockedUrlConnection(mockedConnection);
+
+        Mockito.when(mockedConnection.getOutputStream())
+                .thenReturn(Mockito.mock(OutputStream.class));
+
+        Mockito.when(mockedConnection.getInputStream())
+                .thenReturn(Util.createInputStream(Util.getErrorResponseBody("HTTP_CONFLICT")));
+
+        Mockito.when(mockedConnection.getResponseCode())
+                .thenReturn(MAX_RESILIENCY_ERROR_CODE + 1); // status code 600
+
+        try {
+            authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
+            fail("Expect an exception");
+        } catch (final AuthenticationException exception) {
+            verify(mockedConnection, times(1)).getInputStream();
+            assertNotNull(exception);
+            assertSame(exception.getCode(), ADALError.AUTH_FAILED_NO_TOKEN);
+            assertTrue(exception.getCause() instanceof AuthenticationException);
+            assertSame(
+                    ((AuthenticationException) exception.getCause()).getCode(),
+                    ADALError.SERVER_ERROR);
+        } finally {
+            cacheStore.removeAll();
+        }
+    }
+
+    public void testResiliencyTokenReturnExtendedLifetimeOnwithNullAccessTokenCacheItem()
+            throws PackageManager.NameNotFoundException, IOException, InterruptedException,
+                    JSONException {
+        // make sure AT's expires_in is expired and ext_expires_in is expired
+        final ITokenCacheStore cacheStore =
+                getTokenCache(
+                        getExpireDate(-MINUS_MINUTE),
+                        true,
+                        true,
+                        getExpireDate(EXTEND_MINUS_MINUTE));
+
+        cacheStore.removeItem(
+                CacheKey.createCacheKeyForRTEntry(
+                        VALID_AUTHORITY, "resource", "clientId", TEST_USERID));
+
+        cacheStore.removeItem(
+                CacheKey.createCacheKeyForRTEntry(
+                        VALID_AUTHORITY, "resource", "clientId", TEST_UPN));
+
+        cacheStore
+                .getItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, "clientId", TEST_USERID))
+                .setFamilyClientId(AuthenticationConstants.MS_FAMILY_ID);
+
+        cacheStore
+                .getItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, "clientId", TEST_UPN))
+                .setFamilyClientId(AuthenticationConstants.MS_FAMILY_ID);
+
+        final FileMockContext mockContext = createMockContext();
+        final AuthenticationContext authContext =
+                new AuthenticationContext(mockContext, VALID_AUTHORITY, false, cacheStore);
+        authContext.setExtendedLifetimeEnabled(true);
+
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
+        Util.prepareMockedUrlConnection(mockedConnection);
+
+        Mockito.when(mockedConnection.getOutputStream())
+                .thenReturn(Mockito.mock(OutputStream.class));
+
+        Mockito.when(mockedConnection.getInputStream())
+                .thenReturn(
+                        Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")),
+                        Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")));
+
+        Mockito.when(mockedConnection.getResponseCode())
+                .thenReturn(
+                        HttpURLConnection.HTTP_GATEWAY_TIMEOUT,
+                        HttpURLConnection.HTTP_GATEWAY_TIMEOUT);
+
+        try {
+            authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
+            fail("Expect an exception");
+        } catch (final AuthenticationException exception) {
+            verify(mockedConnection, times(2)).getInputStream();
+            assertNotNull(exception);
+            assertSame(exception.getCode(), ADALError.AUTH_FAILED_NO_TOKEN);
+            assertTrue(exception.getCause() instanceof AuthenticationException);
+            assertSame(
+                    ((AuthenticationException) exception.getCause()).getCode(),
+                    ADALError.SERVER_ERROR);
         } finally {
             cacheStore.removeAll();
         }
@@ -1958,19 +1662,17 @@ public final class AcquireTokenRequestTest {
     public void testVerifyManifestPermissionMissingGetAccountsPermission()
             throws InterruptedException, PackageManager.NameNotFoundException {
         final FileMockContext mockContext = createMockContext();
-        when(
-                mockContext
+        when(mockContext
                         .getPackageManager()
                         .checkPermission(
                                 Mockito.refEq("android.permission.GET_ACCOUNTS"),
-                                Mockito.anyString()
-                        )
-        ).thenReturn(PackageManager.PERMISSION_DENIED);
+                                Mockito.anyString()))
+                .thenReturn(PackageManager.PERMISSION_DENIED);
 
         AuthenticationSettings.INSTANCE.setUseBroker(true);
 
-        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
-                VALID_AUTHORITY, false);
+        final AuthenticationContext authContext =
+                new AuthenticationContext(mockContext, VALID_AUTHORITY, false);
 
         final TestAuthCallback callback = new TestAuthCallback();
         authContext.acquireToken(
@@ -1979,8 +1681,7 @@ public final class AcquireTokenRequestTest {
                 "clientid",
                 authContext.getRedirectUriForBroker(),
                 "loginHint",
-                callback
-        );
+                callback);
 
         final CountDownLatch signal = new CountDownLatch(1);
         signal.await(ACTIVITY_TIME_OUT, TimeUnit.MILLISECONDS);
@@ -1988,11 +1689,13 @@ public final class AcquireTokenRequestTest {
         assertNotNull(callback.getCallbackException());
         assertTrue(callback.getCallbackException() instanceof UsageAuthenticationException);
 
-        final UsageAuthenticationException usageAuthenticationException
-                = (UsageAuthenticationException) callback.getCallbackException();
+        final UsageAuthenticationException usageAuthenticationException =
+                (UsageAuthenticationException) callback.getCallbackException();
 
         assertTrue(usageAuthenticationException.getMessage().contains("GET_ACCOUNTS"));
-        assertEquals(ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING, usageAuthenticationException.getCode());
+        assertEquals(
+                ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,
+                usageAuthenticationException.getCode());
     }
 
     @Test
@@ -2000,43 +1703,31 @@ public final class AcquireTokenRequestTest {
             throws InterruptedException, PackageManager.NameNotFoundException {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             final FileMockContext mockContext = createMockContext();
-            when(
-                    mockContext
+            when(mockContext
                             .getPackageManager()
                             .checkPermission(
-                                    Mockito.refEq(
-                                            "android.permission.GET_ACCOUNTS"
-                                    ),
-                                    Mockito.anyString()
-                            )
-            ).thenReturn(PackageManager.PERMISSION_GRANTED);
+                                    Mockito.refEq("android.permission.GET_ACCOUNTS"),
+                                    Mockito.anyString()))
+                    .thenReturn(PackageManager.PERMISSION_GRANTED);
 
-            when(
-                    mockContext
+            when(mockContext
                             .getPackageManager()
                             .checkPermission(
-                                    Mockito.refEq(
-                                            "android.permission.MANAGE_ACCOUNTS"),
-                                    Mockito.anyString()
-                            )
-            ).thenReturn(PackageManager.PERMISSION_DENIED);
+                                    Mockito.refEq("android.permission.MANAGE_ACCOUNTS"),
+                                    Mockito.anyString()))
+                    .thenReturn(PackageManager.PERMISSION_DENIED);
 
-            when(
-                    mockContext
+            when(mockContext
                             .getPackageManager()
                             .checkPermission(
                                     Mockito.refEq("android.permission.USE_CREDENTIALS"),
-                                    Mockito.anyString()
-                            )
-            ).thenReturn(PackageManager.PERMISSION_DENIED);
+                                    Mockito.anyString()))
+                    .thenReturn(PackageManager.PERMISSION_DENIED);
 
             AuthenticationSettings.INSTANCE.setUseBroker(true);
 
-            final AuthenticationContext authContext = new AuthenticationContext(
-                    mockContext,
-                    VALID_AUTHORITY,
-                    false
-            );
+            final AuthenticationContext authContext =
+                    new AuthenticationContext(mockContext, VALID_AUTHORITY, false);
 
             final TestAuthCallback callback = new TestAuthCallback();
             authContext.acquireToken(
@@ -2045,110 +1736,88 @@ public final class AcquireTokenRequestTest {
                     "clientid",
                     authContext.getRedirectUriForBroker(),
                     "loginHint",
-                    callback
-            );
+                    callback);
 
             final CountDownLatch signal = new CountDownLatch(1);
             signal.await(ACTIVITY_TIME_OUT, TimeUnit.MILLISECONDS);
 
             assertNotNull(callback.getCallbackException());
             assertTrue(callback.getCallbackException() instanceof UsageAuthenticationException);
-            final UsageAuthenticationException usageAuthenticationException
-                    = (UsageAuthenticationException) callback.getCallbackException();
+            final UsageAuthenticationException usageAuthenticationException =
+                    (UsageAuthenticationException) callback.getCallbackException();
             assertTrue(usageAuthenticationException.getMessage().contains("MANAGE_ACCOUNTS"));
             assertTrue(usageAuthenticationException.getMessage().contains("USE_CREDENTIALS"));
-            assertEquals(ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING, usageAuthenticationException.getCode());
+            assertEquals(
+                    ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,
+                    usageAuthenticationException.getCode());
         }
     }
 
-    public void testSilentRequestMissingPermissionHandlingForAndroid22andBelow() throws InterruptedException, PackageManager.NameNotFoundException {
+    public void testSilentRequestMissingPermissionHandlingForAndroid22andBelow()
+            throws InterruptedException, PackageManager.NameNotFoundException {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             final FileMockContext mockContext = createMockContext();
-            when(
-                    mockContext
+            when(mockContext
                             .getPackageManager()
                             .checkPermission(
                                     Mockito.refEq("android.permission.GET_ACCOUNTS"),
-                                    Mockito.anyString()
-                            )
-            ).thenReturn(PackageManager.PERMISSION_GRANTED);
+                                    Mockito.anyString()))
+                    .thenReturn(PackageManager.PERMISSION_GRANTED);
 
-            when(
-                    mockContext
+            when(mockContext
                             .getPackageManager()
                             .checkPermission(
                                     Mockito.refEq("android.permission.MANAGE_ACCOUNTS"),
-                                    Mockito.anyString()
-                            )
-            ).thenReturn(PackageManager.PERMISSION_DENIED);
+                                    Mockito.anyString()))
+                    .thenReturn(PackageManager.PERMISSION_DENIED);
 
-            when(
-                    mockContext
+            when(mockContext
                             .getPackageManager()
                             .checkPermission(
                                     Mockito.refEq("android.permission.USE_CREDENTIALS"),
-                                    Mockito.anyString()
-                            )
-            ).thenReturn(PackageManager.PERMISSION_DENIED);
+                                    Mockito.anyString()))
+                    .thenReturn(PackageManager.PERMISSION_DENIED);
 
             AuthenticationSettings.INSTANCE.setUseBroker(true);
 
-            final AuthenticationContext authContext = new AuthenticationContext(
-                    mockContext,
-                    VALID_AUTHORITY,
-                    false
-            );
+            final AuthenticationContext authContext =
+                    new AuthenticationContext(mockContext, VALID_AUTHORITY, false);
 
             final TestAuthCallback callback = new TestAuthCallback();
-            authContext.acquireTokenSilentAsync(
-                    "resource",
-                    "clientid",
-                    "userid",
-                    callback
-            );
+            authContext.acquireTokenSilentAsync("resource", "clientid", "userid", callback);
 
             final CountDownLatch signal = new CountDownLatch(1);
             signal.await(ACTIVITY_TIME_OUT, TimeUnit.MILLISECONDS);
 
             assertNotNull(callback.getCallbackException());
             assertTrue(callback.getCallbackException() instanceof UsageAuthenticationException);
-            final UsageAuthenticationException usageAuthenticationException
-                    = (UsageAuthenticationException) callback.getCallbackException();
+            final UsageAuthenticationException usageAuthenticationException =
+                    (UsageAuthenticationException) callback.getCallbackException();
             assertTrue(usageAuthenticationException.getMessage().contains("MANAGE_ACCOUNTS"));
             assertTrue(usageAuthenticationException.getMessage().contains("USE_CREDENTIALS"));
 
             assertEquals(
                     ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,
-                    usageAuthenticationException.getCode()
-            );
+                    usageAuthenticationException.getCode());
         }
     }
 
     public void testSilentRequestMissingContactsPermissionHandling()
             throws PackageManager.NameNotFoundException {
         final FileMockContext mockContext = createMockContext();
-        when(
-                mockContext
+        when(mockContext
                         .getPackageManager()
                         .checkPermission(
                                 Mockito.refEq("android.permission.GET_ACCOUNTS"),
-                                Mockito.anyString()
-                        )
-        ).thenReturn(PackageManager.PERMISSION_DENIED);
+                                Mockito.anyString()))
+                .thenReturn(PackageManager.PERMISSION_DENIED);
 
         AuthenticationSettings.INSTANCE.setUseBroker(true);
-        final AuthenticationContext authContext = new AuthenticationContext(
-                mockContext,
-                VALID_AUTHORITY,
-                false
-        );
+        final AuthenticationContext authContext =
+                new AuthenticationContext(mockContext, VALID_AUTHORITY, false);
 
         try {
-            authContext.acquireTokenSilentSync(
-                    "resource",
-                    "clientid",
-                    "userid"
-            );
+            authContext.acquireTokenSilentSync("resource", "clientid", "userid");
 
             fail("Expect an exception");
         } catch (final AuthenticationException exception) {
@@ -2159,10 +1828,10 @@ public final class AcquireTokenRequestTest {
         }
     }
 
-    private FileMockContext createMockContext()
-            throws PackageManager.NameNotFoundException {
+    private FileMockContext createMockContext() throws PackageManager.NameNotFoundException {
 
-        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final FileMockContext mockContext =
+                new FileMockContext(InstrumentationRegistry.getContext());
 
         mockContext.addPermission("android.permission.GET_ACCOUNTS");
 
@@ -2182,20 +1851,21 @@ public final class AcquireTokenRequestTest {
 
     private AccountManager getMockedAccountManager() {
         final AccountManager mockedAccountManager = Mockito.mock(AccountManager.class);
-        final AuthenticatorDescription authenticatorDescription
-                = new AuthenticatorDescription(
-                BROKER_ACCOUNT_TYPE,
-                AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME,
-                0, // label id
-                0, // icon id
-                0, // small icon id
-                0 // pref id
-        );
+        final AuthenticatorDescription authenticatorDescription =
+                new AuthenticatorDescription(
+                        BROKER_ACCOUNT_TYPE,
+                        AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME,
+                        0, // label id
+                        0, // icon id
+                        0, // small icon id
+                        0 // pref id
+                        );
 
         final AuthenticatorDescription mockedAuthenticator = Mockito.spy(authenticatorDescription);
-        final AuthenticatorDescription[] mockedAuthenticatorTypes
-                = new AuthenticatorDescription[]{mockedAuthenticator};
-        Mockito.when(mockedAccountManager.getAuthenticatorTypes()).thenReturn(mockedAuthenticatorTypes);
+        final AuthenticatorDescription[] mockedAuthenticatorTypes =
+                new AuthenticatorDescription[] {mockedAuthenticator};
+        Mockito.when(mockedAccountManager.getAuthenticatorTypes())
+                .thenReturn(mockedAuthenticatorTypes);
 
         return mockedAccountManager;
     }
@@ -2203,25 +1873,25 @@ public final class AcquireTokenRequestTest {
     private void mockAccountManagerGetAccountBehavior(final AccountManager mockedAccountManger)
             throws OperationCanceledException, IOException, AuthenticatorException {
         final Account account = new Account(TEST_UPN, BROKER_ACCOUNT_TYPE);
-        when(mockedAccountManger.getAccountsByType(
-                Matchers.refEq(BROKER_ACCOUNT_TYPE)
-        )).thenReturn(new Account[]{account});
+        when(mockedAccountManger.getAccountsByType(Matchers.refEq(BROKER_ACCOUNT_TYPE)))
+                .thenReturn(new Account[] {account});
 
         final Bundle bundle = new Bundle();
         bundle.putString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID, TEST_USERID);
-        bundle.putString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE, TEST_UPN);
+        bundle.putString(
+                AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE, TEST_UPN);
 
         final AccountManagerFuture<Bundle> mockedResult = Mockito.mock(AccountManagerFuture.class);
         when(mockedResult.getResult()).thenReturn(bundle);
 
         when(mockedAccountManger.updateCredentials(
-                Matchers.any(Account.class),
-                Matchers.anyString(),
-                Matchers.any(Bundle.class),
-                (Activity) Matchers.eq(null),
-                (AccountManagerCallback<Bundle>) Matchers.eq(null),
-                (Handler) Matchers.eq(null))
-        ).thenReturn(mockedResult);
+                        Matchers.any(Account.class),
+                        Matchers.anyString(),
+                        Matchers.any(Bundle.class),
+                        (Activity) Matchers.eq(null),
+                        (AccountManagerCallback<Bundle>) Matchers.eq(null),
+                        (Handler) Matchers.eq(null)))
+                .thenReturn(mockedResult);
     }
 
     private void mockGetAuthTokenCallWithNoAccountFound(final AccountManager mockedAccountManager)
@@ -2229,44 +1899,42 @@ public final class AcquireTokenRequestTest {
         final AccountManagerFuture<Bundle> mockedResult = Mockito.mock(AccountManagerFuture.class);
         when(mockedResult.getResult()).thenReturn(null);
 
-        when(
-                mockedAccountManager.getAuthToken(
+        when(mockedAccountManager.getAuthToken(
                         Mockito.any(Account.class),
                         Matchers.anyString(),
                         Matchers.any(Bundle.class),
                         Matchers.eq(false),
                         (AccountManagerCallback<Bundle>) Matchers.eq(null),
-                        Matchers.any(Handler.class)
-                )
-        ).thenReturn(mockedResult);
+                        Matchers.any(Handler.class)))
+                .thenReturn(mockedResult);
     }
 
-    private void mockGetAuthTokenCall(final AccountManager mockedAccountManager,
-                                      final boolean returnToken)
+    private void mockGetAuthTokenCall(
+            final AccountManager mockedAccountManager, final boolean returnToken)
             throws OperationCanceledException, IOException, AuthenticatorException {
 
         final Bundle resultBundle = new Bundle();
 
         if (returnToken) {
-            resultBundle.putString(AccountManager.KEY_AUTHTOKEN, "I am an access token from broker");
+            resultBundle.putString(
+                    AccountManager.KEY_AUTHTOKEN, "I am an access token from broker");
         } else {
-            resultBundle.putInt(AccountManager.KEY_ERROR_CODE, ACCOUNT_MANAGER_ERROR_CODE_BAD_AUTHENTICATION);
+            resultBundle.putInt(
+                    AccountManager.KEY_ERROR_CODE, ACCOUNT_MANAGER_ERROR_CODE_BAD_AUTHENTICATION);
             resultBundle.putString(AccountManager.KEY_ERROR_MESSAGE, "Error from broker");
         }
 
         final AccountManagerFuture<Bundle> mockedResult = Mockito.mock(AccountManagerFuture.class);
         when(mockedResult.getResult()).thenReturn(resultBundle);
 
-        when(
-                mockedAccountManager.getAuthToken(
+        when(mockedAccountManager.getAuthToken(
                         Mockito.any(Account.class),
                         Matchers.anyString(),
                         Matchers.any(Bundle.class),
                         Matchers.eq(false),
                         (AccountManagerCallback<Bundle>) Matchers.eq(null),
-                        Matchers.any(Handler.class)
-                )
-        ).thenReturn(mockedResult);
+                        Matchers.any(Handler.class)))
+                .thenReturn(mockedResult);
     }
 
     private void mockAddAccountCall(final AccountManager mockedAccountManager)
@@ -2276,71 +1944,48 @@ public final class AcquireTokenRequestTest {
         final AccountManagerFuture<Bundle> mockedResult = Mockito.mock(AccountManagerFuture.class);
         when(mockedResult.getResult()).thenReturn(bundle);
 
-        when(
-                mockedAccountManager
-                        .addAccount(
-                                Matchers.refEq(BROKER_ACCOUNT_TYPE),
-                                anyString(),
-                                (String[]) Matchers.eq(null),
-                                Matchers.any(Bundle.class),
-                                (Activity) Matchers.eq(null),
-                                (AccountManagerCallback<Bundle>) Matchers.eq(null),
-                                Matchers.any(Handler.class)
-                        )
-        ).thenReturn(mockedResult);
+        when(mockedAccountManager.addAccount(
+                        Matchers.refEq(BROKER_ACCOUNT_TYPE),
+                        anyString(),
+                        (String[]) Matchers.eq(null),
+                        Matchers.any(Bundle.class),
+                        (Activity) Matchers.eq(null),
+                        (AccountManagerCallback<Bundle>) Matchers.eq(null),
+                        Matchers.any(Handler.class)))
+                .thenReturn(mockedResult);
     }
 
     private PackageManager getMockedPackageManager() throws PackageManager.NameNotFoundException {
         final Signature mockedSignature = Mockito.mock(Signature.class);
-        when(
-                mockedSignature.toByteArray()
-        ).thenReturn(Base64.decode(Util.ENCODED_SIGNATURE, Base64.NO_WRAP));
+        when(mockedSignature.toByteArray())
+                .thenReturn(Base64.decode(Util.ENCODED_SIGNATURE, Base64.NO_WRAP));
 
-        final PackageInfo mockedPackageInfo = new MockedPackageInfo(new Signature[]{mockedSignature});
+        final PackageInfo mockedPackageInfo =
+                new MockedPackageInfo(new Signature[] {mockedSignature});
         final PackageManager mockedPackageManager = Mockito.mock(PackageManager.class);
-        when(
-                mockedPackageManager.getPackageInfo(
-                        Mockito.anyString(),
-                        Mockito.anyInt()
-                )
-        ).thenReturn(mockedPackageInfo);
+        when(mockedPackageManager.getPackageInfo(Mockito.anyString(), Mockito.anyInt()))
+                .thenReturn(mockedPackageInfo);
 
         // Mock intent query
         final List<ResolveInfo> activities = new ArrayList<>(1);
         activities.add(Mockito.mock(ResolveInfo.class));
 
-        when(
-                mockedPackageManager
-                        .queryIntentActivities(
-                                Mockito.any(Intent.class),
-                                Mockito.anyInt()
-                        )
-        ).thenReturn(activities);
+        when(mockedPackageManager.queryIntentActivities(
+                        Mockito.any(Intent.class), Mockito.anyInt()))
+                .thenReturn(activities);
 
         // Mock permissions
-        when(
-                mockedPackageManager
-                        .checkPermission(
-                                Mockito.refEq("android.permission.GET_ACCOUNTS"),
-                                Mockito.anyString()
-                        )
-        ).thenReturn(PackageManager.PERMISSION_GRANTED);
+        when(mockedPackageManager.checkPermission(
+                        Mockito.refEq("android.permission.GET_ACCOUNTS"), Mockito.anyString()))
+                .thenReturn(PackageManager.PERMISSION_GRANTED);
 
-        when(
-                mockedPackageManager
-                        .checkPermission(
-                                Mockito.refEq("android.permission.MANAGE_ACCOUNTS"),
-                                Mockito.anyString()
-                        )
-        ).thenReturn(PackageManager.PERMISSION_GRANTED);
+        when(mockedPackageManager.checkPermission(
+                        Mockito.refEq("android.permission.MANAGE_ACCOUNTS"), Mockito.anyString()))
+                .thenReturn(PackageManager.PERMISSION_GRANTED);
 
-        when(
-                mockedPackageManager
-                        .checkPermission(
-                                Mockito.refEq("android.permission.USE_CREDENTIALS"),
-                                Mockito.anyString()
-                        )
-        ).thenReturn(PackageManager.PERMISSION_GRANTED);
+        when(mockedPackageManager.checkPermission(
+                        Mockito.refEq("android.permission.USE_CREDENTIALS"), Mockito.anyString()))
+                .thenReturn(PackageManager.PERMISSION_GRANTED);
 
         return mockedPackageManager;
     }
@@ -2353,31 +1998,39 @@ public final class AcquireTokenRequestTest {
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
-        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
-        Mockito.when(mockedConnection.getInputStream()).thenReturn(
-                Util.createInputStream(Util.getSuccessTokenResponse(false, false)));
+        Mockito.when(mockedConnection.getOutputStream())
+                .thenReturn(Mockito.mock(OutputStream.class));
+        Mockito.when(mockedConnection.getInputStream())
+                .thenReturn(Util.createInputStream(Util.getSuccessTokenResponse(false, false)));
         Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
     }
 
-    private HttpURLConnection prepareFailedHttpUrlConnection(final String errorCode,
-                                                             final String... errorCodes)
-            throws IOException, JSONException {
+    private HttpURLConnection prepareFailedHttpUrlConnection(
+            final String errorCode, final String... errorCodes) throws IOException, JSONException {
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
-        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+        Mockito.when(mockedConnection.getOutputStream())
+                .thenReturn(Mockito.mock(OutputStream.class));
 
-        Mockito.when(mockedConnection.getInputStream()).thenReturn(
-                Util.createInputStream(Util.getErrorResponseBody(errorCode)), errorCodes.length == 1
-                        ? Util.createInputStream(Util.getErrorResponseBody(errorCodes[0])) : null);
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_BAD_REQUEST);
+        Mockito.when(mockedConnection.getInputStream())
+                .thenReturn(
+                        Util.createInputStream(Util.getErrorResponseBody(errorCode)),
+                        errorCodes.length == 1
+                                ? Util.createInputStream(Util.getErrorResponseBody(errorCodes[0]))
+                                : null);
+        Mockito.when(mockedConnection.getResponseCode())
+                .thenReturn(HttpURLConnection.HTTP_BAD_REQUEST);
 
         return mockedConnection;
     }
 
     private String getEncodedTestingSignature() throws NoSuchAlgorithmException {
         final MessageDigest md = MessageDigest.getInstance("SHA");
-        md.update(Base64.decode(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_RELEASE_SIGNATURE, Base64.NO_WRAP));
+        md.update(
+                Base64.decode(
+                        AuthenticationConstants.Broker.COMPANY_PORTAL_APP_RELEASE_SIGNATURE,
+                        Base64.NO_WRAP));
         final byte[] testingSignature = md.digest();
         return Base64.encodeToString(testingSignature, Base64.NO_WRAP);
     }

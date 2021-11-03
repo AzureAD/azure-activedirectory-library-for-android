@@ -59,9 +59,11 @@ public class AuthorityValidationMetadataCacheTest extends AndroidTestHelper {
     @Test
     public void testProcessInstanceDiscoveryMetadata() throws MalformedURLException, JSONException {
         final URL authorityURL = new URL("https://login.windows.net/common");
-        AuthorityValidationMetadataCache.processInstanceDiscoveryMetadata(authorityURL, getDiscoveryResponse());
+        AuthorityValidationMetadataCache.processInstanceDiscoveryMetadata(
+                authorityURL, getDiscoveryResponse());
 
-        Map<String, InstanceDiscoveryMetadata> authorityValidationMap = AuthorityValidationMetadataCache.getAuthorityValidationMetadataCache();
+        Map<String, InstanceDiscoveryMetadata> authorityValidationMap =
+                AuthorityValidationMetadataCache.getAuthorityValidationMetadataCache();
 
         final int expectedMapSize = 5;
         Assert.assertTrue(authorityValidationMap.size() == expectedMapSize);
@@ -75,16 +77,19 @@ public class AuthorityValidationMetadataCacheTest extends AndroidTestHelper {
     @Test
     public void testMetadataNotReturned() throws MalformedURLException, JSONException {
         final URL authorityUrl = new URL("https://login.windows.net/common");
-        AuthorityValidationMetadataCache.processInstanceDiscoveryMetadata(authorityUrl, getDiscoveryResponseWithNoMetadata());
+        AuthorityValidationMetadataCache.processInstanceDiscoveryMetadata(
+                authorityUrl, getDiscoveryResponseWithNoMetadata());
 
-        Map<String, InstanceDiscoveryMetadata> authorityValidationMap = AuthorityValidationMetadataCache.getAuthorityValidationMetadataCache();
+        Map<String, InstanceDiscoveryMetadata> authorityValidationMap =
+                AuthorityValidationMetadataCache.getAuthorityValidationMetadataCache();
         Assert.assertTrue(authorityValidationMap.size() == 1);
         Assert.assertTrue(authorityValidationMap.containsKey("login.windows.net"));
     }
 
     private Map<String, String> getDiscoveryResponseWithNoMetadata() {
         final Map<String, String> discoveryResponse = new HashMap<>();
-        discoveryResponse.put(AuthorityValidationMetadataCache.TENANT_DISCOVERY_ENDPOINT, "valid_endpoint");
+        discoveryResponse.put(
+                AuthorityValidationMetadataCache.TENANT_DISCOVERY_ENDPOINT, "valid_endpoint");
 
         return discoveryResponse;
     }
@@ -98,25 +103,26 @@ public class AuthorityValidationMetadataCacheTest extends AndroidTestHelper {
     }
 
     static String getMetadata() {
-        final String metadata = "["
-                + "{"
-                + "\"preferred_network\": \"login.microsoftonline.com\","
-                + "\"preferred_cache\": \"login.windows.net\","
-                + "\"aliases\": ["
-                + "\"login.microsoftonline.com\","
-                + "\"login.windows.net\","
-                + "\"login.microsoft.com\","
-                + "\"sts.microsoft.com\""
-                + "]"
-                + "},"
-                + "{"
-                + "\"preferred_network\": \"login.microsoftonline.de\","
-                + "\"preferred_cache\": \"login.microsoftonline.de\","
-                + "\"aliases\": ["
-                + "\"login.microsoftonline.de\""
-                + "]"
-                + "}"
-                + "]";
+        final String metadata =
+                "["
+                        + "{"
+                        + "\"preferred_network\": \"login.microsoftonline.com\","
+                        + "\"preferred_cache\": \"login.windows.net\","
+                        + "\"aliases\": ["
+                        + "\"login.microsoftonline.com\","
+                        + "\"login.windows.net\","
+                        + "\"login.microsoft.com\","
+                        + "\"sts.microsoft.com\""
+                        + "]"
+                        + "},"
+                        + "{"
+                        + "\"preferred_network\": \"login.microsoftonline.de\","
+                        + "\"preferred_cache\": \"login.microsoftonline.de\","
+                        + "\"aliases\": ["
+                        + "\"login.microsoftonline.de\""
+                        + "]"
+                        + "}"
+                        + "]";
 
         return metadata;
     }

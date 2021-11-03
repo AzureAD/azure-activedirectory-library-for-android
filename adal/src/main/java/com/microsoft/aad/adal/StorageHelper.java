@@ -63,7 +63,6 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.security.auth.x500.X500Principal;
 
-
 /**
  * Shared preferences store clear text. This class helps to encrypt/decrypt text
  * to store. API SDK >= 18 has more security with AndroidKeyStore.
@@ -147,6 +146,7 @@ public class StorageHelper {
      * Public and private keys that are generated in AndroidKeyStore.
      */
     private KeyPair mKeyPair;
+
     private String mBlobVersion;
     private SecretKey mKey = null;
     private SecretKey mHMACKey = null;
@@ -170,8 +170,7 @@ public class StorageHelper {
      * @throws GeneralSecurityException for key related exceptions.
      * @throws IOException              For general IO related exceptions.
      */
-    public String encrypt(final String clearText)
-            throws GeneralSecurityException, IOException {
+    public String encrypt(final String clearText) throws GeneralSecurityException, IOException {
         final String methodName = ":encrypt";
         Logger.v(TAG + methodName, "Starting encryption");
 
@@ -208,19 +207,33 @@ public class StorageHelper {
         final byte[] macDigest = mac.doFinal();
 
         // Init array to store blobVersion, encrypted data, iv, macdigest
-        final byte[] blobVerAndEncryptedDataAndIVAndMacDigest = new byte[blobVersion.length
-                + encrypted.length + iv.length + macDigest.length];
-        System.arraycopy(blobVersion, 0, blobVerAndEncryptedDataAndIVAndMacDigest, 0,
-                blobVersion.length);
-        System.arraycopy(encrypted, 0, blobVerAndEncryptedDataAndIVAndMacDigest,
-                blobVersion.length, encrypted.length);
-        System.arraycopy(iv, 0, blobVerAndEncryptedDataAndIVAndMacDigest, blobVersion.length
-                + encrypted.length, iv.length);
-        System.arraycopy(macDigest, 0, blobVerAndEncryptedDataAndIVAndMacDigest, blobVersion.length
-                + encrypted.length + iv.length, macDigest.length);
+        final byte[] blobVerAndEncryptedDataAndIVAndMacDigest =
+                new byte[blobVersion.length + encrypted.length + iv.length + macDigest.length];
+        System.arraycopy(
+                blobVersion, 0, blobVerAndEncryptedDataAndIVAndMacDigest, 0, blobVersion.length);
+        System.arraycopy(
+                encrypted,
+                0,
+                blobVerAndEncryptedDataAndIVAndMacDigest,
+                blobVersion.length,
+                encrypted.length);
+        System.arraycopy(
+                iv,
+                0,
+                blobVerAndEncryptedDataAndIVAndMacDigest,
+                blobVersion.length + encrypted.length,
+                iv.length);
+        System.arraycopy(
+                macDigest,
+                0,
+                blobVerAndEncryptedDataAndIVAndMacDigest,
+                blobVersion.length + encrypted.length + iv.length,
+                macDigest.length);
 
-        final String encryptedText = new String(Base64.encode(blobVerAndEncryptedDataAndIVAndMacDigest,
-                Base64.NO_WRAP), AuthenticationConstants.ENCODING_UTF8);
+        final String encryptedText =
+                new String(
+                        Base64.encode(blobVerAndEncryptedDataAndIVAndMacDigest, Base64.NO_WRAP),
+                        AuthenticationConstants.ENCODING_UTF8);
         Logger.v(TAG + methodName, "Finished encryption");
 
         return getEncodeVersionLengthPrefix() + ENCODE_VERSION + encryptedText;
@@ -234,8 +247,7 @@ public class StorageHelper {
      * @throws GeneralSecurityException for key related exceptions.
      * @throws IOException              For general IO related exceptions.
      */
-    public String decrypt(final String encryptedBlob)
-            throws GeneralSecurityException, IOException {
+    public String decrypt(final String encryptedBlob) throws GeneralSecurityException, IOException {
         final String methodName = ":decrypt";
         Logger.v(TAG + methodName, "Starting decryption");
 
@@ -245,23 +257,26 @@ public class StorageHelper {
 
         int encodeVersionLength = encryptedBlob.charAt(0) - 'a';
         if (encodeVersionLength <= 0) {
-            throw new IllegalArgumentException(String.format(
-                    "Encode version length: '%s' is not valid, it must be greater of equal to 0",
-                    encodeVersionLength));
+            throw new IllegalArgumentException(
+                    String.format(
+                            "Encode version length: '%s' is not valid, it must be greater of equal to 0",
+                            encodeVersionLength));
         }
         if (!encryptedBlob.substring(1, 1 + encodeVersionLength).equals(ENCODE_VERSION)) {
-            throw new IllegalArgumentException(String.format(
-                    "Encode version received was: '%s', Encode version supported is: '%s'", encryptedBlob,
-                    ENCODE_VERSION));
+            throw new IllegalArgumentException(
+                    String.format(
+                            "Encode version received was: '%s', Encode version supported is: '%s'",
+                            encryptedBlob, ENCODE_VERSION));
         }
 
-        final byte[] bytes = Base64
-                .decode(encryptedBlob.substring(1 + encodeVersionLength), Base64.DEFAULT);
+        final byte[] bytes =
+                Base64.decode(encryptedBlob.substring(1 + encodeVersionLength), Base64.DEFAULT);
 
         // get key version used for this data. If user upgraded to different
         // API level, data needs to be updated
-        final String keyVersion = new String(bytes, 0, KEY_VERSION_BLOB_LENGTH,
-                AuthenticationConstants.ENCODING_UTF8);
+        final String keyVersion =
+                new String(
+                        bytes, 0, KEY_VERSION_BLOB_LENGTH, AuthenticationConstants.ENCODING_UTF8);
         Logger.i(TAG + methodName, "", "Encrypt version:" + keyVersion);
 
         final SecretKey secretKey = getKey(keyVersion);
@@ -291,12 +306,16 @@ public class StorageHelper {
         // that IV.
         // It is using same cipher for different version since version# change
         // will mean upgrade to AndroidKeyStore and new Key.
-        cipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(bytes, ivIndex,
-                DATA_KEY_LENGTH));
+        cipher.init(
+                Cipher.DECRYPT_MODE,
+                secretKey,
+                new IvParameterSpec(bytes, ivIndex, DATA_KEY_LENGTH));
 
         // Decrypt data bytes from 0 to ivindex
-        final String decrypted = new String(cipher.doFinal(bytes, KEY_VERSION_BLOB_LENGTH,
-                encryptedLength), AuthenticationConstants.ENCODING_UTF8);
+        final String decrypted =
+                new String(
+                        cipher.doFinal(bytes, KEY_VERSION_BLOB_LENGTH, encryptedLength),
+                        AuthenticationConstants.ENCODING_UTF8);
         Logger.v(TAG + methodName, "Finished decryption");
         return decrypted;
     }
@@ -309,10 +328,11 @@ public class StorageHelper {
      * @throws GeneralSecurityException
      * @throws IOException
      */
-    synchronized SecretKey loadSecretKeyForEncryption() throws IOException,
-            GeneralSecurityException {
+    synchronized SecretKey loadSecretKeyForEncryption()
+            throws IOException, GeneralSecurityException {
         final byte[] secretKeyData = AuthenticationSettings.INSTANCE.getSecretKeyData();
-        return loadSecretKeyForEncryption(secretKeyData == null ? VERSION_ANDROID_KEY_STORE : VERSION_USER_DEFINED);
+        return loadSecretKeyForEncryption(
+                secretKeyData == null ? VERSION_ANDROID_KEY_STORE : VERSION_USER_DEFINED);
     }
 
     /**
@@ -324,8 +344,8 @@ public class StorageHelper {
      * @throws GeneralSecurityException
      * @throws IOException
      */
-    synchronized SecretKey loadSecretKeyForEncryption(String defaultBlobVersion) throws IOException,
-            GeneralSecurityException {
+    synchronized SecretKey loadSecretKeyForEncryption(String defaultBlobVersion)
+            throws IOException, GeneralSecurityException {
         // Loading key only once for performance. If API is upgraded, it will
         // restart the device anyway. It will load the correct key for new API.
         if (mKey != null && mHMACKey != null) {
@@ -357,7 +377,9 @@ public class StorageHelper {
         try {
             mSecretKeyFromAndroidKeyStore = getKey(keyVersion);
         } catch (final IOException | GeneralSecurityException exception) {
-            Logger.v(TAG + methodName, "Key does not exist in AndroidKeyStore, try to generate new keys.");
+            Logger.v(
+                    TAG + methodName,
+                    "Key does not exist in AndroidKeyStore, try to generate new keys.");
         }
 
         if (mSecretKeyFromAndroidKeyStore == null) {
@@ -381,12 +403,12 @@ public class StorageHelper {
      * @throws GeneralSecurityException
      * @throws IOException
      */
-    private synchronized SecretKey getKey(final String keyVersion) throws GeneralSecurityException, IOException {
+    private synchronized SecretKey getKey(final String keyVersion)
+            throws GeneralSecurityException, IOException {
         switch (keyVersion) {
             case VERSION_USER_DEFINED:
                 return getSecretKey(AuthenticationSettings.INSTANCE.getSecretKeyData());
             case VERSION_ANDROID_KEY_STORE:
-
                 if (mSecretKeyFromAndroidKeyStore != null) {
                     return mSecretKeyFromAndroidKeyStore;
                 }
@@ -416,19 +438,18 @@ public class StorageHelper {
 
         // self signed cert stored in AndroidKeyStore to asym. encrypt key
         // to a file
-        final KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA",
-                ANDROID_KEY_STORE);
+        final KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA", ANDROID_KEY_STORE);
         generator.initialize(getKeyPairGeneratorSpec(mContext, start.getTime(), end.getTime()));
         try {
             return generator.generateKeyPair();
         } catch (final IllegalStateException exception) {
             // There is an issue with AndroidKeyStore when attempting to generate keypair
-            // if user doesn't have pin/passphrase setup for their lock screen. 
-            // Issue 177459 : AndroidKeyStore KeyPairGenerator fails to generate 
-            // KeyPair after toggling lock type, even without setting the encryptionRequired 
-            // flag on the KeyPairGeneratorSpec. 
+            // if user doesn't have pin/passphrase setup for their lock screen.
+            // Issue 177459 : AndroidKeyStore KeyPairGenerator fails to generate
+            // KeyPair after toggling lock type, even without setting the encryptionRequired
+            // flag on the KeyPairGeneratorSpec.
             // https://code.google.com/p/android/issues/detail?id=177459
-            // The thrown exception in this case is: 
+            // The thrown exception in this case is:
             // java.lang.IllegalStateException: could not generate key in keystore
             // To avoid app crashing, re-throw as checked exception
             throw new KeyStoreException(exception);
@@ -450,14 +471,14 @@ public class StorageHelper {
 
         final KeyStore.PrivateKeyEntry entry;
         try {
-            entry = (KeyStore.PrivateKeyEntry) keyStore.getEntry(
-                    KEY_STORE_CERT_ALIAS, null);
+            entry = (KeyStore.PrivateKeyEntry) keyStore.getEntry(KEY_STORE_CERT_ALIAS, null);
         } catch (final RuntimeException e) {
             // There is an issue in android keystore that resets keystore
             // Issue 61989:  AndroidKeyStore deleted after changing screen lock type
             // https://code.google.com/p/android/issues/detail?id=61989
             // in this case getEntry throws
-            // java.lang.RuntimeException: error:0D07207B:asn1 encoding routines:ASN1_get_object:header too long
+            // java.lang.RuntimeException: error:0D07207B:asn1 encoding
+            // routines:ASN1_get_object:header too long
             // handle it as regular KeyStoreException
             throw new KeyStoreException(e);
         }
@@ -476,14 +497,15 @@ public class StorageHelper {
         try {
             isKeyStoreCertAliasExisted = keyStore.containsAlias(KEY_STORE_CERT_ALIAS);
         } catch (final NullPointerException exception) {
-            // There is an issue with Android Keystore when remote service attempts 
-            // to access Keystore. 
-            // Changeset found for google source to address the related issue with 
+            // There is an issue with Android Keystore when remote service attempts
+            // to access Keystore.
+            // Changeset found for google source to address the related issue with
             // remote service accessing keystore :
             // https://android.googlesource.com/platform/external/sepolicy/+/0e30164b17af20f680635c7c6c522e670ecc3df3
             // The thrown exception in this case is:
-            // java.lang.NullPointerException: Attempt to invoke interface method 
-            // 'int android.security.IKeystoreService.exist(java.lang.String, int)' on a null object reference
+            // java.lang.NullPointerException: Attempt to invoke interface method
+            // 'int android.security.IKeystoreService.exist(java.lang.String, int)' on a null object
+            // reference
             // To avoid app from crashing, re-throw as checked exception
             throw new KeyStoreException(exception);
         }
@@ -492,9 +514,14 @@ public class StorageHelper {
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-    private AlgorithmParameterSpec getKeyPairGeneratorSpec(final Context context, final Date start, final Date end) {
-        final String certInfo = String.format(Locale.ROOT, "CN=%s, OU=%s", KEY_STORE_CERT_ALIAS,
-                context.getPackageName());
+    private AlgorithmParameterSpec getKeyPairGeneratorSpec(
+            final Context context, final Date start, final Date end) {
+        final String certInfo =
+                String.format(
+                        Locale.ROOT,
+                        "CN=%s, OU=%s",
+                        KEY_STORE_CERT_ALIAS,
+                        context.getPackageName());
         return new KeyPairGeneratorSpec.Builder(context)
                 .setAlias(KEY_STORE_CERT_ALIAS)
                 .setSubject(new X500Principal(certInfo))
@@ -534,9 +561,10 @@ public class StorageHelper {
         return (char) ('a' + ENCODE_VERSION.length());
     }
 
-    private void assertHMac(final byte[] digest, final int start, final int end, final byte[] calculated)
+    private void assertHMac(
+            final byte[] digest, final int start, final int end, final byte[] calculated)
             throws DigestException {
-        if (calculated.length != (end - start)) { //NOPMD
+        if (calculated.length != (end - start)) { // NOPMD
             throw new IllegalArgumentException("Unexpected HMAC length");
         }
 
@@ -578,8 +606,12 @@ public class StorageHelper {
         } catch (final GeneralSecurityException | IOException ex) {
             // Reset KeyPair info so that new request will generate correct KeyPairs.
             // All tokens with previous SecretKey are not possible to decrypt.
-            Logger.e(TAG + methodName, "Unwrap failed for AndroidKeyStore", "",
-                    ADALError.ANDROIDKEYSTORE_FAILED, ex);
+            Logger.e(
+                    TAG + methodName,
+                    "Unwrap failed for AndroidKeyStore",
+                    "",
+                    ADALError.ANDROIDKEYSTORE_FAILED,
+                    ex);
             mKeyPair = null;
             deleteKeyFile();
             resetKeyPairFromAndroidKeyStore();
@@ -593,8 +625,8 @@ public class StorageHelper {
     private void deleteKeyFile() {
         // Store secret key in a file after wrapping
         final String methodName = ":deleteKeyFile";
-        final File keyFile = new File(mContext.getDir(mContext.getPackageName(),
-                Context.MODE_PRIVATE), ADALKS);
+        final File keyFile =
+                new File(mContext.getDir(mContext.getPackageName(), Context.MODE_PRIVATE), ADALKS);
         if (keyFile.exists()) {
             Logger.v(TAG + methodName, "Delete KeyFile");
             if (!keyFile.delete()) {
@@ -604,8 +636,8 @@ public class StorageHelper {
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-    private synchronized void resetKeyPairFromAndroidKeyStore() throws KeyStoreException,
-            NoSuchAlgorithmException, CertificateException, IOException {
+    private synchronized void resetKeyPairFromAndroidKeyStore()
+            throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
         final KeyStore keyStore = KeyStore.getInstance(ANDROID_KEY_STORE);
         keyStore.load(null);
         keyStore.deleteEntry(KEY_STORE_CERT_ALIAS);
@@ -628,10 +660,10 @@ public class StorageHelper {
         try {
             return (SecretKey) wrapCipher.unwrap(keyBlob, KEYSPEC_ALGORITHM, Cipher.SECRET_KEY);
         } catch (final IllegalArgumentException exception) {
-            // There is issue with Android KeyStore when lock screen type is changed which could 
-            // potentially wipe out keystore. 
+            // There is issue with Android KeyStore when lock screen type is changed which could
+            // potentially wipe out keystore.
             // Here are the two top exceptions that could be thrown due to the above issue:
-            // 1) Caused by: java.security.InvalidKeyException: javax.crypto.BadPaddingException: 
+            // 1) Caused by: java.security.InvalidKeyException: javax.crypto.BadPaddingException:
             //    error:0407106B:rsa routines:RSA_padding_check_PKCS1_type_2:block type is not 02
             // 2) Caused by: java.lang.IllegalArgumentException: key.length == 0
             // Issue 61989: AndroidKeyStore deleted after changing screen lock type
@@ -643,8 +675,8 @@ public class StorageHelper {
 
     private void writeKeyData(final byte[] data) throws IOException {
         Logger.v(TAG, "Writing key data to a file");
-        final File keyFile = new File(mContext.getDir(mContext.getPackageName(), Context.MODE_PRIVATE),
-                ADALKS);
+        final File keyFile =
+                new File(mContext.getDir(mContext.getPackageName(), Context.MODE_PRIVATE), ADALKS);
         final OutputStream out = new FileOutputStream(keyFile);
         try {
             out.write(data);
@@ -654,8 +686,8 @@ public class StorageHelper {
     }
 
     private byte[] readKeyData() throws IOException {
-        final File keyFile = new File(mContext.getDir(mContext.getPackageName(), Context.MODE_PRIVATE),
-                ADALKS);
+        final File keyFile =
+                new File(mContext.getDir(mContext.getPackageName(), Context.MODE_PRIVATE), ADALKS);
         if (!keyFile.exists()) {
             throw new IOException("Key file to read does not exist");
         }
@@ -675,5 +707,4 @@ public class StorageHelper {
             in.close();
         }
     }
-
 }

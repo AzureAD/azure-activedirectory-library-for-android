@@ -23,6 +23,9 @@
 
 package com.microsoft.aad.adal;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+
 import android.accounts.AccountManager;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -51,9 +54,6 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-
 class FileMockContext extends MockContext {
 
     private Context mContext;
@@ -78,12 +78,16 @@ class FileMockContext extends MockContext {
         mContext = context;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            UsageStatsManagerWrapper mockUsageStatsManagerWrapper = mock(UsageStatsManagerWrapper.class);
-            Mockito.when(mockUsageStatsManagerWrapper.isAppInactive(any(Context.class))).thenReturn(false);
+            UsageStatsManagerWrapper mockUsageStatsManagerWrapper =
+                    mock(UsageStatsManagerWrapper.class);
+            Mockito.when(mockUsageStatsManagerWrapper.isAppInactive(any(Context.class)))
+                    .thenReturn(false);
             UsageStatsManagerWrapper.setInstance(mockUsageStatsManagerWrapper);
             PowerManagerWrapper mockPowerManagerWrapper = mock(PowerManagerWrapper.class);
-            Mockito.when(mockPowerManagerWrapper.isDeviceIdleMode(any(Context.class))).thenReturn(false);
-            Mockito.when(mockPowerManagerWrapper.isIgnoringBatteryOptimizations(any(Context.class))).thenReturn(false);
+            Mockito.when(mockPowerManagerWrapper.isDeviceIdleMode(any(Context.class)))
+                    .thenReturn(false);
+            Mockito.when(mockPowerManagerWrapper.isIgnoringBatteryOptimizations(any(Context.class)))
+                    .thenReturn(false);
             PowerManagerWrapper.setInstance(mockPowerManagerWrapper);
         }
 
@@ -124,8 +128,10 @@ class FileMockContext extends MockContext {
         } else if (name.equalsIgnoreCase("connectivity")) {
             final ConnectivityManager mockedConnectivityManager = mock(ConnectivityManager.class);
             final NetworkInfo mockedNetworkInfo = mock(NetworkInfo.class);
-            Mockito.when(mockedNetworkInfo.isConnectedOrConnecting()).thenReturn(mIsConnectionAvailable);
-            Mockito.when(mockedConnectivityManager.getActiveNetworkInfo()).thenReturn(mockedNetworkInfo);
+            Mockito.when(mockedNetworkInfo.isConnectedOrConnecting())
+                    .thenReturn(mIsConnectionAvailable);
+            Mockito.when(mockedConnectivityManager.getActiveNetworkInfo())
+                    .thenReturn(mockedNetworkInfo);
             return mockedConnectivityManager;
         }
 
@@ -149,12 +155,13 @@ class FileMockContext extends MockContext {
     @Override
     public ContentResolver getContentResolver() {
 
-        MockContentProvider mockContentProvider = new MockContentProvider(mContext) {
-            @Override
-            public Bundle call(String method, String request, Bundle args) {
-                return new Bundle();
-            }
-        };
+        MockContentProvider mockContentProvider =
+                new MockContentProvider(mContext) {
+                    @Override
+                    public Bundle call(String method, String request, Bundle args) {
+                        return new Bundle();
+                    }
+                };
 
         MockContentResolver mockContentResolver = new MockContentResolver();
         mockContentResolver.addProvider(Settings.AUTHORITY, mockContentProvider);
@@ -192,8 +199,10 @@ class FileMockContext extends MockContext {
 
     public void setAppInactive() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            UsageStatsManagerWrapper mockUsageStatsManagerWrapper = mock(UsageStatsManagerWrapper.class);
-            Mockito.when(mockUsageStatsManagerWrapper.isAppInactive(any(Context.class))).thenReturn(true);
+            UsageStatsManagerWrapper mockUsageStatsManagerWrapper =
+                    mock(UsageStatsManagerWrapper.class);
+            Mockito.when(mockUsageStatsManagerWrapper.isAppInactive(any(Context.class)))
+                    .thenReturn(true);
             UsageStatsManagerWrapper.setInstance(mockUsageStatsManagerWrapper);
         }
     }
@@ -201,8 +210,10 @@ class FileMockContext extends MockContext {
     public void setDeviceInIdleMode() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PowerManagerWrapper mockPowerManagerWrapper = mock(PowerManagerWrapper.class);
-            Mockito.when(mockPowerManagerWrapper.isDeviceIdleMode(any(Context.class))).thenReturn(true);
-            Mockito.when(mockPowerManagerWrapper.isIgnoringBatteryOptimizations(any(Context.class))).thenReturn(false);
+            Mockito.when(mockPowerManagerWrapper.isDeviceIdleMode(any(Context.class)))
+                    .thenReturn(true);
+            Mockito.when(mockPowerManagerWrapper.isIgnoringBatteryOptimizations(any(Context.class)))
+                    .thenReturn(false);
             PowerManagerWrapper.setInstance(mockPowerManagerWrapper);
         }
     }

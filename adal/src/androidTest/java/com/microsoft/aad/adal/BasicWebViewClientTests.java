@@ -22,6 +22,18 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.AUTHENTICATOR_MFA_LINKING_PREFIX;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.PLAY_STORE_INSTALL_PREFIX;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Browser.RESPONSE_ERROR_CODE;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import android.content.Context;
 import android.content.Intent;
 import android.webkit.WebView;
@@ -41,30 +53,20 @@ import org.mockito.Mockito;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.AUTHENTICATOR_MFA_LINKING_PREFIX;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.PLAY_STORE_INSTALL_PREFIX;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Browser.RESPONSE_ERROR_CODE;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 @RunWith(AndroidJUnit4.class)
 public class BasicWebViewClientTests {
 
     private static final String NONCE = "123123-123213-123";
     private static final String CONTEXT = "ABcdeded";
     private static final String TEST_REDIRECT_URI = "abc12";
-    private static final String TEST_PKEY_AUTH_URL = AuthenticationConstants.Broker.PKEYAUTH_REDIRECT
-            + "?Nonce="
-            + NONCE
-            + "&CertAuthorities=ABC"
-            + "&Version=1.0"
-            + "&SubmitUrl=http://fs.contoso.com/adfs/services/trust&Context="
-            + CONTEXT;
+    private static final String TEST_PKEY_AUTH_URL =
+            AuthenticationConstants.Broker.PKEYAUTH_REDIRECT
+                    + "?Nonce="
+                    + NONCE
+                    + "&CertAuthorities=ABC"
+                    + "&Version=1.0"
+                    + "&SubmitUrl=http://fs.contoso.com/adfs/services/trust&Context="
+                    + CONTEXT;
     private static final String TEST_CANCELLATION_URL =
             "https://cancel.com?error=cancel&error_description=bye";
     private static final String TEST_EXTERNAL_SITE_URL =
@@ -72,7 +74,8 @@ public class BasicWebViewClientTests {
     private static final String TEST_INSTALL_REQUEST_URL =
             AuthenticationConstants.Broker.BROWSER_EXT_INSTALL_PREFIX + "url";
     private static final String TEST_PLAY_STORE_INSTALL_AUTH_APP_URL =
-            PLAY_STORE_INSTALL_PREFIX + AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME;
+            PLAY_STORE_INSTALL_PREFIX
+                    + AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME;
     private static final String TEST_PLAY_STORE_INSTALL_CP_URL =
             PLAY_STORE_INSTALL_PREFIX + COMPANY_PORTAL_APP_PACKAGE_NAME;
     private static final String TEST_PLAY_STORE_INSTALL_INVALID_APP =
@@ -144,21 +147,26 @@ public class BasicWebViewClientTests {
     public void testUrlOverrideHandlesPlayStoreRedirect() {
         final BasicWebViewClient basicWebViewClient =
                 setUpWebViewClient(
-                        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext(),
-                        TEST_REDIRECT_URI, //not to be set as empty for this testcase.
+                        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+                                .getContext(),
+                        TEST_REDIRECT_URI, // not to be set as empty for this testcase.
                         new AuthenticationRequest(
                                 "NA", // authority
                                 "NA", // resource
                                 "NA", // client
                                 "NA", // redirect
                                 "user", // loginhint,
-                                false
-                        ),
-                        new UIEvent("")
-                );
-        assertTrue(basicWebViewClient.shouldOverrideUrlLoading(mMockWebView, TEST_PLAY_STORE_INSTALL_AUTH_APP_URL));
-        assertTrue(basicWebViewClient.shouldOverrideUrlLoading(mMockWebView, TEST_PLAY_STORE_INSTALL_CP_URL));
-        assertFalse(basicWebViewClient.shouldOverrideUrlLoading(mMockWebView, TEST_PLAY_STORE_INSTALL_INVALID_APP));
+                                false),
+                        new UIEvent(""));
+        assertTrue(
+                basicWebViewClient.shouldOverrideUrlLoading(
+                        mMockWebView, TEST_PLAY_STORE_INSTALL_AUTH_APP_URL));
+        assertTrue(
+                basicWebViewClient.shouldOverrideUrlLoading(
+                        mMockWebView, TEST_PLAY_STORE_INSTALL_CP_URL));
+        assertFalse(
+                basicWebViewClient.shouldOverrideUrlLoading(
+                        mMockWebView, TEST_PLAY_STORE_INSTALL_INVALID_APP));
     }
 
     @UiThreadTest
@@ -166,28 +174,29 @@ public class BasicWebViewClientTests {
     public void testUrlOverrideHandlesAuthMFALinking() {
         final BasicWebViewClient basicWebViewClient =
                 setUpWebViewClient(
-                        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext(),
-                        TEST_REDIRECT_URI, //not to be set as empty for this testcase.
+                        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+                                .getContext(),
+                        TEST_REDIRECT_URI, // not to be set as empty for this testcase.
                         new AuthenticationRequest(
                                 "NA", // authority
                                 "NA", // resource
                                 "NA", // client
                                 "NA", // redirect
                                 "user", // loginhint,
-                                false
-                        ),
-                        new UIEvent("")
-                );
-        assertTrue(basicWebViewClient.shouldOverrideUrlLoading(mMockWebView, AUTHENTICATOR_MFA_LINKING_INVALID_URI));
+                                false),
+                        new UIEvent(""));
+        assertTrue(
+                basicWebViewClient.shouldOverrideUrlLoading(
+                        mMockWebView, AUTHENTICATOR_MFA_LINKING_INVALID_URI));
     }
-
 
     @UiThreadTest
     @Test
     public void testUrlOverrideHandlesPKeyAuthRedirect() {
         final BasicWebViewClient basicWebViewClient =
                 setUpWebViewClient(
-                        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext(),
+                        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+                                .getContext(),
                         "",
                         new AuthenticationRequest(
                                 "NA", // authority
@@ -195,10 +204,8 @@ public class BasicWebViewClientTests {
                                 "NA", // client
                                 "NA", // redirect
                                 "user", // loginhint,
-                                false
-                        ),
-                        new UIEvent("")
-                );
+                                false),
+                        new UIEvent(""));
         assertTrue(basicWebViewClient.shouldOverrideUrlLoading(mMockWebView, TEST_PKEY_AUTH_URL));
     }
 
@@ -207,7 +214,8 @@ public class BasicWebViewClientTests {
     public void testUrlOverrideHandlesCancellation() {
         final BasicWebViewClient basicWebViewClient =
                 setUpWebViewClient(
-                        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext(),
+                        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+                                .getContext(),
                         TEST_CANCELLATION_URL,
                         new AuthenticationRequest(
                                 "NA", // authority
@@ -215,75 +223,69 @@ public class BasicWebViewClientTests {
                                 "NA", // client
                                 TEST_CANCELLATION_URL, // redirect
                                 "user", // loginhint,
-                                false
-                        ),
-                        new UIEvent("")
-                );
-        assertTrue(basicWebViewClient.shouldOverrideUrlLoading(mMockWebView, TEST_CANCELLATION_URL));
+                                false),
+                        new UIEvent(""));
+        assertTrue(
+                basicWebViewClient.shouldOverrideUrlLoading(mMockWebView, TEST_CANCELLATION_URL));
         Mockito.verify(mMockWebView, Mockito.times(1)).stopLoading();
     }
 
     @Test
     public void testUrlOverrideHandlesExternalSiteRequests() throws InterruptedException {
         final CountDownLatch countDownLatch = new CountDownLatch(2);
-        final BasicWebViewClient dummyClient = new BasicWebViewClient(
-                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext(),
-                "www.redirect.com",
-                new AuthenticationRequest(
-                        "NA",
-                        "NA",
-                        "NA",
-                        "NA",
-                        "user",
-                        false
-                ),
-                new UIEvent("")) {
-            @Override
-            public void showSpinner(boolean status) {
-                // Not under test
-            }
+        final BasicWebViewClient dummyClient =
+                new BasicWebViewClient(
+                        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+                                .getContext(),
+                        "www.redirect.com",
+                        new AuthenticationRequest("NA", "NA", "NA", "NA", "user", false),
+                        new UIEvent("")) {
+                    @Override
+                    public void showSpinner(boolean status) {
+                        // Not under test
+                    }
 
-            @Override
-            public void sendResponse(int returnCode, Intent responseIntent) {
-                // Not under test
-            }
+                    @Override
+                    public void sendResponse(int returnCode, Intent responseIntent) {
+                        // Not under test
+                    }
 
-            @Override
-            public void cancelWebViewRequest(@Nullable Intent errorIntent) {
-                countDownLatch.countDown();
-            }
+                    @Override
+                    public void cancelWebViewRequest(@Nullable Intent errorIntent) {
+                        countDownLatch.countDown();
+                    }
 
-            @Override
-            public void prepareForBrokerResumeRequest() {
-                // Not under test
-            }
+                    @Override
+                    public void prepareForBrokerResumeRequest() {
+                        // Not under test
+                    }
 
-            @Override
-            public void setPKeyAuthStatus(boolean status) {
-                // Not under test
-            }
+                    @Override
+                    public void setPKeyAuthStatus(boolean status) {
+                        // Not under test
+                    }
 
-            @Override
-            public void postRunnable(Runnable item) {
-                // Not under test
-            }
+                    @Override
+                    public void postRunnable(Runnable item) {
+                        // Not under test
+                    }
 
-            @Override
-            public void processRedirectUrl(WebView view, String url) {
-                // Not under test
-            }
+                    @Override
+                    public void processRedirectUrl(WebView view, String url) {
+                        // Not under test
+                    }
 
-            @Override
-            public boolean processInvalidUrl(WebView view, String url) {
-                return false;
-            }
+                    @Override
+                    public boolean processInvalidUrl(WebView view, String url) {
+                        return false;
+                    }
 
-            @Override
-            protected void openLinkInBrowser(String url) {
-                assertEquals(url, TEST_EXTERNAL_SITE_URL);
-                countDownLatch.countDown();
-            }
-        };
+                    @Override
+                    protected void openLinkInBrowser(String url) {
+                        assertEquals(url, TEST_EXTERNAL_SITE_URL);
+                        countDownLatch.countDown();
+                    }
+                };
 
         // Load the external url
         dummyClient.shouldOverrideUrlLoading(mMockWebView, TEST_EXTERNAL_SITE_URL);
@@ -301,70 +303,64 @@ public class BasicWebViewClientTests {
     @Test
     public void testUrlOverrideHandlesInstallRequests() throws InterruptedException {
         final CountDownLatch countDownLatch = new CountDownLatch(2);
-        final BasicWebViewClient dummyClient = new BasicWebViewClient(
-                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext(),
-                TEST_INSTALL_REQUEST_URL,
-                new AuthenticationRequest(
-                        "NA",
-                        "NA",
-                        "NA",
-                        "NA",
-                        "user",
-                        false
-                ),
-                new UIEvent("")) {
-            @Override
-            public void showSpinner(boolean status) {
-                // Not under test
-            }
+        final BasicWebViewClient dummyClient =
+                new BasicWebViewClient(
+                        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+                                .getContext(),
+                        TEST_INSTALL_REQUEST_URL,
+                        new AuthenticationRequest("NA", "NA", "NA", "NA", "user", false),
+                        new UIEvent("")) {
+                    @Override
+                    public void showSpinner(boolean status) {
+                        // Not under test
+                    }
 
-            @Override
-            public void sendResponse(int returnCode, Intent responseIntent) {
-                // Not under test
-            }
+                    @Override
+                    public void sendResponse(int returnCode, Intent responseIntent) {
+                        // Not under test
+                    }
 
-            @Override
-            public void cancelWebViewRequest(@Nullable Intent errorIntent) {
-                // Not under test
-            }
+                    @Override
+                    public void cancelWebViewRequest(@Nullable Intent errorIntent) {
+                        // Not under test
+                    }
 
-            @Override
-            public void prepareForBrokerResumeRequest() {
-                countDownLatch.countDown();
-            }
+                    @Override
+                    public void prepareForBrokerResumeRequest() {
+                        countDownLatch.countDown();
+                    }
 
-            @Override
-            public void setPKeyAuthStatus(boolean status) {
-                // Not under test
-            }
+                    @Override
+                    public void setPKeyAuthStatus(boolean status) {
+                        // Not under test
+                    }
 
-            @Override
-            public void postRunnable(Runnable item) {
-                // Not under test
-            }
+                    @Override
+                    public void postRunnable(Runnable item) {
+                        // Not under test
+                    }
 
-            @Override
-            public void processRedirectUrl(WebView view, String url) {
-                // Not under test
-            }
+                    @Override
+                    public void processRedirectUrl(WebView view, String url) {
+                        // Not under test
+                    }
 
-            @Override
-            public boolean processInvalidUrl(WebView view, String url) {
-                return false;
-            }
+                    @Override
+                    public boolean processInvalidUrl(WebView view, String url) {
+                        return false;
+                    }
 
-            @Override
-            protected void openLinkInBrowser(String url) {
-                assertEquals(url, "myapplink.com");
-                countDownLatch.countDown();
-            }
-        };
+                    @Override
+                    protected void openLinkInBrowser(String url) {
+                        assertEquals(url, "myapplink.com");
+                        countDownLatch.countDown();
+                    }
+                };
 
         dummyClient.shouldOverrideUrlLoading(
                 mMockWebView,
                 AuthenticationConstants.Broker.BROWSER_EXT_INSTALL_PREFIX
-                        + "https://testdomain.com?app_link=myapplink.com"
-        );
+                        + "https://testdomain.com?app_link=myapplink.com");
 
         if (!countDownLatch.await(1, TimeUnit.SECONDS)) {
             fail();
@@ -376,75 +372,66 @@ public class BasicWebViewClientTests {
         final int errCode = 400;
         final String errMsg = "Bad Request";
         final CountDownLatch latch = new CountDownLatch(1);
-        final BasicWebViewClient dummyClient = new BasicWebViewClient(
-                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext(),
-                TEST_INSTALL_REQUEST_URL,
-                new AuthenticationRequest(
-                        "NA",
-                        "NA",
-                        "NA",
-                        "NA",
-                        "user",
-                        false
-                ),
-                new UIEvent("")) {
-            @Override
-            public void showSpinner(boolean status) {
-                // Not under test
-            }
+        final BasicWebViewClient dummyClient =
+                new BasicWebViewClient(
+                        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+                                .getContext(),
+                        TEST_INSTALL_REQUEST_URL,
+                        new AuthenticationRequest("NA", "NA", "NA", "NA", "user", false),
+                        new UIEvent("")) {
+                    @Override
+                    public void showSpinner(boolean status) {
+                        // Not under test
+                    }
 
-            @Override
-            public void sendResponse(int returnCode, Intent responseIntent) {
-                assertEquals(returnCode, BROWSER_CODE_ERROR);
-                final String errString = responseIntent.getStringExtra(RESPONSE_ERROR_CODE);
-                final String intentErrMsg = responseIntent.getStringExtra(RESPONSE_ERROR_MESSAGE);
-                assertTrue(errString.contains(String.valueOf(errCode)));
-                assertEquals(errMsg, intentErrMsg);
-                latch.countDown();
-            }
+                    @Override
+                    public void sendResponse(int returnCode, Intent responseIntent) {
+                        assertEquals(returnCode, BROWSER_CODE_ERROR);
+                        final String errString = responseIntent.getStringExtra(RESPONSE_ERROR_CODE);
+                        final String intentErrMsg =
+                                responseIntent.getStringExtra(RESPONSE_ERROR_MESSAGE);
+                        assertTrue(errString.contains(String.valueOf(errCode)));
+                        assertEquals(errMsg, intentErrMsg);
+                        latch.countDown();
+                    }
 
-            @Override
-            public void cancelWebViewRequest(@Nullable Intent errorIntent) {
-                // Not under test
-            }
+                    @Override
+                    public void cancelWebViewRequest(@Nullable Intent errorIntent) {
+                        // Not under test
+                    }
 
-            @Override
-            public void prepareForBrokerResumeRequest() {
-                // Not under test
-            }
+                    @Override
+                    public void prepareForBrokerResumeRequest() {
+                        // Not under test
+                    }
 
-            @Override
-            public void setPKeyAuthStatus(boolean status) {
-                // Not under test
-            }
+                    @Override
+                    public void setPKeyAuthStatus(boolean status) {
+                        // Not under test
+                    }
 
-            @Override
-            public void postRunnable(Runnable item) {
-                // Not under test
-            }
+                    @Override
+                    public void postRunnable(Runnable item) {
+                        // Not under test
+                    }
 
-            @Override
-            public void processRedirectUrl(WebView view, String url) {
-                // Not under test
-            }
+                    @Override
+                    public void processRedirectUrl(WebView view, String url) {
+                        // Not under test
+                    }
 
-            @Override
-            public boolean processInvalidUrl(WebView view, String url) {
-                return false;
-            }
+                    @Override
+                    public boolean processInvalidUrl(WebView view, String url) {
+                        return false;
+                    }
 
-            @Override
-            protected void openLinkInBrowser(String url) {
-                // Not under test
-            }
-        };
+                    @Override
+                    protected void openLinkInBrowser(String url) {
+                        // Not under test
+                    }
+                };
 
-        dummyClient.onReceivedError(
-                mMockWebView,
-                errCode,
-                errMsg,
-                TEST_EXTERNAL_SITE_URL
-        );
+        dummyClient.onReceivedError(mMockWebView, errCode, errMsg, TEST_EXTERNAL_SITE_URL);
 
         if (!latch.await(1, TimeUnit.SECONDS)) {
             fail();

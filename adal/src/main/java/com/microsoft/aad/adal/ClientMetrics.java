@@ -48,7 +48,8 @@ enum ClientMetrics {
 
     private static final String CLIENT_METRICS_HEADER_LAST_REQUEST = "x-client-last-request";
 
-    private static final String CLIENT_METRICS_HEADER_LAST_RESPONSE_TIME = "x-client-last-response-time";
+    private static final String CLIENT_METRICS_HEADER_LAST_RESPONSE_TIME =
+            "x-client-last-response-time";
 
     private static final String CLIENT_METRICS_HEADER_LAST_ENDPOINT = "x-client-last-endpoint";
 
@@ -66,8 +67,8 @@ enum ClientMetrics {
 
     private URL mQueryUrl;
 
-    public void beginClientMetricsRecord(URL queryUrl, UUID correlationId,
-                                         Map<String, String> headers) {
+    public void beginClientMetricsRecord(
+            URL queryUrl, UUID correlationId, Map<String, String> headers) {
         if (UrlExtensions.isADFSAuthority(queryUrl)) {
             // Don't add for ADFS endpoint
             mLastCorrelationId = null;

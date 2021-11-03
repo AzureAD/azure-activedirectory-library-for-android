@@ -83,48 +83,59 @@ class HttpAuthDialog {
     @SuppressLint("InflateParams")
     private void createDialog() {
         LayoutInflater factory = LayoutInflater.from(mContext);
-        View v = factory.inflate(mContext.getResources().getLayout(R.layout.http_auth_dialog), null);
+        View v =
+                factory.inflate(mContext.getResources().getLayout(R.layout.http_auth_dialog), null);
         mUsernameView = (EditText) v.findViewById(R.id.editUserName);
         mPasswordView = (EditText) v.findViewById(R.id.editPassword);
-        mPasswordView.setOnEditorActionListener(new OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    mDialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
-                    return true;
-                }
-                return false;
-            }
-        });
+        mPasswordView.setOnEditorActionListener(
+                new OnEditorActionListener() {
+                    @Override
+                    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                        if (actionId == EditorInfo.IME_ACTION_DONE) {
+                            mDialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+                            return true;
+                        }
+                        return false;
+                    }
+                });
 
         String title = mContext.getText(R.string.http_auth_dialog_title).toString();
 
-        mDialog = new AlertDialog.Builder(mContext)
-                .setTitle(title)
-                .setView(v)
-                .setPositiveButton(R.string.http_auth_dialog_login,
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int whichButton) {
-                                if (mOkListener != null) {
-                                    mOkListener.onOk(mHost, mRealm, mUsernameView.getText()
-                                            .toString(), mPasswordView.getText().toString());
-                                }
-                            }
-                        })
-                .setNegativeButton(R.string.http_auth_dialog_cancel,
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int whichButton) {
-                                if (mCancelListener != null) {
-                                    mCancelListener.onCancel();
-                                }
-                            }
-                        }).setOnCancelListener(new DialogInterface.OnCancelListener() {
-                    public void onCancel(DialogInterface dialog) {
-                        if (mCancelListener != null) {
-                            mCancelListener.onCancel();
-                        }
-                    }
-                }).create();
+        mDialog =
+                new AlertDialog.Builder(mContext)
+                        .setTitle(title)
+                        .setView(v)
+                        .setPositiveButton(
+                                R.string.http_auth_dialog_login,
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int whichButton) {
+                                        if (mOkListener != null) {
+                                            mOkListener.onOk(
+                                                    mHost,
+                                                    mRealm,
+                                                    mUsernameView.getText().toString(),
+                                                    mPasswordView.getText().toString());
+                                        }
+                                    }
+                                })
+                        .setNegativeButton(
+                                R.string.http_auth_dialog_cancel,
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int whichButton) {
+                                        if (mCancelListener != null) {
+                                            mCancelListener.onCancel();
+                                        }
+                                    }
+                                })
+                        .setOnCancelListener(
+                                new DialogInterface.OnCancelListener() {
+                                    public void onCancel(DialogInterface dialog) {
+                                        if (mCancelListener != null) {
+                                            mCancelListener.onCancel();
+                                        }
+                                    }
+                                })
+                        .create();
     }
 
     public interface OkListener {

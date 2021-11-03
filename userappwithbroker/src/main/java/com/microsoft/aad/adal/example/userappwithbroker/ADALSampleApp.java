@@ -25,15 +25,14 @@ package com.microsoft.aad.adal.example.userappwithbroker;
 
 import android.app.Application;
 
+import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
-import com.microsoft.aad.adal.ADALError;
 
 /**
  * ADAL sample app.
  */
-
 public class ADALSampleApp extends Application {
     private StringBuffer mLogs;
 
@@ -42,14 +41,23 @@ public class ADALSampleApp extends Application {
         super.onCreate();
         mLogs = new StringBuffer();
 
-        // Logging can be turned on four different levels: error, warning, info, and verbose. By default the sdk is turning on
-        // verbose level logging. Any apps can use Logger.getInstance().setLogLevel(Loglevel) to enable different level of logging.
-        Logger.getInstance().setExternalLogger(new ILogger() {
-            @Override
-            public void Log(String tag, String message, String additionalMessage, LogLevel logLevel, ADALError errorCode) {
-                mLogs.append(message).append('\n');
-            }
-        });
+        // Logging can be turned on four different levels: error, warning, info, and verbose. By
+        // default the sdk is turning on
+        // verbose level logging. Any apps can use Logger.getInstance().setLogLevel(Loglevel) to
+        // enable different level of logging.
+        Logger.getInstance()
+                .setExternalLogger(
+                        new ILogger() {
+                            @Override
+                            public void Log(
+                                    String tag,
+                                    String message,
+                                    String additionalMessage,
+                                    LogLevel logLevel,
+                                    ADALError errorCode) {
+                                mLogs.append(message).append('\n');
+                            }
+                        });
     }
 
     String getLogs() {

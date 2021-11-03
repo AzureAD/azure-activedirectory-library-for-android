@@ -51,9 +51,13 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 final class BrokerAccountServiceHandler {
     private static final String TAG = BrokerAccountServiceHandler.class.getSimpleName();
-    private static final String BROKER_ACCOUNT_SERVICE_INTENT_FILTER = "com.microsoft.workaccount.BrokerAccount";
+    private static final String BROKER_ACCOUNT_SERVICE_INTENT_FILTER =
+            "com.microsoft.workaccount.BrokerAccount";
 
-    private ConcurrentMap<BrokerAccountServiceConnection, CallbackExecutor<BrokerAccountServiceConnection>> mPendingConnections = new ConcurrentHashMap<>();
+    private ConcurrentMap<
+                    BrokerAccountServiceConnection,
+                    CallbackExecutor<BrokerAccountServiceConnection>>
+            mPendingConnections = new ConcurrentHashMap<>();
     private static ExecutorService sThreadExecutor = Executors.newCachedThreadPool();
 
     private static final class InstanceHolder {
@@ -67,8 +71,7 @@ final class BrokerAccountServiceHandler {
     /**
      * Private constructor to prevent class from being instantiate.
      */
-    private BrokerAccountServiceHandler() {
-    }
+    private BrokerAccountServiceHandler() {}
 
     /**
      * Get Broker users is a blocking call, cannot be executed on the main thread.
@@ -80,25 +83,29 @@ final class BrokerAccountServiceHandler {
         final AtomicReference<Bundle> userBundle = new AtomicReference<>(null);
         final AtomicReference<Throwable> exception = new AtomicReference<>(null);
 
-        performAsyncCallOnBound(context, new Callback<BrokerAccountServiceConnection>() {
-            @Override
-            public void onSuccess(BrokerAccountServiceConnection connection) {
-                final IBrokerAccountService brokerAccountService = connection.getBrokerAccountServiceProvider();
-                try {
-                    userBundle.set(brokerAccountService.getBrokerUsers());
-                } catch (final RemoteException ex) {
-                    exception.set(ex);
-                }
+        performAsyncCallOnBound(
+                context,
+                new Callback<BrokerAccountServiceConnection>() {
+                    @Override
+                    public void onSuccess(BrokerAccountServiceConnection connection) {
+                        final IBrokerAccountService brokerAccountService =
+                                connection.getBrokerAccountServiceProvider();
+                        try {
+                            userBundle.set(brokerAccountService.getBrokerUsers());
+                        } catch (final RemoteException ex) {
+                            exception.set(ex);
+                        }
 
-                countDownLatch.countDown();
-            }
+                        countDownLatch.countDown();
+                    }
 
-            @Override
-            public void onError(Throwable throwable) {
-                exception.set(throwable);
-                countDownLatch.countDown();
-            }
-        }, null);
+                    @Override
+                    public void onError(Throwable throwable) {
+                        exception.set(throwable);
+                        countDownLatch.countDown();
+                    }
+                },
+                null);
 
         try {
             countDownLatch.await();
@@ -108,7 +115,9 @@ final class BrokerAccountServiceHandler {
 
         final Throwable exceptionForRetrievingBrokerUsers = exception.getAndSet(null);
         if (exceptionForRetrievingBrokerUsers != null) {
-            throw new IOException(exceptionForRetrievingBrokerUsers.getMessage(), exceptionForRetrievingBrokerUsers);
+            throw new IOException(
+                    exceptionForRetrievingBrokerUsers.getMessage(),
+                    exceptionForRetrievingBrokerUsers);
         }
 
         final Bundle userBundleResult = userBundle.getAndSet(null);
@@ -123,31 +132,40 @@ final class BrokerAccountServiceHandler {
      * @return The {@link Bundle} result from the BrokerAccountService.
      * @throws {@link AuthenticationException} if failed to get token from the service.
      */
-    public Bundle getAuthToken(final Context context, final Bundle requestBundle, final BrokerEvent brokerEvent) throws AuthenticationException {
+    public Bundle getAuthToken(
+            final Context context, final Bundle requestBundle, final BrokerEvent brokerEvent)
+            throws AuthenticationException {
         final String methodName = ":getAuthToken";
         final CountDownLatch countDownLatch = new CountDownLatch(1);
         final AtomicReference<Bundle> bundleResult = new AtomicReference<>(null);
         final AtomicReference<Throwable> exception = new AtomicReference<>(null);
 
-        performAsyncCallOnBound(context, new Callback<BrokerAccountServiceConnection>() {
-            @Override
-            public void onSuccess(BrokerAccountServiceConnection result) {
-                final IBrokerAccountService brokerAccountService = result.getBrokerAccountServiceProvider();
-                try {
-                    bundleResult.set(brokerAccountService.acquireTokenSilently(prepareGetAuthTokenRequestData(context, requestBundle)));
-                } catch (final RemoteException remoteException) {
-                    exception.set(remoteException);
-                }
+        performAsyncCallOnBound(
+                context,
+                new Callback<BrokerAccountServiceConnection>() {
+                    @Override
+                    public void onSuccess(BrokerAccountServiceConnection result) {
+                        final IBrokerAccountService brokerAccountService =
+                                result.getBrokerAccountServiceProvider();
+                        try {
+                            bundleResult.set(
+                                    brokerAccountService.acquireTokenSilently(
+                                            prepareGetAuthTokenRequestData(
+                                                    context, requestBundle)));
+                        } catch (final RemoteException remoteException) {
+                            exception.set(remoteException);
+                        }
 
-                countDownLatch.countDown();
-            }
+                        countDownLatch.countDown();
+                    }
 
-            @Override
-            public void onError(Throwable throwable) {
-                exception.set(throwable);
-                countDownLatch.countDown();
-            }
-        }, brokerEvent);
+                    @Override
+                    public void onError(Throwable throwable) {
+                        exception.set(throwable);
+                        countDownLatch.countDown();
+                    }
+                },
+                brokerEvent);
 
         try {
             countDownLatch.await();
@@ -156,17 +174,42 @@ final class BrokerAccountServiceHandler {
         }
 
         final Throwable throwable = exception.getAndSet(null);
-        //AuthenticationException with error code BROKER_AUTHENTICATOR_NOT_RESPONDING will be thrown if there is any exception thrown during binding the service.
+        // AuthenticationException with error code BROKER_AUTHENTICATOR_NOT_RESPONDING will be
+        // thrown if there is any exception thrown during binding the service.
         if (throwable != null) {
             if (throwable instanceof RemoteException) {
-                Logger.e(TAG + methodName, "Get error when trying to get token from broker. ", throwable.getMessage(), ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable);
-                throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable.getMessage(), throwable);
+                Logger.e(
+                        TAG + methodName,
+                        "Get error when trying to get token from broker. ",
+                        throwable.getMessage(),
+                        ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING,
+                        throwable);
+                throw new AuthenticationException(
+                        ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING,
+                        throwable.getMessage(),
+                        throwable);
             } else if (throwable instanceof InterruptedException) {
-                Logger.e(TAG + methodName, "The broker account service binding call is interrupted. ", throwable.getMessage(), ADALError.BROKER_AUTHENTICATOR_EXCEPTION, throwable);
-                throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable.getMessage(), throwable);
+                Logger.e(
+                        TAG + methodName,
+                        "The broker account service binding call is interrupted. ",
+                        throwable.getMessage(),
+                        ADALError.BROKER_AUTHENTICATOR_EXCEPTION,
+                        throwable);
+                throw new AuthenticationException(
+                        ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING,
+                        throwable.getMessage(),
+                        throwable);
             } else {
-                Logger.e(TAG + methodName, "Get error when trying to bind the broker account service.", throwable.getMessage(), ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable);
-                throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable.getMessage(), throwable);
+                Logger.e(
+                        TAG + methodName,
+                        "Get error when trying to bind the broker account service.",
+                        throwable.getMessage(),
+                        ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING,
+                        throwable);
+                throw new AuthenticationException(
+                        ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING,
+                        throwable.getMessage(),
+                        throwable);
             }
         }
 
@@ -179,30 +222,35 @@ final class BrokerAccountServiceHandler {
      * @param context The application {@link Context}.
      * @return The {@link Intent} to launch the interactive request.
      */
-    public Intent getIntentForInteractiveRequest(final Context context, final BrokerEvent brokerEvent) throws AuthenticationException {
+    public Intent getIntentForInteractiveRequest(
+            final Context context, final BrokerEvent brokerEvent) throws AuthenticationException {
         final CountDownLatch countDownLatch = new CountDownLatch(1);
         final AtomicReference<Intent> bundleResult = new AtomicReference<>(null);
         final AtomicReference<Throwable> exception = new AtomicReference<>(null);
 
-        performAsyncCallOnBound(context, new Callback<BrokerAccountServiceConnection>() {
-            @Override
-            public void onSuccess(BrokerAccountServiceConnection result) {
-                final IBrokerAccountService brokerAccountService = result.getBrokerAccountServiceProvider();
-                try {
-                    bundleResult.set(brokerAccountService.getIntentForInteractiveRequest());
-                } catch (final RemoteException remoteException) {
-                    exception.set(remoteException);
-                }
+        performAsyncCallOnBound(
+                context,
+                new Callback<BrokerAccountServiceConnection>() {
+                    @Override
+                    public void onSuccess(BrokerAccountServiceConnection result) {
+                        final IBrokerAccountService brokerAccountService =
+                                result.getBrokerAccountServiceProvider();
+                        try {
+                            bundleResult.set(brokerAccountService.getIntentForInteractiveRequest());
+                        } catch (final RemoteException remoteException) {
+                            exception.set(remoteException);
+                        }
 
-                countDownLatch.countDown();
-            }
+                        countDownLatch.countDown();
+                    }
 
-            @Override
-            public void onError(Throwable throwable) {
-                exception.set(throwable);
-                countDownLatch.countDown();
-            }
-        }, brokerEvent);
+                    @Override
+                    public void onError(Throwable throwable) {
+                        exception.set(throwable);
+                        countDownLatch.countDown();
+                    }
+                },
+                brokerEvent);
 
         try {
             countDownLatch.await();
@@ -211,25 +259,42 @@ final class BrokerAccountServiceHandler {
         }
 
         final Throwable throwable = exception.getAndSet(null);
-        //AuthenticationException with error code BROKER_AUTHENTICATOR_NOT_RESPONDING will be thrown if there is any exception thrown during binding the service.
+        // AuthenticationException with error code BROKER_AUTHENTICATOR_NOT_RESPONDING will be
+        // thrown if there is any exception thrown during binding the service.
         if (throwable != null) {
             if (throwable instanceof RemoteException) {
-                Logger.e(TAG, "Get error when trying to get token from broker. ",
-                        throwable.getMessage(), ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable);
-                throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING,
+                Logger.e(
+                        TAG,
+                        "Get error when trying to get token from broker. ",
+                        throwable.getMessage(),
+                        ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING,
+                        throwable);
+                throw new AuthenticationException(
+                        ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING,
                         throwable.getMessage(),
                         throwable);
             } else if (throwable instanceof InterruptedException) {
-                Logger.e(TAG, "The broker account service binding call is interrupted. ",
-                        throwable.getMessage(), ADALError.BROKER_AUTHENTICATOR_EXCEPTION, throwable);
-                throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING,
+                Logger.e(
+                        TAG,
+                        "The broker account service binding call is interrupted. ",
+                        throwable.getMessage(),
+                        ADALError.BROKER_AUTHENTICATOR_EXCEPTION,
+                        throwable);
+                throw new AuthenticationException(
+                        ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING,
                         throwable.getMessage(),
                         throwable);
             } else {
-                Logger.e(TAG, "Didn't receive the activity to launch from broker. ",
-                        throwable.getMessage(), ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable);
-                throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING,
-                        "Didn't receive the activity to launch from broker: " + throwable.getMessage(),
+                Logger.e(
+                        TAG,
+                        "Didn't receive the activity to launch from broker. ",
+                        throwable.getMessage(),
+                        ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING,
+                        throwable);
+                throw new AuthenticationException(
+                        ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING,
+                        "Didn't receive the activity to launch from broker: "
+                                + throwable.getMessage(),
                         throwable);
             }
         }
@@ -244,23 +309,34 @@ final class BrokerAccountServiceHandler {
      */
     public void removeAccounts(final Context context) {
         final String methodName = ":removeAccounts";
-        performAsyncCallOnBound(context, new Callback<BrokerAccountServiceConnection>() {
-            @Override
-            public void onSuccess(BrokerAccountServiceConnection result) {
-                try {
-                    result.getBrokerAccountServiceProvider().removeAccounts();
-                } catch (final RemoteException remoteException) {
-                    Logger.e(TAG + methodName, "Encounter exception when removing accounts from broker",
-                            remoteException.getMessage(), null, remoteException);
-                }
-            }
+        performAsyncCallOnBound(
+                context,
+                new Callback<BrokerAccountServiceConnection>() {
+                    @Override
+                    public void onSuccess(BrokerAccountServiceConnection result) {
+                        try {
+                            result.getBrokerAccountServiceProvider().removeAccounts();
+                        } catch (final RemoteException remoteException) {
+                            Logger.e(
+                                    TAG + methodName,
+                                    "Encounter exception when removing accounts from broker",
+                                    remoteException.getMessage(),
+                                    null,
+                                    remoteException);
+                        }
+                    }
 
-            @Override
-            public void onError(Throwable throwable) {
-                Logger.e(TAG + methodName, "Encounter exception when removing accounts from broker",
-                        throwable.getMessage(), null, throwable);
-            }
-        }, null);
+                    @Override
+                    public void onError(Throwable throwable) {
+                        Logger.e(
+                                TAG + methodName,
+                                "Encounter exception when removing accounts from broker",
+                                throwable.getMessage(),
+                                null,
+                                throwable);
+                    }
+                },
+                null);
     }
 
     public static Intent getIntentForBrokerAccountService(final Context context) {
@@ -273,12 +349,14 @@ final class BrokerAccountServiceHandler {
 
         final Intent brokerAccountServiceToBind = new Intent(BROKER_ACCOUNT_SERVICE_INTENT_FILTER);
         brokerAccountServiceToBind.setPackage(brokerAppName);
-        brokerAccountServiceToBind.setClassName(brokerAppName, "com.microsoft.aad.adal.BrokerAccountService");
+        brokerAccountServiceToBind.setClassName(
+                brokerAppName, "com.microsoft.aad.adal.BrokerAccountService");
 
         return brokerAccountServiceToBind;
     }
 
-    private Map<String, String> prepareGetAuthTokenRequestData(final Context context, final Bundle requestBundle) {
+    private Map<String, String> prepareGetAuthTokenRequestData(
+            final Context context, final Bundle requestBundle) {
         final Set<String> requestBundleKeys = requestBundle.keySet();
 
         final Map<String, String> requestData = new HashMap<>();
@@ -290,7 +368,8 @@ final class BrokerAccountServiceHandler {
             }
             requestData.put(key, requestBundle.getString(key));
         }
-        requestData.put(AuthenticationConstants.Broker.CALLER_INFO_PACKAGE, context.getPackageName());
+        requestData.put(
+                AuthenticationConstants.Broker.CALLER_INFO_PACKAGE, context.getPackageName());
 
         return requestData;
     }
@@ -298,58 +377,77 @@ final class BrokerAccountServiceHandler {
     private UserInfo[] convertUserInfoBundleToArray(final Bundle usersBundle) {
         if (usersBundle == null) {
             Logger.v(TAG, "No user info returned from broker account service.");
-            return new UserInfo[]{};
+            return new UserInfo[] {};
         }
 
         final ArrayList<UserInfo> brokerUsers = new ArrayList<>();
         final Set<String> users = usersBundle.keySet();
         for (final String user : users) {
             final Bundle userBundle = usersBundle.getBundle(user);
-            final String userId = userBundle.getString(
-                    AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID);
-            final String givenName = userBundle.getString(
-                    AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME);
-            final String familyName = userBundle.getString(
-                    AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME);
-            final String identityProvider = userBundle.getString(
-                    AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER);
-            final String displayableId = userBundle.getString(
-                    AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE);
+            final String userId =
+                    userBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID);
+            final String givenName =
+                    userBundle.getString(
+                            AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME);
+            final String familyName =
+                    userBundle.getString(
+                            AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME);
+            final String identityProvider =
+                    userBundle.getString(
+                            AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER);
+            final String displayableId =
+                    userBundle.getString(
+                            AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE);
 
-            brokerUsers.add(new UserInfo(userId, givenName, familyName, identityProvider, displayableId));
+            brokerUsers.add(
+                    new UserInfo(userId, givenName, familyName, identityProvider, displayableId));
         }
 
         return brokerUsers.toArray(new UserInfo[brokerUsers.size()]);
     }
 
-    private void performAsyncCallOnBound(final Context context, final Callback<BrokerAccountServiceConnection> callback, final BrokerEvent event) {
-        bindToBrokerAccountService(context, new Callback<BrokerAccountServiceConnection>() {
-            @Override
-            public void onSuccess(final BrokerAccountServiceConnection result) {
-                if (Looper.myLooper() != Looper.getMainLooper()) {
-                    callback.onSuccess(result);
-                    result.unBindService(context);
-                } else {
-                    sThreadExecutor.execute(new Runnable() {
-                        @Override
-                        public void run() {
+    private void performAsyncCallOnBound(
+            final Context context,
+            final Callback<BrokerAccountServiceConnection> callback,
+            final BrokerEvent event) {
+        bindToBrokerAccountService(
+                context,
+                new Callback<BrokerAccountServiceConnection>() {
+                    @Override
+                    public void onSuccess(final BrokerAccountServiceConnection result) {
+                        if (Looper.myLooper() != Looper.getMainLooper()) {
                             callback.onSuccess(result);
                             result.unBindService(context);
+                        } else {
+                            sThreadExecutor.execute(
+                                    new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            callback.onSuccess(result);
+                                            result.unBindService(context);
+                                        }
+                                    });
                         }
-                    });
-                }
-            }
+                    }
 
-            @Override
-            public void onError(Throwable throwable) {
-                callback.onError(throwable);
-            }
-        }, event);
+                    @Override
+                    public void onError(Throwable throwable) {
+                        callback.onError(throwable);
+                    }
+                },
+                event);
     }
 
-    private void bindToBrokerAccountService(final Context context, final Callback<BrokerAccountServiceConnection> callback, final BrokerEvent brokerEvent) {
+    private void bindToBrokerAccountService(
+            final Context context,
+            final Callback<BrokerAccountServiceConnection> callback,
+            final BrokerEvent brokerEvent) {
         final String methodName = ":bindToBrokerAccountService";
-        Logger.v(TAG + methodName, "Binding to BrokerAccountService for caller uid. ", "uid: " + android.os.Process.myUid(), null);
+        Logger.v(
+                TAG + methodName,
+                "Binding to BrokerAccountService for caller uid. ",
+                "uid: " + android.os.Process.myUid(),
+                null);
         final Intent brokerAccountServiceToBind = getIntentForBrokerAccountService(context);
 
         final BrokerAccountServiceConnection connection = new BrokerAccountServiceConnection();
@@ -357,16 +455,26 @@ final class BrokerAccountServiceHandler {
             connection.setTelemetryEvent(brokerEvent);
             brokerEvent.setBrokerAccountServerStartsBinding();
         }
-        final CallbackExecutor<BrokerAccountServiceConnection> callbackExecutor = new CallbackExecutor<>(callback);
+        final CallbackExecutor<BrokerAccountServiceConnection> callbackExecutor =
+                new CallbackExecutor<>(callback);
         mPendingConnections.put(connection, callbackExecutor);
-        final boolean serviceBound = context.bindService(brokerAccountServiceToBind, connection, Context.BIND_AUTO_CREATE);
-        Logger.v(TAG + methodName, "The status for brokerAccountService bindService call is: " + Boolean.valueOf(serviceBound));
+        final boolean serviceBound =
+                context.bindService(
+                        brokerAccountServiceToBind, connection, Context.BIND_AUTO_CREATE);
+        Logger.v(
+                TAG + methodName,
+                "The status for brokerAccountService bindService call is: "
+                        + Boolean.valueOf(serviceBound));
         if (brokerEvent != null) {
             brokerEvent.setBrokerAccountServiceBindingSucceed(serviceBound);
         }
         if (!serviceBound) {
             connection.unBindService(context);
-            Logger.e(TAG + methodName, "Failed to bind service to broker app. ", "'bindService returned false", ADALError.BROKER_BIND_SERVICE_FAILED);
+            Logger.e(
+                    TAG + methodName,
+                    "Failed to bind service to broker app. ",
+                    "'bindService returned false",
+                    ADALError.BROKER_BIND_SERVICE_FAILED);
             callback.onError(new AuthenticationException(ADALError.BROKER_BIND_SERVICE_FAILED));
         }
     }
@@ -390,7 +498,8 @@ final class BrokerAccountServiceHandler {
                 mEvent.setBrokerAccountServiceConnected();
             }
 
-            final CallbackExecutor<BrokerAccountServiceConnection> callbackExecutor = mPendingConnections.remove(this);
+            final CallbackExecutor<BrokerAccountServiceConnection> callbackExecutor =
+                    mPendingConnections.remove(this);
             if (callbackExecutor != null) {
                 callbackExecutor.onSuccess(this);
             } else {
@@ -405,26 +514,35 @@ final class BrokerAccountServiceHandler {
         }
 
         public void unBindService(final Context context) {
-            // Service disconnect is async operation, in case of race condition, having the service binding check queued up
+            // Service disconnect is async operation, in case of race condition, having the service
+            // binding check queued up
             // in main message looper and unbind it.
             final Handler handler = new Handler(Looper.getMainLooper());
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (mBound) {
-                        try {
-                            context.unbindService(BrokerAccountServiceConnection.this);
-                        } catch (final IllegalArgumentException exception) {
-                            // unbindService throws "Service not registered" IllegalArgumentException. We are still investigating
-                            // why this is happening. Meanwhile to unblock the release we are adding this workaround.
-                            // Issue #808 tracks the future investigation.
-                            Logger.e(TAG, "Unbind threw IllegalArgumentException", "", null, exception);
-                        } finally {
-                            mBound = false;
+            handler.post(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            if (mBound) {
+                                try {
+                                    context.unbindService(BrokerAccountServiceConnection.this);
+                                } catch (final IllegalArgumentException exception) {
+                                    // unbindService throws "Service not registered"
+                                    // IllegalArgumentException. We are still investigating
+                                    // why this is happening. Meanwhile to unblock the release we
+                                    // are adding this workaround.
+                                    // Issue #808 tracks the future investigation.
+                                    Logger.e(
+                                            TAG,
+                                            "Unbind threw IllegalArgumentException",
+                                            "",
+                                            null,
+                                            exception);
+                                } finally {
+                                    mBound = false;
+                                }
+                            }
                         }
-                    }
-                }
-            });
+                    });
         }
 
         public void setTelemetryEvent(final BrokerEvent event) {

@@ -114,23 +114,29 @@ public final class TelemetryPrivacyComplianceTests {
             boolean shouldThrow = false;
             try {
                 if (key.equals(EventStrings.LOGIN_HINT)) {
-                    shouldThrow = !entry.getValue().equals(StringExtensions.createHash("sample_value"));
+                    shouldThrow =
+                            !entry.getValue().equals(StringExtensions.createHash("sample_value"));
                 }
 
                 if (key.equals(EventStrings.USER_ID)) {
-                    shouldThrow = !entry.getValue().equals(StringExtensions.createHash("4f859989-a2ff-411e-9048-c322247ac62c"));
+                    shouldThrow =
+                            !entry.getValue()
+                                    .equals(
+                                            StringExtensions.createHash(
+                                                    "4f859989-a2ff-411e-9048-c322247ac62c"));
                 }
 
                 if (key.equals(EventStrings.TENANT_ID)) {
-                    shouldThrow = !entry.getValue().equals(StringExtensions.createHash("30baa666-8df8-48e7-97e6-77cfd0995963"));
+                    shouldThrow =
+                            !entry.getValue()
+                                    .equals(
+                                            StringExtensions.createHash(
+                                                    "30baa666-8df8-48e7-97e6-77cfd0995963"));
                 }
 
                 if (shouldThrow) {
-                    throw new AssertionError("Event contained PII key/pair: "
-                            + key
-                            + "/"
-                            + entry.getValue()
-                    );
+                    throw new AssertionError(
+                            "Event contained PII key/pair: " + key + "/" + entry.getValue());
                 }
             } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
                 throw new AssertionError("Could not validate PII compliance/hashing");

@@ -38,7 +38,8 @@ final class CallbackExecutor<T> {
     private final Handler mHandler;
 
     CallbackExecutor(final Callback<T> callback) {
-        // check if the current thread has the looper; if so, create Handler with the current thread looper to send message
+        // check if the current thread has the looper; if so, create Handler with the current thread
+        // looper to send message
         // back to the correct thread.
         mHandler = Looper.myLooper() == null ? null : new Handler();
         mCallbackReference.set(callback);
@@ -54,12 +55,13 @@ final class CallbackExecutor<T> {
         if (mHandler == null) {
             callback.onSuccess(result);
         } else {
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    callback.onSuccess(result);
-                }
-            });
+            mHandler.post(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onSuccess(result);
+                        }
+                    });
         }
     }
 
@@ -73,12 +75,13 @@ final class CallbackExecutor<T> {
         if (mHandler == null) {
             callback.onError(throwable);
         } else {
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    callback.onError(throwable);
-                }
-            });
+            mHandler.post(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onError(throwable);
+                        }
+                    });
         }
     }
 }

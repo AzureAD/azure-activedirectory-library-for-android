@@ -47,17 +47,21 @@ public final class TokenCacheItemSerializationAdapater
     private static final String TAG = TokenCacheItemSerializationAdapater.class.getSimpleName();
 
     @Override
-    public JsonElement serialize(TokenCacheItem tokenCacheItem, Type type, JsonSerializationContext context) {
+    public JsonElement serialize(
+            TokenCacheItem tokenCacheItem, Type type, JsonSerializationContext context) {
         JsonObject jsonObj = new JsonObject();
         jsonObj.add(OAuth2.AUTHORITY, new JsonPrimitive(tokenCacheItem.getAuthority()));
         jsonObj.add(OAuth2.REFRESH_TOKEN, new JsonPrimitive(tokenCacheItem.getRefreshToken()));
         jsonObj.add(OAuth2.ID_TOKEN, new JsonPrimitive(tokenCacheItem.getRawIdToken()));
-        jsonObj.add(OAuth2.ADAL_CLIENT_FAMILY_ID, new JsonPrimitive(tokenCacheItem.getFamilyClientId()));
+        jsonObj.add(
+                OAuth2.ADAL_CLIENT_FAMILY_ID,
+                new JsonPrimitive(tokenCacheItem.getFamilyClientId()));
         return jsonObj;
     }
 
     @Override
-    public TokenCacheItem deserialize(JsonElement json, Type type, JsonDeserializationContext context)
+    public TokenCacheItem deserialize(
+            JsonElement json, Type type, JsonDeserializationContext context)
             throws JsonParseException {
         final JsonObject srcJsonObj = json.getAsJsonObject();
         throwIfParameterMissing(srcJsonObj, OAuth2.AUTHORITY);
@@ -71,7 +75,8 @@ public final class TokenCacheItemSerializationAdapater
         try {
             idToken = new IdToken(rawIdToken);
         } catch (AuthenticationException e) {
-            throw new JsonParseException(TAG + ": Could not deserialize into a tokenCacheItem object", e);
+            throw new JsonParseException(
+                    TAG + ": Could not deserialize into a tokenCacheItem object", e);
         }
         final UserInfo userInfo = new UserInfo(idToken);
         tokenCacheItem.setUserInfo(userInfo);
@@ -79,14 +84,16 @@ public final class TokenCacheItemSerializationAdapater
         tokenCacheItem.setAuthority(srcJsonObj.get(OAuth2.AUTHORITY).getAsString());
         tokenCacheItem.setIsMultiResourceRefreshToken(true);
         tokenCacheItem.setRawIdToken(rawIdToken);
-        tokenCacheItem.setFamilyClientId(srcJsonObj.get(OAuth2.ADAL_CLIENT_FAMILY_ID).getAsString());
+        tokenCacheItem.setFamilyClientId(
+                srcJsonObj.get(OAuth2.ADAL_CLIENT_FAMILY_ID).getAsString());
         tokenCacheItem.setRefreshToken(srcJsonObj.get(OAuth2.REFRESH_TOKEN).getAsString());
         return tokenCacheItem;
     }
 
     private void throwIfParameterMissing(JsonObject json, String name) {
         if (!json.has(name)) {
-            throw new JsonParseException(TAG + "Attribute " + name + " is missing for deserialization.");
+            throw new JsonParseException(
+                    TAG + "Attribute " + name + " is missing for deserialization.");
         }
     }
 }

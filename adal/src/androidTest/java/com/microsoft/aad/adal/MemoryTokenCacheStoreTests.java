@@ -23,6 +23,9 @@
 
 package com.microsoft.aad.adal;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
@@ -40,13 +43,11 @@ import java.util.concurrent.CountDownLatch;
 
 import javax.crypto.NoSuchPaddingException;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
 @RunWith(AndroidJUnit4.class)
 public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
 
-    private static final String VALID_AUTHORITY = "https://Login.windows.net/Omercantest.Onmicrosoft.com";
+    private static final String VALID_AUTHORITY =
+            "https://Login.windows.net/Omercantest.Onmicrosoft.com";
 
     private static final int ACTIVE_TEST_THREADS = 10;
 
@@ -71,36 +72,41 @@ public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
      * @throws AuthenticationException
      */
     @Test
-    public void testSharedCacheGetItem() throws NoSuchAlgorithmException, NoSuchPaddingException, AuthenticationException {
+    public void testSharedCacheGetItem()
+            throws NoSuchAlgorithmException, NoSuchPaddingException, AuthenticationException {
         final ITokenCacheStore store = setupItems();
 
         final CountDownLatch signal = new CountDownLatch(ACTIVE_TEST_THREADS);
 
-        final Runnable runnable = new Runnable() {
+        final Runnable runnable =
+                new Runnable() {
 
-            @Override
-            public void run() {
+                    @Override
+                    public void run() {
 
-                // Remove and then verify that
-                // One thread will do the actual remove action.
-                try {
-                    store.removeItem(CacheKey.createCacheKey(getTestItem()));
-                    TokenCacheItem item = store.getItem(CacheKey.createCacheKey(getTestItem()));
-                    assertNull("Token cache item is expected to be null", item);
+                        // Remove and then verify that
+                        // One thread will do the actual remove action.
+                        try {
+                            store.removeItem(CacheKey.createCacheKey(getTestItem()));
+                            TokenCacheItem item =
+                                    store.getItem(CacheKey.createCacheKey(getTestItem()));
+                            assertNull("Token cache item is expected to be null", item);
 
-                    item = store.getItem(CacheKey.createCacheKey("", "", "", false, "", null));
-                    assertNull("Token cache item is expected to be null", item);
+                            item =
+                                    store.getItem(
+                                            CacheKey.createCacheKey("", "", "", false, "", null));
+                            assertNull("Token cache item is expected to be null", item);
 
-                    store.removeItem(CacheKey.createCacheKey(getTestItem2()));
-                    item = store.getItem(CacheKey.createCacheKey(getTestItem()));
-                    assertNull("Token cache item is expected to be null", item);
-                } catch (AuthenticationException e) {
-                    e.printStackTrace();
-                } finally {
-                    signal.countDown();
-                }
-            }
-        };
+                            store.removeItem(CacheKey.createCacheKey(getTestItem2()));
+                            item = store.getItem(CacheKey.createCacheKey(getTestItem()));
+                            assertNull("Token cache item is expected to be null", item);
+                        } catch (AuthenticationException e) {
+                            e.printStackTrace();
+                        } finally {
+                            signal.countDown();
+                        }
+                    }
+                };
 
         testMultiThread(ACTIVE_TEST_THREADS, signal, runnable);
 
@@ -109,8 +115,9 @@ public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
     }
 
     @Test
-    public void testSerialization() throws IOException, ClassNotFoundException,
-            NoSuchAlgorithmException, NoSuchPaddingException, AuthenticationException {
+    public void testSerialization()
+            throws IOException, ClassNotFoundException, NoSuchAlgorithmException,
+                    NoSuchPaddingException, AuthenticationException {
 
         ITokenCacheStore store = setupItems();
 
@@ -149,23 +156,25 @@ public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
      * @throws AuthenticationException
      */
     @Test
-    public void testMemoryCacheMultipleContext() throws NoSuchAlgorithmException,
-            NoSuchPaddingException, AuthenticationException {
+    public void testMemoryCacheMultipleContext()
+            throws NoSuchAlgorithmException, NoSuchPaddingException, AuthenticationException {
         ITokenCacheStore tokenCacheA = setupItems();
 
-        AuthenticationContext contextA = new AuthenticationContext(
-                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext(),
-                VALID_AUTHORITY,
-                false,
-                tokenCacheA
-        );
+        AuthenticationContext contextA =
+                new AuthenticationContext(
+                        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+                                .getContext(),
+                        VALID_AUTHORITY,
+                        false,
+                        tokenCacheA);
 
-        AuthenticationContext contextB = new AuthenticationContext(
-                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext(),
-                VALID_AUTHORITY,
-                false,
-                tokenCacheA
-        );
+        AuthenticationContext contextB =
+                new AuthenticationContext(
+                        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+                                .getContext(),
+                        VALID_AUTHORITY,
+                        false,
+                        tokenCacheA);
 
         // Verify the cache
         TokenCacheItem item = contextA.getCache().getItem(CacheKey.createCacheKey(getTestItem()));

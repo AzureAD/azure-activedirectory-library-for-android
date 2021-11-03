@@ -22,6 +22,8 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
+import static org.junit.Assert.assertTrue;
+
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import junit.framework.Assert;
@@ -39,18 +41,23 @@ import java.security.PublicKey;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 
-import static org.junit.Assert.assertTrue;
-
 @RunWith(AndroidJUnit4.class)
 public class JwsBuilderTests extends AndroidTestHelper {
 
     @Test
-    public void testGenerateSignedJWTNegative() throws IllegalArgumentException,
-            ClassNotFoundException, NoSuchMethodException, InstantiationException,
-            IllegalAccessException, InvocationTargetException {
+    public void testGenerateSignedJWTNegative()
+            throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
+                    InstantiationException, IllegalAccessException, InvocationTargetException {
         final Object jwsBuilder = getInstance();
-        final Method m = ReflectionUtils.getTestMethod(jwsBuilder, "generateSignedJWT", String.class,
-                String.class, PrivateKey.class, PublicKey.class, X509Certificate.class);
+        final Method m =
+                ReflectionUtils.getTestMethod(
+                        jwsBuilder,
+                        "generateSignedJWT",
+                        String.class,
+                        String.class,
+                        PrivateKey.class,
+                        PublicKey.class,
+                        X509Certificate.class);
 
         try {
             m.invoke(jwsBuilder, null, "https://someurl", null, null, null);
@@ -91,9 +98,9 @@ public class JwsBuilderTests extends AndroidTestHelper {
         return buf.toString();
     }
 
-    private Object getInstance() throws ClassNotFoundException, InstantiationException,
-            IllegalAccessException, IllegalArgumentException, InvocationTargetException,
-            NoSuchMethodException {
+    private Object getInstance()
+            throws ClassNotFoundException, InstantiationException, IllegalAccessException,
+                    IllegalArgumentException, InvocationTargetException, NoSuchMethodException {
         final Class clazz = Class.forName("com.microsoft.identity.common.java.util.JWSBuilder");
         final Constructor<?> constructorParams = clazz.getDeclaredConstructor();
         constructorParams.setAccessible(true);

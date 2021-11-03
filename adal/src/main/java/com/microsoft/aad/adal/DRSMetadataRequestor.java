@@ -23,6 +23,11 @@
 
 package com.microsoft.aad.adal;
 
+import static com.microsoft.aad.adal.DRSMetadataRequestor.Type.CLOUD;
+import static com.microsoft.aad.adal.DRSMetadataRequestor.Type.ON_PREM;
+import static com.microsoft.identity.common.java.net.HttpConstants.HeaderField.ACCEPT;
+import static com.microsoft.identity.common.java.net.HttpConstants.MediaType.APPLICATION_JSON;
+
 import com.google.gson.JsonSyntaxException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
@@ -34,11 +39,6 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.microsoft.aad.adal.DRSMetadataRequestor.Type.CLOUD;
-import static com.microsoft.aad.adal.DRSMetadataRequestor.Type.ON_PREM;
-import static com.microsoft.identity.common.java.net.HttpConstants.HeaderField.ACCEPT;
-import static com.microsoft.identity.common.java.net.HttpConstants.MediaType.APPLICATION_JSON;
 
 /**
  * Delegate class capable of fetching DRS discovery metadata documents.
@@ -126,7 +126,8 @@ final class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, 
         final Map<String, String> headers = new HashMap<>();
         headers.put(ACCEPT, APPLICATION_JSON);
         if (null != getCorrelationId()) {
-            headers.put(AuthenticationConstants.AAD.CLIENT_REQUEST_ID, getCorrelationId().toString());
+            headers.put(
+                    AuthenticationConstants.AAD.CLIENT_REQUEST_ID, getCorrelationId().toString());
         }
 
         final DRSMetadata metadata;
@@ -142,8 +143,7 @@ final class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, 
                 // unexpected status code
                 throw new AuthenticationException(
                         ADALError.DRS_FAILED_SERVER_ERROR,
-                        "Unexpected error code: [" + statusCode + "]"
-                );
+                        "Unexpected error code: [" + statusCode + "]");
             }
         } catch (UnknownHostException e) {
             throw e;
@@ -189,5 +189,4 @@ final class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, 
 
         return requestUrlStr;
     }
-
 }

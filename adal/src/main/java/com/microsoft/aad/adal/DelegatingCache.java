@@ -44,8 +44,7 @@ class DelegatingCache implements ITokenCacheStore {
      * @param context  The application {@link Context} of the initializing app.
      * @param delegate The cache to which method invocations on this cache will delegate.
      */
-    DelegatingCache(@NonNull final Context context,
-                    @NonNull final ITokenCacheStore delegate) {
+    DelegatingCache(@NonNull final Context context, @NonNull final ITokenCacheStore delegate) {
         mContext = context;
         mDelegate = delegate;
     }

@@ -22,6 +22,26 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.BROWSER_EXT_INSTALL_PREFIX;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.BROWSER_EXT_PREFIX;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CHALLENGE_RESPONSE_HEADER;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.PKEYAUTH_REDIRECT;
+import static com.microsoft.aad.adal.AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION;
+import static com.microsoft.aad.adal.AuthenticationConstants.Browser.RESPONSE_ERROR_CODE;
+import static com.microsoft.aad.adal.AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE;
+import static com.microsoft.aad.adal.AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO;
+import static com.microsoft.aad.adal.AuthenticationConstants.OAuth2.CODE;
+import static com.microsoft.aad.adal.AuthenticationConstants.OAuth2.ERROR;
+import static com.microsoft.aad.adal.AuthenticationConstants.OAuth2.ERROR_DESCRIPTION;
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION;
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR;
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_MDM;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.AUTHENTICATOR_MFA_LINKING_PREFIX;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.BROWSER_DEVICE_CA_URL_QUERY_STRING_PARAMETER;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.PLAY_STORE_INSTALL_PREFIX;
+
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -42,7 +62,6 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
-
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.java.util.JWSBuilder;
@@ -51,32 +70,13 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import static com.microsoft.aad.adal.AuthenticationConstants.Broker.BROWSER_EXT_INSTALL_PREFIX;
-import static com.microsoft.aad.adal.AuthenticationConstants.Broker.BROWSER_EXT_PREFIX;
-import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CHALLENGE_RESPONSE_HEADER;
-import static com.microsoft.aad.adal.AuthenticationConstants.Broker.PKEYAUTH_REDIRECT;
-import static com.microsoft.aad.adal.AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION;
-import static com.microsoft.aad.adal.AuthenticationConstants.Browser.RESPONSE_ERROR_CODE;
-import static com.microsoft.aad.adal.AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE;
-import static com.microsoft.aad.adal.AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO;
-import static com.microsoft.aad.adal.AuthenticationConstants.OAuth2.CODE;
-import static com.microsoft.aad.adal.AuthenticationConstants.OAuth2.ERROR;
-import static com.microsoft.aad.adal.AuthenticationConstants.OAuth2.ERROR_DESCRIPTION;
-import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION;
-import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR;
-import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_MDM;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.PLAY_STORE_INSTALL_PREFIX;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.AUTHENTICATOR_MFA_LINKING_PREFIX;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.BROWSER_DEVICE_CA_URL_QUERY_STRING_PARAMETER;
-
 abstract class BasicWebViewClient extends WebViewClient {
 
     /**
      * Application link to open in the browser.
      */
     private static final String INSTALL_URL_KEY = "app_link";
+
     private static final String TAG = "BasicWebViewClient";
 
     static final String BLANK_PAGE = "about:blank";
@@ -87,10 +87,11 @@ abstract class BasicWebViewClient extends WebViewClient {
     private final Context mCallingContext;
     private final UIEvent mUIEvent;
 
-    BasicWebViewClient(@NonNull final Context appContext,
-                       @NonNull final String redirect,
-                       @NonNull final AuthenticationRequest request,
-                       @Nullable final UIEvent uiEvent) {
+    BasicWebViewClient(
+            @NonNull final Context appContext,
+            @NonNull final String redirect,
+            @NonNull final AuthenticationRequest request,
+            @Nullable final UIEvent uiEvent) {
         mCallingContext = appContext;
         mRedirect = redirect;
         mRequest = request;
@@ -114,16 +115,15 @@ abstract class BasicWebViewClient extends WebViewClient {
     public abstract boolean processInvalidUrl(final WebView view, final String url);
 
     @Override
-    public void onReceivedHttpAuthRequest(final WebView view,
-                                          final HttpAuthHandler handler,
-                                          final String host,
-                                          final String realm) {
+    public void onReceivedHttpAuthRequest(
+            final WebView view,
+            final HttpAuthHandler handler,
+            final String host,
+            final String realm) {
         final String methodName = ":onReceivedHttpAuthRequest";
         // Create a dialog to ask for creds and post it to the handler.
         com.microsoft.identity.common.internal.logging.Logger.infoPII(
-                TAG + methodName,
-                "Start. Host: " + host
-        );
+                TAG + methodName, "Start. Host: " + host);
 
         if (mUIEvent != null) {
             mUIEvent.setNTLM(true);
@@ -131,72 +131,72 @@ abstract class BasicWebViewClient extends WebViewClient {
 
         final HttpAuthDialog authDialog = new HttpAuthDialog(mCallingContext, host, realm);
 
-        authDialog.setOkListener(new HttpAuthDialog.OkListener() {
-            public void onOk(String host, String realm, String username, String password) {
-                com.microsoft.identity.common.internal.logging.Logger.infoPII(
-                        TAG + methodName,
-                        "Handler proceed. Host: " + host
-                );
+        authDialog.setOkListener(
+                new HttpAuthDialog.OkListener() {
+                    public void onOk(String host, String realm, String username, String password) {
+                        com.microsoft.identity.common.internal.logging.Logger.infoPII(
+                                TAG + methodName, "Handler proceed. Host: " + host);
 
-                handler.proceed(username, password);
-            }
-        });
+                        handler.proceed(username, password);
+                    }
+                });
 
-        authDialog.setCancelListener(new HttpAuthDialog.CancelListener() {
-            public void onCancel() {
-                com.microsoft.identity.common.internal.logging.Logger.infoPII(
-                        TAG + methodName,
-                        "Handler cancelled."
-                );
+        authDialog.setCancelListener(
+                new HttpAuthDialog.CancelListener() {
+                    public void onCancel() {
+                        com.microsoft.identity.common.internal.logging.Logger.infoPII(
+                                TAG + methodName, "Handler cancelled.");
 
-                handler.cancel();
-                cancelWebViewRequest(null);
-            }
-        });
+                        handler.cancel();
+                        cancelWebViewRequest(null);
+                    }
+                });
 
         com.microsoft.identity.common.internal.logging.Logger.info(
-                TAG + methodName,
-                "Show dialog."
-        );
+                TAG + methodName, "Show dialog.");
 
         authDialog.show();
     }
 
     @Override
-    public void onReceivedError(@NonNull final WebView view,
-                                final int errorCode,
-                                @NonNull final String description,
-                                @NonNull final String failingUrl) {
+    public void onReceivedError(
+            @NonNull final WebView view,
+            final int errorCode,
+            @NonNull final String description,
+            @NonNull final String failingUrl) {
         sendErrorResponse(errorCode, description);
     }
 
     @Override
     @RequiresApi(api = Build.VERSION_CODES.M)
-    public void onReceivedError(@NonNull final WebView view,
-                                @NonNull final WebResourceRequest request,
-                                @NonNull WebResourceError error) {
+    public void onReceivedError(
+            @NonNull final WebView view,
+            @NonNull final WebResourceRequest request,
+            @NonNull WebResourceError error) {
         final String methodName = "onReceivedError (23)";
         final boolean isForMainFrame = request.isForMainFrame();
 
-        com.microsoft.identity.common.logging.Logger.warn(TAG + methodName, "WebResourceError - isForMainFrame? " + isForMainFrame);
-        com.microsoft.identity.common.logging.Logger.warnPII(TAG + methodName, "Failing url: " + request.getUrl());
+        com.microsoft.identity.common.logging.Logger.warn(
+                TAG + methodName, "WebResourceError - isForMainFrame? " + isForMainFrame);
+        com.microsoft.identity.common.logging.Logger.warnPII(
+                TAG + methodName, "Failing url: " + request.getUrl());
 
         if (isForMainFrame) {
             sendErrorResponse(error.getErrorCode(), error.getDescription().toString());
         }
     }
 
-    private void sendErrorResponse(final int errorCode,
-                                   @NonNull final String description) {
+    private void sendErrorResponse(final int errorCode, @NonNull final String description) {
         showSpinner(false);
 
         com.microsoft.identity.common.internal.logging.Logger.errorPII(
                 TAG,
                 "Webview received an error."
-                        + " ErrorCode: " + errorCode
-                        + " Error description: " + description,
-                null
-        );
+                        + " ErrorCode: "
+                        + errorCode
+                        + " Error description: "
+                        + description,
+                null);
 
         final Intent resultIntent = new Intent();
         resultIntent.putExtra(RESPONSE_ERROR_CODE, "Error Code:" + errorCode);
@@ -206,19 +206,15 @@ abstract class BasicWebViewClient extends WebViewClient {
     }
 
     @Override
-    public void onReceivedSslError(final WebView view,
-                                   final SslErrorHandler handler,
-                                   final SslError error) {
+    public void onReceivedSslError(
+            final WebView view, final SslErrorHandler handler, final SslError error) {
         // Developer does not have option to control this for now
         super.onReceivedSslError(view, handler, error);
         showSpinner(false);
         handler.cancel();
 
         com.microsoft.identity.common.internal.logging.Logger.error(
-                TAG,
-                "Received SSL error.",
-                null
-        );
+                TAG, "Received SSL error.", null);
 
         final Intent resultIntent = new Intent();
         resultIntent.putExtra(RESPONSE_ERROR_CODE, "Code:" + ERROR_FAILED_SSL_HANDSHAKE);
@@ -254,9 +250,7 @@ abstract class BasicWebViewClient extends WebViewClient {
 
         if (TextUtils.isEmpty(url)) {
             com.microsoft.identity.common.internal.logging.Logger.warn(
-                    TAG + methodName,
-                    "onPageStarted: Null url for page to load."
-            );
+                    TAG + methodName, "onPageStarted: Null url for page to load.");
 
             return;
         }
@@ -265,42 +259,27 @@ abstract class BasicWebViewClient extends WebViewClient {
 
         if (uri.isOpaque()) {
             com.microsoft.identity.common.internal.logging.Logger.warn(
-                    TAG + methodName,
-                    "onPageStarted: Non-hierarchical loading uri."
-            );
+                    TAG + methodName, "onPageStarted: Non-hierarchical loading uri.");
 
             com.microsoft.identity.common.internal.logging.Logger.warnPII(
-                    TAG + methodName,
-                    "Url: " + url
-            );
+                    TAG + methodName, "Url: " + url);
 
             return;
         }
 
         com.microsoft.identity.common.internal.logging.Logger.verbose(
-                TAG + methodName,
-                "WebView starts loading."
-        );
+                TAG + methodName, "WebView starts loading.");
 
         com.microsoft.identity.common.internal.logging.Logger.verbosePII(
-                TAG + methodName,
-                "Host: " + uri.getHost()
-                        + "\n"
-                        + "Path: " + uri.getPath()
-        );
+                TAG + methodName, "Host: " + uri.getHost() + "\n" + "Path: " + uri.getPath());
 
         if (StringExtensions.isNullOrBlank(uri.getQueryParameter(CODE))) {
             com.microsoft.identity.common.internal.logging.Logger.verbosePII(
                     TAG + methodName,
-                    "Url did not contain auth code."
-                            + "\n"
-                            + "Full loading url is: " + url
-            );
+                    "Url did not contain auth code." + "\n" + "Full loading url is: " + url);
         } else {
             com.microsoft.identity.common.internal.logging.Logger.verbose(
-                    TAG + methodName,
-                    "Auth code received."
-            );
+                    TAG + methodName, "Auth code received.");
         }
     }
 
@@ -311,132 +290,107 @@ abstract class BasicWebViewClient extends WebViewClient {
         final String methodName = ":shouldOverrideUrlLoading";
 
         com.microsoft.identity.common.internal.logging.Logger.verbose(
-                TAG + methodName,
-                "Navigation is detected."
-        );
+                TAG + methodName, "Navigation is detected.");
 
         if (url.startsWith(PKEYAUTH_REDIRECT)) {
             com.microsoft.identity.common.internal.logging.Logger.verbose(
-                    TAG + methodName,
-                    "Webview detected request for pkeyauth challenge."
-            );
+                    TAG + methodName, "Webview detected request for pkeyauth challenge.");
 
             view.stopLoading();
             setPKeyAuthStatus(true);
 
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        final ChallengeResponseBuilder certHandler = new ChallengeResponseBuilder(
-                                new JWSBuilder()
-                        );
+            new Thread(
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        final ChallengeResponseBuilder certHandler =
+                                                new ChallengeResponseBuilder(new JWSBuilder());
 
-                        final ChallengeResponse challengeResponse = certHandler
-                                .getChallengeResponseFromUri(url);
+                                        final ChallengeResponse challengeResponse =
+                                                certHandler.getChallengeResponseFromUri(url);
 
-                        final Map<String, String> headers = new HashMap<>();
-                        headers.put(
-                                CHALLENGE_RESPONSE_HEADER,
-                                challengeResponse.getAuthorizationHeaderValue()
-                        );
+                                        final Map<String, String> headers = new HashMap<>();
+                                        headers.put(
+                                                CHALLENGE_RESPONSE_HEADER,
+                                                challengeResponse.getAuthorizationHeaderValue());
 
-                        postRunnable(new Runnable() {
-                            @Override
-                            public void run() {
-                                String loadUrl = challengeResponse.getSubmitUrl();
+                                        postRunnable(
+                                                new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        String loadUrl =
+                                                                challengeResponse.getSubmitUrl();
 
-                                com.microsoft.identity.common.internal.logging.Logger.verbose(
-                                        TAG + methodName,
-                                        "Respond to pkeyAuth challenge."
-                                );
+                                                        com.microsoft.identity.common.internal
+                                                                .logging.Logger.verbose(
+                                                                TAG + methodName,
+                                                                "Respond to pkeyAuth challenge.");
 
-                                com.microsoft.identity.common.internal.logging.Logger.verbosePII(
-                                        TAG + methodName,
-                                        "Challenge submit url:"
-                                                + challengeResponse.getSubmitUrl()
-                                );
+                                                        com.microsoft.identity.common.internal
+                                                                .logging.Logger.verbosePII(
+                                                                TAG + methodName,
+                                                                "Challenge submit url:"
+                                                                        + challengeResponse
+                                                                                .getSubmitUrl());
 
-                                view.loadUrl(loadUrl, headers);
-                            }
-                        });
-                    } catch (final AuthenticationServerProtocolException e) {
-                        com.microsoft.identity.common.internal.logging.Logger.errorPII(
-                                TAG + methodName,
-                                "Argument exception",
-                                e
-                        );
+                                                        view.loadUrl(loadUrl, headers);
+                                                    }
+                                                });
+                                    } catch (final AuthenticationServerProtocolException e) {
+                                        com.microsoft.identity.common.internal.logging.Logger
+                                                .errorPII(
+                                                        TAG + methodName, "Argument exception", e);
 
-                        // It should return error code and finish the
-                        // activity, so that onActivityResult implementation
-                        // returns errors to callback.
-                        final Intent resultIntent = new Intent();
-                        resultIntent.putExtra(
-                                RESPONSE_AUTHENTICATION_EXCEPTION,
-                                e
-                        );
+                                        // It should return error code and finish the
+                                        // activity, so that onActivityResult implementation
+                                        // returns errors to callback.
+                                        final Intent resultIntent = new Intent();
+                                        resultIntent.putExtra(RESPONSE_AUTHENTICATION_EXCEPTION, e);
 
-                        if (mRequest != null) {
-                            resultIntent.putExtra(
-                                    RESPONSE_REQUEST_INFO,
-                                    mRequest
-                            );
-                        }
+                                        if (mRequest != null) {
+                                            resultIntent.putExtra(RESPONSE_REQUEST_INFO, mRequest);
+                                        }
 
-                        sendResponse(
-                                BROWSER_CODE_AUTHENTICATION_EXCEPTION,
-                                resultIntent
-                        );
-                    } catch (final AuthenticationException e) {
-                        com.microsoft.identity.common.internal.logging.Logger.error(
-                                TAG + methodName,
-                                "Failed to create device certificate response",
-                                null
-                        );
+                                        sendResponse(
+                                                BROWSER_CODE_AUTHENTICATION_EXCEPTION,
+                                                resultIntent);
+                                    } catch (final AuthenticationException e) {
+                                        com.microsoft.identity.common.internal.logging.Logger.error(
+                                                TAG + methodName,
+                                                "Failed to create device certificate response",
+                                                null);
 
-                        com.microsoft.identity.common.internal.logging.Logger.errorPII(
-                                TAG + methodName,
-                                "Error",
-                                e
-                        );
-                        // It should return error code and finish the
-                        // activity, so that onActivityResult implementation
-                        // returns errors to callback.
-                        final Intent resultIntent = new Intent();
-                        resultIntent.putExtra(
-                                RESPONSE_AUTHENTICATION_EXCEPTION,
-                                e
-                        );
+                                        com.microsoft.identity.common.internal.logging.Logger
+                                                .errorPII(TAG + methodName, "Error", e);
+                                        // It should return error code and finish the
+                                        // activity, so that onActivityResult implementation
+                                        // returns errors to callback.
+                                        final Intent resultIntent = new Intent();
+                                        resultIntent.putExtra(RESPONSE_AUTHENTICATION_EXCEPTION, e);
 
-                        if (mRequest != null) {
-                            resultIntent.putExtra(
-                                    RESPONSE_REQUEST_INFO,
-                                    mRequest
-                            );
-                        }
+                                        if (mRequest != null) {
+                                            resultIntent.putExtra(RESPONSE_REQUEST_INFO, mRequest);
+                                        }
 
-                        sendResponse(
-                                BROWSER_CODE_AUTHENTICATION_EXCEPTION,
-                                resultIntent
-                        );
-                    }
-                }
-            }).start();
+                                        sendResponse(
+                                                BROWSER_CODE_AUTHENTICATION_EXCEPTION,
+                                                resultIntent);
+                                    }
+                                }
+                            })
+                    .start();
 
             return true;
         } else if (url.toLowerCase(Locale.US).startsWith(mRedirect.toLowerCase(Locale.US))) {
             com.microsoft.identity.common.internal.logging.Logger.verbose(
-                    TAG + methodName,
-                    "Navigation starts with the redirect uri."
-            );
+                    TAG + methodName, "Navigation starts with the redirect uri.");
 
             Intent errorIntent = parseError(url);
             if (errorIntent != null) {
                 // Catch WEB-UI cancel request
                 com.microsoft.identity.common.internal.logging.Logger.info(
-                        TAG + methodName,
-                        "Sending intent to cancel authentication activity"
-                );
+                        TAG + methodName, "Sending intent to cancel authentication activity");
 
                 view.stopLoading();
                 cancelWebViewRequest(errorIntent);
@@ -447,14 +401,14 @@ abstract class BasicWebViewClient extends WebViewClient {
             return true;
         } else if (url.startsWith(BROWSER_EXT_PREFIX)) {
             com.microsoft.identity.common.internal.logging.Logger.verbose(
-                    TAG + methodName,
-                    "It is an external website request"
-            );
+                    TAG + methodName, "It is an external website request");
 
             view.stopLoading();
 
             if (url.contains(BROWSER_DEVICE_CA_URL_QUERY_STRING_PARAMETER)) {
-                Logger.warn(TAG + methodName, "Failed to launch Company Portal, falling back to browser.");
+                Logger.warn(
+                        TAG + methodName,
+                        "Failed to launch Company Portal, falling back to browser.");
                 openLinkInBrowser(url);
                 sendResponse(BROWSER_CODE_MDM, new Intent());
             } else {
@@ -465,9 +419,7 @@ abstract class BasicWebViewClient extends WebViewClient {
             return true;
         } else if (url.startsWith(BROWSER_EXT_INSTALL_PREFIX)) {
             com.microsoft.identity.common.internal.logging.Logger.verbose(
-                    TAG + methodName,
-                    "It is an install request"
-            );
+                    TAG + methodName, "It is an install request");
 
             final HashMap<String, String> parameters = StringExtensions.getUrlParameters(url);
             prepareForBrokerResumeRequest();
@@ -483,8 +435,7 @@ abstract class BasicWebViewClient extends WebViewClient {
             } catch (InterruptedException e) {
                 com.microsoft.identity.common.internal.logging.Logger.warn(
                         TAG + methodName,
-                        "Error occurred when having thread sleeping for 1 second."
-                );
+                        "Error occurred when having thread sleeping for 1 second.");
             }
 
             openLinkInBrowser(parameters.get(INSTALL_URL_KEY));
@@ -494,26 +445,37 @@ abstract class BasicWebViewClient extends WebViewClient {
 
             view.stopLoading();
             if (!(url.startsWith(PLAY_STORE_INSTALL_PREFIX + COMPANY_PORTAL_APP_PACKAGE_NAME))
-                    && !(url.startsWith(PLAY_STORE_INSTALL_PREFIX + AZURE_AUTHENTICATOR_APP_PACKAGE_NAME))) {
-                Logger.info(TAG + methodName, "The URI is either trying to open an unknown application or contains unknown query parameters");
+                    && !(url.startsWith(
+                            PLAY_STORE_INSTALL_PREFIX + AZURE_AUTHENTICATOR_APP_PACKAGE_NAME))) {
+                Logger.info(
+                        TAG + methodName,
+                        "The URI is either trying to open an unknown application or contains unknown query parameters");
                 return false;
             }
-            final String appPackageName = (url.contains(COMPANY_PORTAL_APP_PACKAGE_NAME) ?
-                    COMPANY_PORTAL_APP_PACKAGE_NAME : AZURE_AUTHENTICATOR_APP_PACKAGE_NAME);
-            Logger.verbose(TAG + methodName, "Request to open PlayStore to install : '" + appPackageName + "'");
+            final String appPackageName =
+                    (url.contains(COMPANY_PORTAL_APP_PACKAGE_NAME)
+                            ? COMPANY_PORTAL_APP_PACKAGE_NAME
+                            : AZURE_AUTHENTICATOR_APP_PACKAGE_NAME);
+            Logger.verbose(
+                    TAG + methodName,
+                    "Request to open PlayStore to install : '" + appPackageName + "'");
 
             try {
-                final Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_STORE_INSTALL_PREFIX + appPackageName));
+                final Intent intent =
+                        new Intent(
+                                Intent.ACTION_VIEW,
+                                Uri.parse(PLAY_STORE_INSTALL_PREFIX + appPackageName));
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 mCallingContext.startActivity(intent);
             } catch (android.content.ActivityNotFoundException e) {
-                //if GooglePlay is not present on the device.
+                // if GooglePlay is not present on the device.
                 Logger.error(TAG + methodName, "Failed to launch the PlayStore.", e);
             }
 
             return true;
         } else if (url.toLowerCase(Locale.US).startsWith(AUTHENTICATOR_MFA_LINKING_PREFIX)) {
-            Logger.verbose(TAG + methodName, "Linking Account in Authenticator to complete MFA setup.");
+            Logger.verbose(
+                    TAG + methodName, "Linking Account in Authenticator to complete MFA setup.");
             try {
                 final Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -533,10 +495,7 @@ abstract class BasicWebViewClient extends WebViewClient {
     }
 
     protected void openLinkInBrowser(final String url) {
-        final String link = url.replace(
-                BROWSER_EXT_PREFIX,
-                "https://"
-        );
+        final String link = url.replace(BROWSER_EXT_PREFIX, "https://");
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(link));
         mCallingContext.startActivity(intent);
     }
@@ -544,15 +503,13 @@ abstract class BasicWebViewClient extends WebViewClient {
     private Intent parseError(String redirectUrl) {
         final Map<String, String> parameters = StringExtensions.getUrlParameters(redirectUrl);
         final String error = parameters.get(AuthenticationConstants.OAuth2.ERROR);
-        final String errorDescription = parameters.get(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION);
+        final String errorDescription =
+                parameters.get(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION);
 
         if (!StringExtensions.isNullOrBlank(error)) {
             com.microsoft.identity.common.internal.logging.Logger.warnPII(
                     TAG,
-                    "Cancel error: " + error
-                            + "\n"
-                            + "Error Description: " + errorDescription
-            );
+                    "Cancel error: " + error + "\n" + "Error Description: " + errorDescription);
 
             Intent intent = new Intent();
             intent.putExtra(ERROR, error);

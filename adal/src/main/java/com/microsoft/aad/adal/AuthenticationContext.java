@@ -23,6 +23,8 @@
 
 package com.microsoft.aad.adal;
 
+import static com.microsoft.identity.common.java.AuthenticationConstants.UIRequest.BROWSER_FLOW;
+
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.app.Activity;
@@ -52,7 +54,6 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -60,9 +61,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicReference;
-
-import static com.microsoft.aad.adal.TokenCacheAccessor.getMsalOAuth2TokenCache;
-import static com.microsoft.identity.common.java.AuthenticationConstants.UIRequest.BROWSER_FLOW;
 
 /**
  * ADAL context to get access token, refresh token, and lookup from cache.
@@ -111,14 +109,20 @@ public class AuthenticationContext {
      * @param authority         Authority url to send code and token requests
      * @param validateAuthority validate authority before sending token request
      */
-    public AuthenticationContext(@NonNull final Context appContext,
-                                 @NonNull final String authority,
-                                 final boolean validateAuthority) {
+    public AuthenticationContext(
+            @NonNull final Context appContext,
+            @NonNull final String authority,
+            final boolean validateAuthority) {
         // Fixes are required for SDK 16-18
         // The fixes need to be applied before any use of Java Cryptography
         // Architecture primitives. Default cache uses encryption
         PRNGFixes.apply();
-        initialize(appContext, authority, new DefaultTokenCacheStore(appContext), validateAuthority, true);
+        initialize(
+                appContext,
+                authority,
+                new DefaultTokenCacheStore(appContext),
+                validateAuthority,
+                true);
     }
 
     /**
@@ -130,10 +134,11 @@ public class AuthenticationContext {
      * @param validateAuthority true/false for validation
      * @param tokenCacheStore   Set to null if you don't want cache.
      */
-    public AuthenticationContext(@NonNull final Context appContext,
-                                 @NonNull final String authority,
-                                 final boolean validateAuthority,
-                                 @Nullable final ITokenCacheStore tokenCacheStore) {
+    public AuthenticationContext(
+            @NonNull final Context appContext,
+            @NonNull final String authority,
+            final boolean validateAuthority,
+            @Nullable final ITokenCacheStore tokenCacheStore) {
         initialize(appContext, authority, tokenCacheStore, validateAuthority, false);
     }
 
@@ -146,17 +151,19 @@ public class AuthenticationContext {
      * @param tokenCacheStore Cache {@link ITokenCacheStore} used to store
      *                        tokens. Set to null if you don't want cache.
      */
-    public AuthenticationContext(@NonNull final Context appContext,
-                                 @NonNull final String authority,
-                                 @Nullable final ITokenCacheStore tokenCacheStore) {
+    public AuthenticationContext(
+            @NonNull final Context appContext,
+            @NonNull final String authority,
+            @Nullable final ITokenCacheStore tokenCacheStore) {
         initialize(appContext, authority, tokenCacheStore, true, false);
     }
 
-    private void initialize(@NonNull final Context appContext,
-                            @NonNull final String authority,
-                            @Nullable final ITokenCacheStore tokenCacheStore,
-                            final boolean validateAuthority,
-                            final boolean defaultCache) {
+    private void initialize(
+            @NonNull final Context appContext,
+            @NonNull final String authority,
+            @Nullable final ITokenCacheStore tokenCacheStore,
+            final boolean validateAuthority,
+            final boolean defaultCache) {
         if (appContext == null) {
             throw new IllegalArgumentException("appContext");
         }
@@ -168,7 +175,8 @@ public class AuthenticationContext {
         mBrokerProxy = new BrokerProxy(appContext);
 
         if (!defaultCache && !mBrokerProxy.canUseLocalCache(authority)) {
-            throw new UnsupportedOperationException("Local cache is not supported for broker usage");
+            throw new UnsupportedOperationException(
+                    "Local cache is not supported for broker usage");
         }
 
         mContext = appContext;
@@ -250,8 +258,8 @@ public class AuthenticationContext {
      *                                    authenticator returned an invalid response.
      * @throws OperationCanceledException if the request was canceled for any reason.
      */
-    public UserInfo[] getBrokerUsers() throws OperationCanceledException, AuthenticatorException,
-            IOException {
+    public UserInfo[] getBrokerUsers()
+            throws OperationCanceledException, AuthenticatorException, IOException {
         return mBrokerProxy != null ? mBrokerProxy.getBrokerUsers() : null;
     }
 
@@ -270,8 +278,16 @@ public class AuthenticationContext {
         // signatures.
         final String signatureDigest = packageHelper.getCurrentSignatureForPackage(packageName);
         final String redirectUri = PackageHelper.getBrokerRedirectUrl(packageName, signatureDigest);
-        Logger.v(TAG + methodName, "Get expected redirect Uri. ", "Broker redirectUri:" + redirectUri + " packagename:" + packageName
-                + " signatureDigest:" + signatureDigest, null);
+        Logger.v(
+                TAG + methodName,
+                "Get expected redirect Uri. ",
+                "Broker redirectUri:"
+                        + redirectUri
+                        + " packagename:"
+                        + packageName
+                        + " signatureDigest:"
+                        + signatureDigest,
+                null);
         return redirectUri;
     }
 
@@ -289,12 +305,26 @@ public class AuthenticationContext {
      * @param loginHint   login hint (optional if validateAuthority == false)
      * @param callback    required
      */
-    public void acquireToken(Activity activity, String resource, String clientId,
-                             @Nullable String redirectUri, @Nullable String loginHint,
-                             AuthenticationCallback<AuthenticationResult> callback) {
+    public void acquireToken(
+            Activity activity,
+            String resource,
+            String clientId,
+            @Nullable String redirectUri,
+            @Nullable String loginHint,
+            AuthenticationCallback<AuthenticationResult> callback) {
 
-        acquireToken(resource, clientId, redirectUri, loginHint, PromptBehavior.Auto, null,
-                null, callback, EventStrings.ACQUIRE_TOKEN_1, wrapActivity(activity), false);
+        acquireToken(
+                resource,
+                clientId,
+                redirectUri,
+                loginHint,
+                PromptBehavior.Auto,
+                null,
+                null,
+                callback,
+                EventStrings.ACQUIRE_TOKEN_1,
+                wrapActivity(activity),
+                false);
     }
 
     /**
@@ -318,12 +348,27 @@ public class AuthenticationContext {
      * @param callback             required {@link AuthenticationCallback} object for async
      *                             call.
      */
-    public void acquireToken(Activity activity, String resource, String clientId,
-                             @Nullable String redirectUri, @Nullable String loginHint, @Nullable String extraQueryParameters,
-                             AuthenticationCallback<AuthenticationResult> callback) {
+    public void acquireToken(
+            Activity activity,
+            String resource,
+            String clientId,
+            @Nullable String redirectUri,
+            @Nullable String loginHint,
+            @Nullable String extraQueryParameters,
+            AuthenticationCallback<AuthenticationResult> callback) {
 
-        acquireToken(resource, clientId, redirectUri, loginHint, PromptBehavior.Auto, extraQueryParameters,
-                null, callback, EventStrings.ACQUIRE_TOKEN_2, wrapActivity(activity), false);
+        acquireToken(
+                resource,
+                clientId,
+                redirectUri,
+                loginHint,
+                PromptBehavior.Auto,
+                extraQueryParameters,
+                null,
+                callback,
+                EventStrings.ACQUIRE_TOKEN_2,
+                wrapActivity(activity),
+                false);
     }
 
     /**
@@ -344,12 +389,26 @@ public class AuthenticationContext {
      * @param callback    required {@link AuthenticationCallback} object for async
      *                    call.
      */
-    public void acquireToken(Activity activity, String resource, String clientId,
-                             @Nullable String redirectUri, @Nullable PromptBehavior prompt,
-                             AuthenticationCallback<AuthenticationResult> callback) {
+    public void acquireToken(
+            Activity activity,
+            String resource,
+            String clientId,
+            @Nullable String redirectUri,
+            @Nullable PromptBehavior prompt,
+            AuthenticationCallback<AuthenticationResult> callback) {
 
-        acquireToken(resource, clientId, redirectUri, null, prompt, null,
-                null, callback, EventStrings.ACQUIRE_TOKEN_3, wrapActivity(activity), false);
+        acquireToken(
+                resource,
+                clientId,
+                redirectUri,
+                null,
+                prompt,
+                null,
+                null,
+                callback,
+                EventStrings.ACQUIRE_TOKEN_3,
+                wrapActivity(activity),
+                false);
     }
 
     /**
@@ -370,11 +429,26 @@ public class AuthenticationContext {
      * @param callback             required {@link AuthenticationCallback} object for async
      *                             call.
      */
-    public void acquireToken(Activity activity, String resource, String clientId,
-                             @Nullable String redirectUri, @Nullable PromptBehavior prompt, @Nullable String extraQueryParameters,
-                             AuthenticationCallback<AuthenticationResult> callback) {
-        acquireToken(resource, clientId, redirectUri, null, prompt, extraQueryParameters,
-                null, callback, EventStrings.ACQUIRE_TOKEN_4, wrapActivity(activity), false);
+    public void acquireToken(
+            Activity activity,
+            String resource,
+            String clientId,
+            @Nullable String redirectUri,
+            @Nullable PromptBehavior prompt,
+            @Nullable String extraQueryParameters,
+            AuthenticationCallback<AuthenticationResult> callback) {
+        acquireToken(
+                resource,
+                clientId,
+                redirectUri,
+                null,
+                prompt,
+                extraQueryParameters,
+                null,
+                callback,
+                EventStrings.ACQUIRE_TOKEN_4,
+                wrapActivity(activity),
+                false);
     }
 
     /**
@@ -397,12 +471,28 @@ public class AuthenticationContext {
      * @param callback             required {@link AuthenticationCallback} object for async
      *                             call.
      */
-    public void acquireToken(Activity activity, String resource, String clientId,
-                             @Nullable String redirectUri, @Nullable String loginHint, @Nullable PromptBehavior prompt,
-                             @Nullable String extraQueryParameters, AuthenticationCallback<AuthenticationResult> callback) {
+    public void acquireToken(
+            Activity activity,
+            String resource,
+            String clientId,
+            @Nullable String redirectUri,
+            @Nullable String loginHint,
+            @Nullable PromptBehavior prompt,
+            @Nullable String extraQueryParameters,
+            AuthenticationCallback<AuthenticationResult> callback) {
 
-        acquireToken(resource, clientId, redirectUri, loginHint, prompt, extraQueryParameters,
-                null, callback, EventStrings.ACQUIRE_TOKEN_5, wrapActivity(activity), false);
+        acquireToken(
+                resource,
+                clientId,
+                redirectUri,
+                loginHint,
+                prompt,
+                extraQueryParameters,
+                null,
+                callback,
+                EventStrings.ACQUIRE_TOKEN_5,
+                wrapActivity(activity),
+                false);
     }
 
     /**
@@ -423,12 +513,29 @@ public class AuthenticationContext {
      * @param callback             required {@link AuthenticationCallback} object for async
      *                             call.
      */
-    public void acquireToken(final Activity activity, final String resource, final String clientId, @Nullable String redirectUri,
-                             @Nullable final String loginHint, @Nullable final PromptBehavior prompt, @Nullable String extraQueryParameters,
-                             @Nullable final String claims, final AuthenticationCallback<AuthenticationResult> callback) {
+    public void acquireToken(
+            final Activity activity,
+            final String resource,
+            final String clientId,
+            @Nullable String redirectUri,
+            @Nullable final String loginHint,
+            @Nullable final PromptBehavior prompt,
+            @Nullable String extraQueryParameters,
+            @Nullable final String claims,
+            final AuthenticationCallback<AuthenticationResult> callback) {
 
-        acquireToken(resource, clientId, redirectUri, loginHint, prompt, extraQueryParameters,
-                claims, callback, EventStrings.ACQUIRE_TOKEN_8, wrapActivity(activity), false);
+        acquireToken(
+                resource,
+                clientId,
+                redirectUri,
+                loginHint,
+                prompt,
+                extraQueryParameters,
+                claims,
+                callback,
+                EventStrings.ACQUIRE_TOKEN_8,
+                wrapActivity(activity),
+                false);
     }
 
     /**
@@ -450,13 +557,28 @@ public class AuthenticationContext {
      * @param callback             required {@link AuthenticationCallback} object for async
      *                             call.
      */
-    public void acquireToken(IWindowComponent fragment, String resource, String clientId,
-                             @Nullable String redirectUri, @Nullable String loginHint, @Nullable PromptBehavior prompt,
-                             @Nullable String extraQueryParameters, AuthenticationCallback<AuthenticationResult> callback) {
+    public void acquireToken(
+            IWindowComponent fragment,
+            String resource,
+            String clientId,
+            @Nullable String redirectUri,
+            @Nullable String loginHint,
+            @Nullable PromptBehavior prompt,
+            @Nullable String extraQueryParameters,
+            AuthenticationCallback<AuthenticationResult> callback) {
 
-        acquireToken(resource, clientId, redirectUri, loginHint, prompt, extraQueryParameters,
-                null, callback, EventStrings.ACQUIRE_TOKEN_6, fragment, false);
-
+        acquireToken(
+                resource,
+                clientId,
+                redirectUri,
+                loginHint,
+                prompt,
+                extraQueryParameters,
+                null,
+                callback,
+                EventStrings.ACQUIRE_TOKEN_6,
+                fragment,
+                false);
     }
 
     /**
@@ -477,12 +599,29 @@ public class AuthenticationContext {
      * @param callback             required {@link AuthenticationCallback} object for async
      *                             call.
      */
-    public void acquireToken(final IWindowComponent fragment, final String resource, final String clientId, @Nullable String redirectUri,
-                             @Nullable final String loginHint, @Nullable final PromptBehavior prompt, @Nullable String extraQueryParameters,
-                             @Nullable final String claims, final AuthenticationCallback<AuthenticationResult> callback) {
+    public void acquireToken(
+            final IWindowComponent fragment,
+            final String resource,
+            final String clientId,
+            @Nullable String redirectUri,
+            @Nullable final String loginHint,
+            @Nullable final PromptBehavior prompt,
+            @Nullable String extraQueryParameters,
+            @Nullable final String claims,
+            final AuthenticationCallback<AuthenticationResult> callback) {
 
-        acquireToken(resource, clientId, redirectUri, loginHint, prompt, extraQueryParameters,
-                claims, callback, EventStrings.ACQUIRE_TOKEN_9, fragment, false);
+        acquireToken(
+                resource,
+                clientId,
+                redirectUri,
+                loginHint,
+                prompt,
+                extraQueryParameters,
+                claims,
+                callback,
+                EventStrings.ACQUIRE_TOKEN_9,
+                fragment,
+                false);
     }
 
     /**
@@ -508,12 +647,27 @@ public class AuthenticationContext {
      * @param callback             required {@link AuthenticationCallback} object for async
      *                             call.
      */
-    public void acquireToken(String resource, String clientId, @Nullable String redirectUri,
-                             @Nullable String loginHint, @Nullable PromptBehavior prompt, @Nullable String extraQueryParameters,
-                             AuthenticationCallback<AuthenticationResult> callback) {
+    public void acquireToken(
+            String resource,
+            String clientId,
+            @Nullable String redirectUri,
+            @Nullable String loginHint,
+            @Nullable PromptBehavior prompt,
+            @Nullable String extraQueryParameters,
+            AuthenticationCallback<AuthenticationResult> callback) {
 
-        acquireToken(resource, clientId, redirectUri, loginHint, prompt, extraQueryParameters,
-                null, callback, EventStrings.ACQUIRE_TOKEN_7, null, true);
+        acquireToken(
+                resource,
+                clientId,
+                redirectUri,
+                loginHint,
+                prompt,
+                extraQueryParameters,
+                null,
+                callback,
+                EventStrings.ACQUIRE_TOKEN_7,
+                null,
+                true);
     }
 
     /**
@@ -540,20 +694,42 @@ public class AuthenticationContext {
      * @param callback             required {@link AuthenticationCallback} object for async
      *                             call.
      */
-    public void acquireToken(final String resource, final String clientId, @Nullable String redirectUri,
-                             @Nullable final String loginHint, @Nullable final PromptBehavior prompt, @Nullable String extraQueryParameters,
-                             @Nullable final String claims, final AuthenticationCallback<AuthenticationResult> callback) {
+    public void acquireToken(
+            final String resource,
+            final String clientId,
+            @Nullable String redirectUri,
+            @Nullable final String loginHint,
+            @Nullable final PromptBehavior prompt,
+            @Nullable String extraQueryParameters,
+            @Nullable final String claims,
+            final AuthenticationCallback<AuthenticationResult> callback) {
 
-        acquireToken(resource, clientId, redirectUri, loginHint, prompt, extraQueryParameters,
-                claims, callback, EventStrings.ACQUIRE_TOKEN_10, null, false);
-
+        acquireToken(
+                resource,
+                clientId,
+                redirectUri,
+                loginHint,
+                prompt,
+                extraQueryParameters,
+                claims,
+                callback,
+                EventStrings.ACQUIRE_TOKEN_10,
+                null,
+                false);
     }
 
-    private void acquireToken(final String resource, final String clientId, @Nullable String redirectUri,
-                              @Nullable final String loginHint, @Nullable final PromptBehavior prompt,
-                              @Nullable String extraQueryParameters, @Nullable final String claims,
-                              final AuthenticationCallback<AuthenticationResult> callback, String apiEventString,
-                              final IWindowComponent fragment, final boolean useDialog) {
+    private void acquireToken(
+            final String resource,
+            final String clientId,
+            @Nullable String redirectUri,
+            @Nullable final String loginHint,
+            @Nullable final PromptBehavior prompt,
+            @Nullable String extraQueryParameters,
+            @Nullable final String claims,
+            final AuthenticationCallback<AuthenticationResult> callback,
+            String apiEventString,
+            final IWindowComponent fragment,
+            final boolean useDialog) {
 
         throwIfClaimsInBothExtraQpAndClaimsParameter(claims, extraQueryParameters);
 
@@ -564,15 +740,25 @@ public class AuthenticationContext {
             return;
         }
 
-        if (checkPreRequirements(resource, clientId, callback) && checkADFSValidationRequirements(loginHint, callback)) {
+        if (checkPreRequirements(resource, clientId, callback)
+                && checkADFSValidationRequirements(loginHint, callback)) {
             redirectUri = getRedirectUri(redirectUri);
             final String requestId = Telemetry.registerNewRequest();
             final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, apiEventString);
             apiEvent.setPromptBehavior(prompt);
 
-            final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                    clientId, redirectUri, loginHint, prompt, extraQueryParameters,
-                    getRequestCorrelationId(), getExtendedLifetimeEnabled(), claims);
+            final AuthenticationRequest request =
+                    new AuthenticationRequest(
+                            mAuthority,
+                            resource,
+                            clientId,
+                            redirectUri,
+                            loginHint,
+                            prompt,
+                            extraQueryParameters,
+                            getRequestCorrelationId(),
+                            getExtendedLifetimeEnabled(),
+                            claims);
             request.setTelemetryRequestId(requestId);
             setAppInfoToRequest(request);
             request.setClientCapabilities(mClientCapabilites);
@@ -582,9 +768,9 @@ public class AuthenticationContext {
                 request.setUserIdentifierType(UserIdentifierType.LoginHint);
             }
 
-            createAcquireTokenRequest(apiEvent).acquireToken(fragment, useDialog, request, callback);
+            createAcquireTokenRequest(apiEvent)
+                    .acquireToken(fragment, useDialog, request, callback);
         }
-
     }
 
     /**
@@ -605,9 +791,11 @@ public class AuthenticationContext {
      * @throws AuthenticationException If silent request fails to get the token back.
      * @throws InterruptedException    If the main thread is interrupted before or during the activity.
      */
-    public AuthenticationResult acquireTokenSilentSync(String resource, String clientId, String userId)
+    public AuthenticationResult acquireTokenSilentSync(
+            String resource, String clientId, String userId)
             throws AuthenticationException, InterruptedException {
-        return acquireTokenSilentSync(resource, clientId, userId, false, null, EventStrings.ACQUIRE_TOKEN_SILENT_SYNC);
+        return acquireTokenSilentSync(
+                resource, clientId, userId, false, null, EventStrings.ACQUIRE_TOKEN_SILENT_SYNC);
     }
 
     /**
@@ -630,9 +818,16 @@ public class AuthenticationContext {
      * @throws AuthenticationException If silent request fails to get the token back.
      * @throws InterruptedException    If the main thread is interrupted before or during the activity.
      */
-    public AuthenticationResult acquireTokenSilentSync(String resource, String clientId, String userId, @Nullable String claims)
+    public AuthenticationResult acquireTokenSilentSync(
+            String resource, String clientId, String userId, @Nullable String claims)
             throws AuthenticationException, InterruptedException {
-        return acquireTokenSilentSync(resource, clientId, userId, false, claims, EventStrings.ACQUIRE_TOKEN_SILENT_SYNC_CLAIMS_CHALLENGE);
+        return acquireTokenSilentSync(
+                resource,
+                clientId,
+                userId,
+                false,
+                claims,
+                EventStrings.ACQUIRE_TOKEN_SILENT_SYNC_CLAIMS_CHALLENGE);
     }
 
     /**
@@ -654,20 +849,36 @@ public class AuthenticationContext {
      * @throws AuthenticationException If silent request fails to get the token back.
      * @throws InterruptedException    If the main thread is interrupted before or during the activity.
      */
-    public AuthenticationResult acquireTokenSilentSync(String resource, String clientId, String userId, boolean forceRefresh)
+    public AuthenticationResult acquireTokenSilentSync(
+            String resource, String clientId, String userId, boolean forceRefresh)
             throws AuthenticationException, InterruptedException {
-        return acquireTokenSilentSync(resource, clientId, userId, forceRefresh, null, EventStrings.ACQUIRE_TOKEN_SILENT_SYNC_FORCE_REFRESH);
+        return acquireTokenSilentSync(
+                resource,
+                clientId,
+                userId,
+                forceRefresh,
+                null,
+                EventStrings.ACQUIRE_TOKEN_SILENT_SYNC_FORCE_REFRESH);
     }
 
-    private AuthenticationResult acquireTokenSilentSync(final String resource,
-                                                        final String clientId,
-                                                        final String userId,
-                                                        final boolean forceRefresh,
-                                                        final String claims,
-                                                        final String apiEventString)
+    private AuthenticationResult acquireTokenSilentSync(
+            final String resource,
+            final String clientId,
+            final String userId,
+            final boolean forceRefresh,
+            final String claims,
+            final String apiEventString)
             throws AuthenticationException, InterruptedException {
-        return acquireTokenSilentSync(null, null, resource, clientId, userId,
-                UserIdentifierType.UniqueId, forceRefresh, claims, apiEventString);
+        return acquireTokenSilentSync(
+                null,
+                null,
+                resource,
+                clientId,
+                userId,
+                UserIdentifierType.UniqueId,
+                forceRefresh,
+                claims,
+                apiEventString);
     }
 
     /**
@@ -692,25 +903,35 @@ public class AuthenticationContext {
      * @throws AuthenticationException If silent request fails to get the token back.
      * @throws InterruptedException    If the main thread is interrupted before or during the activity.
      */
-    public AuthenticationResult acquireTokenSilentSyncWithAssertion(@NonNull final String assertion,
-                                                                    @NonNull final String assertionType,
-                                                                    @NonNull final String resource,
-                                                                    @NonNull final String clientId,
-                                                                    @NonNull final String userId)
+    public AuthenticationResult acquireTokenSilentSyncWithAssertion(
+            @NonNull final String assertion,
+            @NonNull final String assertionType,
+            @NonNull final String resource,
+            @NonNull final String clientId,
+            @NonNull final String userId)
             throws AuthenticationException, InterruptedException {
-        return acquireTokenSilentSync(assertion, assertionType, resource, clientId, userId, UserIdentifierType.LoginHint,
-                false, null, EventStrings.ACQUIRE_TOKEN_WITH_SAML_ASSERTION);
+        return acquireTokenSilentSync(
+                assertion,
+                assertionType,
+                resource,
+                clientId,
+                userId,
+                UserIdentifierType.LoginHint,
+                false,
+                null,
+                EventStrings.ACQUIRE_TOKEN_WITH_SAML_ASSERTION);
     }
 
-    private AuthenticationResult acquireTokenSilentSync(@Nullable final String assertion,
-                                                        @Nullable final String assertionType,
-                                                        @NonNull final String resource,
-                                                        @NonNull final String clientId,
-                                                        final String userId,
-                                                        final UserIdentifierType identifier,
-                                                        final boolean forceRefresh,
-                                                        final String claims,
-                                                        final String apiEventString)
+    private AuthenticationResult acquireTokenSilentSync(
+            @Nullable final String assertion,
+            @Nullable final String assertionType,
+            @NonNull final String resource,
+            @NonNull final String clientId,
+            final String userId,
+            final UserIdentifierType identifier,
+            final boolean forceRefresh,
+            final String claims,
+            final String apiEventString)
             throws AuthenticationException, InterruptedException {
         final String methodName = ":acquireTokenSilentSync";
         validateClaims(claims);
@@ -724,9 +945,18 @@ public class AuthenticationContext {
         final String requestId = Telemetry.registerNewRequest();
         final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, apiEventString);
         apiEvent.setPromptBehavior(PromptBehavior.Auto.toString());
-        final AuthenticationRequest request = new AuthenticationRequest(assertion, assertionType, mAuthority, resource,
-                clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled(), forceRefresh, claims);
-
+        final AuthenticationRequest request =
+                new AuthenticationRequest(
+                        assertion,
+                        assertionType,
+                        mAuthority,
+                        resource,
+                        clientId,
+                        userId,
+                        getRequestCorrelationId(),
+                        getExtendedLifetimeEnabled(),
+                        forceRefresh,
+                        claims);
 
         request.setSilent(true);
         request.setPrompt(PromptBehavior.Auto);
@@ -737,25 +967,30 @@ public class AuthenticationContext {
 
         final Looper currentLooper = Looper.myLooper();
         if (currentLooper != null && currentLooper == mContext.getMainLooper()) {
-            Logger.e(TAG + methodName,
+            Logger.e(
+                    TAG + methodName,
                     "Sync network calls must not be invoked in main thread. "
                             + "This method will throw android.os.NetworkOnMainThreadException in next major release",
                     new NetworkOnMainThreadException());
         }
-        createAcquireTokenRequest(apiEvent).acquireToken(null, false, request,
-                new AuthenticationCallback<AuthenticationResult>() {
-                    @Override
-                    public void onSuccess(AuthenticationResult result) {
-                        authenticationResult.set(result);
-                        latch.countDown();
-                    }
+        createAcquireTokenRequest(apiEvent)
+                .acquireToken(
+                        null,
+                        false,
+                        request,
+                        new AuthenticationCallback<AuthenticationResult>() {
+                            @Override
+                            public void onSuccess(AuthenticationResult result) {
+                                authenticationResult.set(result);
+                                latch.countDown();
+                            }
 
-                    @Override
-                    public void onError(Exception exc) {
-                        exception.set(exc);
-                        latch.countDown();
-                    }
-                });
+                            @Override
+                            public void onError(Exception exc) {
+                                exception.set(exc);
+                                latch.countDown();
+                            }
+                        });
 
         latch.await();
 
@@ -772,8 +1007,10 @@ public class AuthenticationContext {
                 } else if (e.getCause() instanceof RuntimeException) {
                     throw (RuntimeException) e.getCause();
                 } else {
-                    throw new AuthenticationException(ADALError.ERROR_SILENT_REQUEST, e.getCause()
-                            .getMessage(), e.getCause());
+                    throw new AuthenticationException(
+                            ADALError.ERROR_SILENT_REQUEST,
+                            e.getCause().getMessage(),
+                            e.getCause());
                 }
             }
             throw new AuthenticationException(ADALError.ERROR_SILENT_REQUEST, e.getMessage(), e);
@@ -802,8 +1039,11 @@ public class AuthenticationContext {
      * @deprecated Use the {@link #acquireTokenSilentAsync} method.
      */
     @Deprecated
-    public Future<AuthenticationResult> acquireTokenSilent(String resource, String clientId,
-                                                           String userId, final AuthenticationCallback<AuthenticationResult> callback) {
+    public Future<AuthenticationResult> acquireTokenSilent(
+            String resource,
+            String clientId,
+            String userId,
+            final AuthenticationCallback<AuthenticationResult> callback) {
         final SettableFuture<AuthenticationResult> futureTask = new SettableFuture<>();
         try {
             checkPreRequirements(resource, clientId);
@@ -817,11 +1057,18 @@ public class AuthenticationContext {
         }
 
         final String requestId = Telemetry.registerNewRequest();
-        final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_SILENT);
+        final APIEvent apiEvent =
+                createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_SILENT);
         apiEvent.setIsDeprecated(true);
 
-        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled());
+        final AuthenticationRequest request =
+                new AuthenticationRequest(
+                        mAuthority,
+                        resource,
+                        clientId,
+                        userId,
+                        getRequestCorrelationId(),
+                        getExtendedLifetimeEnabled());
         request.setSilent(true);
         request.setPrompt(PromptBehavior.Auto);
         request.setUserIdentifierType(UserIdentifierType.UniqueId);
@@ -829,37 +1076,40 @@ public class AuthenticationContext {
         request.setTelemetryRequestId(requestId);
         setAppInfoToRequest(request);
 
+        createAcquireTokenRequest(apiEvent)
+                .acquireToken(
+                        null,
+                        false,
+                        request,
+                        new AuthenticationCallback<AuthenticationResult>() {
+                            @Override
+                            public void onSuccess(AuthenticationResult result) {
+                                apiEvent.setWasApiCallSuccessful(true, null);
+                                apiEvent.setCorrelationId(request.getCorrelationId().toString());
+                                apiEvent.setIdToken(result.getIdToken());
+                                apiEvent.stopTelemetryAndFlush();
 
-        createAcquireTokenRequest(apiEvent).acquireToken(null, false, request,
-                new AuthenticationCallback<AuthenticationResult>() {
-                    @Override
-                    public void onSuccess(AuthenticationResult result) {
-                        apiEvent.setWasApiCallSuccessful(true, null);
-                        apiEvent.setCorrelationId(request.getCorrelationId().toString());
-                        apiEvent.setIdToken(result.getIdToken());
-                        apiEvent.stopTelemetryAndFlush();
+                                if (callback != null) {
+                                    callback.onSuccess(result);
+                                }
 
-                        if (callback != null) {
-                            callback.onSuccess(result);
-                        }
+                                futureTask.set(result);
+                            }
 
-                        futureTask.set(result);
-                    }
+                            @Override
+                            @SuppressWarnings("unchecked")
+                            public void onError(Exception exc) {
+                                apiEvent.setWasApiCallSuccessful(false, exc);
+                                apiEvent.setCorrelationId(request.getCorrelationId().toString());
+                                apiEvent.stopTelemetryAndFlush();
 
-                    @Override
-                    @SuppressWarnings("unchecked")
-                    public void onError(Exception exc) {
-                        apiEvent.setWasApiCallSuccessful(false, exc);
-                        apiEvent.setCorrelationId(request.getCorrelationId().toString());
-                        apiEvent.stopTelemetryAndFlush();
+                                if (callback != null) {
+                                    callback.onError(exc);
+                                }
 
-                        if (callback != null) {
-                            callback.onError(exc);
-                        }
-
-                        futureTask.setException(exc);
-                    }
-                });
+                                futureTask.setException(exc);
+                            }
+                        });
         return futureTask;
     }
 
@@ -877,12 +1127,22 @@ public class AuthenticationContext {
      * @param callback required {@link AuthenticationCallback} object for async
      *                 call.
      */
-    public void acquireTokenSilentAsync(String resource,
-                                        String clientId,
-                                        String userId,
-                                        AuthenticationCallback<AuthenticationResult> callback) {
-        acquireTokenSilentAsync(null, null, resource, clientId, userId, UserIdentifierType.UniqueId,
-                false, null, EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC, callback);
+    public void acquireTokenSilentAsync(
+            String resource,
+            String clientId,
+            String userId,
+            AuthenticationCallback<AuthenticationResult> callback) {
+        acquireTokenSilentAsync(
+                null,
+                null,
+                resource,
+                clientId,
+                userId,
+                UserIdentifierType.UniqueId,
+                false,
+                null,
+                EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC,
+                callback);
     }
 
     /**
@@ -900,13 +1160,23 @@ public class AuthenticationContext {
      * @param callback     required {@link AuthenticationCallback} object for async
      *                     call.
      */
-    public void acquireTokenSilentAsync(String resource,
-                                        String clientId,
-                                        String userId,
-                                        boolean forceRefresh,
-                                        AuthenticationCallback<AuthenticationResult> callback) {
-        acquireTokenSilentAsync(null, null, resource, clientId, userId, UserIdentifierType.UniqueId,
-                forceRefresh, null, EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC_FORCE_REFRESH, callback);
+    public void acquireTokenSilentAsync(
+            String resource,
+            String clientId,
+            String userId,
+            boolean forceRefresh,
+            AuthenticationCallback<AuthenticationResult> callback) {
+        acquireTokenSilentAsync(
+                null,
+                null,
+                resource,
+                clientId,
+                userId,
+                UserIdentifierType.UniqueId,
+                forceRefresh,
+                null,
+                EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC_FORCE_REFRESH,
+                callback);
     }
 
     /**
@@ -925,13 +1195,23 @@ public class AuthenticationContext {
      * @param callback required {@link AuthenticationCallback} object for async
      *                 call.
      */
-    public void acquireTokenSilentAsync(String resource,
-                                        String clientId,
-                                        String userId,
-                                        @Nullable String claims,
-                                        AuthenticationCallback<AuthenticationResult> callback) {
-        acquireTokenSilentAsync(null, null, resource, clientId, userId, UserIdentifierType.UniqueId,
-                false, claims, EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC_CLAIMS_CHALLENGE, callback);
+    public void acquireTokenSilentAsync(
+            String resource,
+            String clientId,
+            String userId,
+            @Nullable String claims,
+            AuthenticationCallback<AuthenticationResult> callback) {
+        acquireTokenSilentAsync(
+                null,
+                null,
+                resource,
+                clientId,
+                userId,
+                UserIdentifierType.UniqueId,
+                false,
+                claims,
+                EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC_CLAIMS_CHALLENGE,
+                callback);
     }
 
     /**
@@ -952,28 +1232,40 @@ public class AuthenticationContext {
      * @param callback      required {@link AuthenticationCallback} object for async
      *                      call.
      */
-    public void acquireTokenSilentAsyncWithAssertion(@NonNull final String assertion,
-                                                     @NonNull final String assertionType,
-                                                     final String resource,
-                                                     final String clientId,
-                                                     final String userId,
-                                                     AuthenticationCallback<AuthenticationResult> callback) {
-        acquireTokenSilentAsync(assertion, assertionType, resource, clientId, userId, UserIdentifierType.LoginHint,
-                false, null, EventStrings.ACQUIRE_TOKEN_WITH_SAML_ASSERTION, callback);
+    public void acquireTokenSilentAsyncWithAssertion(
+            @NonNull final String assertion,
+            @NonNull final String assertionType,
+            final String resource,
+            final String clientId,
+            final String userId,
+            AuthenticationCallback<AuthenticationResult> callback) {
+        acquireTokenSilentAsync(
+                assertion,
+                assertionType,
+                resource,
+                clientId,
+                userId,
+                UserIdentifierType.LoginHint,
+                false,
+                null,
+                EventStrings.ACQUIRE_TOKEN_WITH_SAML_ASSERTION,
+                callback);
     }
 
-    private void acquireTokenSilentAsync(final String assertion,
-                                         final String assertionType,
-                                         final String resource,
-                                         final String clientId,
-                                         final String userId,
-                                         final UserIdentifierType identifierType,
-                                         final boolean forceRefresh,
-                                         final String claims,
-                                         final String apiEventString,
-                                         final AuthenticationCallback<AuthenticationResult> callback) {
+    private void acquireTokenSilentAsync(
+            final String assertion,
+            final String assertionType,
+            final String resource,
+            final String clientId,
+            final String userId,
+            final UserIdentifierType identifierType,
+            final boolean forceRefresh,
+            final String claims,
+            final String apiEventString,
+            final AuthenticationCallback<AuthenticationResult> callback) {
 
-        if (!checkPreRequirements(resource, clientId, callback) || !checkADFSValidationRequirements(null, callback)) {
+        if (!checkPreRequirements(resource, clientId, callback)
+                || !checkADFSValidationRequirements(null, callback)) {
             // AD FS validation cannot be perfomed, stop executing
             return;
         }
@@ -985,12 +1277,21 @@ public class AuthenticationContext {
         }
 
         final String requestId = Telemetry.registerNewRequest();
-        final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId,
-                apiEventString);
+        final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, apiEventString);
         apiEvent.setPromptBehavior(PromptBehavior.Auto.toString());
 
-        final AuthenticationRequest request = new AuthenticationRequest(assertion, assertionType, mAuthority, resource,
-                clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled(), forceRefresh, claims);
+        final AuthenticationRequest request =
+                new AuthenticationRequest(
+                        assertion,
+                        assertionType,
+                        mAuthority,
+                        resource,
+                        clientId,
+                        userId,
+                        getRequestCorrelationId(),
+                        getExtendedLifetimeEnabled(),
+                        forceRefresh,
+                        claims);
         request.setSilent(true);
         request.setPrompt(PromptBehavior.Auto);
         request.setUserIdentifierType(identifierType);
@@ -1000,9 +1301,7 @@ public class AuthenticationContext {
         request.setTelemetryRequestId(requestId);
 
         createAcquireTokenRequest(apiEvent).acquireToken(null, false, request, callback);
-
     }
-
 
     /**
      * acquire token using refresh token if cache is not used. Otherwise, use
@@ -1017,8 +1316,10 @@ public class AuthenticationContext {
      * ADAL will handle the cache lookup, and refresh the RT if necessary.
      */
     @Deprecated
-    public void acquireTokenByRefreshToken(String refreshToken, String clientId,
-                                           AuthenticationCallback<AuthenticationResult> callback) {
+    public void acquireTokenByRefreshToken(
+            String refreshToken,
+            String clientId,
+            AuthenticationCallback<AuthenticationResult> callback) {
         if (!checkADFSValidationRequirements(null, callback)) {
             return;
         }
@@ -1036,15 +1337,23 @@ public class AuthenticationContext {
         }
 
         final String requestId = Telemetry.registerNewRequest();
-        final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId,
-                EventStrings.ACQUIRE_TOKEN_WITH_REFRESH_TOKEN);
+        final APIEvent apiEvent =
+                createApiEvent(
+                        mContext,
+                        clientId,
+                        requestId,
+                        EventStrings.ACQUIRE_TOKEN_WITH_REFRESH_TOKEN);
         apiEvent.setPromptBehavior(PromptBehavior.Auto.toString());
         apiEvent.setIsDeprecated(true);
 
-        final AuthenticationRequest request = new AuthenticationRequest(mAuthority,
-                null, clientId, getRequestCorrelationId(), getExtendedLifetimeEnabled(),
-                AuthenticationConstants.OAuth2Scopes.OPEN_ID_SCOPE
-        );
+        final AuthenticationRequest request =
+                new AuthenticationRequest(
+                        mAuthority,
+                        null,
+                        clientId,
+                        getRequestCorrelationId(),
+                        getExtendedLifetimeEnabled(),
+                        AuthenticationConstants.OAuth2Scopes.OPEN_ID_SCOPE);
 
         // It is not using cache and refresh is not expected to
         // show authentication activity.
@@ -1053,7 +1362,8 @@ public class AuthenticationContext {
         request.setTelemetryRequestId(requestId);
 
         // Broker is not supported for the Acquire Token By Refresh Token API
-        createAcquireTokenRequest(apiEvent).refreshTokenWithoutCache(refreshToken, request, callback);
+        createAcquireTokenRequest(apiEvent)
+                .refreshTokenWithoutCache(refreshToken, request, callback);
     }
 
     /**
@@ -1070,8 +1380,11 @@ public class AuthenticationContext {
      * ADAL will handle the cache lookup, and refresh the RT if necessary.
      */
     @Deprecated
-    public void acquireTokenByRefreshToken(String refreshToken, String clientId, String resource,
-                                           AuthenticationCallback<AuthenticationResult> callback) {
+    public void acquireTokenByRefreshToken(
+            String refreshToken,
+            String clientId,
+            String resource,
+            AuthenticationCallback<AuthenticationResult> callback) {
         if (!checkADFSValidationRequirements(null, callback)) {
             return;
         }
@@ -1089,23 +1402,32 @@ public class AuthenticationContext {
         }
 
         final String requestId = Telemetry.registerNewRequest();
-        final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId,
-                EventStrings.ACQUIRE_TOKEN_WITH_REFRESH_TOKEN_2);
+        final APIEvent apiEvent =
+                createApiEvent(
+                        mContext,
+                        clientId,
+                        requestId,
+                        EventStrings.ACQUIRE_TOKEN_WITH_REFRESH_TOKEN_2);
         apiEvent.setPromptBehavior(PromptBehavior.Auto.toString());
         apiEvent.setIsDeprecated(true);
 
         // Broker is not supported for the Acquire Token By Refresh Token API
-        final AuthenticationRequest request = new AuthenticationRequest(mAuthority,
-                resource, clientId, getRequestCorrelationId(), getExtendedLifetimeEnabled(),
-                AuthenticationConstants.OAuth2Scopes.OPEN_ID_SCOPE
-        );
+        final AuthenticationRequest request =
+                new AuthenticationRequest(
+                        mAuthority,
+                        resource,
+                        clientId,
+                        getRequestCorrelationId(),
+                        getExtendedLifetimeEnabled(),
+                        AuthenticationConstants.OAuth2Scopes.OPEN_ID_SCOPE);
 
         request.setTelemetryRequestId(requestId);
 
         // It is not using cache and refresh is not expected to
         // show authentication activity.
         request.setSilent(true);
-        createAcquireTokenRequest(apiEvent).refreshTokenWithoutCache(refreshToken, request, callback);
+        createAcquireTokenRequest(apiEvent)
+                .refreshTokenWithoutCache(refreshToken, request, callback);
     }
 
     /**
@@ -1123,7 +1445,10 @@ public class AuthenticationContext {
             if (data == null) {
                 // If data is null, RequestId is unknown. It could not find
                 // callback to respond to this request.
-                Logger.e(TAG + methodName, "onActivityResult BROWSER_FLOW data is null.", "",
+                Logger.e(
+                        TAG + methodName,
+                        "onActivityResult BROWSER_FLOW data is null.",
+                        "",
                         ADALError.ON_ACTIVITY_RESULT_INTENT_NULL);
                 return;
             }
@@ -1141,9 +1466,11 @@ public class AuthenticationContext {
                         new AcquireTokenRequest(mContext, this, waitingRequest.getAPIEvent());
                 acquireTokenRequest.onActivityResult(requestCode, resultCode, data);
             } else {
-                Logger.e(TAG + methodName,
+                Logger.e(
+                        TAG + methodName,
                         "onActivityResult did not find the waiting request. "
-                                + REQUEST_ID + requestId,
+                                + REQUEST_ID
+                                + requestId,
                         null,
                         ADALError.ON_ACTIVITY_RESULT_INTENT_NULL);
             }
@@ -1161,25 +1488,32 @@ public class AuthenticationContext {
      * successfully or if no waiting request exists. false: If the request could not be cancelled
      * @throws AuthenticationException if failed to get the waiting request
      */
-    public boolean cancelAuthenticationActivity(final int requestId) throws AuthenticationException {
+    public boolean cancelAuthenticationActivity(final int requestId)
+            throws AuthenticationException {
         final String methodName = ":cancelAuthenticationActivity";
         final AuthenticationRequestState waitingRequest = getWaitingRequest(requestId);
 
         if (waitingRequest == null || waitingRequest.getDelegate() == null) {
             // there is not any waiting callback
-            Logger.v(TAG + methodName, "Current callback is empty. There is not any active authentication.");
+            Logger.v(
+                    TAG + methodName,
+                    "Current callback is empty. There is not any active authentication.");
             return true;
         }
 
         final String currentCorrelationInfo;
         if (waitingRequest.getRequest() != null) {
-            currentCorrelationInfo = String.format(" CorrelationId: %s",
-                    waitingRequest.getRequest().getCorrelationId().toString());
+            currentCorrelationInfo =
+                    String.format(
+                            " CorrelationId: %s",
+                            waitingRequest.getRequest().getCorrelationId().toString());
         } else {
             currentCorrelationInfo = "No correlation id associated with waiting request";
         }
-        Logger.v(TAG + methodName, "Current callback is not empty. There is an active authentication Activity."
-                + currentCorrelationInfo);
+        Logger.v(
+                TAG + methodName,
+                "Current callback is not empty. There is an active authentication Activity."
+                        + currentCorrelationInfo);
 
         // intent to cancel. Authentication activity registers for this message
         // at onCreate event.
@@ -1190,17 +1524,26 @@ public class AuthenticationContext {
         // send intent to cancel any active authentication activity.
         // it may not cancel it, if activity takes some time to launch.
 
-        final boolean cancelResult = LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
+        final boolean cancelResult =
+                LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
         if (cancelResult) {
             // clear callback if broadcast message was successful
-            Logger.v(TAG + methodName, "Cancel broadcast message was successful." + currentCorrelationInfo);
+            Logger.v(
+                    TAG + methodName,
+                    "Cancel broadcast message was successful." + currentCorrelationInfo);
             waitingRequest.setCancelled(true);
-            waitingRequest.getDelegate().onError(new AuthenticationCancelError(
-                    "Cancel broadcast message was successful."));
+            waitingRequest
+                    .getDelegate()
+                    .onError(
+                            new AuthenticationCancelError(
+                                    "Cancel broadcast message was successful."));
         } else {
             // Activity is not launched yet or receiver is not registered
-            Logger.w(TAG + methodName, "Cancel broadcast message was not successful." + currentCorrelationInfo,
-                    "", ADALError.BROADCAST_CANCEL_NOT_SUCCESSFUL);
+            Logger.w(
+                    TAG + methodName,
+                    "Cancel broadcast message was not successful." + currentCorrelationInfo,
+                    "",
+                    ADALError.BROADCAST_CANCEL_NOT_SUCCESSFUL);
         }
 
         return cancelResult;
@@ -1301,8 +1644,8 @@ public class AuthenticationContext {
      * * @return merged claims with capabilities
      * * @throws JSONException if input claims is an invalid JSON
      */
-    public static String mergeClaimsWithClientCapabilities(final String claims,
-                                                           final List<String> clientCapabilities) {
+    public static String mergeClaimsWithClientCapabilities(
+            final String claims, final List<String> clientCapabilities) {
         if (clientCapabilities == null || clientCapabilities.isEmpty()) {
             return claims;
         }
@@ -1316,23 +1659,33 @@ public class AuthenticationContext {
             final JSONObject capabilities = new JSONObject();
             final JSONObject values = new JSONObject();
             values.put("values", capabilitiesArray);
-            capabilities.put(AuthenticationConstants.OAuth2.CLIENT_CAPABILITIES_CLAIMS_LIST, values);
+            capabilities.put(
+                    AuthenticationConstants.OAuth2.CLIENT_CAPABILITIES_CLAIMS_LIST, values);
 
             if (!TextUtils.isEmpty(claims)) {
                 final JSONObject claimsJson = new JSONObject(claims);
 
                 if (claimsJson.has(AuthenticationConstants.OAuth2.CLIENT_CAPABILITY_ACCESS_TOKEN)) {
-                    final JSONObject accessTokenClaim = claimsJson.getJSONObject(AuthenticationConstants.OAuth2.CLIENT_CAPABILITY_ACCESS_TOKEN);
-                    accessTokenClaim.put(AuthenticationConstants.OAuth2.CLIENT_CAPABILITIES_CLAIMS_LIST, values);
-                    claimsJson.put(AuthenticationConstants.OAuth2.CLIENT_CAPABILITY_ACCESS_TOKEN, accessTokenClaim);
+                    final JSONObject accessTokenClaim =
+                            claimsJson.getJSONObject(
+                                    AuthenticationConstants.OAuth2.CLIENT_CAPABILITY_ACCESS_TOKEN);
+                    accessTokenClaim.put(
+                            AuthenticationConstants.OAuth2.CLIENT_CAPABILITIES_CLAIMS_LIST, values);
+                    claimsJson.put(
+                            AuthenticationConstants.OAuth2.CLIENT_CAPABILITY_ACCESS_TOKEN,
+                            accessTokenClaim);
                 } else {
-                    claimsJson.put(AuthenticationConstants.OAuth2.CLIENT_CAPABILITY_ACCESS_TOKEN, capabilities);
+                    claimsJson.put(
+                            AuthenticationConstants.OAuth2.CLIENT_CAPABILITY_ACCESS_TOKEN,
+                            capabilities);
                 }
                 mergedClaims = claimsJson.toString();
 
             } else {
                 JSONObject claimsObject = new JSONObject();
-                claimsObject.put(AuthenticationConstants.OAuth2.CLIENT_CAPABILITY_ACCESS_TOKEN, capabilities);
+                claimsObject.put(
+                        AuthenticationConstants.OAuth2.CLIENT_CAPABILITY_ACCESS_TOKEN,
+                        capabilities);
                 mergedClaims = claimsObject.toString();
             }
         } catch (JSONException e) {
@@ -1344,10 +1697,12 @@ public class AuthenticationContext {
         return mergedClaims;
     }
 
-    private boolean checkPreRequirements(final String resource, final String clientId) throws AuthenticationException {
+    private boolean checkPreRequirements(final String resource, final String clientId)
+            throws AuthenticationException {
         if (mContext == null) {
-            throw new IllegalArgumentException("context", new AuthenticationException(
-                    ADALError.DEVELOPER_CONTEXT_IS_NOT_PROVIDED));
+            throw new IllegalArgumentException(
+                    "context",
+                    new AuthenticationException(ADALError.DEVELOPER_CONTEXT_IS_NOT_PROVIDED));
         }
 
         if (AuthenticationSettings.INSTANCE.getUseBroker()) {
@@ -1365,7 +1720,10 @@ public class AuthenticationContext {
         return true;
     }
 
-    private boolean checkPreRequirements(final String resource, final String clientId, final AuthenticationCallback<AuthenticationResult> callback) {
+    private boolean checkPreRequirements(
+            final String resource,
+            final String clientId,
+            final AuthenticationCallback<AuthenticationResult> callback) {
         if (callback == null) {
             throw new IllegalArgumentException("callback");
         }
@@ -1387,13 +1745,13 @@ public class AuthenticationContext {
         if (UrlExtensions.isADFSAuthority(authorityURL) // is it ADFS?
                 && mValidateAuthority // should it be validated?
                 && !mIsAuthorityValidated // has it not already been validated?
-                && loginHint == null) { // did you provide insufficient info to perform the validation?
+                && loginHint
+                        == null) { // did you provide insufficient info to perform the validation?
             throw new AuthenticationException(
                     ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED,
                     "AD FS validation requires a loginHint be provided or an "
                             + getClass().getSimpleName()
-                            + " in which the current authority has previously been validated."
-            );
+                            + " in which the current authority has previously been validated.");
         }
         return true;
     }
@@ -1448,9 +1806,10 @@ public class AuthenticationContext {
 
     private void checkInternetPermission() {
         PackageManager pm = mContext.getPackageManager();
-        if (PackageManager.PERMISSION_GRANTED != pm.checkPermission("android.permission.INTERNET",
-                mContext.getPackageName())) {
-            throw new IllegalStateException(new AuthenticationException(ADALError.DEVELOPER_INTERNET_PERMISSION_MISSING));
+        if (PackageManager.PERMISSION_GRANTED
+                != pm.checkPermission("android.permission.INTERNET", mContext.getPackageName())) {
+            throw new IllegalStateException(
+                    new AuthenticationException(ADALError.DEVELOPER_INTERNET_PERMISSION_MISSING));
         }
     }
 
@@ -1473,8 +1832,10 @@ public class AuthenticationContext {
             throw new IllegalArgumentException("uniqueUserId");
         }
 
-        if (mBrokerProxy.canSwitchToBroker(mAuthority) != BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER) {
-            throw new UsageAuthenticationException(ADALError.FAIL_TO_EXPORT,
+        if (mBrokerProxy.canSwitchToBroker(mAuthority)
+                != BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER) {
+            throw new UsageAuthenticationException(
+                    ADALError.FAIL_TO_EXPORT,
                     "Failed to export the family refresh token cache item because broker is enabled.");
         }
 
@@ -1483,26 +1844,40 @@ public class AuthenticationContext {
          * apps. So the client ID for the FoCI token cache item is hard coded
          * below.
          */
-        final TokenCacheAccessor tokenCacheAccessor = new TokenCacheAccessor(this.mContext.getApplicationContext(), mTokenCacheStore, this.getAuthority(),
-                Telemetry.registerNewRequest());
+        final TokenCacheAccessor tokenCacheAccessor =
+                new TokenCacheAccessor(
+                        this.mContext.getApplicationContext(),
+                        mTokenCacheStore,
+                        this.getAuthority(),
+                        Telemetry.registerNewRequest());
         final TokenCacheItem tokenItem;
         try {
-            // TokenCacheAccessor has all the logic for token cache fallback lookup. If the metadata cache is not cached yet,
-            // it basically means that there hasn't been any requests done with the authority, otherwise authority validation
+            // TokenCacheAccessor has all the logic for token cache fallback lookup. If the metadata
+            // cache is not cached yet,
+            // it basically means that there hasn't been any requests done with the authority,
+            // otherwise authority validation
             // cache is already filled up.
-            tokenItem = tokenCacheAccessor.getFRTItem(AuthenticationConstants.MS_FAMILY_ID, uniqueUserId);
+            tokenItem =
+                    tokenCacheAccessor.getFRTItem(
+                            AuthenticationConstants.MS_FAMILY_ID, uniqueUserId);
         } catch (final MalformedURLException e) {
-            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e.getMessage(), e);
+            throw new AuthenticationException(
+                    ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e.getMessage(), e);
         }
 
         if (tokenItem == null) {
-            Logger.i(TAG + methodName, "Cannot find the family token cache item for this userID", "");
-            throw new UsageAuthenticationException(ADALError.FAIL_TO_EXPORT,
+            Logger.i(
+                    TAG + methodName,
+                    "Cannot find the family token cache item for this userID",
+                    "");
+            throw new UsageAuthenticationException(
+                    ADALError.FAIL_TO_EXPORT,
                     "Failed to export the FID because no family token cache item is found.");
         }
 
         if (StringExtensions.isNullOrBlank(tokenItem.getFamilyClientId())) {
-            throw new UsageAuthenticationException(ADALError.FAIL_TO_EXPORT, "tokenItem does not contain family refresh token");
+            throw new UsageAuthenticationException(
+                    ADALError.FAIL_TO_EXPORT, "tokenItem does not contain family refresh token");
         }
 
         return SSOStateSerializer.serialize(tokenItem);
@@ -1524,22 +1899,32 @@ public class AuthenticationContext {
             throw new IllegalArgumentException("serializedBlob");
         }
 
-        if (mBrokerProxy.canSwitchToBroker(mAuthority) != BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER) {
-            throw new UsageAuthenticationException(ADALError.FAIL_TO_IMPORT, "Failed to import the serialized blob "
-                    + "because broker is enabled.");
+        if (mBrokerProxy.canSwitchToBroker(mAuthority)
+                != BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER) {
+            throw new UsageAuthenticationException(
+                    ADALError.FAIL_TO_IMPORT,
+                    "Failed to import the serialized blob " + "because broker is enabled.");
         }
 
-        // If the serialized blob is from an app which already integrates ADAL having authority migration support, the token cache
-        // item already has the authority updated with preferred cache location (login.windows.net is the preferred cache location);
-        // If the blob is from an old version of ADAL, the token cache item contains the passed in authority (Note: most of microsoft first
+        // If the serialized blob is from an app which already integrates ADAL having authority
+        // migration support, the token cache
+        // item already has the authority updated with preferred cache location (login.windows.net
+        // is the preferred cache location);
+        // If the blob is from an old version of ADAL, the token cache item contains the passed in
+        // authority (Note: most of microsoft first
         // party app uses Token Share Library today are using login.windows.net).
-        // If the app receives the blob has the version of adal supporting authority migration, lookup will always go to preferred location
-        // first, we'll fall back to passed in authority host and all the aliased hosts if necessary; If app receives the blob has the old
-        // version of adal, since all the apps using token share library are using login.windows.net, token lookup will keep working.
+        // If the app receives the blob has the version of adal supporting authority migration,
+        // lookup will always go to preferred location
+        // first, we'll fall back to passed in authority host and all the aliased hosts if
+        // necessary; If app receives the blob has the old
+        // version of adal, since all the apps using token share library are using
+        // login.windows.net, token lookup will keep working.
         final TokenCacheItem tokenCacheItem = SSOStateSerializer.deserialize(serializedBlob);
-        if (StringExtensions.isNullOrBlank(tokenCacheItem.getAuthority()) ||
-                (StringExtensions.isNullOrBlank(tokenCacheItem.getClientId()) && StringExtensions.isNullOrBlank(tokenCacheItem.getFamilyClientId()))) {
-            throw new DeserializationAuthenticationException("Failed to deserialize the blob because authority or client id is null/empty.");
+        if (StringExtensions.isNullOrBlank(tokenCacheItem.getAuthority())
+                || (StringExtensions.isNullOrBlank(tokenCacheItem.getClientId())
+                        && StringExtensions.isNullOrBlank(tokenCacheItem.getFamilyClientId()))) {
+            throw new DeserializationAuthenticationException(
+                    "Failed to deserialize the blob because authority or client id is null/empty.");
         }
         final String cacheKey = CacheKey.createCacheKey(tokenCacheItem);
         this.getCache().setItem(cacheKey, tokenCacheItem);
@@ -1553,7 +1938,8 @@ public class AuthenticationContext {
         return mIsAuthorityValidated;
     }
 
-    AuthenticationRequestState getWaitingRequest(final int requestId) throws AuthenticationException {
+    AuthenticationRequestState getWaitingRequest(final int requestId)
+            throws AuthenticationException {
         final String methodName = ":getWaitingRequest";
         Logger.v(TAG + methodName, "Get waiting request. " + REQUEST_ID + requestId);
         AuthenticationRequestState request;
@@ -1563,9 +1949,13 @@ public class AuthenticationContext {
         }
 
         if (request == null) {
-            Logger.e(TAG + methodName, "Request callback is not available. "
-                    + REQUEST_ID + requestId, null, ADALError.CALLBACK_IS_NOT_FOUND);
-            throw new AuthenticationException(ADALError.CALLBACK_IS_NOT_FOUND,
+            Logger.e(
+                    TAG + methodName,
+                    "Request callback is not available. " + REQUEST_ID + requestId,
+                    null,
+                    ADALError.CALLBACK_IS_NOT_FOUND);
+            throw new AuthenticationException(
+                    ADALError.CALLBACK_IS_NOT_FOUND,
                     "Request callback is not available for requestId:" + requestId);
         }
 
@@ -1577,9 +1967,13 @@ public class AuthenticationContext {
             return;
         }
 
-        Logger.v(TAG, "Put waiting request. "
-                + REQUEST_ID + requestId + " "
-                + getCorrelationInfoFromWaitingRequest(requestState));
+        Logger.v(
+                TAG,
+                "Put waiting request. "
+                        + REQUEST_ID
+                        + requestId
+                        + " "
+                        + getCorrelationInfoFromWaitingRequest(requestState));
 
         synchronized (DELEGATE_MAP) {
             DELEGATE_MAP.put(requestId, requestState);
@@ -1632,12 +2026,13 @@ public class AuthenticationContext {
      */
     static final class SettableFuture<V> extends FutureTask<V> {
         SettableFuture() {
-            super(new Callable<V>() {
-                @Override
-                public V call() throws Exception {
-                    return null;
-                }
-            });
+            super(
+                    new Callable<V>() {
+                        @Override
+                        public V call() throws Exception {
+                            return null;
+                        }
+                    });
         }
 
         @SuppressWarnings("PMD.UselessOverridingMethod")
@@ -1653,7 +2048,8 @@ public class AuthenticationContext {
         }
     }
 
-    private APIEvent createApiEvent(Context context, String clientId, String requestId, String apiId) {
+    private APIEvent createApiEvent(
+            Context context, String clientId, String requestId, String apiId) {
         final APIEvent apiEvent = new APIEvent(EventStrings.API_EVENT, context, clientId);
         apiEvent.setRequestId(requestId);
         apiEvent.setAPIId(apiId);
@@ -1662,9 +2058,13 @@ public class AuthenticationContext {
         return apiEvent;
     }
 
-    private void throwIfClaimsInBothExtraQpAndClaimsParameter(final String claims, final String extraQP) {
-        if (!StringExtensions.isNullOrBlank(claims) && !StringExtensions.isNullOrBlank(extraQP) && extraQP.contains(AuthenticationConstants.OAuth2.CLAIMS)) {
-            throw new IllegalArgumentException("claims cannot be sent in claims parameter and extra qp.");
+    private void throwIfClaimsInBothExtraQpAndClaimsParameter(
+            final String claims, final String extraQP) {
+        if (!StringExtensions.isNullOrBlank(claims)
+                && !StringExtensions.isNullOrBlank(extraQP)
+                && extraQP.contains(AuthenticationConstants.OAuth2.CLAIMS)) {
+            throw new IllegalArgumentException(
+                    "claims cannot be sent in claims parameter and extra qp.");
         }
     }
 
@@ -1674,7 +2074,8 @@ public class AuthenticationContext {
                 new JSONObject(claims);
             }
         } catch (JSONException e) {
-            throw new AuthenticationException(ADALError.JSON_PARSE_ERROR, "Invalid claims request parameters", e);
+            throw new AuthenticationException(
+                    ADALError.JSON_PARSE_ERROR, "Invalid claims request parameters", e);
         }
     }
 }

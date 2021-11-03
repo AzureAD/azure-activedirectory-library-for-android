@@ -23,6 +23,10 @@
 
 package com.microsoft.aad.adal;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.microsoft.aad.adal.Logger.ILogger;
@@ -35,10 +39,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 @RunWith(AndroidJUnit4.class)
 public class LoggerTest extends AndroidTestHelper {
 
@@ -50,20 +50,26 @@ public class LoggerTest extends AndroidTestHelper {
         final List<TestLogResponse> logResponses = new ArrayList<>();
         int index = 0;
         Logger.getInstance().setEnablePII(true);
-        Logger.getInstance().setExternalLogger(new ILogger() {
+        Logger.getInstance()
+                .setExternalLogger(
+                        new ILogger() {
 
-            @Override
-            public void Log(String tag, String message, String additionalMessage, LogLevel level,
-                            ADALError errorCode) {
-                TestLogResponse response = new TestLogResponse();
-                response.setTag(tag);
-                response.setMessage(message);
-                response.setAdditionalMessage(additionalMessage);
-                response.setLevel(level);
-                response.setErrorCode(errorCode);
-                logResponses.add(response);
-            }
-        });
+                            @Override
+                            public void Log(
+                                    String tag,
+                                    String message,
+                                    String additionalMessage,
+                                    LogLevel level,
+                                    ADALError errorCode) {
+                                TestLogResponse response = new TestLogResponse();
+                                response.setTag(tag);
+                                response.setMessage(message);
+                                response.setAdditionalMessage(additionalMessage);
+                                response.setLevel(level);
+                                response.setErrorCode(errorCode);
+                                logResponses.add(response);
+                            }
+                        });
 
         // set to v
         Logger.getInstance().setLogLevel(Logger.LogLevel.Verbose);
@@ -115,18 +121,24 @@ public class LoggerTest extends AndroidTestHelper {
 
         final TestLogResponse response = new TestLogResponse();
         Logger.getInstance().setEnablePII(true);
-        Logger.getInstance().setExternalLogger(new ILogger() {
+        Logger.getInstance()
+                .setExternalLogger(
+                        new ILogger() {
 
-            @Override
-            public void Log(String tag, String message, String additionalMessage, LogLevel level,
-                            ADALError errorCode) {
-                response.setTag(tag);
-                response.setMessage(message);
-                response.setAdditionalMessage(additionalMessage);
-                response.setLevel(level);
-                response.setErrorCode(errorCode);
-            }
-        });
+                            @Override
+                            public void Log(
+                                    String tag,
+                                    String message,
+                                    String additionalMessage,
+                                    LogLevel level,
+                                    ADALError errorCode) {
+                                response.setTag(tag);
+                                response.setMessage(message);
+                                response.setAdditionalMessage(additionalMessage);
+                                response.setLevel(level);
+                                response.setErrorCode(errorCode);
+                            }
+                        });
 
         Logger.getInstance().setLogLevel(Logger.LogLevel.Debug);
 
@@ -200,15 +212,21 @@ public class LoggerTest extends AndroidTestHelper {
     public void testCallbackThrowsError() {
 
         final TestLogResponse response = new TestLogResponse();
-        Logger.getInstance().setExternalLogger(new ILogger() {
+        Logger.getInstance()
+                .setExternalLogger(
+                        new ILogger() {
 
-            @Override
-            public void Log(String tag, String message, String additionalMessage, LogLevel level,
-                            ADALError errorCode) {
-                response.setMessage(message);
-                throw new IllegalArgumentException(message);
-            }
-        });
+                            @Override
+                            public void Log(
+                                    String tag,
+                                    String message,
+                                    String additionalMessage,
+                                    LogLevel level,
+                                    ADALError errorCode) {
+                                response.setMessage(message);
+                                throw new IllegalArgumentException(message);
+                            }
+                        });
 
         // set to v
         Logger.getInstance().setLogLevel(Logger.LogLevel.Verbose);
@@ -223,7 +241,10 @@ public class LoggerTest extends AndroidTestHelper {
         }
 
         assertTrue("Expected to come here", true);
-        assertTrue("same log message", response.getMessage().contains("testMessage") && response.getMessage().contains(testId.toString()));
+        assertTrue(
+                "same log message",
+                response.getMessage().contains("testMessage")
+                        && response.getMessage().contains(testId.toString()));
     }
 
     private void verifyLogMessage(final List<TestLogResponse> responses) {
@@ -235,10 +256,15 @@ public class LoggerTest extends AndroidTestHelper {
 
         for (final TestLogResponse response : responses) {
             assertEquals("same log tag", "test", response.getTag());
-            assertEquals("same log error code", ADALError.AUTH_FAILED_BAD_STATE, response.getErrorCode());
+            assertEquals(
+                    "same log error code",
+                    ADALError.AUTH_FAILED_BAD_STATE,
+                    response.getErrorCode());
         }
 
         assertTrue("same log message", responses.get(0).getMessage().contains("testmessage"));
-        assertTrue("same log detail message", responses.get(1).getMessage().contains("additionalMessage"));
+        assertTrue(
+                "same log detail message",
+                responses.get(1).getMessage().contains("additionalMessage"));
     }
 }
