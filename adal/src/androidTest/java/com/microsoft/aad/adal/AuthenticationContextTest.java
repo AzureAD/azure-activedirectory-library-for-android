@@ -23,6 +23,29 @@
 
 package com.microsoft.aad.adal;
 
+import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION;
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL;
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE;
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR;
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE;
+import static com.microsoft.identity.common.java.AuthenticationConstants.UIRequest.BROWSER_FLOW;
+import static com.microsoft.identity.common.java.cache.SharedPreferencesAccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
@@ -50,11 +73,10 @@ import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectoryCloud;
 
-import junit.framework.Assert;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -96,29 +118,6 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
-
-import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
-import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION;
-import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL;
-import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE;
-import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR;
-import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE;
-import static com.microsoft.identity.common.java.cache.SharedPreferencesAccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
-import static com.microsoft.identity.common.java.AuthenticationConstants.UIRequest.BROWSER_FLOW;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @RunWith(AndroidJUnit4.class)
 public final class AuthenticationContextTest {
@@ -1257,8 +1256,7 @@ public final class AuthenticationContextTest {
      * @throws AuthenticationException
      */
     @Test
-    public void testFamilyClientIdCorrectlyStoredInCache() throws IOException, InterruptedException,
-            AuthenticationException, JSONException {
+    public void testFamilyClientIdCorrectlyStoredInCache() throws Exception {
 
         FileMockContext mockContext = new FileMockContext(getInstrumentation().getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
@@ -1291,7 +1289,7 @@ public final class AuthenticationContextTest {
         verifyRefreshTokenResponse(mockCache, callback.getException(),
                 callback.getAuthenticationResult());
         verifyFamilyIdStoredInTokenCacheItem(mockCache,
-                CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientId", TEST_IDTOKEN_UPN), "1");
+                CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, /*"resource",*/ "clientId", TEST_IDTOKEN_UPN), "1");
 
         // Do silent token request and return idtoken in the result
         AuthenticationResult result = context.acquireTokenSilentSync("resource", "clientid",
@@ -1299,8 +1297,7 @@ public final class AuthenticationContextTest {
         assertEquals("Returned assess token is not as expected.", "I am a new access token", result.getAccessToken());
         assertEquals("Returned refresh token is not as expected.", "I am a new refresh token", result.getRefreshToken());
         assertEquals("Returned id token is not as expected.", TEST_IDTOKEN, result.getIdToken());
-        verifyFamilyIdStoredInTokenCacheItem(mockCache, CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientId",
-                TEST_IDTOKEN_UPN), "familyClientId");
+        verifyFamilyIdStoredInTokenCacheItem(mockCache, CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, /*"resource",*/ "clientId", TEST_IDTOKEN_UPN), "familyClientId");
         clearCache(context);
     }
 
@@ -1721,7 +1718,7 @@ public final class AuthenticationContextTest {
     }
 
     private void verifyFamilyIdStoredInTokenCacheItem(final ITokenCacheStore cacheStore, final String cacheKey,
-                                                      final String expectedFamilyClientId) {
+                                                      final String expectedFamilyClientId) throws Exception {
 
         final TokenCacheItem tokenCacheItem = cacheStore.getItem(cacheKey);
         assertNotNull(tokenCacheItem);
