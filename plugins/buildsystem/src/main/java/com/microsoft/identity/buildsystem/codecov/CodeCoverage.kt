@@ -63,6 +63,17 @@ object CodeCoverage {
      * Apply some plugin configuration from [CodeCoverageReportExtension] to the project.
      */
     private fun Project.configure() {
+        if (isAndroidProject(this)) {
+            // need to create below file so that jacoco is properly initialized during instrumented tests
+            // see https://github.com/jacoco/jacoco/issues/968 for more details
+            val androidTestResourcesDirectory = project.file("src/androidTest/resources")
+            val jacocoAgentProperties = File(androidTestResourcesDirectory, "jacoco-agent.properties")
+            if (!jacocoAgentProperties.exists()) {
+                androidTestResourcesDirectory.mkdirs()
+                jacocoAgentProperties.writeText("output=none")
+            }
+        }
+
         project.plugins.apply(JacocoPlugin::class.java)
 
         project.extensions.findByType(JacocoPluginExtension::class.java)?.apply {
@@ -93,15 +104,6 @@ object CodeCoverage {
         }
 
         if (reportExtension.androidTests.enabled) {
-            // need to create below file so that jacoco is properly initialized during instrumented tests
-            // see https://github.com/jacoco/jacoco/issues/968 for more details
-            val androidTestResourcesDirectory = project.file("src/androidTest/resources")
-            val jacocoAgentProperties = File(androidTestResourcesDirectory, "jacoco-agent.properties")
-            if (!jacocoAgentProperties.exists()) {
-                androidTestResourcesDirectory.mkdirs()
-                jacocoAgentProperties.writeText("output=none")
-            }
-
             createTasks(project, TestTypes.AndroidTest)
         }
     }
