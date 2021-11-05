@@ -114,6 +114,11 @@ class FileMockContext extends MockContext {
     }
 
     @Override
+    public File getCacheDir() {
+        return null;
+    }
+
+    @Override
     public Object getSystemService(String name) {
         if (name.equalsIgnoreCase("account")) {
             if (mMockedAccountManager == null) {
