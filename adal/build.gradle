@@ -184,7 +184,7 @@ task sourcesJar(type: Jar) {
 task javadoc(type: Javadoc) {
     failOnError false
     source = android.sourceSets.main.java.srcDirs
-    classpath += configurations.api
+    classpath += configurations.compile
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
     classpath += configurations.javadocDeps
     exclude '**/*.aidl'
