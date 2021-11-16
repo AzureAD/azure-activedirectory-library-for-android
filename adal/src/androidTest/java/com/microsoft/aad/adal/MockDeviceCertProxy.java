@@ -25,6 +25,8 @@ package com.microsoft.aad.adal;
 
 import com.microsoft.identity.common.java.challengehandlers.IDeviceCertificate;
 
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
@@ -62,11 +64,11 @@ public class MockDeviceCertProxy implements IDeviceCertificate {
     }
 
     @Override
-    public RSAPrivateKey getRSAPrivateKey() {
+    public PrivateKey getPrivateKey() {
         return sPrivateKey;
     }
 
-    public RSAPublicKey getRSAPublicKey() {
+    public PublicKey getPublicKey() {
         return sPublicKey;
     }
 
