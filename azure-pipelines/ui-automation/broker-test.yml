@@ -228,7 +228,7 @@ stages:
             --type instrumentation \
             --app "$(Pipeline.Workspace)/msalautomationapks/$(msalApp)" \
             --test "$(Pipeline.Workspace)/msalautomationapks/$(msaltestApp)" \
-            --device "model=$(${{ parameters.firebaseDeviceId }}),version=$(${{ parameters.firebaseDeviceAndroidVersion }})" \
+            --device "model=${{ parameters.firebaseDeviceId }},version=${{ parameters.firebaseDeviceAndroidVersion }}" \
             --timeout "$(firebaseTimeout)" \
             --other-files \
             "/data/local/tmp/CompanyPortal.apk=$(Pipeline.Workspace)/brokerapks/$(companyPortalApk),\
@@ -240,7 +240,7 @@ stages:
             --environment-variables "clearPackageData=true" \
             --results-history-name "$(resultsHistoryName)" \
             --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker"
-    - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(${{ parameters.firebaseDeviceId }})-$(${{ parameters.firebaseDeviceAndroidVersion }})-en-portrait/test_result_1.xml" "$(Build.SourcesDirectory)"
+    - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/${{ parameters.firebaseDeviceId }}-${{ parameters.firebaseDeviceAndroidVersion }}-en-portrait/test_result_1.xml" "$(Build.SourcesDirectory)"
       displayName: Download Test Result File
       condition: succeededOrFailed()
     - task: PublishTestResults@2
