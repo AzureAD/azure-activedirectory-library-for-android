@@ -168,6 +168,7 @@ stages:
       displayName: 'make cpauth dir'
       workingDirectory: '$(Build.ArtifactStagingDirectory)'
     - task: UniversalPackages@0
+      displayName: 'Download com.azure.authenticator'
       inputs:
         command: 'download'
         downloadDirectory: '$(Build.ArtifactStagingDirectory)/cpauth'
@@ -177,6 +178,7 @@ stages:
         packageDownloadExternal: 'com.azure.authenticator'
         versionDownloadExternal: '${{ parameters.authenticatorVersion }}'
     - task: UniversalPackages@0
+      displayName: 'Download com.microsoft.windowsintune.companyportal-signed'
       inputs:
         command: 'download'
         downloadDirectory: '$(Build.ArtifactStagingDirectory)/cpauth'
