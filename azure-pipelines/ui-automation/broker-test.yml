@@ -54,6 +54,7 @@ parameters:
   default: '*'
 
 stages:
+# msalautomationapp
 - stage: 'msalautomationapp'
   displayName: Build MSAL Automation APKs
   jobs:
@@ -97,7 +98,7 @@ stages:
     - publish: '$(Build.ArtifactStagingDirectory)/msal'
       displayName: 'Publish apks for later use'
       artifact: msalautomationapks
-  # brokerautomationapp
+# brokerautomationapp
 - stage: 'brokerautomationapp'
   dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
   displayName: Build Broker Automation APKs
@@ -142,7 +143,7 @@ stages:
     - publish: '$(Build.ArtifactStagingDirectory)/broker'
       displayName: 'Publish apks for later use'
       artifact: brokerautomationapks
-  # Brokers
+# Brokers
 - stage: 'brokers'
   dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
   displayName: Brokers and Azure Sample APKs
@@ -152,6 +153,7 @@ stages:
     pool:
       vmImage: ubuntu-latest
     steps:
+    - checkout: none
     - task: DownloadPipelineArtifact@2
       displayName: 'Download latest Azure Sample'
       inputs:
@@ -189,7 +191,7 @@ stages:
     - publish: $(Build.ArtifactStagingDirectory)/azuresample
       displayName: 'Publish Azure Sample apk for later use'
       artifact: azuresample
-  # MSAL with Broker Test Plan stage
+# MSAL with Broker Test Plan stage
 - stage: 'msal_with_broker'
   dependsOn:
   - msalautomationapp
@@ -246,7 +248,7 @@ stages:
         testResultsFiles: '*test_result*.xml'
         searchFolder: $(Build.SourcesDirectory)
         testRunTitle: 'Broker(MSAL) UI Automation - Build # $(Build.BuildNumber)'
-  # ADAL with Broker Test Plan stage
+# ADAL with Broker Test Plan stage
 - stage: 'adal_with_broker'
   dependsOn:
   - brokerautomationapp
