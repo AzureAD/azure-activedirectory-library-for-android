@@ -63,13 +63,13 @@ The script takes two arguments as follows:
 
 ### Pipelines
 
-- Run the [Azure Sample PROD App Pipeline](https://dev.azure.com/IdentityDivision/IDDP/_build?definitionId=1278) by supplying the `distMsalVersion` in the pipeline variables
+- Run the [Azure Sample PROD App Pipeline](https://dev.azure.com/IdentityDivision/IDDP/_build?definitionId=1278) by supplying the `distMsalVersion` in the pipeline variables (if a `distMsalVersion` is not presented a default `distMsalVersion` will be used ).
 
-- Wait for the above pipeline to finish, then move on to next step
+- Wait for the above pipeline to finish, then move on to next step.
 
 - Run the [Broker Release Test Pipeline](https://identitydivision.visualstudio.com/Engineering/_build?definitionId=1490) and supply
   * `msal_branch` and `broker_branch` in the pipeline variables
-  * [Company Portal RC Link](https://install.appcenter.ms/orgs/Intune-Windroid/apps/Intune-Android-Company-Portal-Broker) and [Authenticator RC Link](https://install.appcenter.ms/orgs/authapp-t7qc/apps/Microsoft-Authenticator-Android-Broker) in the pipeline arguments
+  * [Company Portal RC Link](https://install.appcenter.ms/orgs/Intune-Windroid/apps/Intune-Android-Company-Portal-Broker) and [Authenticator RC Link](https://install.appcenter.ms/orgs/authapp-t7qc/apps/Microsoft-Authenticator-Android-Broker) in the pipeline arguments.
 
 ![brokerVersion](./images/brokerReleasePipeline.png)
 

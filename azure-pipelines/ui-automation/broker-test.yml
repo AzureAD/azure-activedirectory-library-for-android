@@ -23,6 +23,8 @@ resources:
 variables:
   engineeringProjectId: 'fac9d424-53d2-45c0-91b5-ef6ba7a6bf26'
   azureSamplePipelineId: 1458
+  msazureServiceConnection: AndroidBroker-CI
+  msazureFeedName: Android-Broker
   msalApp: msalautomationapp-dist-AutoBroker-debug.apk
   msalTestApp: msalautomationapp-dist-AutoBroker-debug-androidTest.apk
   brokerApp: brokerautomationapp-dist-AutoBroker-debug.apk
@@ -30,16 +32,30 @@ variables:
   azureSampleApk: AzureSample-external-release.apk
   companyPortalApk: com.microsoft.windowsintune.companyportal-signed.apk
   authenticatorApk: app-production-universal-release-signed.apk
-  deviceId: flame
-  deviceAndroidVersion: 29
   firebaseTimeout: 45m
   resultsHistoryName: Broker Release
 
+parameters:
+- name: firebaseDeviceId
+  displayName: Firebase Device Id
+  type: string
+  default: flame
+- name: firebaseDeviceAndroidVersion
+  displayName: Firebase Device Android Version
+  type: number
+  default: 29
+- name: authenticatorVersion
+  displayName: Authenticator Version
+  type: string
+  default: '*'
+- name: companyPortalVersion
+  displayName: Company Portal Version
+  type: string
+  default: '*'
+
 stages:
-  # msalautomationapp
 - stage: 'msalautomationapp'
-  dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
-  displayName: MSAL Automation APKs
+  displayName: Build MSAL Automation APKs
   jobs:
   - job: 'msalautomationapp'
     displayName: Build and Publish MSAL Automation app
@@ -84,7 +100,7 @@ stages:
   # brokerautomationapp
 - stage: 'brokerautomationapp'
   dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
-  displayName: Broker Automation APKs
+  displayName: Build Broker Automation APKs
   jobs: 
   - job: 'brokerautomationapp'
     displayName: Build and Publish Broker Automation app
@@ -154,19 +170,19 @@ stages:
         command: 'download'
         downloadDirectory: '$(Build.ArtifactStagingDirectory)/cpauth'
         feedsToUse: 'external'
-        externalFeedCredentials: 'AndroidBroker-CI'
-        feedDownloadExternal: 'Android-Broker'
+        externalFeedCredentials: '$(msazureServiceConnection)'
+        feedDownloadExternal: '$(msazureFeedName)'
         packageDownloadExternal: 'com.azure.authenticator'
-        versionDownloadExternal: '*'
+        versionDownloadExternal: '${{ parameters.authenticatorVersion }}'
     - task: UniversalPackages@0
       inputs:
         command: 'download'
         downloadDirectory: '$(Build.ArtifactStagingDirectory)/cpauth'
         feedsToUse: 'external'
-        externalFeedCredentials: 'AndroidBroker-CI'
-        feedDownloadExternal: 'Android-Broker'
+        externalFeedCredentials: '$(msazureServiceConnection)'
+        feedDownloadExternal: '$(msazureFeedName)'
         packageDownloadExternal: 'com.microsoft.windowsintune.companyportal-signed'
-        versionDownloadExternal: '*'
+        versionDownloadExternal: '${{ parameters.companyPortalVersion }}'
     - publish: $(Build.ArtifactStagingDirectory)/cpauth
       displayName: 'Publish Broker apks for later use'
       artifact: brokerapks
@@ -208,7 +224,7 @@ stages:
             --type instrumentation \
             --app "$(Pipeline.Workspace)/msalautomationapks/$(msalApp)" \
             --test "$(Pipeline.Workspace)/msalautomationapks/$(msaltestApp)" \
-            --device "model=$(deviceId),version=$(deviceAndroidVersion)" \
+            --device "model=$(${{ parameters.firebaseDeviceId }}),version=$(${{ parameters.firebaseDeviceAndroidVersion }})" \
             --timeout "$(firebaseTimeout)" \
             --other-files \
             "/data/local/tmp/CompanyPortal.apk=$(Pipeline.Workspace)/brokerapks/$(companyPortalApk),\
@@ -220,7 +236,7 @@ stages:
             --environment-variables "clearPackageData=true" \
             --results-history-name "$(resultsHistoryName)" \
             --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker"
-    - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml" "$(Build.SourcesDirectory)"
+    - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(${{ parameters.firebaseDeviceId }})-$(${{ parameters.firebaseDeviceAndroidVersion }})-en-portrait/test_result_1.xml" "$(Build.SourcesDirectory)"
       displayName: Download Test Result File
       condition: succeededOrFailed()
     - task: PublishTestResults@2
@@ -265,7 +281,7 @@ stages:
             --type instrumentation \
             --app "$(Pipeline.Workspace)/brokerautomationapks/$(brokerApp)" \
             --test "$(Pipeline.Workspace)/brokerautomationapks/$(brokertestApp)" \
-            --device "model=$(deviceId),version=$(deviceAndroidVersion)" \
+            --device "model=$(${{ parameters.firebaseDeviceId }}),version=$(${{ parameters.firebaseDeviceAndroidVersion }})" \
             --timeout "$(firebaseTimeout)" \
             --other-files \
             "/data/local/tmp/CompanyPortal.apk=$(Pipeline.Workspace)/brokerapks/$(companyPortalApk),\
@@ -277,7 +293,7 @@ stages:
             --environment-variables "clearPackageData=true" \
             --results-history-name "$(resultsHistoryName)" \
             --test-targets "notPackage com.microsoft.identity.client.broker.automationapp.testpass.local.adal"
-    - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml" "$(Build.SourcesDirectory)"
+    - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(${{ parameters.firebaseDeviceId }})-$(${{ parameters.firebaseDeviceAndroidVersion }})-en-portrait/test_result_1.xml" "$(Build.SourcesDirectory)"
       displayName: Download Test Result File
       condition: succeededOrFailed()
     - task: PublishTestResults@2

@@ -57,14 +57,14 @@ project(':uiautomationutilities').projectDir = new File('common/uiautomationutil
 include(":brokerautomationapp")
 project(':brokerautomationapp').projectDir = new File('broker/brokerautomationapp')
 
-//include(":oneauth")
-//project(':oneauth').projectDir = new File('oneauth/sources/android/gradle')
+include(":oneauth")
+project(':oneauth').projectDir = new File('oneauth/sources/android/gradle')
 
-//include(":oneauthtestapp")
-//project(':oneauthtestapp').projectDir = new File('oneauth/testapps/android/oneauthtestapp/app')
+include(":oneauthtestapp")
+project(':oneauthtestapp').projectDir = new File('oneauth/testapps/android/oneauthtestapp/app')
 
-//include(":msalcpptesthost")
-//project(':msalcpptesthost').projectDir = new File('msalcpp/test/android/testhost/app')
+include(":msalcpptesthost")
+project(':msalcpptesthost').projectDir = new File('msalcpp/test/android/testhost/app')
 
 // Pure Java DevX Projects
 include(':common4j')
