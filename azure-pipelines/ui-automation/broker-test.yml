@@ -154,8 +154,8 @@ stages:
         command: 'download'
         downloadDirectory: '$(Build.ArtifactStagingDirectory)/cpauth'
         feedsToUse: 'external'
-        externalFeedCredentials: 'AmGusain-TestBrokerCI'
-        feedDownloadExternal: 'AmGusain-Test'
+        externalFeedCredentials: 'AndroidBroker-CI'
+        feedDownloadExternal: 'Android-Broker'
         packageDownloadExternal: 'com.azure.authenticator'
         versionDownloadExternal: '*'
     - task: UniversalPackages@0
@@ -163,8 +163,8 @@ stages:
         command: 'download'
         downloadDirectory: '$(Build.ArtifactStagingDirectory)/cpauth'
         feedsToUse: 'external'
-        externalFeedCredentials: 'AmGusain-TestBrokerCI'
-        feedDownloadExternal: 'AmGusain-Test'
+        externalFeedCredentials: 'AndroidBroker-CI'
+        feedDownloadExternal: 'Android-Broker'
         packageDownloadExternal: 'com.microsoft.windowsintune.companyportal-signed'
         versionDownloadExternal: '*'
     - publish: $(Build.ArtifactStagingDirectory)/cpauth
