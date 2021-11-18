@@ -28,20 +28,12 @@ variables:
   brokerApp: brokerautomationapp-dist-AutoBroker-debug.apk
   brokerTestApp: brokerautomationapp-dist-AutoBroker-debug-androidTest.apk
   azureSampleApk: AzureSample-external-release.apk
-  companyPortalApk: CompanyPortal.apk
-  authenticatorApk: Authenticator.apk
+  companyPortalApk: com.microsoft.windowsintune.companyportal-signed.apk
+  authenticatorApk: app-production-universal-release-signed.apk
   deviceId: flame
   deviceAndroidVersion: 29
   firebaseTimeout: 45m
   resultsHistoryName: Broker Release
-
-parameters:
-- name: companyPortalLink
-  displayName: Company Portal RC Link
-  type: string
-- name: authenticatorLink
-  displayName: Authenticator RC Link
-  type: string
 
 stages:
   # msalautomationapp
@@ -157,12 +149,24 @@ stages:
     - script: mkdir cpauth
       displayName: 'make cpauth dir'
       workingDirectory: '$(Build.ArtifactStagingDirectory)'
-    - script: curl -L -o $(authenticatorApk) "${{ parameters.authenticatorLink }}"
-      displayName: 'Download Authenticator'
-      workingDirectory: '$(Build.ArtifactStagingDirectory)/cpauth'
-    - script:  curl -L -o $(companyPortalApk) "${{ parameters.companyPortalLink }}"
-      displayName: 'Download Company Portal'
-      workingDirectory: '$(Build.ArtifactStagingDirectory)/cpauth'
+    - task: UniversalPackages@0
+      inputs:
+        command: 'download'
+        downloadDirectory: '$(Build.ArtifactStagingDirectory)/cpauth'
+        feedsToUse: 'external'
+        externalFeedCredentials: 'AndroidBroker-CI'
+        feedDownloadExternal: 'Android-Broker'
+        packageDownloadExternal: 'com.azure.authenticator'
+        versionDownloadExternal: '*'
+    - task: UniversalPackages@0
+      inputs:
+        command: 'download'
+        downloadDirectory: '$(Build.ArtifactStagingDirectory)/cpauth'
+        feedsToUse: 'external'
+        externalFeedCredentials: 'AndroidBroker-CI'
+        feedDownloadExternal: 'Android-Broker'
+        packageDownloadExternal: 'com.microsoft.windowsintune.companyportal-signed'
+        versionDownloadExternal: '*'
     - publish: $(Build.ArtifactStagingDirectory)/cpauth
       displayName: 'Publish Broker apks for later use'
       artifact: brokerapks
