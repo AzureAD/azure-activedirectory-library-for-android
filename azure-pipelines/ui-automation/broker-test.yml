@@ -198,6 +198,7 @@ stages:
   jobs: 
   - job: 'msal_with_broker'
     displayName: Running MSAL with Broker Test Plan
+    timeoutInMinutes: 90
     pool:
       vmImage: ubuntu-latest
     variables:
@@ -255,6 +256,7 @@ stages:
   jobs: 
   - job: 'adal_with_broker'
     displayName: ADAL with broker and Broker basic validation test plan
+    timeoutInMinutes: 90
     pool:
       vmImage: ubuntu-latest
     variables:
