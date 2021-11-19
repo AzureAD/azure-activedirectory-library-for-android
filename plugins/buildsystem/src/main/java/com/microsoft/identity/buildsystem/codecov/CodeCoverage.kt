@@ -46,6 +46,9 @@ object CodeCoverage {
     fun applyCodeCoveragePlugin(project: Project) {
         // get the configurations under codeCoverageReport
         reportExtension = project.extensions.create("codeCoverageReport", CodeCoverageReportExtension::class.java)
+        if (!reportExtension.coverage.enabled) {
+            return
+        }
 
         // after build file has been evaluated ... add tasks
         project.afterEvaluate { evaluatedProject ->
