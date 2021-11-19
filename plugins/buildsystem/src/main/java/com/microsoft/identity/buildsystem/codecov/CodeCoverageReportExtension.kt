@@ -27,10 +27,10 @@ package com.microsoft.identity.buildsystem.codecov
  */
 open class CodeCoverageReportExtension {
 
-    var coverage = ReportConfig(false) // whether code coverage is enabled
-    var html = ReportConfig(true) // whether code coverage html output is enabled
-    var xml = ReportConfig(true) // whether code coverage xml output is enabled
-    var csv = ReportConfig(true) // whether code coverage csv output is enabled
+    var coverage = ReportConfig(false) // whether code coverage is enabled, false by default
+    var html = ReportConfig(true) // whether code coverage html output is enabled, true by default
+    var xml = ReportConfig(true) // whether code coverage xml output is enabled, true by default
+    var csv = ReportConfig(true) // whether code coverage csv output is enabled, true by default
 
     var unitTests = ReportConfig(true) // whether code coverage targets unit tests
     var androidTests = ReportConfig(false) // whether code coverage targets android tests

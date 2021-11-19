@@ -46,6 +46,7 @@ object CodeCoverage {
     fun applyCodeCoveragePlugin(project: Project) {
         // get the configurations under codeCoverageReport
         reportExtension = project.extensions.create("codeCoverageReport", CodeCoverageReportExtension::class.java)
+        // check if code coverage is enabled, if not just return
         if (!reportExtension.coverage.enabled) {
             return
         }
