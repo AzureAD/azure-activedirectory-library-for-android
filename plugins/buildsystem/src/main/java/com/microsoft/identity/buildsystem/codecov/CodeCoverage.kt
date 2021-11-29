@@ -49,6 +49,11 @@ object CodeCoverage {
 
         // after build file has been evaluated ... add tasks
         project.afterEvaluate { evaluatedProject ->
+            // check if code coverage is enabled, if not just return
+            if (!reportExtension.coverage.enabled) {
+                return@afterEvaluate
+            }
+
             evaluatedProject.configure()
 
             if (isAndroidProject(evaluatedProject)) {
