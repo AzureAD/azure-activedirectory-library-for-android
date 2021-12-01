@@ -12,6 +12,10 @@ trigger: none
 schedules:
   - cron: "0 22 * * 1-5" # 10 PM everyday Mon-Fri
     displayName: Auth Client Android SDK dev build
+    branches:
+      include:
+      - master
+    always: true
 
 resources:
   repositories:
@@ -38,6 +42,7 @@ resources:
 
 variables:
   versionNumber: $(Build.BuildNumber)
+  gradleParams: '-PprojVersion=$(versionNumber) -PdistCommon4jVersion=$(versionNumber) -PdistBroker4jVersion=$(versionNumber) -PdistCommonVersion=$(versionNumber)'
 
 pool:
   vmImage: ubuntu-latest
@@ -50,21 +55,24 @@ stages:
   jobs:
     - job: publishCommonLibraries
       displayName: Build and publish common4j and android common to internal maven feed
-      variables:
-        ENV_VSTS_MVN_ANDROIDCOMMON_USERNAME: $(mvnUserName)
-        ENV_VSTS_MVN_ANDROIDCOMMON_ACCESSTOKEN: $(mvnAccessToken)
       steps:
       - checkout: common
         persistCredentials: True
         clean: true
       - task: Gradle@3
         displayName: Build and publish common4j
+        env:
+          ENV_VSTS_MVN_ANDROIDCOMMON_USERNAME: $(mvnUserName)
+          ENV_VSTS_MVN_ANDROIDCOMMON_ACCESSTOKEN: $(mvnAccessToken)
         inputs:
-          tasks: common4j:assemble -PprojVersion=$(versionNumber) common4j:publishAarPublicationToVsts-maven-adal-androidRepository -PprojVersion=$(versionNumber)
+          tasks: common4j:assemble $(gradleParams) common4j:publish $(gradleParams)
       - task: Gradle@3
         displayName: Build and publish android common
+        env:
+          ENV_VSTS_MVN_ANDROIDCOMMON_USERNAME: $(mvnUserName)
+          ENV_VSTS_MVN_ANDROIDCOMMON_ACCESSTOKEN: $(mvnAccessToken)
         inputs:
-          tasks: common:assembleDist -PprojVersion=$(versionNumber) -PdistCommon4jVersion=$(versionNumber) common:publishDistReleasePublicationToVsts-maven-adal-androidRepository -PprojVersion=$(versionNumber) -PdistCommon4jVersion=$(versionNumber)
+          tasks: common:assembleDist $(gradleParams) common:publishDistReleasePublicationToVsts-maven-adal-androidRepository $(gradleParams)
 - stage: 'publishBrokerLibraries'
   displayName: Broker - Build and publish
   dependsOn: publishCommonLibraries
@@ -73,24 +81,30 @@ stages:
   jobs:
     - job: publishBrokerLibraries
       displayName: Build and publish broker4j, android broker and linux broker libraries to internal maven feed
-      variables:
-        ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME: $(mvnUserName)
-        ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN: $(mvnAccessToken)
       steps:
-        - checkout: self
+        - checkout: broker
           persistCredentials: True
         - task: Gradle@3
           displayName: Build and publish broker4j
+          env:
+            ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME: $(mvnUserName)
+            ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN: $(mvnAccessToken)
           inputs:
-            tasks: broker4j:assemble -PprojVersion=$(versionNumber) -PdistCommon4jVersion=$(versionNumber) broker4j:publishAarPublicationToVsts-maven-adal-androidRepository -PprojVersion=$(versionNumber) -PdistCommon4jVersion=$(versionNumber)
+            tasks: broker4j:assemble $(gradleParams) broker4j:publishAarPublicationToVsts-maven-adal-androidRepository $(gradleParams)
         - task: Gradle@3
           displayName: Build and publish android broker
+          env:
+            ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME: $(mvnUserName)
+            ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN: $(mvnAccessToken)
           inputs:
-            tasks: AADAuthenticator:assembleDist -PprojVersion=$(versionNumber) -PdistBroker4jVersion=$(versionNumber) -PdistCommonVersion=$(versionNumber) AADAuthenticator:publishAdAccountsPublicationToVsts-maven-adal-androidRepository -PprojVersion=$(versionNumber) -PdistBroker4jVersion=$(versionNumber) -PdistCommonVersion=$(versionNumber)
+            tasks: AADAuthenticator:assembleDist $(gradleParams) AADAuthenticator:publishAdAccountsPublicationToVsts-maven-adal-androidRepository $(gradleParams)
         - task: Gradle@3
           displayName: Build and publish linux broker
+          env:
+            ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME: $(mvnUserName)
+            ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN: $(mvnAccessToken)
           inputs:
-            tasks: linuxBroker:assemble -PprojVersion=$(versionNumber) -PdistBroker4jVersion=$(versionNumber) -PdistCommon4jVersion=$(versionNumber) linuxBroker:publishAarPublicationToVsts-maven-adal-androidRepository -PdistBroker4jVersion=$(versionNumber) -PdistCommon4jVersion=$(versionNumber)
+            tasks: linuxBroker:assemble $(gradleParams) linuxBroker:publishAarPublicationToVsts-maven-adal-androidRepository $(gradleParams)
 - stage: 'publishMsal'
   displayName: Msal - Build and publish
   dependsOn: publishCommonLibraries
@@ -99,16 +113,16 @@ stages:
   jobs:
   - job: publishAndroidMsal
     displayName: Build and publish msal for android to internal maven feed
-    variables:
-      ENV_VSTS_MVN_ANDROID_MSAL_USERNAME: $(mvnUserName)
-      ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN: $(mvnAccessToken)
     steps:
       - checkout: msal
         persistCredentials: True
       - task: Gradle@3
         displayName: Build and publish msal
+        env:
+          ENV_VSTS_MVN_ANDROID_MSAL_USERNAME: $(mvnUserName)
+          ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN: $(mvnAccessToken)
         inputs:
-          tasks: msal:assembleDist -PprojVersion=$(versionNumber) -PdistCommonVersion=$(versionNumber) msal:publishMsalPublicationToVsts-maven-adal-androidRepository -PprojVersion=$(versionNumber) -PdistCommonVersion=$(versionNumber)
+          tasks: msal:assembleDistRelease $(gradleParams) msal:publishMsalPublicationToVsts-maven-adal-androidRepository $(gradleParams)
 - stage: 'publishAdal'
   displayName: Adal - Build and publish
   dependsOn: publishCommonLibraries
@@ -117,15 +131,14 @@ stages:
   jobs:
   - job: publishAndroidAdal
     displayName: Build and publish adal for android to internal maven feed
-    variables:
-      ENV_VSTS_MVN_ANDROIDADAL_USERNAME: $(mvnUserName)
-      ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN: $(mvnAccessToken)
     steps:
       - checkout: adal
         persistCredentials: True
       - task: Gradle@3
         displayName: Build and publish adal
-        enabled: false
+        env:
+          ENV_VSTS_MVN_ANDROIDADAL_USERNAME: $(mvnUserName)
+          ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN: $(mvnAccessToken)
         inputs:
-          tasks: adal:assembleDist -PprojVersion=$(versionNumber) -PdistCommonVersion=$(versionNumber) adal:publishAdalPublicationToVsts-maven-adal-androidRepository -PprojVersion=$(versionNumber) -PdistCommonVersion=$(versionNumber)
+          tasks: adal:assembleDist $(gradleParams) adal:publishAdalPublicationToVsts-maven-adal-androidRepository $(gradleParams)
 ...
