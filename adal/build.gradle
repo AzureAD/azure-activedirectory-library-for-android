@@ -154,7 +154,7 @@ dependencies {
     // 'dist' flavor dependencies
     //TODO: we will have to change transitive to true once common4j is published
     distApi("com.microsoft.identity:common:${commonVersion}") {
-        transitive = false
+        transitive = true
     }
 
     // Android Instrumented Test Dependencies
