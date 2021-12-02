@@ -107,7 +107,7 @@ stages:
             ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME: $(mvnUserName)
             ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN: $(mvnAccessToken)
           inputs:
-            tasks: linuxBroker:assemble $(projVersionParam) $(broker4jVersionParam) linuxBroker:publishAarPublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(broker4jVersionParam)
+            tasks: linuxBroker:assemble $(projVersionParam) $(broker4jVersionParam) $(common4jVersionParam) linuxBroker:publishAarPublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(broker4jVersionParam) $(common4jVersionParam)
 - stage: 'publishMsal'
   displayName: Msal - Build and publish
   dependsOn: publishCommonLibraries
