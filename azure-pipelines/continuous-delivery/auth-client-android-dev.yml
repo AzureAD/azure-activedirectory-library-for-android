@@ -144,7 +144,7 @@ stages:
             jdkArchitecture: x86
             sqAnalysisBreakBuildIfQualityGateFailed: false
         - task: CopyFiles@2
-          name: CopyFiles1
+          name: CopyFiles-Java-Test-APP
           displayName: Copy Files to Artifact Staging Directory
           inputs:
             SourceFolder: java-linux-test-app/build/distributions
