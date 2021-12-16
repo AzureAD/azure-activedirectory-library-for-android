@@ -115,7 +115,7 @@ stages:
             ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN: $(mvnAccessToken)
           inputs:
             cwd: $(Build.SourcesDirectory)/broker-java-root
-            tasks: LinuxBrokerPackager:clean LinuxBrokerPackager:buildDeb --build-cache --info $(linuxBrokerVersion)
+            tasks: LinuxBrokerPackage:clean LinuxBrokerPackage:buildDeb --build-cache --info $(linuxBrokerVersion)
             publishJUnitResults: false
             jdkArchitecture: x86
             sqAnalysisBreakBuildIfQualityGateFailed: false
@@ -123,13 +123,13 @@ stages:
           name: CopyFiles1
           displayName: Copy Files to Artifact Staging Directory
           inputs:
-            SourceFolder: LinuxBrokerPackager/build/distributions
+            SourceFolder: LinuxBrokerPackage/build/distributions
             TargetFolder: $(build.artifactstagingdirectory)
         - task: PublishPipelineArtifact@1
           name: PublishPipelineArtifacts1
           displayName: 'Publish Artifact: Linux Test App Deb'
           inputs:
-            ArtifactName: LinuxBrokerPackager Deb Package
+            ArtifactName: LinuxBrokerPackage Deb Package
             TargetPath: $(build.artifactstagingdirectory)
 - stage: 'publishMsal'
   displayName: Msal - Build and publish
