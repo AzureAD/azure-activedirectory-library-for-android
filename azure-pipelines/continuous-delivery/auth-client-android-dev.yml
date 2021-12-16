@@ -131,7 +131,7 @@ stages:
           displayName: 'Publish Artifact: LinuxBrokerPackage Linux Test App Deb'
           inputs:
             ArtifactName: LinuxBrokerPackage Deb Package
-            TargetPath: $(build.artifactstagingdirectory)/linux-broker
+            TargetPath: $(build.artifactstagingdirectory)
         - task: Gradle@3 
           displayName: Build and publish java linux broker test app
           env:
@@ -153,7 +153,7 @@ stages:
           name: PublishPipelineArtifacts2
           displayName: 'Publish Artifact: Java Linux Test App Deb'
           inputs:
-            ArtifactName: LinuxBrokerPackage Deb Package
+            ArtifactName: Java Linux Test App Deb Package
             TargetPath: $(build.artifactstagingdirectory)    
             
 - stage: 'publishMsal'
