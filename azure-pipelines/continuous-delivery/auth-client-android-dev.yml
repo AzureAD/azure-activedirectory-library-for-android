@@ -108,6 +108,29 @@ stages:
             ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN: $(mvnAccessToken)
           inputs:
             tasks: linuxBroker:assemble $(projVersionParam) $(broker4jVersionParam) $(common4jVersionParam) linuxBroker:publishAarPublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(broker4jVersionParam) $(common4jVersionParam)
+        - task: Gradle@3
+            displayName: Build and publish linux broker packager
+            env:
+              ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME: $(mvnUserName)
+              ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN: $(mvnAccessToken)
+            inputs:
+              cwd: $(Build.SourcesDirectory)/broker-java-root
+                tasks: LinuxBrokerPackager:clean LinuxBrokerPackager:buildDeb --build-cache --info $(linuxBrokerVersion)
+                publishJUnitResults: false
+                jdkArchitecture: x86
+                sqAnalysisBreakBuildIfQualityGateFailed: false
+        - task: CopyFiles@2
+            name: CopyFiles1
+            displayName: Copy Files to Artifact Staging Directory
+            inputs:
+              SourceFolder: LinuxBrokerPackager/build/distributions
+              TargetFolder: $(build.artifactstagingdirectory)
+              - task: PublishPipelineArtifact@1
+                name: PublishPipelineArtifacts1
+                displayName: 'Publish Artifact: Linux Test App Deb'
+                inputs:
+                  ArtifactName: LinuxBrokerPackager Deb Package
+                  TargetPath: $(build.artifactstagingdirectory)
 - stage: 'publishMsal'
   displayName: Msal - Build and publish
   dependsOn: publishCommonLibraries
