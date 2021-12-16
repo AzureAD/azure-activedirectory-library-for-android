@@ -46,6 +46,7 @@ variables:
   common4jVersionParam: -PdistCommon4jVersion=$(versionNumber)
   broker4jVersionParam: -PdistBroker4jVersion=$(versionNumber)
   commonVersionParam: -PdistCommonVersion=$(versionNumber)
+  linuxBrokerVersion: -PlinuxBrokerVersion=$(versionNumber)
 
 pool:
   vmImage: ubuntu-latest
