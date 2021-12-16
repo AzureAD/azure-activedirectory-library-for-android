@@ -115,7 +115,7 @@ stages:
             ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN: $(mvnAccessToken)
           inputs:
             cwd: $(Build.SourcesDirectory)/broker-java-root
-            tasks: LinuxBrokerPackage:clean LinuxBrokerPackage:buildDeb --build-cache --info $(linuxBrokerVersion)
+            tasks: LinuxBrokerPackage:clean LinuxBrokerPackage:buildDeb $(linuxBrokerVersion) --build-cache --info
             publishJUnitResults: false
             jdkArchitecture: x86
             sqAnalysisBreakBuildIfQualityGateFailed: false
