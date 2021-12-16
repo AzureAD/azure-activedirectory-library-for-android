@@ -154,7 +154,7 @@ stages:
           displayName: 'Publish Artifact: Java Linux Test App Deb'
           inputs:
             ArtifactName: Java Linux Test App Deb Package
-            TargetPath: $(build.artifactstagingdirectory)    
+            TargetPath: $(build.artifactstagingdirectory)/java-linux-test-app    
             
 - stage: 'publishMsal'
   displayName: Msal - Build and publish
