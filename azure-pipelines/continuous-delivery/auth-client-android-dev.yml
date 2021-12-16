@@ -144,13 +144,13 @@ stages:
             jdkArchitecture: x86
             sqAnalysisBreakBuildIfQualityGateFailed: false
         - task: CopyFiles@2
-          name: CopyFiles_JavaTestAPP
+          name: CopyFiles2
           displayName: Copy Files to Artifact Staging Directory
           inputs:
             SourceFolder: java-linux-test-app/build/distributions
             TargetFolder: $(build.artifactstagingdirectory)
         - task: PublishPipelineArtifact@1
-          name: PublishPipelineArtifacts1
+          name: PublishPipelineArtifacts2
           displayName: 'Publish Artifact: Java Linux Test App Deb'
           inputs:
             ArtifactName: LinuxBrokerPackage Deb Package
