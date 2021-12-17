@@ -9,6 +9,14 @@ name: $(date:yyyyMMdd)$(rev:.r)
 trigger: none
 pr: none
 
+resources:
+  repositories:
+    - repository: common
+      type: github
+      name: AzureAD/microsoft-authentication-library-common-for-android
+      ref: dev
+      endpoint: ANDROID_GITHUB
+
 jobs:
 - job: build_publish
   displayName: Publish adal to internal feed
@@ -38,4 +46,21 @@ jobs:
     inputs:
       tasks: adal:publish
       publishJUnitResults: false
+  - template: azure-pipelines/templates/steps/generate-sbom.yml@common
+    parameters:
+      project: adal
+      buildDropPath: $(Build.SourcesDirectory)/adal/build/
+      configuration: distReleaseRuntimeClasspath
+  - task: CopyFiles@2
+    name: CopyFiles1
+    displayName: Copy Files to Artifact Staging Directory
+    inputs:
+      SourceFolder: adal\build\
+      TargetFolder: $(build.artifactstagingdirectory)
+  - task: PublishPipelineArtifact@1
+    name: PublishPipelineArtifact1
+    displayName: 'Publish Artifact: adal Release'
+    inputs:
+      ArtifactName: adalRelease
+      TargetPath: $(Build.ArtifactStagingDirectory)
 ...
