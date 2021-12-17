@@ -43,7 +43,6 @@ jobs:
       sqAnalysisBreakBuildIfQualityGateFailed: false
   - task: Gradle@2
     displayName: Publish to VSTS
-    enabled: false
     inputs:
       tasks: adal:publish
       publishJUnitResults: false
