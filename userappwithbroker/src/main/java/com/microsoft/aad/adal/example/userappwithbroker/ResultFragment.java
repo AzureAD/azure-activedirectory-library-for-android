@@ -24,12 +24,13 @@
 package com.microsoft.aad.adal.example.userappwithbroker;
 
 import android.os.Bundle;
-import androidx.fragment.app.Fragment;
 import android.text.method.ScrollingMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import androidx.fragment.app.Fragment;
 
 /**
  * The Fragment used to display the result.
@@ -48,7 +49,10 @@ public class ResultFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
+    public View onCreateView(
+            final LayoutInflater inflater,
+            final ViewGroup container,
+            final Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_result, container, false);
 
         mTextView = (TextView) view.findViewById(R.id.txt_result);
@@ -58,7 +62,22 @@ public class ResultFragment extends Fragment {
         final String displayable = (String) bundle.get(DISPLAYABLE);
         final String authority = (String) bundle.get(AUTHORITY);
 
-        mTextView.setText(ACCESS_TOKEN + ": " + accessToken + '\n' + ID_TOKEN + ": " + idToken + '\n' + DISPLAYABLE + ": " + displayable + '\n' + AUTHORITY + ": " + authority);
+        mTextView.setText(
+                ACCESS_TOKEN
+                        + ": "
+                        + accessToken
+                        + '\n'
+                        + ID_TOKEN
+                        + ": "
+                        + idToken
+                        + '\n'
+                        + DISPLAYABLE
+                        + ": "
+                        + displayable
+                        + '\n'
+                        + AUTHORITY
+                        + ": "
+                        + authority);
         mTextView.setMovementMethod(new ScrollingMovementMethod());
         return view;
     }

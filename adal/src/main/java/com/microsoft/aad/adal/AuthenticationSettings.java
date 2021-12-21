@@ -61,7 +61,6 @@ public enum AuthenticationSettings {
 
     private int mReadTimeOut = DEFAULT_READ_CONNECT_TIMEOUT;
 
-
     /**
      * Get bytes to derive secretKey to use in encrypt/decrypt.
      *
@@ -69,7 +68,8 @@ public enum AuthenticationSettings {
      */
     @Deprecated
     public byte[] getSecretKeyData() {
-        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.getSecretKeyData();
+        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE
+                .getSecretKeyData();
     }
 
     /**
@@ -80,7 +80,8 @@ public enum AuthenticationSettings {
      */
     @Deprecated
     public void setSecretKey(byte[] rawKey) {
-        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.setSecretKey(rawKey);
+        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.setSecretKey(
+                rawKey);
     }
 
     /**
@@ -89,7 +90,8 @@ public enum AuthenticationSettings {
      * @return packagename
      */
     public String getBrokerPackageName() {
-        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.getBrokerPackageName();
+        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE
+                .getBrokerPackageName();
     }
 
     /**
@@ -98,7 +100,8 @@ public enum AuthenticationSettings {
      * @param packageName package name related to broker
      */
     public void setBrokerPackageName(String packageName) {
-        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.setBrokerPackageName(packageName);
+        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE
+                .setBrokerPackageName(packageName);
     }
 
     /**
@@ -107,7 +110,8 @@ public enum AuthenticationSettings {
      * @return signature
      */
     public String getBrokerSignature() {
-        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.getBrokerSignature();
+        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE
+                .getBrokerSignature();
     }
 
     /**
@@ -116,7 +120,8 @@ public enum AuthenticationSettings {
      * @param brokerSignature Signature for broker
      */
     public void setBrokerSignature(String brokerSignature) {
-        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.setBrokerSignature(brokerSignature);
+        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE
+                .setBrokerSignature(brokerSignature);
     }
 
     /**
@@ -126,7 +131,8 @@ public enum AuthenticationSettings {
      * @param clazz class for workplace join
      */
     public void setDeviceCertificateProxyClass(Class clazz) {
-        com.microsoft.identity.common.java.AuthenticationSettings.INSTANCE.setDeviceCertificateProxyClass(clazz);
+        com.microsoft.identity.common.java.AuthenticationSettings.INSTANCE
+                .setDeviceCertificateProxyClass(clazz);
     }
 
     /**
@@ -136,7 +142,8 @@ public enum AuthenticationSettings {
      * @return Class
      */
     public Class<?> getDeviceCertificateProxy() {
-        return com.microsoft.identity.common.java.AuthenticationSettings.INSTANCE.getDeviceCertificateProxy();
+        return com.microsoft.identity.common.java.AuthenticationSettings.INSTANCE
+                .getDeviceCertificateProxy();
     }
 
     /**
@@ -145,7 +152,8 @@ public enum AuthenticationSettings {
      * @return Package name for activity
      */
     public String getActivityPackageName() {
-        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.getActivityPackageName();
+        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE
+                .getActivityPackageName();
     }
 
     /**
@@ -154,7 +162,8 @@ public enum AuthenticationSettings {
      * @param activityPackageName activity to use from different package
      */
     public void setActivityPackageName(String activityPackageName) {
-        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.setActivityPackageName(activityPackageName);
+        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE
+                .setActivityPackageName(activityPackageName);
     }
 
     /**
@@ -163,7 +172,8 @@ public enum AuthenticationSettings {
      */
     @Deprecated
     public boolean getSkipBroker() {
-        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.getSkipBroker();
+        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE
+                .getSkipBroker();
     }
 
     /**
@@ -172,7 +182,8 @@ public enum AuthenticationSettings {
      */
     @Deprecated
     public void setSkipBroker(boolean skip) {
-        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.setSkipBroker(skip);
+        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.setSkipBroker(
+                skip);
     }
 
     /**
@@ -181,7 +192,8 @@ public enum AuthenticationSettings {
      * @return true if broker is used.
      */
     public boolean getUseBroker() {
-        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.getUseBroker();
+        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE
+                .getUseBroker();
     }
 
     /**
@@ -191,7 +203,8 @@ public enum AuthenticationSettings {
      * @param useBroker True to use broker
      */
     public void setUseBroker(boolean useBroker) {
-        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.setUseBroker(useBroker);
+        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.setUseBroker(
+                useBroker);
     }
 
     /**
@@ -201,7 +214,8 @@ public enum AuthenticationSettings {
      * @param packageNameForSharedFile Package name of other app
      */
     public void setSharedPrefPackageName(String packageNameForSharedFile) {
-        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.setSharedPrefPackageName(packageNameForSharedFile);
+        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE
+                .setSharedPrefPackageName(packageNameForSharedFile);
     }
 
     /**
@@ -210,7 +224,8 @@ public enum AuthenticationSettings {
      * @return package name provided for shared preferences
      */
     public String getSharedPrefPackageName() {
-        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.getSharedPrefPackageName();
+        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE
+                .getSharedPrefPackageName();
     }
 
     /**
@@ -219,7 +234,8 @@ public enum AuthenticationSettings {
      * @return the amount of buffer that is provided to the expiration time.
      */
     public int getExpirationBuffer() {
-        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.getExpirationBuffer();
+        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE
+                .getExpirationBuffer();
     }
 
     /**
@@ -231,7 +247,8 @@ public enum AuthenticationSettings {
      * @param expirationBuffer the time buffer provided to expiration time.
      */
     public void setExpirationBuffer(int expirationBuffer) {
-        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.setExpirationBuffer(expirationBuffer);
+        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE
+                .setExpirationBuffer(expirationBuffer);
     }
 
     /**
@@ -240,7 +257,8 @@ public enum AuthenticationSettings {
      * @return connect timeout
      */
     public int getConnectTimeOut() {
-        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.getConnectTimeOut();
+        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE
+                .getConnectTimeOut();
     }
 
     /**
@@ -252,7 +270,8 @@ public enum AuthenticationSettings {
      * @param timeOutMillis the non-negative connect timeout in milliseconds.
      */
     public void setConnectTimeOut(int timeOutMillis) {
-        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.setConnectTimeOut(timeOutMillis);
+        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE
+                .setConnectTimeOut(timeOutMillis);
     }
 
     /**
@@ -261,7 +280,8 @@ public enum AuthenticationSettings {
      * @return read timeout
      */
     public int getReadTimeOut() {
-        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.getReadTimeOut();
+        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE
+                .getReadTimeOut();
     }
 
     /**
@@ -272,7 +292,8 @@ public enum AuthenticationSettings {
      * @param timeOutMillis the read timeout in milliseconds. Non-negative
      */
     public void setReadTimeOut(int timeOutMillis) {
-        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.setReadTimeOut(timeOutMillis);
+        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.setReadTimeOut(
+                timeOutMillis);
     }
 
     /**
@@ -285,7 +306,8 @@ public enum AuthenticationSettings {
      * @see #getDisableWebViewHardwareAcceleration()
      */
     public void setDisableWebViewHardwareAcceleration(boolean enable) {
-        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.setDisableWebViewHardwareAcceleration(enable);
+        com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE
+                .setDisableWebViewHardwareAcceleration(enable);
     }
 
     /**
@@ -296,6 +318,7 @@ public enum AuthenticationSettings {
      * @see #setDisableWebViewHardwareAcceleration(boolean)
      */
     public boolean getDisableWebViewHardwareAcceleration() {
-        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.getDisableWebViewHardwareAcceleration();
+        return com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE
+                .getDisableWebViewHardwareAcceleration();
     }
 }

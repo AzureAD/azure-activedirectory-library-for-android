@@ -22,58 +22,6 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
-import android.accounts.Account;
-import android.accounts.AccountAuthenticatorResponse;
-import android.accounts.AccountManager;
-import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
-import android.app.Service;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.os.AsyncTask;
-import android.os.Build;
-import android.os.Bundle;
-import android.security.KeyChain;
-import android.security.KeyChainAliasCallback;
-import android.security.KeyChainException;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.inputmethod.InputMethodManager;
-import android.webkit.ClientCertRequest;
-import android.webkit.CookieManager;
-import android.webkit.CookieSyncManager;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.widget.ProgressBar;
-
-import androidx.annotation.Nullable;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
-import com.google.gson.Gson;
-import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
-
-import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
-import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
-import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-import com.microsoft.identity.common.internal.broker.BrokerValidator;
-import com.microsoft.identity.common.internal.logging.Logger;
-import com.microsoft.identity.common.internal.ui.DualScreenActivity;
-import com.microsoft.identity.common.java.util.JWSBuilder;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.security.GeneralSecurityException;
-import java.security.NoSuchAlgorithmException;
-import java.security.Principal;
-import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
-import java.util.Locale;
-import java.util.UUID;
-
 import static com.microsoft.aad.adal.AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN;
 import static com.microsoft.aad.adal.AuthenticationConstants.Broker.ACCOUNT_AUTHORITY;
 import static com.microsoft.aad.adal.AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY;
@@ -117,12 +65,61 @@ import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR;
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE;
 
+import android.accounts.Account;
+import android.accounts.AccountAuthenticatorResponse;
+import android.accounts.AccountManager;
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
+import android.app.Service;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.AsyncTask;
+import android.os.Build;
+import android.os.Bundle;
+import android.security.KeyChain;
+import android.security.KeyChainAliasCallback;
+import android.security.KeyChainException;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.webkit.ClientCertRequest;
+import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.widget.ProgressBar;
+
+import androidx.annotation.Nullable;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import com.google.gson.Gson;
+import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
+import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
+import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
+import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.internal.broker.BrokerValidator;
+import com.microsoft.identity.common.internal.logging.Logger;
+import com.microsoft.identity.common.internal.ui.DualScreenActivity;
+import com.microsoft.identity.common.java.util.JWSBuilder;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.security.GeneralSecurityException;
+import java.security.NoSuchAlgorithmException;
+import java.security.Principal;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
+import java.util.Locale;
+import java.util.UUID;
+
 /**
  * Authentication Activity to launch {@link WebView} for authentication.
  */
-@SuppressLint({
-        "SetJavaScriptEnabled", "ClickableViewAccessibility"
-})
+@SuppressLint({"SetJavaScriptEnabled", "ClickableViewAccessibility"})
 public class AuthenticationActivity extends DualScreenActivity {
 
     static final int BACK_PRESSED_CANCEL_DIALOG_STEPS = -2;
@@ -164,16 +161,14 @@ public class AuthenticationActivity extends DualScreenActivity {
             if (null != intent.getAction() && intent.getAction().equalsIgnoreCase(ACTION_CANCEL)) {
                 Logger.verbose(
                         TAG + methodName,
-                        "ActivityBroadcastReceiver onReceive action is for cancelling Authentication Activity"
-                );
+                        "ActivityBroadcastReceiver onReceive action is for cancelling Authentication Activity");
 
                 int cancelRequestId = intent.getIntExtra(REQUEST_ID, 0);
 
                 if (cancelRequestId == mWaitingRequestId) {
                     Logger.verbose(
                             TAG + methodName,
-                            "Waiting requestId is same and cancelling this activity"
-                    );
+                            "Waiting requestId is same and cancelling this activity");
 
                     AuthenticationActivity.this.finish();
                     // no need to send result back to activity. It is
@@ -209,8 +204,7 @@ public class AuthenticationActivity extends DualScreenActivity {
         if (mAuthRequest == null) {
             Logger.warn(
                     TAG + methodName,
-                    "Intent for Authentication Activity doesn't have the request details, returning to caller"
-            );
+                    "Intent for Authentication Activity doesn't have the request details, returning to caller");
 
             final Intent resultIntent = new Intent();
             resultIntent.putExtra(RESPONSE_ERROR_CODE, WEBVIEW_INVALID_REQUEST);
@@ -242,7 +236,8 @@ public class AuthenticationActivity extends DualScreenActivity {
 
         mRedirectUrl = mAuthRequest.getRedirectUri();
 
-        Telemetry.getInstance().startEvent(mAuthRequest.getTelemetryRequestId(), EventStrings.UI_EVENT);
+        Telemetry.getInstance()
+                .startEvent(mAuthRequest.getTelemetryRequestId(), EventStrings.UI_EVENT);
         mUIEvent = new UIEvent(EventStrings.UI_EVENT);
         mUIEvent.setRequestId(mAuthRequest.getTelemetryRequestId());
         mUIEvent.setCorrelationId(mAuthRequest.getCorrelationId().toString());
@@ -274,14 +269,14 @@ public class AuthenticationActivity extends DualScreenActivity {
                 TAG + methodName,
                 "Init broadcastReceiver with request. "
                         + "RequestId:"
-                        + mAuthRequest.getRequestId()
-        );
+                        + mAuthRequest.getRequestId());
 
         Logger.verbosePII(TAG + methodName, mAuthRequest.getLogInfo());
 
         mReceiver = new ActivityBroadcastReceiver();
         mReceiver.mWaitingRequestId = mAuthRequest.getRequestId();
-        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, new IntentFilter(ACTION_CANCEL));
+        LocalBroadcastManager.getInstance(this)
+                .registerReceiver(mReceiver, new IntentFilter(ACTION_CANCEL));
 
         String userAgent = mWebView.getSettings().getUserAgentString();
         mWebView.getSettings().setUserAgentString(userAgent + CLIENT_TLS_NOT_SUPPORTED);
@@ -297,22 +292,22 @@ public class AuthenticationActivity extends DualScreenActivity {
             if (mCallingPackage == null) {
                 Logger.verbose(
                         TAG + methodName,
-                        "Calling package is null, startActivityForResult is not used to call this activity"
-                );
+                        "Calling package is null, startActivityForResult is not used to call this activity");
 
                 final Intent resultIntent = new Intent();
                 resultIntent.putExtra(RESPONSE_ERROR_CODE, WEBVIEW_INVALID_REQUEST);
-                resultIntent.putExtra(RESPONSE_ERROR_MESSAGE, "startActivityForResult is not used to call this activity");
+                resultIntent.putExtra(
+                        RESPONSE_ERROR_MESSAGE,
+                        "startActivityForResult is not used to call this activity");
                 returnToCaller(BROWSER_CODE_ERROR, resultIntent);
 
                 return;
             }
-            Logger.info(
-                    TAG + methodName,
-                    "It is a broker request for package:" + mCallingPackage
-            );
+            Logger.info(TAG + methodName, "It is a broker request for package:" + mCallingPackage);
 
-            mAccountAuthenticatorResponse = getIntent().getParcelableExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE);
+            mAccountAuthenticatorResponse =
+                    getIntent()
+                            .getParcelableExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE);
 
             if (mAccountAuthenticatorResponse != null) {
                 mAccountAuthenticatorResponse.onRequestContinued();
@@ -327,23 +322,26 @@ public class AuthenticationActivity extends DualScreenActivity {
 
             if (!isCallerBrokerInstaller()) {
                 Logger.verbose(
-                        TAG + methodName,
-                        "Caller needs to be verified using special redirectUri"
-                );
+                        TAG + methodName, "Caller needs to be verified using special redirectUri");
 
                 mRedirectUrl = PackageHelper.getBrokerRedirectUrl(mCallingPackage, signatureDigest);
             }
 
             Logger.verbosePII(
                     TAG + methodName,
-                    "Broker redirectUrl: " + mRedirectUrl
-                            + " The calling package is: " + mCallingPackage
-                            + " Signature hash for calling package is: " + signatureDigest
-                            + " Current context package: " + getPackageName()
-                            + " Start url: " + mStartUrl
-            );
+                    "Broker redirectUrl: "
+                            + mRedirectUrl
+                            + " The calling package is: "
+                            + mCallingPackage
+                            + " Signature hash for calling package is: "
+                            + signatureDigest
+                            + " Current context package: "
+                            + getPackageName()
+                            + " Start url: "
+                            + mStartUrl);
         } else {
-            Logger.verbose(TAG + methodName, "Non-broker request for package " + getCallingPackage());
+            Logger.verbose(
+                    TAG + methodName, "Non-broker request for package " + getCallingPackage());
             Logger.verbosePII(TAG + methodName, "Start url: " + mStartUrl);
         }
 
@@ -351,10 +349,11 @@ public class AuthenticationActivity extends DualScreenActivity {
         final String postUrl = mStartUrl;
         Logger.infoPII(
                 TAG + methodName,
-                "Device info:" + android.os.Build.VERSION.RELEASE
+                "Device info:"
+                        + android.os.Build.VERSION.RELEASE
                         + " "
-                        + android.os.Build.MANUFACTURER + android.os.Build.MODEL
-        );
+                        + android.os.Build.MANUFACTURER
+                        + android.os.Build.MODEL);
 
         mStorageHelper = new StorageHelper(getApplicationContext());
         setupWebView();
@@ -366,22 +365,22 @@ public class AuthenticationActivity extends DualScreenActivity {
             Logger.verbose(
                     TAG + methodName,
                     "Correlation id for request sent is:"
-                            + mAuthRequest.getCorrelationId().toString()
-            );
+                            + mAuthRequest.getCorrelationId().toString());
         }
 
         if (savedInstanceState == null) {
-            mWebView.post(new Runnable() {
+            mWebView.post(
+                    new Runnable() {
 
-                @Override
-                public void run() {
-                    // load blank first to avoid error for not loading webview
-                    Logger.verbose(TAG + methodName, "Launching webview for acquiring auth code.");
-                    mWebView.loadUrl("about:blank");
-                    mWebView.loadUrl(postUrl);
-                }
-
-            });
+                        @Override
+                        public void run() {
+                            // load blank first to avoid error for not loading webview
+                            Logger.verbose(
+                                    TAG + methodName, "Launching webview for acquiring auth code.");
+                            mWebView.loadUrl("about:blank");
+                            mWebView.loadUrl(postUrl);
+                        }
+                    });
         } else {
             Logger.verbose(TAG + methodName, "Reuse webview");
         }
@@ -404,8 +403,8 @@ public class AuthenticationActivity extends DualScreenActivity {
 
             final String signature = info.getCurrentSignatureForPackage(packageName);
 
-            return brokerValidator.verifySignature(packageName) ||
-                    signature.equals(AuthenticationSettings.INSTANCE.getBrokerSignature());
+            return brokerValidator.verifySignature(packageName)
+                    || signature.equals(AuthenticationSettings.INSTANCE.getBrokerSignature());
         }
 
         return false;
@@ -435,18 +434,19 @@ public class AuthenticationActivity extends DualScreenActivity {
         mWebView.requestFocus(View.FOCUS_DOWN);
 
         // Set focus to the view for touch event
-        mWebView.setOnTouchListener(new View.OnTouchListener() {
+        mWebView.setOnTouchListener(
+                new View.OnTouchListener() {
 
-            @Override
-            public boolean onTouch(final View view, final MotionEvent event) {
-                int action = event.getAction();
-                if ((action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_UP) && !view.hasFocus()) {
-                    view.requestFocus();
-                }
-                return false;
-            }
-
-        });
+                    @Override
+                    public boolean onTouch(final View view, final MotionEvent event) {
+                        int action = event.getAction();
+                        if ((action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_UP)
+                                && !view.hasFocus()) {
+                            view.requestFocus();
+                        }
+                        return false;
+                    }
+                });
 
         webSettings.setLoadWithOverviewMode(true);
         webSettings.setDomStorageEnabled(true);
@@ -463,8 +463,7 @@ public class AuthenticationActivity extends DualScreenActivity {
         if (isBrokerRequest(callingIntent)) {
             Logger.verbose(
                     TAG + methodName,
-                    "It is a broker request. Get request info from bundle extras."
-            );
+                    "It is a broker request. Get request info from bundle extras.");
 
             final String authority = callingIntent.getStringExtra(ACCOUNT_AUTHORITY);
             final String resource = callingIntent.getStringExtra(ACCOUNT_RESOURCE);
@@ -491,22 +490,20 @@ public class AuthenticationActivity extends DualScreenActivity {
                     correlationIdParsed = UUID.fromString(correlationId);
                 } catch (final IllegalArgumentException ex) {
                     Logger.error(
-                            TAG + methodName,
-                            "CorrelationId is malformed: " + correlationId,
-                            ex
-                    );
+                            TAG + methodName, "CorrelationId is malformed: " + correlationId, ex);
                 }
             }
 
-            authRequest = new AuthenticationRequest(
-                    authority,
-                    resource,
-                    clientidKey,
-                    redirect,
-                    loginhint,
-                    correlationIdParsed,
-                    false // isExtendedLifetimeEnabled
-            );
+            authRequest =
+                    new AuthenticationRequest(
+                            authority,
+                            resource,
+                            clientidKey,
+                            redirect,
+                            loginhint,
+                            correlationIdParsed,
+                            false // isExtendedLifetimeEnabled
+                            );
 
             authRequest.setBrokerAccountName(accountName);
             authRequest.setPrompt(promptBehavior);
@@ -542,13 +539,13 @@ public class AuthenticationActivity extends DualScreenActivity {
         this.finish();
     }
 
-    private String getBrokerStartUrl(final String loadUrl,
-                                     final String packageName,
-                                     final String signatureDigest) {
+    private String getBrokerStartUrl(
+            final String loadUrl, final String packageName, final String signatureDigest) {
         if (!StringExtensions.isNullOrBlank(packageName)
                 && !StringExtensions.isNullOrBlank(signatureDigest)) {
             try {
-                return loadUrl + "&package_name="
+                return loadUrl
+                        + "&package_name="
                         + URLEncoder.encode(packageName, ENCODING_UTF8)
                         + "&signature="
                         + URLEncoder.encode(signatureDigest, ENCODING_UTF8);
@@ -593,8 +590,7 @@ public class AuthenticationActivity extends DualScreenActivity {
                     TAG + methodName,
                     "Set request id related to response. "
                             + "REQUEST_ID for caller returned to:"
-                            + mAuthRequest.getRequestId()
-            );
+                            + mAuthRequest.getRequestId());
 
             data.putExtra(REQUEST_ID, mAuthRequest.getRequestId());
         }
@@ -637,15 +633,10 @@ public class AuthenticationActivity extends DualScreenActivity {
                         TAG + methodName,
                         "Webview onResume register broadcast receiver for request. "
                                 + "RequestId: "
-                                + mReceiver.mWaitingRequestId
-                );
+                                + mReceiver.mWaitingRequestId);
 
-                LocalBroadcastManager
-                        .getInstance(this)
-                        .registerReceiver(
-                                mReceiver,
-                                new IntentFilter(ACTION_CANCEL)
-                        );
+                LocalBroadcastManager.getInstance(this)
+                        .registerReceiver(mReceiver, new IntentFilter(ACTION_CANCEL));
             }
         }
         mRegisterReceiver = false;
@@ -695,8 +686,7 @@ public class AuthenticationActivity extends DualScreenActivity {
         final String methodName = ":prepareForBrokerResume";
         Logger.verbose(
                 TAG + methodName,
-                "Return to caller with BROKER_REQUEST_RESUME, and waiting for result."
-        );
+                "Return to caller with BROKER_REQUEST_RESUME, and waiting for result.");
 
         final Intent resultIntent = new Intent();
         returnToCaller(BROKER_REQUEST_RESUME, resultIntent);
@@ -704,7 +694,8 @@ public class AuthenticationActivity extends DualScreenActivity {
 
     private void hideKeyBoard() {
         if (mWebView != null) {
-            InputMethodManager imm = (InputMethodManager) this.getSystemService(Service.INPUT_METHOD_SERVICE);
+            InputMethodManager imm =
+                    (InputMethodManager) this.getSystemService(Service.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(mWebView.getApplicationWindowToken(), 0);
         }
     }
@@ -716,10 +707,7 @@ public class AuthenticationActivity extends DualScreenActivity {
         if (mUIEvent != null) {
             Telemetry.getInstance()
                     .stopEvent(
-                            mAuthRequest.getTelemetryRequestId(),
-                            mUIEvent,
-                            EventStrings.UI_EVENT
-                    );
+                            mAuthRequest.getTelemetryRequestId(), mUIEvent, EventStrings.UI_EVENT);
         }
     }
 
@@ -750,7 +738,8 @@ public class AuthenticationActivity extends DualScreenActivity {
 
                 // do async task and show spinner while exchanging code for
                 // access token
-                new TokenTask(mWebRequestHandler, mAuthRequest, mCallingPackage, mCallingUID).execute(url);
+                new TokenTask(mWebRequestHandler, mAuthRequest, mCallingPackage, mCallingUID)
+                        .execute(url);
             }
         }
 
@@ -758,24 +747,17 @@ public class AuthenticationActivity extends DualScreenActivity {
             final String methodName = ":processInvalidUrl";
 
             if (isBrokerRequest(getIntent()) && url.startsWith(REDIRECT_PREFIX)) {
-                Logger.error(
-                        TAG + methodName,
-                        "The RedirectUri is not as expected.",
-                        null
-                );
+                Logger.error(TAG + methodName, "The RedirectUri is not as expected.", null);
                 Logger.errorPII(
                         TAG + methodName,
                         String.format("Received %s and expected %s", url, mRedirectUrl),
-                        null
-                );
+                        null);
 
                 returnError(
                         ADALError.DEVELOPER_REDIRECTURI_INVALID,
                         String.format(
-                                "The RedirectUri is not as expected. Received %s and expected %s", url,
-                                mRedirectUrl
-                        )
-                );
+                                "The RedirectUri is not as expected. Received %s and expected %s",
+                                url, mRedirectUrl));
                 view.stopLoading();
 
                 return true;
@@ -832,8 +814,8 @@ public class AuthenticationActivity extends DualScreenActivity {
 
         @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         @Override
-        public void onReceivedClientCertRequest(final WebView view,
-                                                final ClientCertRequest request) {
+        public void onReceivedClientCertRequest(
+                final WebView view, final ClientCertRequest request) {
             final String methodName = ":onReceivedClientCertRequest";
             Logger.verbose(TAG + methodName, "Webview receives client TLS request.");
 
@@ -843,11 +825,11 @@ public class AuthenticationActivity extends DualScreenActivity {
             if (acceptableCertIssuers != null) {
                 for (final Principal issuer : acceptableCertIssuers) {
                     if (issuer.getName().contains("CN=MS-Organization-Access")) {
-                        //Checking if received acceptable issuers contain "CN=MS-Organization-Access"
+                        // Checking if received acceptable issuers contain
+                        // "CN=MS-Organization-Access"
                         Logger.verbose(
                                 TAG + methodName,
-                                "Cancelling the TLS request, not respond to TLS challenge triggered by device authentication."
-                        );
+                                "Cancelling the TLS request, not respond to TLS challenge triggered by device authentication.");
                         request.cancel();
                         return;
                     }
@@ -863,20 +845,21 @@ public class AuthenticationActivity extends DualScreenActivity {
                             if (alias == null) {
                                 Logger.verbose(
                                         TAG + methodName,
-                                        "No certificate chosen by user, cancelling the TLS request."
-                                );
+                                        "No certificate chosen by user, cancelling the TLS request.");
                                 request.cancel();
                                 return;
                             }
 
                             try {
-                                final X509Certificate[] certChain = KeyChain.getCertificateChain(getApplicationContext(), alias);
-                                final PrivateKey privateKey = KeyChain.getPrivateKey(getCallingContext(), alias);
+                                final X509Certificate[] certChain =
+                                        KeyChain.getCertificateChain(
+                                                getApplicationContext(), alias);
+                                final PrivateKey privateKey =
+                                        KeyChain.getPrivateKey(getCallingContext(), alias);
 
                                 Logger.verbose(
                                         TAG + methodName,
-                                        "Certificate is chosen by user, proceed with TLS request."
-                                );
+                                        "Certificate is chosen by user, proceed with TLS request.");
                                 request.proceed(privateKey, certChain);
                                 return;
                             } catch (final KeyChainException e) {
@@ -893,8 +876,7 @@ public class AuthenticationActivity extends DualScreenActivity {
                     request.getPrincipals(),
                     request.getHost(),
                     request.getPort(),
-                    null
-            );
+                    null);
         }
     }
 
@@ -910,16 +892,18 @@ public class AuthenticationActivity extends DualScreenActivity {
             // Used externally to verify web view processing.
             Logger.verbose(
                     TAG + methodName,
-                    "DisplaySpinner:" + show
-                            + " showing:" + (mSpinner.getVisibility() == View.VISIBLE)
-            );
+                    "DisplaySpinner:"
+                            + show
+                            + " showing:"
+                            + (mSpinner.getVisibility() == View.VISIBLE));
 
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mSpinner.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
-                }
-            });
+            runOnUiThread(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            mSpinner.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
+                        }
+                    });
         }
     }
 
@@ -943,9 +927,7 @@ public class AuthenticationActivity extends DualScreenActivity {
 
             if (mAuthenticatorResultBundle == null) {
                 mAccountAuthenticatorResponse.onError(
-                        AccountManager.ERROR_CODE_CANCELED,
-                        "canceled"
-                );
+                        AccountManager.ERROR_CODE_CANCELED, "canceled");
             } else {
                 mAccountAuthenticatorResponse.onResult(mAuthenticatorResultBundle);
             }
@@ -987,10 +969,11 @@ public class AuthenticationActivity extends DualScreenActivity {
             // Intentionally left blank
         }
 
-        public TokenTask(final IWebRequestHandler webHandler,
-                         final AuthenticationRequest request,
-                         final String packageName,
-                         final int callingUID) {
+        public TokenTask(
+                final IWebRequestHandler webHandler,
+                final AuthenticationRequest request,
+                final String packageName,
+                final int callingUID) {
             mRequestHandler = webHandler;
             mRequest = request;
             mPackageName = packageName;
@@ -1006,10 +989,7 @@ public class AuthenticationActivity extends DualScreenActivity {
             try {
                 result.mTaskResult = oauthRequest.getToken(urlItems[0]);
                 Logger.verbosePII(
-                        TAG,
-                        "Process result returned from TokenTask. "
-                                + mRequest.getLogInfo()
-                );
+                        TAG, "Process result returned from TokenTask. " + mRequest.getLogInfo());
             } catch (final IOException | AuthenticationException exc) {
                 Logger.error(TAG, "Error in processing code to get a token.", exc);
                 Logger.errorPII(TAG, mRequest.getLogInfo(), null);
@@ -1020,9 +1000,7 @@ public class AuthenticationActivity extends DualScreenActivity {
             if (result.mTaskResult != null && result.mTaskResult.getAccessToken() != null) {
                 Logger.verbosePII(
                         TAG,
-                        "Token task successfully returns access token. "
-                                + mRequest.getLogInfo()
-                );
+                        "Token task successfully returns access token. " + mRequest.getLogInfo());
 
                 // Record account in the AccountManager service
                 try {
@@ -1042,20 +1020,19 @@ public class AuthenticationActivity extends DualScreenActivity {
                 throws NoSuchAlgorithmException, UnsupportedEncodingException {
             // include UID in the key for broker to store caches for different
             // apps under same account entry
-            final String digestKey = StringExtensions.createHash(
-                    USERDATA_UID_KEY
-                            + mAppCallingUID
-                            + cacheKey
-            );
+            final String digestKey =
+                    StringExtensions.createHash(USERDATA_UID_KEY + mAppCallingUID + cacheKey);
 
             Logger.verbose(TAG, "Get broker app cache key.");
 
             Logger.verbosePII(
                     TAG,
-                    "Key hash is:" + digestKey
-                            + " calling app UID:" + mAppCallingUID
-                            + " Key is: " + cacheKey
-            );
+                    "Key hash is:"
+                            + digestKey
+                            + " calling app UID:"
+                            + mAppCallingUID
+                            + " Key is: "
+                            + cacheKey);
 
             return digestKey;
         }
@@ -1085,20 +1062,14 @@ public class AuthenticationActivity extends DualScreenActivity {
             Logger.info(TAG + methodName, "Add calling UID.");
 
             Logger.infoPII(
-                    TAG + methodName,
-                    "App UID: " + mAppCallingUID
-                            + "appIdList:" + appIdList
-            );
+                    TAG + methodName, "App UID: " + mAppCallingUID + "appIdList:" + appIdList);
 
             if (!appIdList.contains(USERDATA_UID_KEY + mAppCallingUID)) {
                 Logger.info(TAG + methodName, "Account has new calling UID.");
                 Logger.infoPII(TAG + methodName, "App UID: " + mAppCallingUID);
 
-                final String encryptedValue = mStorageHelper.encrypt(
-                        appIdList
-                                + USERDATA_UID_KEY
-                                + mAppCallingUID
-                );
+                final String encryptedValue =
+                        mStorageHelper.encrypt(appIdList + USERDATA_UID_KEY + mAppCallingUID);
 
                 mAccountManager.setUserData(account, ACCOUNT_UID_CACHES, encryptedValue);
             }
@@ -1117,7 +1088,8 @@ public class AuthenticationActivity extends DualScreenActivity {
 
             if (accountList.length != 1) {
                 result.mTaskResult = null;
-                result.mTaskException = new AuthenticationException(ADALError.BROKER_SINGLE_USER_EXPECTED);
+                result.mTaskException =
+                        new AuthenticationException(ADALError.BROKER_SINGLE_USER_EXPECTED);
 
                 return;
             }
@@ -1137,11 +1109,20 @@ public class AuthenticationActivity extends DualScreenActivity {
                 mRequest.setLoginHint(name);
             } else {
                 Logger.info(TAG + methodName, "Saving userinfo to account");
-                mAccountManager.setUserData(newAccount, ACCOUNT_USERINFO_USERID, userinfo.getUserId());
-                mAccountManager.setUserData(newAccount, ACCOUNT_USERINFO_GIVEN_NAME, userinfo.getGivenName());
-                mAccountManager.setUserData(newAccount, ACCOUNT_USERINFO_FAMILY_NAME, userinfo.getFamilyName());
-                mAccountManager.setUserData(newAccount, ACCOUNT_USERINFO_IDENTITY_PROVIDER, userinfo.getIdentityProvider());
-                mAccountManager.setUserData(newAccount, ACCOUNT_USERINFO_USERID_DISPLAYABLE, userinfo.getDisplayableId());
+                mAccountManager.setUserData(
+                        newAccount, ACCOUNT_USERINFO_USERID, userinfo.getUserId());
+                mAccountManager.setUserData(
+                        newAccount, ACCOUNT_USERINFO_GIVEN_NAME, userinfo.getGivenName());
+                mAccountManager.setUserData(
+                        newAccount, ACCOUNT_USERINFO_FAMILY_NAME, userinfo.getFamilyName());
+                mAccountManager.setUserData(
+                        newAccount,
+                        ACCOUNT_USERINFO_IDENTITY_PROVIDER,
+                        userinfo.getIdentityProvider());
+                mAccountManager.setUserData(
+                        newAccount,
+                        ACCOUNT_USERINFO_USERID_DISPLAYABLE,
+                        userinfo.getDisplayableId());
             }
 
             result.mAccountName = name;
@@ -1150,10 +1131,12 @@ public class AuthenticationActivity extends DualScreenActivity {
 
             Logger.infoPII(
                     TAG + methodName,
-                    "Package: " + mPackageName
-                            + " calling app UID:" + mAppCallingUID
-                            + " Account name: " + name
-            );
+                    "Package: "
+                            + mPackageName
+                            + " calling app UID:"
+                            + mAppCallingUID
+                            + " Account name: "
+                            + name);
 
             // Cache logic will be changed based on latest logic
             // This is currently keeping accesstoken and MRRT separate
@@ -1164,52 +1147,52 @@ public class AuthenticationActivity extends DualScreenActivity {
 
             Logger.infoPII(
                     TAG + methodName,
-                    "app context:" + getApplicationContext().getPackageName()
-                            + " context:" + AuthenticationActivity.this.getPackageName()
-                            + " calling packagename:" + getCallingPackage()
-            );
+                    "app context:"
+                            + getApplicationContext().getPackageName()
+                            + " context:"
+                            + AuthenticationActivity.this.getPackageName()
+                            + " calling packagename:"
+                            + getCallingPackage());
 
             if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
                 Logger.info(TAG + methodName, "Calling app doesn't provide the secret key.");
             }
 
-            final TokenCacheItem item = TokenCacheItem.createRegularTokenCacheItem(
-                    mRequest.getAuthority(),
-                    mRequest.getResource(),
-                    mRequest.getClientId(),
-                    result.mTaskResult
-            );
+            final TokenCacheItem item =
+                    TokenCacheItem.createRegularTokenCacheItem(
+                            mRequest.getAuthority(),
+                            mRequest.getResource(),
+                            mRequest.getClientId(),
+                            result.mTaskResult);
 
             String json = gson.toJson(item);
             String encrypted = mStorageHelper.encrypt(json);
 
             // Single user and cache is stored per account
-            String key = CacheKey.createCacheKeyForRTEntry(
-                    mAuthRequest.getAuthority(),
-                    mAuthRequest.getResource(),
-                    mAuthRequest.getClientId(),
-                    null
-            );
+            String key =
+                    CacheKey.createCacheKeyForRTEntry(
+                            mAuthRequest.getAuthority(),
+                            mAuthRequest.getResource(),
+                            mAuthRequest.getClientId(),
+                            null);
 
             saveCacheKey(key, newAccount, mAppCallingUID);
             mAccountManager.setUserData(newAccount, getBrokerAppCacheKey(key), encrypted);
 
             if (result.mTaskResult.getIsMultiResourceRefreshToken()) {
                 // ADAL stores MRRT refresh token separately
-                final TokenCacheItem itemMRRT = TokenCacheItem.createMRRTTokenCacheItem(
-                        mRequest.getAuthority(),
-                        mRequest.getClientId(),
-                        result.mTaskResult
-                );
+                final TokenCacheItem itemMRRT =
+                        TokenCacheItem.createMRRTTokenCacheItem(
+                                mRequest.getAuthority(),
+                                mRequest.getClientId(),
+                                result.mTaskResult);
 
                 json = gson.toJson(itemMRRT);
                 encrypted = mStorageHelper.encrypt(json);
 
-                key = CacheKey.createCacheKeyForMRRT(
-                        mAuthRequest.getAuthority(),
-                        mAuthRequest.getClientId(),
-                        null
-                );
+                key =
+                        CacheKey.createCacheKeyForMRRT(
+                                mAuthRequest.getAuthority(), mAuthRequest.getClientId(), null);
 
                 saveCacheKey(key, newAccount, mAppCallingUID);
                 mAccountManager.setUserData(newAccount, getBrokerAppCacheKey(key), encrypted);
@@ -1224,9 +1207,8 @@ public class AuthenticationActivity extends DualScreenActivity {
         }
 
         @SuppressLint("MissingPermission")
-        private void saveCacheKey(final String key,
-                                  final Account cacheAccount,
-                                  final int callingUID) {
+        private void saveCacheKey(
+                final String key, final Account cacheAccount, final int callingUID) {
             final String methodName = ":saveCacheKey";
 
             Logger.verbose(TAG + methodName, "Get CacheKeys for account");
@@ -1234,7 +1216,9 @@ public class AuthenticationActivity extends DualScreenActivity {
             // Store cachekeys for each UID
             // Activity has access to packagename and UID, but background call
             // in getAuthToken only knows about UID
-            String keylist = mAccountManager.getUserData(cacheAccount, USERDATA_CALLER_CACHEKEYS + callingUID);
+            String keylist =
+                    mAccountManager.getUserData(
+                            cacheAccount, USERDATA_CALLER_CACHEKEYS + callingUID);
 
             if (keylist == null) {
                 keylist = "";
@@ -1243,17 +1227,15 @@ public class AuthenticationActivity extends DualScreenActivity {
             if (!keylist.contains(CALLER_CACHEKEY_PREFIX + key)) {
                 Logger.verbose(
                         TAG + methodName,
-                        "Account does not have the cache key. Saving it to account for the caller."
-                );
+                        "Account does not have the cache key. Saving it to account for the caller.");
 
                 Logger.verbosePII(
                         TAG + methodName,
-                        "callerUID: " + callingUID
-                                + "The key to be saved is: " + key
-                );
+                        "callerUID: " + callingUID + "The key to be saved is: " + key);
 
                 keylist += CALLER_CACHEKEY_PREFIX + key;
-                mAccountManager.setUserData(cacheAccount, USERDATA_CALLER_CACHEKEYS + callingUID, keylist);
+                mAccountManager.setUserData(
+                        cacheAccount, USERDATA_CALLER_CACHEKEYS + callingUID, keylist);
 
                 Logger.verbose(TAG + methodName, "Cache key saved into key list for the caller.");
                 Logger.verbosePII(TAG + methodName, "keylist:" + keylist);
@@ -1268,7 +1250,9 @@ public class AuthenticationActivity extends DualScreenActivity {
 
             if (result.mTaskResult == null) {
                 Logger.verbose(TAG, "Token task has exception");
-                returnError(ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN, result.mTaskException.getMessage());
+                returnError(
+                        ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
+                        result.mTaskException.getMessage());
 
                 return;
             }
@@ -1279,7 +1263,8 @@ public class AuthenticationActivity extends DualScreenActivity {
                 intent.putExtra(ACCOUNT_NAME, result.mAccountName);
 
                 if (result.mTaskResult.getExpiresOn() != null) {
-                    intent.putExtra(ACCOUNT_EXPIREDATE, result.mTaskResult.getExpiresOn().getTime());
+                    intent.putExtra(
+                            ACCOUNT_EXPIREDATE, result.mTaskResult.getExpiresOn().getTime());
                 }
 
                 if (result.mTaskResult.getTenantId() != null) {
@@ -1292,12 +1277,15 @@ public class AuthenticationActivity extends DualScreenActivity {
                     intent.putExtra(ACCOUNT_USERINFO_USERID, userinfo.getUserId());
                     intent.putExtra(ACCOUNT_USERINFO_GIVEN_NAME, userinfo.getGivenName());
                     intent.putExtra(ACCOUNT_USERINFO_FAMILY_NAME, userinfo.getFamilyName());
-                    intent.putExtra(ACCOUNT_USERINFO_IDENTITY_PROVIDER, userinfo.getIdentityProvider());
-                    intent.putExtra(ACCOUNT_USERINFO_USERID_DISPLAYABLE, userinfo.getDisplayableId());
+                    intent.putExtra(
+                            ACCOUNT_USERINFO_IDENTITY_PROVIDER, userinfo.getIdentityProvider());
+                    intent.putExtra(
+                            ACCOUNT_USERINFO_USERID_DISPLAYABLE, userinfo.getDisplayableId());
                 }
 
                 if (null != result.mTaskResult.getCliTelemInfo()) {
-                    final TelemetryUtils.CliTelemInfo cliTelemInfo = result.mTaskResult.getCliTelemInfo();
+                    final TelemetryUtils.CliTelemInfo cliTelemInfo =
+                            result.mTaskResult.getCliTelemInfo();
                     intent.putExtra(SPE_RING, cliTelemInfo.getSpeRing());
                     intent.putExtra(RT_AGE, cliTelemInfo.getRefreshTokenAge());
                     intent.putExtra(SERVER_ERROR, cliTelemInfo.getServerErrorCode());
@@ -1308,8 +1296,7 @@ public class AuthenticationActivity extends DualScreenActivity {
             } else {
                 returnError(
                         ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
-                        result.mTaskResult.getErrorDescription()
-                );
+                        result.mTaskResult.getErrorDescription());
             }
         }
     }

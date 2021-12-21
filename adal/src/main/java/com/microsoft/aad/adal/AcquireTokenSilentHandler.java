@@ -63,8 +63,10 @@ class AcquireTokenSilentHandler {
      * TODO: Consider have a separate handler for refresh token without cache interaction.
      * (https://github.com/AzureAD/azure-activedirectory-library-for-android/issues/626)
      */
-    AcquireTokenSilentHandler(final Context context, final AuthenticationRequest authRequest,
-                              final TokenCacheAccessor tokenCacheAccessor) {
+    AcquireTokenSilentHandler(
+            final Context context,
+            final AuthenticationRequest authRequest,
+            final TokenCacheAccessor tokenCacheAccessor) {
         if (context == null) {
             throw new IllegalArgumentException("context");
         }
@@ -107,10 +109,16 @@ class AcquireTokenSilentHandler {
         }
 
         // Check for if there is valid access token item in the cache.
-        final TokenCacheItem accessTokenItem = mTokenCacheAccessor.getATFromCache(mAuthRequest.getResource(),
-                mAuthRequest.getClientId(), mAuthRequest.getUserFromRequest());
-        // If accessToken is null or if the user requested force refresh or if claims challenge is present then get a new access token using local refresh tokens
-        if (accessTokenItem == null || mAuthRequest.getForceRefresh() || mAuthRequest.isClaimsChallengePresent()) {
+        final TokenCacheItem accessTokenItem =
+                mTokenCacheAccessor.getATFromCache(
+                        mAuthRequest.getResource(),
+                        mAuthRequest.getClientId(),
+                        mAuthRequest.getUserFromRequest());
+        // If accessToken is null or if the user requested force refresh or if claims challenge is
+        // present then get a new access token using local refresh tokens
+        if (accessTokenItem == null
+                || mAuthRequest.getForceRefresh()
+                || mAuthRequest.isClaimsChallengePresent()) {
             Logger.v(TAG + methodName, "No valid access token exists, try with refresh token.");
             return tryRT();
         }
@@ -122,13 +130,14 @@ class AcquireTokenSilentHandler {
     AuthenticationResult getAccessTokenUsingAssertion() throws AuthenticationException {
         final String methodName = ":getAccessTokenUsingAssertion";
         final AuthenticationResult result = acquireTokenWithAssertion();
-        
+
         if (result != null && !StringExtensions.isNullOrBlank(result.getAccessToken())) {
             try {
                 mTokenCacheAccessor.updateTokenCache(mAuthRequest, result);
             } catch (MalformedURLException e) {
                 Logger.w(TAG + methodName, "Access token fetched but unable to update token cache");
-                throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e.getMessage(), e);
+                throw new AuthenticationException(
+                        ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e.getMessage(), e);
             } catch (ClientException e) {
                 Logger.w(TAG + methodName, "Access token fetched but unable to update token cache");
                 throw ADALError.fromCommon(e);
@@ -143,16 +152,18 @@ class AcquireTokenSilentHandler {
      */
     AuthenticationResult acquireTokenWithAssertion() throws AuthenticationException {
         final String methodName = ":acquireTokenWithAssertion";
-        Logger.v(TAG + methodName, "Try to get new access token with the provided assertion.",
-                mAuthRequest.getLogInfo(), null);
+        Logger.v(
+                TAG + methodName,
+                "Try to get new access token with the provided assertion.",
+                mAuthRequest.getLogInfo(),
+                null);
 
-        // Check if network is available, if not throw exception. 
+        // Check if network is available, if not throw exception.
         HttpUtil.throwIfNetworkNotAvailable(mContext);
 
         final AuthenticationResult result;
         final String samlAssertion = mAuthRequest.getSamlAssertion();
         final String assertionType = mAuthRequest.getAssertionType();
-
 
         try {
             final JWSBuilder jwsBuilder = new JWSBuilder();
@@ -166,16 +177,21 @@ class AcquireTokenSilentHandler {
             }
         } catch (final IOException | AuthenticationException exc) {
             // Server side error or similar
-            Logger.e(TAG + methodName,
+            Logger.e(
+                    TAG + methodName,
                     "Error in assertion for request.",
-                    "Request: " + mAuthRequest.getLogInfo()
-                            + " " + ExceptionExtensions.getExceptionMessage(exc)
-                            + " " + Log.getStackTraceString(exc),
+                    "Request: "
+                            + mAuthRequest.getLogInfo()
+                            + " "
+                            + ExceptionExtensions.getExceptionMessage(exc)
+                            + " "
+                            + Log.getStackTraceString(exc),
                     ADALError.AUTH_FAILED_NO_TOKEN,
                     null);
 
             throw new AuthenticationException(
-                    ADALError.AUTH_FAILED_NO_TOKEN, ExceptionExtensions.getExceptionMessage(exc),
+                    ADALError.AUTH_FAILED_NO_TOKEN,
+                    ExceptionExtensions.getExceptionMessage(exc),
                     new AuthenticationException(ADALError.SERVER_ERROR, exc.getMessage(), exc));
         }
 
@@ -188,10 +204,13 @@ class AcquireTokenSilentHandler {
     AuthenticationResult acquireTokenWithRefreshToken(final String refreshToken)
             throws AuthenticationException {
         final String methodName = ":acquireTokenWithRefreshToken";
-        Logger.v(TAG + methodName, "Try to get new access token with the found refresh token.",
-                mAuthRequest.getLogInfo(), null);
+        Logger.v(
+                TAG + methodName,
+                "Try to get new access token with the found refresh token.",
+                mAuthRequest.getLogInfo(),
+                null);
 
-        // Check if network is available, if not throw exception. 
+        // Check if network is available, if not throw exception.
         HttpUtil.throwIfNetworkNotAvailable(mContext);
 
         final AuthenticationResult result;
@@ -204,37 +223,52 @@ class AcquireTokenSilentHandler {
                 result.setRefreshToken(refreshToken);
             }
         } catch (final ServerRespondingWithRetryableException exc) {
-            Logger.i(TAG + methodName, "The server is not responding after the retry with error code: " + exc.getCode(), "");
+            Logger.i(
+                    TAG + methodName,
+                    "The server is not responding after the retry with error code: "
+                            + exc.getCode(),
+                    "");
             final TokenCacheItem accessTokenItem = mTokenCacheAccessor.getStaleToken(mAuthRequest);
             if (accessTokenItem != null) {
-                final AuthenticationResult retryResult = AuthenticationResult.createExtendedLifeTimeResult(accessTokenItem);
+                final AuthenticationResult retryResult =
+                        AuthenticationResult.createExtendedLifeTimeResult(accessTokenItem);
                 Logger.i(TAG + methodName, "The result with stale access token is returned.", "");
                 return retryResult;
             }
 
-            Logger.e(TAG + methodName,
+            Logger.e(
+                    TAG + methodName,
                     "Error in refresh token for request. ",
-                    "Request: " + mAuthRequest.getLogInfo()
-                            + " " + ExceptionExtensions.getExceptionMessage(exc)
-                            + " " + Log.getStackTraceString(exc),
+                    "Request: "
+                            + mAuthRequest.getLogInfo()
+                            + " "
+                            + ExceptionExtensions.getExceptionMessage(exc)
+                            + " "
+                            + Log.getStackTraceString(exc),
                     ADALError.AUTH_FAILED_NO_TOKEN,
                     null);
 
             throw new AuthenticationException(
-                    ADALError.AUTH_FAILED_NO_TOKEN, ExceptionExtensions.getExceptionMessage(exc),
+                    ADALError.AUTH_FAILED_NO_TOKEN,
+                    ExceptionExtensions.getExceptionMessage(exc),
                     new AuthenticationException(ADALError.SERVER_ERROR, exc.getMessage(), exc));
         } catch (final IOException | AuthenticationException exc) {
             // Server side error or similar
-            Logger.e(TAG + methodName,
+            Logger.e(
+                    TAG + methodName,
                     "Error in refresh token for request.",
-                    "Request: " + mAuthRequest.getLogInfo()
-                            + " " + ExceptionExtensions.getExceptionMessage(exc)
-                            + " " + Log.getStackTraceString(exc),
+                    "Request: "
+                            + mAuthRequest.getLogInfo()
+                            + " "
+                            + ExceptionExtensions.getExceptionMessage(exc)
+                            + " "
+                            + Log.getStackTraceString(exc),
                     ADALError.AUTH_FAILED_NO_TOKEN,
                     null);
 
             throw new AuthenticationException(
-                    ADALError.AUTH_FAILED_NO_TOKEN, ExceptionExtensions.getExceptionMessage(exc),
+                    ADALError.AUTH_FAILED_NO_TOKEN,
+                    ExceptionExtensions.getExceptionMessage(exc),
                     new AuthenticationException(ADALError.SERVER_ERROR, exc.getMessage(), exc));
         }
 
@@ -256,10 +290,14 @@ class AcquireTokenSilentHandler {
         final TokenCacheItem regularRTItem;
 
         try {
-            regularRTItem = mTokenCacheAccessor.getRegularRefreshTokenCacheItem(mAuthRequest.getResource(),
-                    mAuthRequest.getClientId(), mAuthRequest.getUserFromRequest());
+            regularRTItem =
+                    mTokenCacheAccessor.getRegularRefreshTokenCacheItem(
+                            mAuthRequest.getResource(),
+                            mAuthRequest.getClientId(),
+                            mAuthRequest.getUserFromRequest());
         } catch (final MalformedURLException ex) {
-            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, ex.getMessage(), ex);
+            throw new AuthenticationException(
+                    ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, ex.getMessage(), ex);
         }
 
         if (regularRTItem == null) {
@@ -267,22 +305,29 @@ class AcquireTokenSilentHandler {
             return tryMRRT();
         }
 
-        // When MRRT is returned, we store separate entries for both regular RT entry and MRRT entry, 
+        // When MRRT is returned, we store separate entries for both regular RT entry and MRRT
+        // entry,
         // we should look for MRRT entry if the token in regular RT entry is marked as MRRT.
         // However, the current cache implementation never mark the token stored in regular RT entry
-        // as MRRT. To support the backward compatibility and improve cache lookup, when successfully
-        // retrieved regular RT entry token and if the mrrt flag is false, check the existence of MRRT.
+        // as MRRT. To support the backward compatibility and improve cache lookup, when
+        // successfully
+        // retrieved regular RT entry token and if the mrrt flag is false, check the existence of
+        // MRRT.
         if (regularRTItem.getIsMultiResourceRefreshToken() || isMRRTEntryExisted()) {
-            final String statusMessage = regularRTItem.getIsMultiResourceRefreshToken()
-                    ? "Found RT and it's also a MRRT, retry with MRRT"
-                    : "RT is found and there is a MRRT entry existed, try with MRRT";
+            final String statusMessage =
+                    regularRTItem.getIsMultiResourceRefreshToken()
+                            ? "Found RT and it's also a MRRT, retry with MRRT"
+                            : "RT is found and there is a MRRT entry existed, try with MRRT";
             Logger.v(TAG + methodName, statusMessage);
             return tryMRRT();
         }
 
-        if (StringExtensions.isNullOrBlank(mAuthRequest.getUserFromRequest()) && mTokenCacheAccessor.isMultipleRTsMatchingGivenAppAndResource(
-                mAuthRequest.getClientId(), mAuthRequest.getResource())) {
-            throw new AuthenticationException(ADALError.AUTH_FAILED_USER_MISMATCH, "Multiple refresh tokens exists for the given client id and resource");
+        if (StringExtensions.isNullOrBlank(mAuthRequest.getUserFromRequest())
+                && mTokenCacheAccessor.isMultipleRTsMatchingGivenAppAndResource(
+                        mAuthRequest.getClientId(), mAuthRequest.getResource())) {
+            throw new AuthenticationException(
+                    ADALError.AUTH_FAILED_USER_MISMATCH,
+                    "Multiple refresh tokens exists for the given client id and resource");
         }
 
         Logger.v(TAG + methodName, "Send request to use regular RT for new AT.");
@@ -299,12 +344,13 @@ class AcquireTokenSilentHandler {
         final String methodName = ":tryMRRT";
         // Try to get it from cache
         try {
-            mMrrtTokenCacheItem = mTokenCacheAccessor.getMRRTItem(mAuthRequest.getClientId(),
-                    mAuthRequest.getUserFromRequest());
+            mMrrtTokenCacheItem =
+                    mTokenCacheAccessor.getMRRTItem(
+                            mAuthRequest.getClientId(), mAuthRequest.getUserFromRequest());
         } catch (final MalformedURLException ex) {
-            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, ex.getMessage(), ex);
+            throw new AuthenticationException(
+                    ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, ex.getMessage(), ex);
         }
-
 
         // MRRT does not exist, try with FRT.
         if (mMrrtTokenCacheItem == null) {
@@ -312,7 +358,7 @@ class AcquireTokenSilentHandler {
             return tryFRT(AuthenticationConstants.MS_FAMILY_ID, null);
         }
 
-        // If MRRT is also a FRT, we try FRT first. 
+        // If MRRT is also a FRT, we try FRT first.
         if (mMrrtTokenCacheItem.isFamilyToken()) {
             Logger.v(TAG + methodName, "MRRT item exists but it's also a FRT, try with FRT.");
             return tryFRT(mMrrtTokenCacheItem.getFamilyClientId(), null);
@@ -320,17 +366,23 @@ class AcquireTokenSilentHandler {
 
         AuthenticationResult mrrtResult = useMRRT();
         if (isTokenRequestFailed(mrrtResult)) {
-            // If MRRT fails, we still want to retry on FRT in case there is one there. 
-            // MRRT may not be marked as FRT, hard-code it as "1" in this case. 
-            final String familyClientId = StringExtensions.isNullOrBlank(mMrrtTokenCacheItem.getFamilyClientId())
-                    ? AuthenticationConstants.MS_FAMILY_ID : mMrrtTokenCacheItem.getFamilyClientId();
+            // If MRRT fails, we still want to retry on FRT in case there is one there.
+            // MRRT may not be marked as FRT, hard-code it as "1" in this case.
+            final String familyClientId =
+                    StringExtensions.isNullOrBlank(mMrrtTokenCacheItem.getFamilyClientId())
+                            ? AuthenticationConstants.MS_FAMILY_ID
+                            : mMrrtTokenCacheItem.getFamilyClientId();
 
-            // Pass the failed MRRT result to tryFRT, if FRT does not exist, return the MRRT result. 
+            // Pass the failed MRRT result to tryFRT, if FRT does not exist, return the MRRT result.
             mrrtResult = tryFRT(familyClientId, mrrtResult);
         }
 
-        if (StringExtensions.isNullOrBlank(mAuthRequest.getUserFromRequest()) && mTokenCacheAccessor.isMultipleMRRTsMatchingGivenApp(mAuthRequest.getClientId())) {
-            throw new AuthenticationException(ADALError.AUTH_FAILED_USER_MISMATCH, "No User provided and multiple MRRTs exist for the given client id");
+        if (StringExtensions.isNullOrBlank(mAuthRequest.getUserFromRequest())
+                && mTokenCacheAccessor.isMultipleMRRTsMatchingGivenApp(
+                        mAuthRequest.getClientId())) {
+            throw new AuthenticationException(
+                    ADALError.AUTH_FAILED_USER_MISMATCH,
+                    "No User provided and multiple MRRTs exist for the given client id");
         }
 
         return mrrtResult;
@@ -342,22 +394,27 @@ class AcquireTokenSilentHandler {
      * then we either already have a MRRT or MRRT does not exist)
      * 2) If FRT request fails, and we haven't tried with MRRT yet, use it.
      */
-    private AuthenticationResult tryFRT(final String familyClientId, final AuthenticationResult mrrtResult)
+    private AuthenticationResult tryFRT(
+            final String familyClientId, final AuthenticationResult mrrtResult)
             throws AuthenticationException {
         final String methodName = ":tryFRT";
         final TokenCacheItem frtTokenCacheItem;
 
         try {
-            frtTokenCacheItem = mTokenCacheAccessor.getFRTItem(familyClientId,
-                    mAuthRequest.getUserFromRequest());
+            frtTokenCacheItem =
+                    mTokenCacheAccessor.getFRTItem(
+                            familyClientId, mAuthRequest.getUserFromRequest());
         } catch (final MalformedURLException ex) {
-            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, ex.getMessage(), ex);
+            throw new AuthenticationException(
+                    ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, ex.getMessage(), ex);
         }
 
         if (frtTokenCacheItem == null) {
-            // If we haven't tried with MRRT, use the MRRT. MRRT either exists or not, if it does not exist, we've 
+            // If we haven't tried with MRRT, use the MRRT. MRRT either exists or not, if it does
+            // not exist, we've
             // already tried our best, null will be returned. If it exists, try with it.
-            // If we have already tried an MRRT and no FRT found, we return the MRRT result passed in. 
+            // If we have already tried an MRRT and no FRT found, we return the MRRT result passed
+            // in.
             if (!mAttemptedWithMRRT) {
                 Logger.v(TAG + methodName, "FRT cache item does not exist, fall back to try MRRT.");
                 return useMRRT();
@@ -369,7 +426,7 @@ class AcquireTokenSilentHandler {
         Logger.v(TAG + methodName, "Send request to use FRT for new AT.");
         AuthenticationResult frtResult = acquireTokenWithCachedItem(frtTokenCacheItem);
         if (isTokenRequestFailed(frtResult) && !mAttemptedWithMRRT) {
-            // FRT request fails, fallback to MRRT if we haven't tried with MRRT. 
+            // FRT request fails, fallback to MRRT if we haven't tried with MRRT.
             final AuthenticationResult retryMrrtResult = useMRRT();
             frtResult = retryMrrtResult == null ? frtResult : retryMrrtResult;
         }
@@ -399,16 +456,20 @@ class AcquireTokenSilentHandler {
             throws AuthenticationException {
         final String methodName = ":acquireTokenWithCachedItem";
         if (StringExtensions.isNullOrBlank(cachedItem.getRefreshToken())) {
-            Logger.v(TAG + methodName, "Token cache item contains empty refresh token, cannot continue refresh "
-                    + "token request", mAuthRequest.getLogInfo(), null);
+            Logger.v(
+                    TAG + methodName,
+                    "Token cache item contains empty refresh token, cannot continue refresh "
+                            + "token request",
+                    mAuthRequest.getLogInfo(),
+                    null);
             return null;
         }
 
-        final AuthenticationResult result = acquireTokenWithRefreshToken(cachedItem.getRefreshToken());
+        final AuthenticationResult result =
+                acquireTokenWithRefreshToken(cachedItem.getRefreshToken());
 
         if (result != null && !result.isExtendedLifeTimeToken()) {
-            mTokenCacheAccessor.updateCachedItemWithResult(mAuthRequest,
-                    result, cachedItem);
+            mTokenCacheAccessor.updateCachedItemWithResult(mAuthRequest, result, cachedItem);
         }
 
         return result;
@@ -423,10 +484,12 @@ class AcquireTokenSilentHandler {
         final TokenCacheItem mrrtItem;
 
         try {
-            mrrtItem = mTokenCacheAccessor.getMRRTItem(mAuthRequest.getClientId(),
-                    mAuthRequest.getUserFromRequest());
+            mrrtItem =
+                    mTokenCacheAccessor.getMRRTItem(
+                            mAuthRequest.getClientId(), mAuthRequest.getUserFromRequest());
         } catch (final MalformedURLException ex) {
-            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, ex.getMessage(), ex);
+            throw new AuthenticationException(
+                    ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, ex.getMessage(), ex);
         }
 
         return mrrtItem != null && !StringExtensions.isNullOrBlank(mrrtItem.getRefreshToken());

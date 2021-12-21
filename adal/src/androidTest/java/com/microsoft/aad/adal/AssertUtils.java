@@ -33,8 +33,8 @@ public class AssertUtils extends Assert {
     private static final String TAG = "AssertUtils";
     protected static final int REQUEST_TIME_OUT = 20000; // milliseconds
 
-    public static void assertThrowsException(final Class<? extends Exception> expected, String hasMessage,
-                                             final Runnable testCode) {
+    public static void assertThrowsException(
+            final Class<? extends Exception> expected, String hasMessage, final Runnable testCode) {
         try {
             testCode.run();
             Assert.fail("This is expecting an exception, but it was not thrown.");
@@ -44,7 +44,8 @@ public class AssertUtils extends Assert {
             }
 
             if (hasMessage != null && !hasMessage.isEmpty()) {
-                assertTrue("Message has the text",
+                assertTrue(
+                        "Message has the text",
                         (result.getMessage().toLowerCase().contains(hasMessage)));
             }
         }

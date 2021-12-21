@@ -23,6 +23,11 @@
 
 package com.microsoft.aad.adal;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
@@ -51,11 +56,6 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
 @RunWith(AndroidJUnit4.class)
 public class StorageHelperTests extends AndroidTestHelper {
 
@@ -67,14 +67,16 @@ public class StorageHelperTests extends AndroidTestHelper {
     public void setUp() throws Exception {
         super.setUp();
 
-        if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null && Build.VERSION.SDK_INT < MIN_SDK_VERSION) {
+        if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null
+                && Build.VERSION.SDK_INT < MIN_SDK_VERSION) {
             Logger.d(TAG, "setup key at settings");
             setSecretKeyData();
         }
     }
 
     @Test
-    public void testEncryptDecrypt() throws GeneralSecurityException, IOException, AuthenticationException {
+    public void testEncryptDecrypt()
+            throws GeneralSecurityException, IOException, AuthenticationException {
         String clearText = "SomeValue1234";
         encryptDecrypt(clearText);
     }
@@ -107,7 +109,8 @@ public class StorageHelperTests extends AndroidTestHelper {
                 "Input is empty or null",
                 new AndroidTestHelper.ThrowableRunnable() {
                     @Override
-                    public void run() throws GeneralSecurityException, IOException, AuthenticationException {
+                    public void run()
+                            throws GeneralSecurityException, IOException, AuthenticationException {
                         storageHelper.decrypt(null);
                     }
                 });
@@ -117,15 +120,15 @@ public class StorageHelperTests extends AndroidTestHelper {
                 "Input is empty or null",
                 new AndroidTestHelper.ThrowableRunnable() {
                     @Override
-                    public void run() throws GeneralSecurityException, IOException, AuthenticationException {
+                    public void run()
+                            throws GeneralSecurityException, IOException, AuthenticationException {
                         storageHelper.decrypt("");
                     }
                 });
     }
 
     @Test
-    public void testDecryptInvalidInput() throws
-            IOException, GeneralSecurityException {
+    public void testDecryptInvalidInput() throws IOException, GeneralSecurityException {
         final Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         final StorageHelper storageHelper = new StorageHelper(context);
         assertThrowsException(
@@ -133,7 +136,8 @@ public class StorageHelperTests extends AndroidTestHelper {
                 "is not valid, it must be greater of equal to 0",
                 new AndroidTestHelper.ThrowableRunnable() {
                     @Override
-                    public void run() throws GeneralSecurityException, IOException, AuthenticationException {
+                    public void run()
+                            throws GeneralSecurityException, IOException, AuthenticationException {
                         storageHelper.decrypt("E1bad64");
                     }
                 });
@@ -143,7 +147,8 @@ public class StorageHelperTests extends AndroidTestHelper {
                 "bad base-64",
                 new AndroidTestHelper.ThrowableRunnable() {
                     @Override
-                    public void run() throws GeneralSecurityException, IOException, AuthenticationException {
+                    public void run()
+                            throws GeneralSecurityException, IOException, AuthenticationException {
                         storageHelper.decrypt("cE1bad64");
                     }
                 });
@@ -155,10 +160,16 @@ public class StorageHelperTests extends AndroidTestHelper {
                 null,
                 new AndroidTestHelper.ThrowableRunnable() {
                     @Override
-                    public void run() throws GeneralSecurityException, IOException, AuthenticationException {
-                        storageHelper.decrypt("cE1" + new String(Base64.encode(
-                                "U001thatShouldFail1234567890123456789012345678901234567890"
-                                        .getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP), StandardCharsets.UTF_8));
+                    public void run()
+                            throws GeneralSecurityException, IOException, AuthenticationException {
+                        storageHelper.decrypt(
+                                "cE1"
+                                        + new String(
+                                                Base64.encode(
+                                                        "U001thatShouldFail1234567890123456789012345678901234567890"
+                                                                .getBytes(StandardCharsets.UTF_8),
+                                                        Base64.NO_WRAP),
+                                                StandardCharsets.UTF_8));
                     }
                 });
     }
@@ -167,7 +178,8 @@ public class StorageHelperTests extends AndroidTestHelper {
      * test different size messages
      */
     @Test
-    public void testEncryptDecryptDifferentSizes() throws GeneralSecurityException, IOException, AuthenticationException {
+    public void testEncryptDecryptDifferentSizes()
+            throws GeneralSecurityException, IOException, AuthenticationException {
         Logger.d(TAG, "Starting testEncryptDecrypt_differentSizes");
         // try different block sizes
         final int sizeRange = 1000;
@@ -178,7 +190,8 @@ public class StorageHelperTests extends AndroidTestHelper {
         Logger.d(TAG, "Finished testEncryptDecrypt_differentSizes");
     }
 
-    private void encryptDecrypt(String clearText) throws GeneralSecurityException, IOException, AuthenticationException {
+    private void encryptDecrypt(String clearText)
+            throws GeneralSecurityException, IOException, AuthenticationException {
         Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         final StorageHelper storageHelper = new StorageHelper(context);
         String encrypted = storageHelper.encrypt(clearText);
@@ -189,11 +202,13 @@ public class StorageHelperTests extends AndroidTestHelper {
     }
 
     @Test
-    public void testEncryptSameText() throws GeneralSecurityException, IOException, AuthenticationException {
+    public void testEncryptSameText()
+            throws GeneralSecurityException, IOException, AuthenticationException {
         // access code
         Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         final StorageHelper storageHelper = new StorageHelper(context);
-        String clearText = "AAAAAAAA2pILN0mn3wlYIlWk7lqOZ5qjRWXHRnqDdzsq0s4aaUVgnMQo6oXfEUYL4fAxqVQ6dXh9sMAieFDjXVhTkp3mnL2gHSnAHJFwmj9mnlgaU7kVcoujXRA3Je23PEtoqEQMQPaurakVcEl7jOsjUGWD7JdaAHsYTujd1KHoTUdBJQQ-jz4t6Cish25zn9BPocJzN56rLUqgX3dnoA1z-hY4FS_EIn_Xdvqnil29t4etVHLDZD5RJbc5R3p5MaUKqPBF8sAQvJcgW-f9ebPHzO8L87RrsVNu4keagKmOnP139KSuORBhNaD57nmEvecJWtWTIAA&redirect_uri=https%3a%2f%2fworkaad.com%2fdemoclient1&client_id=dba19db4-53de-441d-9c63-da8d6f229e5a";
+        String clearText =
+                "AAAAAAAA2pILN0mn3wlYIlWk7lqOZ5qjRWXHRnqDdzsq0s4aaUVgnMQo6oXfEUYL4fAxqVQ6dXh9sMAieFDjXVhTkp3mnL2gHSnAHJFwmj9mnlgaU7kVcoujXRA3Je23PEtoqEQMQPaurakVcEl7jOsjUGWD7JdaAHsYTujd1KHoTUdBJQQ-jz4t6Cish25zn9BPocJzN56rLUqgX3dnoA1z-hY4FS_EIn_Xdvqnil29t4etVHLDZD5RJbc5R3p5MaUKqPBF8sAQvJcgW-f9ebPHzO8L87RrsVNu4keagKmOnP139KSuORBhNaD57nmEvecJWtWTIAA&redirect_uri=https%3a%2f%2fworkaad.com%2fdemoclient1&client_id=dba19db4-53de-441d-9c63-da8d6f229e5a";
         Logger.d(TAG, "Starting testEncryptSameText");
         String encrypted = storageHelper.encrypt(clearText);
         String encrypted2 = storageHelper.encrypt(clearText);
@@ -201,9 +216,11 @@ public class StorageHelperTests extends AndroidTestHelper {
 
         assertNotNull("encrypted string is not null", encrypted);
         assertFalse("encrypted string is not same as cleartext", encrypted.equals(clearText));
-        assertFalse("encrypted string is not same as another encrypted call",
+        assertFalse(
+                "encrypted string is not same as another encrypted call",
                 encrypted.equals(encrypted2));
-        assertFalse("encrypted string is not same as another encrypted call",
+        assertFalse(
+                "encrypted string is not same as another encrypted call",
                 encrypted.equals(encrypted3));
 
         String decrypted = storageHelper.decrypt(encrypted);
@@ -216,7 +233,8 @@ public class StorageHelperTests extends AndroidTestHelper {
     }
 
     @Test
-    public void testTampering() throws GeneralSecurityException, IOException, AuthenticationException {
+    public void testTampering()
+            throws GeneralSecurityException, IOException, AuthenticationException {
         final Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         final StorageHelper storageHelper = new StorageHelper(context);
         String clearText = "AAAAAAAA2pILN0mn3wlYIlWk7lqOZ5qjRWXH";
@@ -230,13 +248,17 @@ public class StorageHelperTests extends AndroidTestHelper {
         final byte[] bytes = Base64.decode(encrypted.substring(3), Base64.DEFAULT);
         final int randomlyChosenByte = 15;
         bytes[randomlyChosenByte]++;
-        final String modified = new String(Base64.encode(bytes, Base64.NO_WRAP), StandardCharsets.UTF_8);
-        assertThrowsException(DigestException.class, null, new ThrowableRunnable() {
-            @Override
-            public void run() throws Exception {
-                storageHelper.decrypt(flagVersion + modified);
-            }
-        });
+        final String modified =
+                new String(Base64.encode(bytes, Base64.NO_WRAP), StandardCharsets.UTF_8);
+        assertThrowsException(
+                DigestException.class,
+                null,
+                new ThrowableRunnable() {
+                    @Override
+                    public void run() throws Exception {
+                        storageHelper.decrypt(flagVersion + modified);
+                    }
+                });
     }
 
     /**
@@ -252,7 +274,8 @@ public class StorageHelperTests extends AndroidTestHelper {
         String encrypted = storageHelper.encrypt(value);
         final int knownEncryptedSubstringStart = 1;
         final int knownEncryptedSubstringEnd = 3;
-        String encodeVersion = encrypted.substring(knownEncryptedSubstringStart, knownEncryptedSubstringEnd);
+        String encodeVersion =
+                encrypted.substring(knownEncryptedSubstringStart, knownEncryptedSubstringEnd);
         assertEquals("Encode version is same", "E1", encodeVersion);
         final byte[] bytes = Base64.decode(encrypted.substring(3), Base64.DEFAULT);
 
@@ -261,20 +284,19 @@ public class StorageHelperTests extends AndroidTestHelper {
         final int keyVersionLength = 4;
         String keyVersionCheck = new String(bytes, 0, keyVersionLength, StandardCharsets.UTF_8);
         Logger.i(TAG, "Key version check. ", "Key version: " + keyVersionCheck);
-        if (Build.VERSION.SDK_INT < MIN_SDK_VERSION || AuthenticationSettings.INSTANCE.getSecretKeyData() != null) {
+        if (Build.VERSION.SDK_INT < MIN_SDK_VERSION
+                || AuthenticationSettings.INSTANCE.getSecretKeyData() != null) {
             assertEquals("It should use user defined", "U001", keyVersionCheck);
         } else {
             assertEquals("It should use user defined", "A001", keyVersionCheck);
         }
     }
 
-
-    //Github issue #580. Suppress this unit test as we cannot make it work consistently.
+    // Github issue #580. Suppress this unit test as we cannot make it work consistently.
     @Suppress
     @TargetApi(MIN_SDK_VERSION)
     @Test
-    public void testKeyPair() throws
-            GeneralSecurityException, IOException {
+    public void testKeyPair() throws GeneralSecurityException, IOException {
         if (Build.VERSION.SDK_INT < MIN_SDK_VERSION) {
             return;
         }
@@ -291,14 +313,14 @@ public class StorageHelperTests extends AndroidTestHelper {
 
     @TargetApi(MIN_SDK_VERSION)
     @Test
-    public void testKeyPairAndroidKeyStore() throws
-            GeneralSecurityException, IOException {
+    public void testKeyPairAndroidKeyStore() throws GeneralSecurityException, IOException {
         if (Build.VERSION.SDK_INT < MIN_SDK_VERSION) {
             return;
         }
         final Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         final StorageHelper storageHelper = new StorageHelper(context);
-        SecretKey kp = storageHelper.loadSecretKeyForEncryption(StorageHelper.VERSION_ANDROID_KEY_STORE);
+        SecretKey kp =
+                storageHelper.loadSecretKeyForEncryption(StorageHelper.VERSION_ANDROID_KEY_STORE);
 
         assertNotNull("Keypair is not null", kp);
 
@@ -309,8 +331,8 @@ public class StorageHelperTests extends AndroidTestHelper {
 
     @TargetApi(MIN_SDK_VERSION)
     @Test
-    public void testMigration() throws
-            GeneralSecurityException, IOException, AuthenticationException {
+    public void testMigration()
+            throws GeneralSecurityException, IOException, AuthenticationException {
         if (Build.VERSION.SDK_INT < MIN_SDK_VERSION) {
             return;
         }
@@ -318,7 +340,8 @@ public class StorageHelperTests extends AndroidTestHelper {
         final StorageHelper storageHelper = new StorageHelper(context);
         setSecretKeyData();
         String expectedDecrypted = "SomeValue1234";
-        String encryptedInAPI17 = "cE1VTAwMb4ChefrTHHblCg0DYaK1UR456nW3q6+hqA9Cs2uB+bqcfsLzukiI+KOCdBGJV+JqhRJHBIDCOl68TYkLQAz65g=";
+        String encryptedInAPI17 =
+                "cE1VTAwMb4ChefrTHHblCg0DYaK1UR456nW3q6+hqA9Cs2uB+bqcfsLzukiI+KOCdBGJV+JqhRJHBIDCOl68TYkLQAz65g=";
         String decrypted = storageHelper.decrypt(encryptedInAPI17);
         assertEquals("Expected clear text as same", expectedDecrypted, decrypted);
     }
@@ -334,8 +357,8 @@ public class StorageHelperTests extends AndroidTestHelper {
         final Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         final StorageHelper storageHelper = new StorageHelper(context);
 
-        File keyFile = new File(context.getDir(context.getPackageName(),
-                Context.MODE_PRIVATE), "adalks");
+        File keyFile =
+                new File(context.getDir(context.getPackageName(), Context.MODE_PRIVATE), "adalks");
         if (keyFile.exists()) {
             keyFile.delete();
         }
@@ -349,14 +372,20 @@ public class StorageHelperTests extends AndroidTestHelper {
         assertTrue("Key info is same", key.toString().equals(key2.toString()));
     }
 
-    private void setSecretKeyData() throws NoSuchAlgorithmException, InvalidKeySpecException, UnsupportedEncodingException {
+    private void setSecretKeyData()
+            throws NoSuchAlgorithmException, InvalidKeySpecException, UnsupportedEncodingException {
         // use same key for tests
-        SecretKeyFactory keyFactory = SecretKeyFactory
-                .getInstance("PBEWithSHA256And256BitAES-CBC-BC");
+        SecretKeyFactory keyFactory =
+                SecretKeyFactory.getInstance("PBEWithSHA256And256BitAES-CBC-BC");
         final int iterations = 100;
         final int keySize = 256;
-        SecretKey tempkey = keyFactory.generateSecret(new PBEKeySpec("test".toCharArray(),
-                "abcdedfdfd".getBytes(StandardCharsets.UTF_8), iterations, keySize));
+        SecretKey tempkey =
+                keyFactory.generateSecret(
+                        new PBEKeySpec(
+                                "test".toCharArray(),
+                                "abcdedfdfd".getBytes(StandardCharsets.UTF_8),
+                                iterations,
+                                keySize));
         SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
         AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
     }

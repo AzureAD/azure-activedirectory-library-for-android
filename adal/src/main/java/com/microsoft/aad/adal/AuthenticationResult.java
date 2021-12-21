@@ -23,10 +23,13 @@
 
 package com.microsoft.aad.adal;
 
+import static com.microsoft.aad.adal.TelemetryUtils.CliTelemInfo;
+import static com.microsoft.identity.common.java.AuthenticationConstants.AAD.BEARER;
+
 import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
-import com.microsoft.identity.common.java.util.DateExtensions;
 import com.microsoft.identity.common.adal.internal.util.HashMapExtensions;
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.ClientInfo;
+import com.microsoft.identity.common.java.util.DateExtensions;
 
 import org.json.JSONException;
 
@@ -34,9 +37,6 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-
-import static com.microsoft.aad.adal.TelemetryUtils.CliTelemInfo;
-import static com.microsoft.identity.common.java.AuthenticationConstants.AAD.BEARER;
 
 /**
  * Result class to keep code, token and other info Serializable properties Mark
@@ -80,10 +80,10 @@ public class AuthenticationResult implements Serializable {
 
     protected Date mExpiresOn;
 
-    //Number of seconds the token is valid
+    // Number of seconds the token is valid
     private Long mExpiresIn;
 
-    //Number of milliseconds since the unix epoch
+    // Number of milliseconds since the unix epoch
     private Long mResponseReceived;
 
     protected String mErrorCode;
@@ -134,15 +134,16 @@ public class AuthenticationResult implements Serializable {
         mRefreshToken = null;
     }
 
-    AuthenticationResult(final String accessToken,
-                         final String refreshToken,
-                         final Date expires,
-                         final boolean isBroad,
-                         final UserInfo userInfo,
-                         final String tenantId,
-                         final String idToken,
-                         final Date extendedExpires,
-                         final String clientId) {
+    AuthenticationResult(
+            final String accessToken,
+            final String refreshToken,
+            final Date expires,
+            final boolean isBroad,
+            final UserInfo userInfo,
+            final String tenantId,
+            final String idToken,
+            final Date extendedExpires,
+            final String clientId) {
         mCode = null;
         mAccessToken = accessToken;
         mRefreshToken = refreshToken;
@@ -187,8 +188,7 @@ public class AuthenticationResult implements Serializable {
                         cacheItem.getTenantId(),
                         cacheItem.getRawIdToken(),
                         cacheItem.getExtendedExpiresOn(),
-                        cacheItem.getClientId()
-                );
+                        cacheItem.getClientId());
 
         final CliTelemInfo cliTelemInfo = new CliTelemInfo();
         cliTelemInfo._setSpeRing(cacheItem.getSpeRing());
@@ -378,7 +378,9 @@ public class AuthenticationResult implements Serializable {
     }
 
     String[] getErrorCodes() {
-        return (mErrorCodes != null) ? mErrorCodes.replaceAll("[\\[\\]]", "").split("([^,]),") : null;
+        return (mErrorCodes != null)
+                ? mErrorCodes.replaceAll("[\\[\\]]", "").split("([^,]),")
+                : null;
     }
 
     boolean isInitialRequest() {
@@ -510,7 +512,9 @@ public class AuthenticationResult implements Serializable {
                 try {
                     mHttpResponseBody = new HashMap<>(HashMapExtensions.getJsonResponse(response));
                 } catch (final JSONException exception) {
-                    Logger.e(AuthenticationException.class.getSimpleName(), "Json exception",
+                    Logger.e(
+                            AuthenticationException.class.getSimpleName(),
+                            "Json exception",
                             ExceptionExtensions.getExceptionMessage(exception),
                             ADALError.SERVER_INVALID_JSON_RESPONSE);
                 }
@@ -561,5 +565,4 @@ public class AuthenticationResult implements Serializable {
     public String getResource() {
         return mResource;
     }
-
 }

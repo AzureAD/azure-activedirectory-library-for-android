@@ -23,10 +23,12 @@
 
 package com.microsoft.aad.adal;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.util.Base64;
 
@@ -44,10 +46,6 @@ import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 public class AndroidTestHelper {
 
     protected static final int REQUEST_TIME_OUT = 40000; // milliseconds
@@ -62,25 +60,19 @@ public class AndroidTestHelper {
     public void setUp() throws Exception {
         System.setProperty(
                 "dexmaker.dexcache",
-                androidx.test.platform.app.InstrumentationRegistry
-                        .getInstrumentation()
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
                         .getTargetContext()
                         .getCacheDir()
-                        .getPath()
-        );
+                        .getPath());
 
         System.setProperty(
                 "org.mockito.android.target",
-                ApplicationProvider
-                        .getApplicationContext()
-                        .getCacheDir()
-                        .getPath()
-        );
+                ApplicationProvider.getApplicationContext().getCacheDir().getPath());
 
         // ADAL is set to this signature for now
-        final Context context = androidx.test.platform.app.InstrumentationRegistry
-                .getInstrumentation()
-                .getContext();
+        final Context context =
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+                        .getContext();
 
         for (Signature signature : PackageHelper.getSignatures(context)) {
             mTestSignature = signature.toByteArray();
@@ -91,8 +83,8 @@ public class AndroidTestHelper {
         }
 
         AuthenticationSettings.INSTANCE.setBrokerSignature(mTestTag);
-        AuthenticationSettings.INSTANCE
-                .setBrokerPackageName(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
+        AuthenticationSettings.INSTANCE.setBrokerPackageName(
+                AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         Logger.d(TAG, "mTestSignature is set");
     }
 
@@ -100,9 +92,10 @@ public class AndroidTestHelper {
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(null);
     }
 
-    void assertThrowsException(final Class<? extends Exception> expected,
-                               final String hasMessage,
-                               final ThrowableRunnable testCode) {
+    void assertThrowsException(
+            final Class<? extends Exception> expected,
+            final String hasMessage,
+            final ThrowableRunnable testCode) {
         try {
             testCode.run();
             Assert.fail("This is expecting an exception, but it was not thrown.");
@@ -112,15 +105,19 @@ public class AndroidTestHelper {
             }
 
             if (hasMessage != null && !hasMessage.isEmpty()) {
-                assertTrue("Message has the text " + result.getMessage(),
-                        (result.getMessage().toLowerCase(Locale.US).contains(hasMessage.toLowerCase())));
+                assertTrue(
+                        "Message has the text " + result.getMessage(),
+                        (result.getMessage()
+                                .toLowerCase(Locale.US)
+                                .contains(hasMessage.toLowerCase())));
             }
         }
     }
 
-    void assertThrowsException(final Class<? extends Exception> expected,
-                               final String hasMessage,
-                               final Runnable testCode) {
+    void assertThrowsException(
+            final Class<? extends Exception> expected,
+            final String hasMessage,
+            final Runnable testCode) {
         try {
             testCode.run();
             Assert.fail("This is expecting an exception, but it was not thrown.");
@@ -130,7 +127,9 @@ public class AndroidTestHelper {
             }
 
             if (hasMessage != null && !hasMessage.isEmpty()) {
-                assertTrue("Message has the text", (result.getMessage().toLowerCase(Locale.US).contains(hasMessage)));
+                assertTrue(
+                        "Message has the text",
+                        (result.getMessage().toLowerCase(Locale.US).contains(hasMessage)));
             }
         }
     }
@@ -142,9 +141,8 @@ public class AndroidTestHelper {
      * @param testCode
      * @param runOnUI
      */
-    void testAsyncNoExceptionUIOption(final CountDownLatch signal,
-                                      final Runnable testCode,
-                                      boolean runOnUI) {
+    void testAsyncNoExceptionUIOption(
+            final CountDownLatch signal, final Runnable testCode, boolean runOnUI) {
         Logger.d(TAG, "thread:" + android.os.Process.myTid());
 
         try {
@@ -169,9 +167,8 @@ public class AndroidTestHelper {
         }
     }
 
-    public void testMultiThread(int activeThreads,
-                                final CountDownLatch signal,
-                                final Runnable runnable) {
+    public void testMultiThread(
+            int activeThreads, final CountDownLatch signal, final Runnable runnable) {
         Logger.d(TAG, "thread:" + android.os.Process.myTid());
 
         Thread[] threads = new Thread[activeThreads];

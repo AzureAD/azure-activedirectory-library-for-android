@@ -23,6 +23,11 @@
 
 package com.microsoft.aad.adal;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.when;
+
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -46,11 +51,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Mockito.when;
-
 @RunWith(AndroidJUnit4.class)
 public class TelemetryTest {
 
@@ -59,7 +59,12 @@ public class TelemetryTest {
     @Before
     public void setUp() throws Exception {
         Logger.d(TAG, "setup key at settings");
-        System.setProperty("dexmaker.dexcache", androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext().getCacheDir().getPath());
+        System.setProperty(
+                "dexmaker.dexcache",
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+                        .getContext()
+                        .getCacheDir()
+                        .getPath());
     }
 
     @Test
@@ -104,12 +109,14 @@ public class TelemetryTest {
 
     private PackageManager getMockedPackageManager() throws PackageManager.NameNotFoundException {
         final Signature mockedSignature = Mockito.mock(Signature.class);
-        when(mockedSignature.toByteArray()).thenReturn(Base64.decode(
-                Util.ENCODED_SIGNATURE, Base64.NO_WRAP));
+        when(mockedSignature.toByteArray())
+                .thenReturn(Base64.decode(Util.ENCODED_SIGNATURE, Base64.NO_WRAP));
 
-        final PackageInfo mockedPackageInfo = new MockedPackageInfo(new Signature[]{mockedSignature});
+        final PackageInfo mockedPackageInfo =
+                new MockedPackageInfo(new Signature[] {mockedSignature});
         final PackageManager mockedPackageManager = Mockito.mock(PackageManager.class);
-        when(mockedPackageManager.getPackageInfo(Mockito.anyString(), anyInt())).thenReturn(mockedPackageInfo);
+        when(mockedPackageManager.getPackageInfo(Mockito.anyString(), anyInt()))
+                .thenReturn(mockedPackageInfo);
 
         // Mock intent query
         final List<ResolveInfo> activities = new ArrayList<>(1);
@@ -120,9 +127,11 @@ public class TelemetryTest {
         return mockedPackageManager;
     }
 
-    private FileMockContext createMockContext()
-            throws PackageManager.NameNotFoundException {
-        final FileMockContext mockContext = new FileMockContext(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext());
+    private FileMockContext createMockContext() throws PackageManager.NameNotFoundException {
+        final FileMockContext mockContext =
+                new FileMockContext(
+                        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+                                .getContext());
 
         final PackageManager mockedPackageManager = getMockedPackageManager();
         mockContext.setMockedPackageManager(mockedPackageManager);
@@ -207,5 +216,4 @@ class DefaultTelemetryTestClass implements IDispatcher {
             mEventData = eventProperties;
         }
     }
-
 }

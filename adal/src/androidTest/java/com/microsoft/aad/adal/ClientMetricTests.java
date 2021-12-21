@@ -23,6 +23,9 @@
 
 package com.microsoft.aad.adal;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.Test;
@@ -36,50 +39,64 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 @RunWith(AndroidJUnit4.class)
 public class ClientMetricTests extends AndroidTestHelper {
 
     @Test
-    public void testADFSBehavior() throws ClassNotFoundException, IllegalArgumentException,
-            IllegalAccessException, InvocationTargetException, NoSuchMethodException,
-            InstantiationException, MalformedURLException, NoSuchFieldException {
+    public void testADFSBehavior()
+            throws ClassNotFoundException, IllegalArgumentException, IllegalAccessException,
+                    InvocationTargetException, NoSuchMethodException, InstantiationException,
+                    MalformedURLException, NoSuchFieldException {
 
         Object clientMetrics = getInstance();
         final URL endpointAdfs = new URL("https://fs.ade2eadfs30.com/adfs");
         UUID correlationId = UUID.randomUUID();
         Map<String, String> headers = new HashMap<String, String>();
-        Method method = ReflectionUtils.getTestMethod(clientMetrics, "beginClientMetricsRecord",
-                URL.class, UUID.class, Map.class);
+        Method method =
+                ReflectionUtils.getTestMethod(
+                        clientMetrics,
+                        "beginClientMetricsRecord",
+                        URL.class,
+                        UUID.class,
+                        Map.class);
         method.invoke(clientMetrics, endpointAdfs, correlationId, headers);
 
         assertTrue("Expecting empty header", headers.isEmpty());
-        assertEquals("CorrelationId is empty", null,
+        assertEquals(
+                "CorrelationId is empty",
+                null,
                 ReflectionUtils.getFieldValue(clientMetrics, "mLastCorrelationId"));
     }
 
     @Test
-    public void testPendingMetrics() throws ClassNotFoundException, IllegalArgumentException,
-            NoSuchMethodException, InstantiationException, IllegalAccessException,
-            InvocationTargetException, MalformedURLException, NoSuchFieldException {
+    public void testPendingMetrics()
+            throws ClassNotFoundException, IllegalArgumentException, NoSuchMethodException,
+                    InstantiationException, IllegalAccessException, InvocationTargetException,
+                    MalformedURLException, NoSuchFieldException {
         Object clientMetrics = getInstance();
         final URL endpointAdfs = new URL("https://login.windwos.com/testtenant");
         UUID correlationId = UUID.randomUUID();
         Map<String, String> headers = new HashMap<String, String>();
-        Method beginMethod = ReflectionUtils.getTestMethod(clientMetrics,
-                "beginClientMetricsRecord", URL.class, UUID.class, Map.class);
+        Method beginMethod =
+                ReflectionUtils.getTestMethod(
+                        clientMetrics,
+                        "beginClientMetricsRecord",
+                        URL.class,
+                        UUID.class,
+                        Map.class);
         beginMethod.invoke(clientMetrics, endpointAdfs, correlationId, headers);
 
-        Method endMethod = ReflectionUtils.getTestMethod(clientMetrics, "endClientMetricsRecord",
-                String.class, UUID.class);
+        Method endMethod =
+                ReflectionUtils.getTestMethod(
+                        clientMetrics, "endClientMetricsRecord", String.class, UUID.class);
         endMethod.invoke(clientMetrics, "instance", correlationId);
 
         Method lastErr = ReflectionUtils.getTestMethod(clientMetrics, "setLastError", String.class);
         lastErr.invoke(clientMetrics, "lastErrorTest");
         // next call will report error
-        assertEquals("CorrelationId is empty", correlationId,
+        assertEquals(
+                "CorrelationId is empty",
+                correlationId,
                 ReflectionUtils.getFieldValue(clientMetrics, "mLastCorrelationId"));
     }
 

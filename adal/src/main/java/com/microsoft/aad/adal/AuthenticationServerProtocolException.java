@@ -34,4 +34,3 @@ class AuthenticationServerProtocolException extends AuthenticationException {
         super(ADALError.DEVICE_CHALLENGE_FAILURE, detailMessage);
     }
 }
-

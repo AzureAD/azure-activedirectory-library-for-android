@@ -23,6 +23,10 @@
 
 package com.microsoft.aad.adal;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
@@ -37,10 +41,6 @@ import org.junit.runner.RunWith;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 /**
  * StringExtensions class has helper methods and it is not public
@@ -58,16 +58,16 @@ public class StringExtensionTests extends AndroidTestHelper {
     }
 
     @Test
-    public void testIsNullOrBlankNotEmpty() throws IllegalArgumentException,
-            IllegalAccessException, InvocationTargetException, ClassNotFoundException,
-            NoSuchMethodException, InstantiationException {
+    public void testIsNullOrBlankNotEmpty()
+            throws IllegalArgumentException, IllegalAccessException, InvocationTargetException,
+                    ClassNotFoundException, NoSuchMethodException, InstantiationException {
         assertFalse("not empty", StringExtensions.isNullOrBlank("non-Empty"));
     }
 
     @Test
-    public void testIsNullOrBlankEmpty() throws IllegalArgumentException, IllegalAccessException,
-            InvocationTargetException, ClassNotFoundException, NoSuchMethodException,
-            InstantiationException {
+    public void testIsNullOrBlankEmpty()
+            throws IllegalArgumentException, IllegalAccessException, InvocationTargetException,
+                    ClassNotFoundException, NoSuchMethodException, InstantiationException {
         assertTrue("empty", StringExtensions.isNullOrBlank(""));
 
         assertTrue("empty", StringExtensions.isNullOrBlank("          "));
@@ -77,19 +77,22 @@ public class StringExtensionTests extends AndroidTestHelper {
     public void testURLFormEncodeDecode() {
 
         try {
-            assertEquals("https%3A%2F%2Flogin.windows.net%2Faaltests.onmicrosoft.com%2F",
-                    StringExtensions.urlFormEncode("https://login.windows.net/aaltests.onmicrosoft.com/"));
+            assertEquals(
+                    "https%3A%2F%2Flogin.windows.net%2Faaltests.onmicrosoft.com%2F",
+                    StringExtensions.urlFormEncode(
+                            "https://login.windows.net/aaltests.onmicrosoft.com/"));
 
-            assertEquals("https://login.windows.net/aaltests.onmicrosoft.com/",
-                    StringExtensions.urlFormDecode("https%3A%2F%2Flogin.windows.net%2Faaltests.onmicrosoft.com%2F"));
+            assertEquals(
+                    "https://login.windows.net/aaltests.onmicrosoft.com/",
+                    StringExtensions.urlFormDecode(
+                            "https%3A%2F%2Flogin.windows.net%2Faaltests.onmicrosoft.com%2F"));
 
-            assertEquals("abc+d1234567890-",
-                    StringExtensions.urlFormEncode("abc d1234567890-"));
+            assertEquals("abc+d1234567890-", StringExtensions.urlFormEncode("abc d1234567890-"));
 
-            assertEquals("abc d1234567890-",
-                    StringExtensions.urlFormDecode("abc+d1234567890-"));
+            assertEquals("abc d1234567890-", StringExtensions.urlFormDecode("abc+d1234567890-"));
 
-            String longString = "asdfk+j0a-=skjwe43;1l234 1#$!$#%345903485qrq@#$!@#$!(rekr341!#$%Ekfaآزمايشsdsdfsddfdgsfgjsglk==CVADS";
+            String longString =
+                    "asdfk+j0a-=skjwe43;1l234 1#$!$#%345903485qrq@#$!@#$!(rekr341!#$%Ekfaآزمايشsdsdfsddfdgsfgjsglk==CVADS";
             String result = StringExtensions.urlFormEncode(longString);
 
             String decodeResult = StringExtensions.urlFormDecode(result);

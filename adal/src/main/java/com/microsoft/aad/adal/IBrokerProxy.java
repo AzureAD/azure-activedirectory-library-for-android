@@ -41,7 +41,8 @@ interface IBrokerProxy {
 
     boolean verifyUser(String username, String uniqueid) throws AuthenticationException;
 
-    boolean verifyBrokerForSilentRequest(AuthenticationRequest authenticationRequest) throws AuthenticationException;
+    boolean verifyBrokerForSilentRequest(AuthenticationRequest authenticationRequest)
+            throws AuthenticationException;
 
     boolean canUseLocalCache(final String authorityUrlStr);
 
@@ -62,7 +63,8 @@ interface IBrokerProxy {
      * @param request AuthenticationRequest object
      * @return AuthenticationResult
      */
-    AuthenticationResult getAuthTokenInBackground(final AuthenticationRequest request, final BrokerEvent brokerEvent)
+    AuthenticationResult getAuthTokenInBackground(
+            final AuthenticationRequest request, final BrokerEvent brokerEvent)
             throws AuthenticationException;
 
     /**
@@ -71,15 +73,16 @@ interface IBrokerProxy {
      * @param request AuthenticationRequest
      * @return Intent
      */
-    Intent getIntentForBrokerActivity(final AuthenticationRequest request, final BrokerEvent brokerEvent)
+    Intent getIntentForBrokerActivity(
+            final AuthenticationRequest request, final BrokerEvent brokerEvent)
             throws AuthenticationException;
 
     /*
      * Gets user info from broker.
      * @return user {@link UserInfo}
      */
-    UserInfo[] getBrokerUsers() throws OperationCanceledException, AuthenticatorException,
-            IOException;
+    UserInfo[] getBrokerUsers()
+            throws OperationCanceledException, AuthenticatorException, IOException;
 
     /**
      * @return The package name for the active broker. Should be either Azure Authenticator
@@ -91,5 +94,6 @@ interface IBrokerProxy {
      * @param brokerAppPackageName Package name for currently active broker.
      * @return The current broker app version.
      */
-    String getBrokerAppVersion(final String brokerAppPackageName) throws PackageManager.NameNotFoundException;
+    String getBrokerAppVersion(final String brokerAppPackageName)
+            throws PackageManager.NameNotFoundException;
 }

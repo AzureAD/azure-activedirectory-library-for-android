@@ -23,6 +23,8 @@
 
 package com.microsoft.aad.adal;
 
+import static com.microsoft.identity.common.java.AuthenticationConstants.UIRequest.BROWSER_FLOW;
+
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -42,11 +44,7 @@ import androidx.annotation.Nullable;
 
 import java.io.UnsupportedEncodingException;
 
-import static com.microsoft.identity.common.java.AuthenticationConstants.UIRequest.BROWSER_FLOW;
-
-@SuppressLint({
-        "InflateParams", "SetJavaScriptEnabled", "ClickableViewAccessibility"
-})
+@SuppressLint({"InflateParams", "SetJavaScriptEnabled", "ClickableViewAccessibility"})
 class AuthenticationDialog {
     protected static final String TAG = "AuthenticationDialog";
 
@@ -62,10 +60,11 @@ class AuthenticationDialog {
 
     private WebView mWebView;
 
-    AuthenticationDialog(final Handler handler,
-                         final Context context,
-                         final AcquireTokenRequest acquireTokenRequest,
-                         final AuthenticationRequest request) {
+    AuthenticationDialog(
+            final Handler handler,
+            final Context context,
+            final AcquireTokenRequest acquireTokenRequest,
+            final AuthenticationRequest request) {
         mHandlerInView = handler;
         mContext = context;
         mAcquireTokenRequest = acquireTokenRequest;
@@ -82,121 +81,156 @@ class AuthenticationDialog {
      */
     void show() {
         final String methodName = ":show";
-        mHandlerInView.post(new Runnable() {
-
-            @Override
-            public void run() {
-                LayoutInflater inflater = (LayoutInflater) mContext
-                        .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-
-                //Need to be sure that the resource id is actually found
-                int dialogAuthenticationResourceId = getResourceId("dialog_authentication", "layout");
-
-                View webviewInDialog = null;
-                // using static layout
-                try {
-                    webviewInDialog = inflater.inflate(dialogAuthenticationResourceId, null);
-                } catch (final InflateException e) {
-                    //This code was added to debug a threading issue; however there could be other cases when this would occur... so leaving in.
-                    //NOTE: With the threading issue even though the exception was caught the test app still interrupted (looks like a crash)... presumably because of
-                    //The Android System Webview (Chromium) crashed; however the app does continue after Android restarts the system web view
-                    Logger.e(TAG, "Failed to inflate authentication dialog", "", ADALError.DEVELOPER_DIALOG_INFLATION_ERROR, e);
-                }
-
-                if (webviewInDialog != null) {
-                    mWebView = (WebView) webviewInDialog.findViewById(
-                            getResourceId("com_microsoft_aad_adal_webView1", "id")
-                    );
-                }
-
-                if (mWebView == null) {
-                    Logger.e(
-                            TAG + methodName,
-                            "Expected resource name for webview is com_microsoft_aad_adal_webView1. It is not in your layout file",
-                            "", ADALError.DEVELOPER_DIALOG_LAYOUT_INVALID);
-                    Intent resultIntent = new Intent();
-                    resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID,
-                            mRequest.getRequestId());
-                    mAcquireTokenRequest.onActivityResult(BROWSER_FLOW,
-                            AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
-
-                    mHandlerInView.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (mDialog != null && mDialog.isShowing()) {
-                                mDialog.dismiss();
-                            }
-                        }
-                    });
-                    return;
-                }
-
-                // Disable hardware acceleration in WebView if needed
-                if (!AuthenticationSettings.INSTANCE.getDisableWebViewHardwareAcceleration()) {
-                    mWebView.setLayerType(WebView.LAYER_TYPE_SOFTWARE, null);
-                    Logger.d(TAG + methodName, "Hardware acceleration is disabled in WebView");
-                }
-
-                final WebSettings webSettings = mWebView.getSettings();
-                webSettings.setAllowFileAccess(false);
-                webSettings.setJavaScriptEnabled(true);
-                webSettings.setAllowContentAccess(false);
-                mWebView.requestFocus(View.FOCUS_DOWN);
-                String userAgent = webSettings.getUserAgentString();
-                webSettings.setUserAgentString(
-                        userAgent + AuthenticationConstants.Broker.CLIENT_TLS_NOT_SUPPORTED);
-                userAgent = webSettings.getUserAgentString();
-                Logger.v(TAG + methodName, "UserAgent:" + userAgent);
-
-                // Set focus to the view for touch event
-                mWebView.setOnTouchListener(new View.OnTouchListener() {
-                    @Override
-                    public boolean onTouch(View view, MotionEvent event) {
-                        int action = event.getAction();
-                        if ((action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_UP)
-                                && !view.hasFocus()) {
-                            view.requestFocus();
-                        }
-                        return false;
-                    }
-                });
-
-                webSettings.setLoadWithOverviewMode(true);
-                webSettings.setDomStorageEnabled(true);
-                webSettings.setUseWideViewPort(true);
-                webSettings.setBuiltInZoomControls(true);
-
-                try {
-                    Oauth2 oauth = new Oauth2(mRequest);
-                    final String startUrl = oauth.getCodeRequestUrl();
-                    final String stopRedirect = mRequest.getRedirectUri();
-                    mWebView.setWebViewClient(new DialogWebViewClient(mContext, stopRedirect, mRequest));
-                    mWebView.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            mWebView.loadUrl(BasicWebViewClient.BLANK_PAGE);
-                            mWebView.loadUrl(startUrl);
-                        }
-                    });
-
-                } catch (UnsupportedEncodingException e) {
-                    Logger.e(TAG + methodName, "Encoding error", "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
-                }
-
-                builder.setView(webviewInDialog).setCancelable(true);
-                builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+        mHandlerInView.post(
+                new Runnable() {
 
                     @Override
-                    public void onCancel(DialogInterface dialog) {
-                        cancelFlow(null);
+                    public void run() {
+                        LayoutInflater inflater =
+                                (LayoutInflater)
+                                        mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+
+                        // Need to be sure that the resource id is actually found
+                        int dialogAuthenticationResourceId =
+                                getResourceId("dialog_authentication", "layout");
+
+                        View webviewInDialog = null;
+                        // using static layout
+                        try {
+                            webviewInDialog =
+                                    inflater.inflate(dialogAuthenticationResourceId, null);
+                        } catch (final InflateException e) {
+                            // This code was added to debug a threading issue; however there could
+                            // be other cases when this would occur... so leaving in.
+                            // NOTE: With the threading issue even though the exception was caught
+                            // the test app still interrupted (looks like a crash)... presumably
+                            // because of
+                            // The Android System Webview (Chromium) crashed; however the app does
+                            // continue after Android restarts the system web view
+                            Logger.e(
+                                    TAG,
+                                    "Failed to inflate authentication dialog",
+                                    "",
+                                    ADALError.DEVELOPER_DIALOG_INFLATION_ERROR,
+                                    e);
+                        }
+
+                        if (webviewInDialog != null) {
+                            mWebView =
+                                    (WebView)
+                                            webviewInDialog.findViewById(
+                                                    getResourceId(
+                                                            "com_microsoft_aad_adal_webView1",
+                                                            "id"));
+                        }
+
+                        if (mWebView == null) {
+                            Logger.e(
+                                    TAG + methodName,
+                                    "Expected resource name for webview is com_microsoft_aad_adal_webView1. It is not in your layout file",
+                                    "",
+                                    ADALError.DEVELOPER_DIALOG_LAYOUT_INVALID);
+                            Intent resultIntent = new Intent();
+                            resultIntent.putExtra(
+                                    AuthenticationConstants.Browser.REQUEST_ID,
+                                    mRequest.getRequestId());
+                            mAcquireTokenRequest.onActivityResult(
+                                    BROWSER_FLOW,
+                                    AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL,
+                                    resultIntent);
+
+                            mHandlerInView.post(
+                                    new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            if (mDialog != null && mDialog.isShowing()) {
+                                                mDialog.dismiss();
+                                            }
+                                        }
+                                    });
+                            return;
+                        }
+
+                        // Disable hardware acceleration in WebView if needed
+                        if (!AuthenticationSettings.INSTANCE
+                                .getDisableWebViewHardwareAcceleration()) {
+                            mWebView.setLayerType(WebView.LAYER_TYPE_SOFTWARE, null);
+                            Logger.d(
+                                    TAG + methodName,
+                                    "Hardware acceleration is disabled in WebView");
+                        }
+
+                        final WebSettings webSettings = mWebView.getSettings();
+                        webSettings.setAllowFileAccess(false);
+                        webSettings.setJavaScriptEnabled(true);
+                        webSettings.setAllowContentAccess(false);
+                        mWebView.requestFocus(View.FOCUS_DOWN);
+                        String userAgent = webSettings.getUserAgentString();
+                        webSettings.setUserAgentString(
+                                userAgent
+                                        + AuthenticationConstants.Broker.CLIENT_TLS_NOT_SUPPORTED);
+                        userAgent = webSettings.getUserAgentString();
+                        Logger.v(TAG + methodName, "UserAgent:" + userAgent);
+
+                        // Set focus to the view for touch event
+                        mWebView.setOnTouchListener(
+                                new View.OnTouchListener() {
+                                    @Override
+                                    public boolean onTouch(View view, MotionEvent event) {
+                                        int action = event.getAction();
+                                        if ((action == MotionEvent.ACTION_DOWN
+                                                        || action == MotionEvent.ACTION_UP)
+                                                && !view.hasFocus()) {
+                                            view.requestFocus();
+                                        }
+                                        return false;
+                                    }
+                                });
+
+                        webSettings.setLoadWithOverviewMode(true);
+                        webSettings.setDomStorageEnabled(true);
+                        webSettings.setUseWideViewPort(true);
+                        webSettings.setBuiltInZoomControls(true);
+
+                        try {
+                            Oauth2 oauth = new Oauth2(mRequest);
+                            final String startUrl = oauth.getCodeRequestUrl();
+                            final String stopRedirect = mRequest.getRedirectUri();
+                            mWebView.setWebViewClient(
+                                    new DialogWebViewClient(mContext, stopRedirect, mRequest));
+                            mWebView.post(
+                                    new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            mWebView.loadUrl(BasicWebViewClient.BLANK_PAGE);
+                                            mWebView.loadUrl(startUrl);
+                                        }
+                                    });
+
+                        } catch (UnsupportedEncodingException e) {
+                            Logger.e(
+                                    TAG + methodName,
+                                    "Encoding error",
+                                    "",
+                                    ADALError.ENCODING_IS_NOT_SUPPORTED,
+                                    e);
+                        }
+
+                        builder.setView(webviewInDialog).setCancelable(true);
+                        builder.setOnCancelListener(
+                                new DialogInterface.OnCancelListener() {
+
+                                    @Override
+                                    public void onCancel(DialogInterface dialog) {
+                                        cancelFlow(null);
+                                    }
+                                });
+                        mDialog = builder.create();
+                        Logger.i(TAG + methodName, "Showing authenticationDialog", "");
+                        mDialog.show();
                     }
                 });
-                mDialog = builder.create();
-                Logger.i(TAG + methodName, "Showing authenticationDialog", "");
-                mDialog.show();
-            }
-        });
     }
 
     private void cancelFlow(@Nullable final Intent errorIntent) {
@@ -213,56 +247,55 @@ class AuthenticationDialog {
 
         resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mRequest.getRequestId());
 
-        mAcquireTokenRequest.onActivityResult(BROWSER_FLOW,
-                resultCode, resultIntent);
+        mAcquireTokenRequest.onActivityResult(BROWSER_FLOW, resultCode, resultIntent);
         if (mHandlerInView != null) {
-            mHandlerInView.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (mDialog != null && mDialog.isShowing()) {
-                        mDialog.dismiss();
-                    }
-                }
-            });
+            mHandlerInView.post(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            if (mDialog != null && mDialog.isShowing()) {
+                                mDialog.dismiss();
+                            }
+                        }
+                    });
         }
     }
 
     class DialogWebViewClient extends BasicWebViewClient {
 
-        DialogWebViewClient(final Context ctx,
-                            final String stopRedirect,
-                            final AuthenticationRequest request) {
+        DialogWebViewClient(
+                final Context ctx, final String stopRedirect, final AuthenticationRequest request) {
             super(ctx, stopRedirect, request, null);
         }
 
         public void showSpinner(final boolean status) {
             if (mHandlerInView != null) {
-                mHandlerInView.post(new Runnable() {
+                mHandlerInView.post(
+                        new Runnable() {
 
-                    @Override
-                    public void run() {
-                        if (mDialog != null && mDialog.isShowing()) {
-                            ProgressBar progressBar = (ProgressBar) mDialog
-                                    .findViewById(getResourceId(
-                                            "com_microsoft_aad_adal_progressBar", "id"));
-                            if (progressBar != null) {
-                                int showFlag = status ? View.VISIBLE : View.INVISIBLE;
-                                progressBar.setVisibility(showFlag);
+                            @Override
+                            public void run() {
+                                if (mDialog != null && mDialog.isShowing()) {
+                                    ProgressBar progressBar =
+                                            (ProgressBar)
+                                                    mDialog.findViewById(
+                                                            getResourceId(
+                                                                    "com_microsoft_aad_adal_progressBar",
+                                                                    "id"));
+                                    if (progressBar != null) {
+                                        int showFlag = status ? View.VISIBLE : View.INVISIBLE;
+                                        progressBar.setVisibility(showFlag);
+                                    }
+                                }
                             }
-                        }
-                    }
-                });
+                        });
             }
         }
 
         public void sendResponse(final int returnCode, final Intent responseIntent) {
             // Close this dialog
             mDialog.dismiss();
-            mAcquireTokenRequest.onActivityResult(
-                    BROWSER_FLOW,
-                    returnCode,
-                    responseIntent
-            );
+            mAcquireTokenRequest.onActivityResult(BROWSER_FLOW, returnCode, responseIntent);
         }
 
         public void postRunnable(Runnable item) {
@@ -273,8 +306,8 @@ class AuthenticationDialog {
             Intent resultIntent = new Intent();
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, url);
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO, mRequest);
-            resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID,
-                    mRequest.getRequestId());
+            resultIntent.putExtra(
+                    AuthenticationConstants.Browser.REQUEST_ID, mRequest.getRequestId());
             sendResponse(AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE, resultIntent);
             view.stopLoading();
         }

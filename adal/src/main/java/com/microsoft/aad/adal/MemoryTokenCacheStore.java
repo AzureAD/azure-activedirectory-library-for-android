@@ -49,8 +49,7 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
     /**
      * Creates MemoryTokenCacheStore.
      */
-    public MemoryTokenCacheStore() {
-    }
+    public MemoryTokenCacheStore() {}
 
     @Override
     public TokenCacheItem getItem(String key) {
@@ -104,8 +103,8 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
         out.defaultWriteObject();
     }
 
-    private void readObject(ObjectInputStream inputStream) throws IOException,
-            ClassNotFoundException {
+    private void readObject(ObjectInputStream inputStream)
+            throws IOException, ClassNotFoundException {
         inputStream.defaultReadObject();
 
         mCacheLock = new Object();

@@ -23,14 +23,14 @@
 
 package com.microsoft.aad.adal;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
 @RunWith(AndroidJUnit4.class)
 public class AuthenticationExceptionTests {
@@ -52,7 +52,9 @@ public class AuthenticationExceptionTests {
         assertEquals("Details is not null", "Some details", exception.getMessage());
         assertNull("Cause is null", exception.getCause());
 
-        exception = new AuthenticationException(ADALError.AUTH_FAILED, "Some details", new Throwable("test"));
+        exception =
+                new AuthenticationException(
+                        ADALError.AUTH_FAILED, "Some details", new Throwable("test"));
         assertEquals("Code is same", ADALError.AUTH_FAILED, exception.getCode());
         assertEquals("Details is not null", "Some details", exception.getMessage());
         assertNotNull("Cause is not null", exception.getCause());

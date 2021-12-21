@@ -49,24 +49,30 @@ public class TestLogResponse {
     public void listenForLogMessage(final String msg, final CountDownLatch signal) {
         final TestLogResponse response = this;
 
-        Logger.getInstance().setExternalLogger(new ILogger() {
+        Logger.getInstance()
+                .setExternalLogger(
+                        new ILogger() {
 
-            @Override
-            public void Log(String tag, String message, String additionalMessage, LogLevel level,
-                            ADALError errorCode) {
+                            @Override
+                            public void Log(
+                                    String tag,
+                                    String message,
+                                    String additionalMessage,
+                                    LogLevel level,
+                                    ADALError errorCode) {
 
-                if (message.contains(msg)) {
-                    response.mTag = tag;
-                    response.mMessage = message;
-                    response.mAdditionalMessage = additionalMessage;
-                    response.mLevel = level;
-                    response.mErrorCode = errorCode;
-                    if (signal != null) {
-                        signal.countDown();
-                    }
-                }
-            }
-        });
+                                if (message.contains(msg)) {
+                                    response.mTag = tag;
+                                    response.mMessage = message;
+                                    response.mAdditionalMessage = additionalMessage;
+                                    response.mLevel = level;
+                                    response.mErrorCode = errorCode;
+                                    if (signal != null) {
+                                        signal.countDown();
+                                    }
+                                }
+                            }
+                        });
     }
 
     /**
@@ -77,25 +83,32 @@ public class TestLogResponse {
     public void listenLogForMessageSegments(final String... msgs) {
         final TestLogResponse response = this;
 
-        Logger.getInstance().setExternalLogger(new ILogger() {
+        Logger.getInstance()
+                .setExternalLogger(
+                        new ILogger() {
 
-            @Override
-            public void Log(String tag, String message, String additionalMessage, LogLevel level,
-                            ADALError errorCode) {
-                for (String msg : msgs) {
-                    if (message.contains(msg) || (null != additionalMessage && additionalMessage.contains(msg))) {
-                        response.mTag = tag;
-                        response.mMessage = message;
-                        response.mAdditionalMessage = additionalMessage;
-                        response.mLevel = level;
-                        response.mErrorCode = errorCode;
-                    } else {
-                        break;
-                    }
-                }
-            }
-        });
-
+                            @Override
+                            public void Log(
+                                    String tag,
+                                    String message,
+                                    String additionalMessage,
+                                    LogLevel level,
+                                    ADALError errorCode) {
+                                for (String msg : msgs) {
+                                    if (message.contains(msg)
+                                            || (null != additionalMessage
+                                                    && additionalMessage.contains(msg))) {
+                                        response.mTag = tag;
+                                        response.mMessage = message;
+                                        response.mAdditionalMessage = additionalMessage;
+                                        response.mLevel = level;
+                                        response.mErrorCode = errorCode;
+                                    } else {
+                                        break;
+                                    }
+                                }
+                            }
+                        });
     }
 
     public String getTag() {

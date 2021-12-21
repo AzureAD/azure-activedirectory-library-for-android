@@ -23,6 +23,13 @@
 
 package com.microsoft.aad.adal;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import android.content.Context;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
@@ -41,17 +48,11 @@ import java.io.ObjectOutputStream;
 import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 @RunWith(AndroidJUnit4.class)
 public class FileTokenCacheStoreTests extends AndroidTestHelper {
 
-    private static final String VALID_AUTHORITY = "https://Login.windows.net/Omercantest.Onmicrosoft.com";
+    private static final String VALID_AUTHORITY =
+            "https://Login.windows.net/Omercantest.Onmicrosoft.com";
 
     private static final String FILE_DEFAULT_NAME = "testfile";
 
@@ -68,7 +69,9 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
     @Before
     public void setUp() throws Exception {
         super.setUp();
-        mTargetContex = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getTargetContext();
+        mTargetContex =
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+                        .getTargetContext();
         AuthenticationSettings.INSTANCE.setBrokerPackageName("invalid");
         AuthenticationSettings.INSTANCE.setBrokerSignature("signature");
     }
@@ -104,16 +107,19 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
     @Test
     public void testFileCacheWriteError() {
         final FileMockContext mockContext = new FileMockContext(mTargetContex);
-        assertThrowsException(IllegalStateException.class,
-                "it could not access the authorization cache directory", new Runnable() {
+        assertThrowsException(
+                IllegalStateException.class,
+                "it could not access the authorization cache directory",
+                new Runnable() {
                     @Override
                     public void run() {
-                        ITokenCacheStore store = new FileTokenCacheStore(mockContext,
-                                FILE_DEFAULT_NAME);
+                        ITokenCacheStore store =
+                                new FileTokenCacheStore(mockContext, FILE_DEFAULT_NAME);
                     }
                 });
 
-        assertEquals("Check requested directory name", FileMockContext.PREFIX, mockContext.getDirName());
+        assertEquals(
+                "Check requested directory name", FileMockContext.PREFIX, mockContext.getDirName());
         assertEquals("Check requested mode", Context.MODE_PRIVATE, mockContext.getFileWriteMode());
     }
 
@@ -186,7 +192,9 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
             e.printStackTrace();
         }
 
-        assertEquals("Permission issue", ADALError.DEVICE_FILE_CACHE_IS_NOT_WRITING_TO_FILE,
+        assertEquals(
+                "Permission issue",
+                ADALError.DEVICE_FILE_CACHE_IS_NOT_WRITING_TO_FILE,
                 logger.mLogErrorCode);
 
         mock.setWritable(true);
@@ -258,31 +266,35 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         setupCache(file);
         final ITokenCacheStore store = new FileTokenCacheStore(mTargetContex, file);
         final CountDownLatch signal = new CountDownLatch(mActiveTestThreads);
-        final Runnable runnable = new Runnable() {
+        final Runnable runnable =
+                new Runnable() {
 
-            @Override
-            public void run() {
+                    @Override
+                    public void run() {
 
-                // Remove and then verify that
-                // One thread will do the actual remove action.
-                try {
-                    store.removeItem(CacheKey.createCacheKey(mCacheItem));
-                    TokenCacheItem item = store.getItem(CacheKey.createCacheKey(mCacheItem));
-                    assertNull("Token cache item is expected to be null", item);
+                        // Remove and then verify that
+                        // One thread will do the actual remove action.
+                        try {
+                            store.removeItem(CacheKey.createCacheKey(mCacheItem));
+                            TokenCacheItem item =
+                                    store.getItem(CacheKey.createCacheKey(mCacheItem));
+                            assertNull("Token cache item is expected to be null", item);
 
-                    item = store.getItem(CacheKey.createCacheKey("", "", "", false, "", null));
-                    assertNull("Token cache item is expected to be null", item);
+                            item =
+                                    store.getItem(
+                                            CacheKey.createCacheKey("", "", "", false, "", null));
+                            assertNull("Token cache item is expected to be null", item);
 
-                    store.removeItem(CacheKey.createCacheKey(mTestItem2));
-                    item = store.getItem(CacheKey.createCacheKey(mCacheItem));
-                    assertNull("Token cache item is expected to be null", item);
-                } catch (AuthenticationException e) {
-                    e.printStackTrace();
-                } finally {
-                    signal.countDown();
-                }
-            }
-        };
+                            store.removeItem(CacheKey.createCacheKey(mTestItem2));
+                            item = store.getItem(CacheKey.createCacheKey(mCacheItem));
+                            assertNull("Token cache item is expected to be null", item);
+                        } catch (AuthenticationException e) {
+                            e.printStackTrace();
+                        } finally {
+                            signal.countDown();
+                        }
+                    }
+                };
 
         testMultiThread(mActiveTestThreads, signal, runnable);
 
@@ -301,19 +313,21 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         setupCache(file);
         ITokenCacheStore tokenCacheA = new FileTokenCacheStore(mTargetContex, file);
 
-        AuthenticationContext contextA = new AuthenticationContext(
-                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext(),
-                VALID_AUTHORITY,
-                false,
-                tokenCacheA
-        );
+        AuthenticationContext contextA =
+                new AuthenticationContext(
+                        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+                                .getContext(),
+                        VALID_AUTHORITY,
+                        false,
+                        tokenCacheA);
 
-        AuthenticationContext contextB = new AuthenticationContext(
-                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext(),
-                VALID_AUTHORITY,
-                false,
-                tokenCacheA
-        );
+        AuthenticationContext contextB =
+                new AuthenticationContext(
+                        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+                                .getContext(),
+                        VALID_AUTHORITY,
+                        false,
+                        tokenCacheA);
 
         // Verify the cache
         TokenCacheItem item = contextA.getCache().getItem(CacheKey.createCacheKey(mCacheItem));
@@ -340,8 +354,12 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         private ADALError mLogErrorCode;
 
         @Override
-        public void Log(String tag, String message, String additionalMessage, LogLevel level,
-                        ADALError errorCode) {
+        public void Log(
+                String tag,
+                String message,
+                String additionalMessage,
+                LogLevel level,
+                ADALError errorCode) {
             mLogMessage = message;
             mLogErrorCode = errorCode;
         }

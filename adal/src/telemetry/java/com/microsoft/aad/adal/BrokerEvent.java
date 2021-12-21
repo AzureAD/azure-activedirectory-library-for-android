@@ -31,7 +31,6 @@ import java.util.Map;
 /**
  * Event class for tracking broker related telemetry events.
  */
-
 final class BrokerEvent extends DefaultEvent {
     BrokerEvent(final String eventName) {
         setProperty(EventStrings.EVENT_NAME, eventName);
@@ -50,7 +49,8 @@ final class BrokerEvent extends DefaultEvent {
     }
 
     void setBrokerAccountServiceBindingSucceed(final boolean succeeded) {
-        setProperty(EventStrings.BROKER_ACCOUNT_SERVICE_BINDING_SUCCEED, Boolean.toString(succeeded));
+        setProperty(
+                EventStrings.BROKER_ACCOUNT_SERVICE_BINDING_SUCCEED, Boolean.toString(succeeded));
     }
 
     void setBrokerAccountServiceConnected() {
@@ -66,14 +66,12 @@ final class BrokerEvent extends DefaultEvent {
     void setServerSubErrorCode(final String subErrorCode) {
         if (!StringExtensions.isNullOrBlank(subErrorCode) && !subErrorCode.equals("0")) {
             setProperty(EventStrings.SERVER_SUBERROR_CODE, subErrorCode.trim());
-
         }
     }
 
     void setRefreshTokenAge(final String tokenAge) {
         if (!StringExtensions.isNullOrBlank(tokenAge)) {
             setProperty(EventStrings.TOKEN_AGE, tokenAge.trim());
-
         }
     }
 

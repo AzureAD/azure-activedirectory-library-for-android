@@ -31,7 +31,7 @@ public class MockedPackageInfo extends PackageInfo {
 
     public MockedSigningInfo signingInfo;
 
-    public MockedPackageInfo(Signature [] signatures) {
+    public MockedPackageInfo(Signature[] signatures) {
         this.signingInfo = new MockedSigningInfo(signatures);
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
             this.signatures = signatures;

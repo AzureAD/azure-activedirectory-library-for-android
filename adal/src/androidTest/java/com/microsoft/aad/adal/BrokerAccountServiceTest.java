@@ -23,6 +23,12 @@
 
 package com.microsoft.aad.adal;
 
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+import static com.microsoft.aad.adal.OauthTests.createAuthenticationRequest;
+
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import android.accounts.AccountManager;
 import android.accounts.AuthenticatorDescription;
 import android.accounts.AuthenticatorException;
@@ -66,11 +72,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static com.microsoft.aad.adal.AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
-import static com.microsoft.aad.adal.OauthTests.createAuthenticationRequest;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 /**
  * Test cases for brokerAccountService and related operations in {@link BrokerProxy}.
  */
@@ -90,26 +91,27 @@ public final class BrokerAccountServiceTest {
     public void setUp() throws Exception {
         System.setProperty(
                 "dexmaker.dexcache",
-                androidx.test.platform.app.InstrumentationRegistry
-                        .getInstrumentation()
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
                         .getTargetContext()
                         .getCacheDir()
-                        .getPath()
-        );
+                        .getPath());
 
         System.setProperty(
                 "org.mockito.android.target",
-                ApplicationProvider
-                        .getApplicationContext()
-                        .getCacheDir()
-                        .getPath()
-        );
-        mIBinder = mServiceTestRule.bindService(new Intent(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getTargetContext(), MockBrokerAccountService.class));
+                ApplicationProvider.getApplicationContext().getCacheDir().getPath());
+        mIBinder =
+                mServiceTestRule.bindService(
+                        new Intent(
+                                androidx.test.platform.app.InstrumentationRegistry
+                                        .getInstrumentation()
+                                        .getTargetContext(),
+                                MockBrokerAccountService.class));
     }
 
     @After
     public void tearDown() throws Exception {
-        AuthenticationSettings.INSTANCE.setBrokerSignature(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_RELEASE_SIGNATURE);
+        AuthenticationSettings.INSTANCE.setBrokerSignature(
+                AuthenticationConstants.Broker.COMPANY_PORTAL_APP_RELEASE_SIGNATURE);
         AuthenticationSettings.INSTANCE.setUseBroker(false);
     }
 
@@ -117,55 +119,81 @@ public final class BrokerAccountServiceTest {
     public void testGetBrokerUsers() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
 
-        sThreadExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                final Context context = getMockContext();
-                try {
-                    final UserInfo[] userInfos = BrokerAccountServiceHandler.getInstance().getBrokerUsers(context);
-                    Assert.assertTrue(userInfos.length == 1);
+        sThreadExecutor.execute(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        final Context context = getMockContext();
+                        try {
+                            final UserInfo[] userInfos =
+                                    BrokerAccountServiceHandler.getInstance()
+                                            .getBrokerUsers(context);
+                            Assert.assertTrue(userInfos.length == 1);
 
-                    final UserInfo userInfo = userInfos[0];
-                    Assert.assertTrue(userInfo.getDisplayableId().equals(MockBrokerAccountService.DISPLAYABLE));
-                    Assert.assertTrue(userInfo.getUserId().equals(MockBrokerAccountService.UNIQUE_ID));
-                    Assert.assertTrue(userInfo.getFamilyName().equals(MockBrokerAccountService.FAMILY_NAME));
-                    Assert.assertTrue(userInfo.getGivenName().equals(MockBrokerAccountService.GIVEN_NAME));
-                    Assert.assertTrue(userInfo.getIdentityProvider().equals(MockBrokerAccountService.IDENTITY_PROVIDER));
-                } catch (final IOException e) {
-                    fail();
-                } finally {
-                    latch.countDown();
-                }
-            }
-        });
+                            final UserInfo userInfo = userInfos[0];
+                            Assert.assertTrue(
+                                    userInfo.getDisplayableId()
+                                            .equals(MockBrokerAccountService.DISPLAYABLE));
+                            Assert.assertTrue(
+                                    userInfo.getUserId()
+                                            .equals(MockBrokerAccountService.UNIQUE_ID));
+                            Assert.assertTrue(
+                                    userInfo.getFamilyName()
+                                            .equals(MockBrokerAccountService.FAMILY_NAME));
+                            Assert.assertTrue(
+                                    userInfo.getGivenName()
+                                            .equals(MockBrokerAccountService.GIVEN_NAME));
+                            Assert.assertTrue(
+                                    userInfo.getIdentityProvider()
+                                            .equals(MockBrokerAccountService.IDENTITY_PROVIDER));
+                        } catch (final IOException e) {
+                            fail();
+                        } finally {
+                            latch.countDown();
+                        }
+                    }
+                });
         latch.await();
     }
 
     @Test
     public void testBrokerProxyGetUsers() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
-        sThreadExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                final Context context = getMockContext();
-                final BrokerProxy brokerProxy = new BrokerProxy(context);
-                try {
-                    final UserInfo[] userInfos = brokerProxy.getBrokerUsers();
-                    Assert.assertTrue(userInfos.length == 1);
+        sThreadExecutor.execute(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        final Context context = getMockContext();
+                        final BrokerProxy brokerProxy = new BrokerProxy(context);
+                        try {
+                            final UserInfo[] userInfos = brokerProxy.getBrokerUsers();
+                            Assert.assertTrue(userInfos.length == 1);
 
-                    final UserInfo userInfo = userInfos[0];
-                    Assert.assertTrue(userInfo.getDisplayableId().equals(MockBrokerAccountService.DISPLAYABLE));
-                    Assert.assertTrue(userInfo.getUserId().equals(MockBrokerAccountService.UNIQUE_ID));
-                    Assert.assertTrue(userInfo.getFamilyName().equals(MockBrokerAccountService.FAMILY_NAME));
-                    Assert.assertTrue(userInfo.getGivenName().equals(MockBrokerAccountService.GIVEN_NAME));
-                    Assert.assertTrue(userInfo.getIdentityProvider().equals(MockBrokerAccountService.IDENTITY_PROVIDER));
-                } catch (final IOException | OperationCanceledException | AuthenticatorException e) {
-                    fail();
-                } finally {
-                    latch.countDown();
-                }
-            }
-        });
+                            final UserInfo userInfo = userInfos[0];
+                            Assert.assertTrue(
+                                    userInfo.getDisplayableId()
+                                            .equals(MockBrokerAccountService.DISPLAYABLE));
+                            Assert.assertTrue(
+                                    userInfo.getUserId()
+                                            .equals(MockBrokerAccountService.UNIQUE_ID));
+                            Assert.assertTrue(
+                                    userInfo.getFamilyName()
+                                            .equals(MockBrokerAccountService.FAMILY_NAME));
+                            Assert.assertTrue(
+                                    userInfo.getGivenName()
+                                            .equals(MockBrokerAccountService.GIVEN_NAME));
+                            Assert.assertTrue(
+                                    userInfo.getIdentityProvider()
+                                            .equals(MockBrokerAccountService.IDENTITY_PROVIDER));
+                        } catch (final IOException
+                                | OperationCanceledException
+                                | AuthenticatorException e) {
+                            fail();
+                        } finally {
+                            latch.countDown();
+                        }
+                    }
+                });
 
         latch.await();
     }
@@ -174,69 +202,99 @@ public final class BrokerAccountServiceTest {
     public void testGetAuthToken() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
 
-        sThreadExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                final Context context = getMockContext();
-                try {
-                    final Bundle bundle = BrokerAccountServiceHandler.getInstance().getAuthToken(context, new Bundle(), getBrokerEvent());
-                    Assert.assertTrue(bundle.getString(AccountManager.KEY_AUTHTOKEN).equals(MockBrokerAccountService.ACCESS_TOKEN));
-                } catch (final AuthenticationException e) {
-                    fail();
-                } finally {
-                    latch.countDown();
-                }
-            }
-        });
+        sThreadExecutor.execute(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        final Context context = getMockContext();
+                        try {
+                            final Bundle bundle =
+                                    BrokerAccountServiceHandler.getInstance()
+                                            .getAuthToken(context, new Bundle(), getBrokerEvent());
+                            Assert.assertTrue(
+                                    bundle.getString(AccountManager.KEY_AUTHTOKEN)
+                                            .equals(MockBrokerAccountService.ACCESS_TOKEN));
+                        } catch (final AuthenticationException e) {
+                            fail();
+                        } finally {
+                            latch.countDown();
+                        }
+                    }
+                });
         latch.await();
     }
 
     @Ignore
     @Test
-    public void testGetAuthTokenVerifyNoNetwork() throws InterruptedException, AuthenticatorException, OperationCanceledException, IOException {
+    public void testGetAuthTokenVerifyNoNetwork()
+            throws InterruptedException, AuthenticatorException, OperationCanceledException,
+                    IOException {
         final CountDownLatch latch = new CountDownLatch(1);
-        sThreadExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                final Context mockContext = getMockContext();
-                Bundle requestBundle = new Bundle();
-                requestBundle.putString("isConnectionAvailable", "false");
+        sThreadExecutor.execute(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        final Context mockContext = getMockContext();
+                        Bundle requestBundle = new Bundle();
+                        requestBundle.putString("isConnectionAvailable", "false");
 
-                try {
-                    final Bundle bundle = BrokerAccountServiceHandler.getInstance().getAuthToken(mockContext, requestBundle, getBrokerEvent());
-                    Assert.assertTrue(bundle.getInt(AccountManager.KEY_ERROR_CODE) == AccountManager.ERROR_CODE_NETWORK_ERROR);
-                    Assert.assertTrue(bundle.getString(AccountManager.KEY_ERROR_MESSAGE).equals(ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE.getDescription()));
-                } catch (final AuthenticationException e) {
-                    fail();
-                } finally {
-                    latch.countDown();
-                }
-            }
-        });
+                        try {
+                            final Bundle bundle =
+                                    BrokerAccountServiceHandler.getInstance()
+                                            .getAuthToken(
+                                                    mockContext, requestBundle, getBrokerEvent());
+                            Assert.assertTrue(
+                                    bundle.getInt(AccountManager.KEY_ERROR_CODE)
+                                            == AccountManager.ERROR_CODE_NETWORK_ERROR);
+                            Assert.assertTrue(
+                                    bundle.getString(AccountManager.KEY_ERROR_MESSAGE)
+                                            .equals(
+                                                    ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE
+                                                            .getDescription()));
+                        } catch (final AuthenticationException e) {
+                            fail();
+                        } finally {
+                            latch.countDown();
+                        }
+                    }
+                });
         latch.await();
     }
 
     @Test
-    public void testGetAuthTokenVerifyThrowOperationCanceledException() throws InterruptedException, AuthenticatorException, OperationCanceledException, IOException {
+    public void testGetAuthTokenVerifyThrowOperationCanceledException()
+            throws InterruptedException, AuthenticatorException, OperationCanceledException,
+                    IOException {
         final CountDownLatch latch = new CountDownLatch(1);
-        sThreadExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                final Context mockContext = getMockContext();
-                Bundle requestBundle = new Bundle();
-                requestBundle.putString(OperationCanceledException.class.toString(), "true");
+        sThreadExecutor.execute(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        final Context mockContext = getMockContext();
+                        Bundle requestBundle = new Bundle();
+                        requestBundle.putString(
+                                OperationCanceledException.class.toString(), "true");
 
-                try {
-                    final Bundle bundle = BrokerAccountServiceHandler.getInstance().getAuthToken(mockContext, requestBundle, getBrokerEvent());
-                    Assert.assertTrue(bundle.getInt(AccountManager.KEY_ERROR_CODE) == AccountManager.ERROR_CODE_CANCELED);
-                    Assert.assertTrue(bundle.getString(AccountManager.KEY_ERROR_MESSAGE).equals(ADALError.AUTH_FAILED_CANCELLED.getDescription()));
-                } catch (final AuthenticationException e) {
-                    fail();
-                } finally {
-                    latch.countDown();
-                }
-            }
-        });
+                        try {
+                            final Bundle bundle =
+                                    BrokerAccountServiceHandler.getInstance()
+                                            .getAuthToken(
+                                                    mockContext, requestBundle, getBrokerEvent());
+                            Assert.assertTrue(
+                                    bundle.getInt(AccountManager.KEY_ERROR_CODE)
+                                            == AccountManager.ERROR_CODE_CANCELED);
+                            Assert.assertTrue(
+                                    bundle.getString(AccountManager.KEY_ERROR_MESSAGE)
+                                            .equals(
+                                                    ADALError.AUTH_FAILED_CANCELLED
+                                                            .getDescription()));
+                        } catch (final AuthenticationException e) {
+                            fail();
+                        } finally {
+                            latch.countDown();
+                        }
+                    }
+                });
         latch.await();
     }
 
@@ -244,61 +302,97 @@ public final class BrokerAccountServiceTest {
     public void testBrokerProxyGetAuthToken() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
 
-        sThreadExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                final Context context = getMockContext();
-                final BrokerProxy brokerProxy = new BrokerProxy(context);
-                try {
-                    final BrokerEvent brokerEvent = new BrokerEvent(EventStrings.BROKER_REQUEST_SILENT);
-                    brokerEvent.setRequestId("1234");
-                    Telemetry.getInstance().startEvent(brokerEvent.getTelemetryRequestId(), EventStrings.BROKER_REQUEST_SILENT);
-                    final AuthenticationResult result = brokerProxy.getAuthTokenInBackground(
-                            AuthenticationContextTest.createAuthenticationRequest(VALID_AUTHORITY, "resource", "clientid", "redirect", "", false), brokerEvent);
-                    Assert.assertTrue(result.getAccessToken().equals(MockBrokerAccountService.ACCESS_TOKEN));
-                    verifyBrokerEventList(brokerEvent);
-                } catch (final AuthenticationException e) {
-                    fail();
-                } finally {
-                    latch.countDown();
-                }
-            }
-        });
+        sThreadExecutor.execute(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        final Context context = getMockContext();
+                        final BrokerProxy brokerProxy = new BrokerProxy(context);
+                        try {
+                            final BrokerEvent brokerEvent =
+                                    new BrokerEvent(EventStrings.BROKER_REQUEST_SILENT);
+                            brokerEvent.setRequestId("1234");
+                            Telemetry.getInstance()
+                                    .startEvent(
+                                            brokerEvent.getTelemetryRequestId(),
+                                            EventStrings.BROKER_REQUEST_SILENT);
+                            final AuthenticationResult result =
+                                    brokerProxy.getAuthTokenInBackground(
+                                            AuthenticationContextTest.createAuthenticationRequest(
+                                                    VALID_AUTHORITY,
+                                                    "resource",
+                                                    "clientid",
+                                                    "redirect",
+                                                    "",
+                                                    false),
+                                            brokerEvent);
+                            Assert.assertTrue(
+                                    result.getAccessToken()
+                                            .equals(MockBrokerAccountService.ACCESS_TOKEN));
+                            verifyBrokerEventList(brokerEvent);
+                        } catch (final AuthenticationException e) {
+                            fail();
+                        } finally {
+                            latch.countDown();
+                        }
+                    }
+                });
         latch.await();
     }
 
     @Test
-    public void testGetIntentContainsSkipCacheAndClaimsForBrokerActivity() throws InterruptedException {
+    public void testGetIntentContainsSkipCacheAndClaimsForBrokerActivity()
+            throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
 
-        sThreadExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                final String claimsChallenge = "testClaims";
-                final AuthenticationRequest authRequest = createAuthenticationRequest("https://login.windows.net/omercantest", "resource", "client",
-                        "redirect", "loginhint", PromptBehavior.Auto, "", UUID.randomUUID(), false);
-                authRequest.setClaimsChallenge(claimsChallenge);
+        sThreadExecutor.execute(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        final String claimsChallenge = "testClaims";
+                        final AuthenticationRequest authRequest =
+                                createAuthenticationRequest(
+                                        "https://login.windows.net/omercantest",
+                                        "resource",
+                                        "client",
+                                        "redirect",
+                                        "loginhint",
+                                        PromptBehavior.Auto,
+                                        "",
+                                        UUID.randomUUID(),
+                                        false);
+                        authRequest.setClaimsChallenge(claimsChallenge);
 
-                final Context context = getMockContext();
-                final BrokerProxy brokerProxy = new BrokerProxy(context);
+                        final Context context = getMockContext();
+                        final BrokerProxy brokerProxy = new BrokerProxy(context);
 
-                final BrokerEvent brokerEvent = new BrokerEvent(EventStrings.BROKER_REQUEST_SILENT);
-                Telemetry.getInstance().flush("1234");
-                brokerEvent.setRequestId("1234");
-                Telemetry.getInstance().startEvent(brokerEvent.getTelemetryRequestId(), EventStrings.BROKER_REQUEST_INTERACTIVE);
+                        final BrokerEvent brokerEvent =
+                                new BrokerEvent(EventStrings.BROKER_REQUEST_SILENT);
+                        Telemetry.getInstance().flush("1234");
+                        brokerEvent.setRequestId("1234");
+                        Telemetry.getInstance()
+                                .startEvent(
+                                        brokerEvent.getTelemetryRequestId(),
+                                        EventStrings.BROKER_REQUEST_INTERACTIVE);
 
-                try {
-                    final Intent intent = brokerProxy.getIntentForBrokerActivity(authRequest, brokerEvent);
-                    assertTrue(claimsChallenge.equals(intent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_CLAIMS)));
+                        try {
+                            final Intent intent =
+                                    brokerProxy.getIntentForBrokerActivity(
+                                            authRequest, brokerEvent);
+                            assertTrue(
+                                    claimsChallenge.equals(
+                                            intent.getStringExtra(
+                                                    AuthenticationConstants.Broker
+                                                            .ACCOUNT_CLAIMS)));
 
-                } catch (final AuthenticationException exc) {
-                    fail("Exception is not expected.");
-                }
+                        } catch (final AuthenticationException exc) {
+                            fail("Exception is not expected.");
+                        }
 
-                verifyBrokerEventList(brokerEvent);
-                latch.countDown();
-            }
-        });
+                        verifyBrokerEventList(brokerEvent);
+                        latch.countDown();
+                    }
+                });
         latch.await();
     }
 
@@ -312,17 +406,24 @@ public final class BrokerAccountServiceTest {
             throws PackageManager.NameNotFoundException, NoSuchAlgorithmException {
         final Context context = getMockContext();
         final PackageManager mockedPackageManager = context.getPackageManager();
-        final SignatureData signatureData = getSignature(
-                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext(),
-                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext().getPackageName()
-        );
-        mockPackageManagerBrokerSignatureAndPermission(mockedPackageManager, signatureData.getSignature());
+        final SignatureData signatureData =
+                getSignature(
+                        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+                                .getContext(),
+                        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+                                .getContext()
+                                .getPackageName());
+        mockPackageManagerBrokerSignatureAndPermission(
+                mockedPackageManager, signatureData.getSignature());
 
         AuthenticationSettings.INSTANCE.setBrokerSignature(signatureData.getSignatureHash());
         AuthenticationSettings.INSTANCE.setUseBroker(true);
 
         final BrokerProxy brokerProxy = new BrokerProxy(context);
-        Assert.assertTrue(brokerProxy.canSwitchToBroker(BrokerProxyTests.TEST_AUTHORITY).equals(BrokerProxy.SwitchToBroker.CAN_SWITCH_TO_BROKER));
+        Assert.assertTrue(
+                brokerProxy
+                        .canSwitchToBroker(BrokerProxyTests.TEST_AUTHORITY)
+                        .equals(BrokerProxy.SwitchToBroker.CAN_SWITCH_TO_BROKER));
     }
 
     /**
@@ -336,23 +437,42 @@ public final class BrokerAccountServiceTest {
         final Context context = getMockContext();
         final PackageManager mockedPackageManager = context.getPackageManager();
 
-        final SignatureData signatureData = getSignature(
-                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext(),
-                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext().getPackageName()
-        );
-        mockPackageManagerBrokerSignatureAndPermission(mockedPackageManager, signatureData.getSignature());
+        final SignatureData signatureData =
+                getSignature(
+                        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+                                .getContext(),
+                        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+                                .getContext()
+                                .getPackageName());
+        mockPackageManagerBrokerSignatureAndPermission(
+                mockedPackageManager, signatureData.getSignature());
 
         AuthenticationSettings.INSTANCE.setUseBroker(true);
         AuthenticationSettings.INSTANCE.setBrokerSignature(signatureData.getSignatureHash());
         final BrokerProxy brokerProxy = new BrokerProxy(context);
-        Assert.assertFalse(brokerProxy.canSwitchToBroker(BrokerProxyTests.TEST_AUTHORITY).equals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER));
+        Assert.assertFalse(
+                brokerProxy
+                        .canSwitchToBroker(BrokerProxyTests.TEST_AUTHORITY)
+                        .equals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER));
     }
 
     private void verifyBrokerEventList(final BrokerEvent brokerEvent) {
         final List<Map.Entry<String, String>> eventLists = brokerEvent.getEvents();
-        assertTrue(eventLists.contains(new AbstractMap.SimpleEntry<>(EventStrings.BROKER_ACCOUNT_SERVICE_STARTS_BINDING, Boolean.toString(true))));
-        assertTrue(eventLists.contains(new AbstractMap.SimpleEntry<>(EventStrings.BROKER_ACCOUNT_SERVICE_BINDING_SUCCEED, Boolean.toString(true))));
-        assertTrue(eventLists.contains(new AbstractMap.SimpleEntry<>(EventStrings.BROKER_ACCOUNT_SERVICE_CONNECTED, Boolean.toString(true))));
+        assertTrue(
+                eventLists.contains(
+                        new AbstractMap.SimpleEntry<>(
+                                EventStrings.BROKER_ACCOUNT_SERVICE_STARTS_BINDING,
+                                Boolean.toString(true))));
+        assertTrue(
+                eventLists.contains(
+                        new AbstractMap.SimpleEntry<>(
+                                EventStrings.BROKER_ACCOUNT_SERVICE_BINDING_SUCCEED,
+                                Boolean.toString(true))));
+        assertTrue(
+                eventLists.contains(
+                        new AbstractMap.SimpleEntry<>(
+                                EventStrings.BROKER_ACCOUNT_SERVICE_CONNECTED,
+                                Boolean.toString(true))));
     }
 
     private BrokerEvent getBrokerEvent() {
@@ -360,31 +480,53 @@ public final class BrokerAccountServiceTest {
     }
 
     private Context getMockContext() {
-        final BrokerAccountServiceContext mockContext = new BrokerAccountServiceContext(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext());
+        final BrokerAccountServiceContext mockContext =
+                new BrokerAccountServiceContext(
+                        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+                                .getContext());
 
         final PackageManager mockedPackageManager = Mockito.mock(PackageManager.class);
-        Mockito.when(mockedPackageManager.queryIntentServices(Mockito.any(Intent.class), Mockito.anyInt())).thenReturn(
-                Collections.singletonList(Mockito.mock(ResolveInfo.class)));
+        Mockito.when(
+                        mockedPackageManager.queryIntentServices(
+                                Mockito.any(Intent.class), Mockito.anyInt()))
+                .thenReturn(Collections.singletonList(Mockito.mock(ResolveInfo.class)));
         mockContext.setMockedPackageManager(mockedPackageManager);
 
         final AccountManager mockedAccountManager = Mockito.mock(AccountManager.class);
-        final AuthenticatorDescription authenticatorDescription = new AuthenticatorDescription(
-                BROKER_ACCOUNT_TYPE, androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext().getPackageName(), 0, 0, 0, 0);
-        Mockito.when(mockedAccountManager.getAuthenticatorTypes()).thenReturn(new AuthenticatorDescription[]{authenticatorDescription});
+        final AuthenticatorDescription authenticatorDescription =
+                new AuthenticatorDescription(
+                        BROKER_ACCOUNT_TYPE,
+                        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+                                .getContext()
+                                .getPackageName(),
+                        0,
+                        0,
+                        0,
+                        0);
+        Mockito.when(mockedAccountManager.getAuthenticatorTypes())
+                .thenReturn(new AuthenticatorDescription[] {authenticatorDescription});
         mockContext.setMockedAccountManager(mockedAccountManager);
         return mockContext;
     }
 
-    private void mockPackageManagerBrokerSignatureAndPermission(final PackageManager packageManager, final Signature signature)
+    private void mockPackageManagerBrokerSignatureAndPermission(
+            final PackageManager packageManager, final Signature signature)
             throws PackageManager.NameNotFoundException {
-        Mockito.when(packageManager.checkPermission(Mockito.contains("android.permission.GET_ACCOUNTS"),
-                Mockito.anyString())).thenReturn(PackageManager.PERMISSION_DENIED);
+        Mockito.when(
+                        packageManager.checkPermission(
+                                Mockito.contains("android.permission.GET_ACCOUNTS"),
+                                Mockito.anyString()))
+                .thenReturn(PackageManager.PERMISSION_DENIED);
 
-        final PackageInfo mockedPackageInfo = new MockedPackageInfo(new Signature[]{signature});
-        Mockito.when(packageManager.getPackageInfo(Mockito.anyString(), Mockito.anyInt())).thenReturn(mockedPackageInfo);
+        final PackageInfo mockedPackageInfo = new MockedPackageInfo(new Signature[] {signature});
+        Mockito.when(packageManager.getPackageInfo(Mockito.anyString(), Mockito.anyInt()))
+                .thenReturn(mockedPackageInfo);
 
-        Mockito.when(packageManager.checkPermission(Mockito.contains("android.permission.GET_ACCOUNTS"),
-                Mockito.anyString())).thenReturn(PackageManager.PERMISSION_DENIED);
+        Mockito.when(
+                        packageManager.checkPermission(
+                                Mockito.contains("android.permission.GET_ACCOUNTS"),
+                                Mockito.anyString()))
+                .thenReturn(PackageManager.PERMISSION_DENIED);
     }
 
     private SignatureData getSignature(final Context context, final String packageName)

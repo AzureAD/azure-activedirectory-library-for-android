@@ -23,6 +23,11 @@
 
 package com.microsoft.aad.adal;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import android.content.Context;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
@@ -34,15 +39,11 @@ import org.junit.runner.RunWith;
 
 import java.util.Locale;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 @RunWith(AndroidJUnit4.class)
 public abstract class BaseTokenStoreTests extends AndroidTestHelper {
 
-    protected static final String TEST_AUTHORITY2 = "https://Developer.AndroiD.com/reference/android";
+    protected static final String TEST_AUTHORITY2 =
+            "https://Developer.AndroiD.com/reference/android";
 
     private Context mCtx;
 
@@ -129,8 +130,8 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         mTestItemMultiResourceUser2.setClientId("clientid2");
         mTestItemMultiResourceUser2.setUserInfo(user2);
         store.setItem(CacheKey.createCacheKey(mTestItem2), mTestItem2);
-        store.setItem(CacheKey.createCacheKey(mTestItemMultiResourceUser2),
-                mTestItemMultiResourceUser2);
+        store.setItem(
+                CacheKey.createCacheKey(mTestItemMultiResourceUser2), mTestItemMultiResourceUser2);
 
         return store;
     }
@@ -153,42 +154,65 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         item = store.getItem(CacheKey.createCacheKey("", "", "", true, "", null));
         assertNull("Token cache item is expected to be null", item);
 
-        item = store.getItem(CacheKey.createCacheKey(TEST_AUTHORITY2, "resource2", "clientid2",
-                true, "", null));
+        item =
+                store.getItem(
+                        CacheKey.createCacheKey(
+                                TEST_AUTHORITY2, "resource2", "clientid2", true, "", null));
         assertNull("Token cache item is expected to be null since userid is expected", item);
 
-        item = store.getItem(CacheKey.createCacheKey(TEST_AUTHORITY2, "resource2", "clientid2",
-                true, "userid1", null));
+        item =
+                store.getItem(
+                        CacheKey.createCacheKey(
+                                TEST_AUTHORITY2, "resource2", "clientid2", true, "userid1", null));
         assertNull(
                 "Token cache item is NOT expected since there isn't any multiResourceItem for this user",
                 item);
 
-        item = store.getItem(CacheKey.createCacheKey(TEST_AUTHORITY2, "resource2", "clientid2",
-                false, "userid1", null));
+        item =
+                store.getItem(
+                        CacheKey.createCacheKey(
+                                TEST_AUTHORITY2, "resource2", "clientid2", false, "userid1", null));
         assertNotNull("Token cache item is expected", item);
 
-        item = store.getItem(CacheKey.createCacheKey(TEST_AUTHORITY2, "resource2", "clientid2",
-                true, "userid2", null));
+        item =
+                store.getItem(
+                        CacheKey.createCacheKey(
+                                TEST_AUTHORITY2, "resource2", "clientid2", true, "userid2", null));
         assertNotNull("Token cache item is expected", item);
 
-        item = store.getItem(CacheKey.createCacheKey(TEST_AUTHORITY2, "resource2", "clientid2",
-                false, "userid2", null));
+        item =
+                store.getItem(
+                        CacheKey.createCacheKey(
+                                TEST_AUTHORITY2, "resource2", "clientid2", false, "userid2", null));
         assertNotNull("Token cache item is expected", item);
 
-        item = store.getItem(CacheKey.createCacheKey(TEST_AUTHORITY2.toUpperCase(Locale.US),
-                "resource2", "clientid2", false, "userid2", null));
+        item =
+                store.getItem(
+                        CacheKey.createCacheKey(
+                                TEST_AUTHORITY2.toUpperCase(Locale.US),
+                                "resource2",
+                                "clientid2",
+                                false,
+                                "userid2",
+                                null));
         assertNotNull("Expected to be case insensitive", item);
 
-        item = store.getItem(CacheKey.createCacheKey("AuthoritY", "resource", "clientid", false,
-                "userid1", null));
+        item =
+                store.getItem(
+                        CacheKey.createCacheKey(
+                                "AuthoritY", "resource", "clientid", false, "userid1", null));
         assertNotNull("Expected to be case insensitive", item);
 
-        item = store.getItem(CacheKey.createCacheKey("AuthoritY", "resource", "clientid", false,
-                null, null));
+        item =
+                store.getItem(
+                        CacheKey.createCacheKey(
+                                "AuthoritY", "resource", "clientid", false, null, null));
         assertNull("Expected to be null for null userid", item);
 
-        item = store.getItem(CacheKey.createCacheKey("AuthoritY", "resource", "clientid", true,
-                null, null));
+        item =
+                store.getItem(
+                        CacheKey.createCacheKey(
+                                "AuthoritY", "resource", "clientid", true, null, null));
         assertNull("Expected to be null for null userid", item);
 
         store.removeItem(CacheKey.createCacheKey(mTestItem));

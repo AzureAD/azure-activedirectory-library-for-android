@@ -27,8 +27,8 @@ import android.net.Uri;
 import android.os.Bundle;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.java.util.DateExtensions;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.java.util.DateExtensions;
 
 import java.io.Serializable;
 import java.util.Calendar;
@@ -84,8 +84,12 @@ public class UserInfo implements Serializable {
      * @param identityProvider IdentityProvider for the userInfo.
      * @param displayableId    Displayable for the userInfo.
      */
-    public UserInfo(String userid, String givenName, String familyName, String identityProvider,
-                    String displayableId) {
+    public UserInfo(
+            String userid,
+            String givenName,
+            String familyName,
+            String identityProvider,
+            String displayableId) {
         mUniqueId = userid;
         mGivenName = givenName;
         mFamilyName = familyName;
@@ -142,14 +146,15 @@ public class UserInfo implements Serializable {
         // Broker has one user and related to ADFS WPJ user. It does not return
         // idtoken
         String userid = bundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID);
-        String givenName = bundle
-                .getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME);
-        String familyName = bundle
-                .getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME);
-        String identityProvider = bundle
-                .getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER);
-        String displayableId = bundle
-                .getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE);
+        String givenName =
+                bundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME);
+        String familyName =
+                bundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME);
+        String identityProvider =
+                bundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER);
+        String displayableId =
+                bundle.getString(
+                        AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE);
         return new UserInfo(userid, givenName, familyName, identityProvider, displayableId);
     }
 

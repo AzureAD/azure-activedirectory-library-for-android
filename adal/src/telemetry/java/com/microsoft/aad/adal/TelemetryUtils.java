@@ -22,13 +22,13 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
 import static com.microsoft.aad.adal.EventStrings.LOGIN_HINT;
 import static com.microsoft.aad.adal.EventStrings.TENANT_ID;
 import static com.microsoft.aad.adal.EventStrings.USER_ID;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 public final class TelemetryUtils {
 
@@ -45,13 +45,7 @@ public final class TelemetryUtils {
     }
 
     private static void initializeGdprFilteredFields() {
-        GDPR_FILTERED_FIELDS.addAll(
-                Arrays.asList(
-                        LOGIN_HINT,
-                        USER_ID,
-                        TENANT_ID
-                )
-        );
+        GDPR_FILTERED_FIELDS.addAll(Arrays.asList(LOGIN_HINT, USER_ID, TENANT_ID));
     }
 
     public static class CliTelemInfo
@@ -90,9 +84,6 @@ public final class TelemetryUtils {
     public static CliTelemInfo parseXMsCliTelemHeader(final String headerValue) {
         return new CliTelemInfo(
                 com.microsoft.identity.common.java.telemetry.CliTelemInfo.fromXMsCliTelemHeader(
-                        headerValue
-                )
-        );
+                        headerValue));
     }
-
 }

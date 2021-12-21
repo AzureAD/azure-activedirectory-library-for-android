@@ -47,8 +47,10 @@ public class BrokerEventTest {
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
 
-        Assert.assertTrue(dispatchMap.containsKey(EventStrings.BROKER_ACCOUNT_SERVICE_BINDING_SUCCEED));
-        Assert.assertTrue(dispatchMap.containsKey(EventStrings.BROKER_ACCOUNT_SERVICE_STARTS_BINDING));
+        Assert.assertTrue(
+                dispatchMap.containsKey(EventStrings.BROKER_ACCOUNT_SERVICE_BINDING_SUCCEED));
+        Assert.assertTrue(
+                dispatchMap.containsKey(EventStrings.BROKER_ACCOUNT_SERVICE_STARTS_BINDING));
         Assert.assertTrue(dispatchMap.containsKey(EventStrings.BROKER_ACCOUNT_SERVICE_CONNECTED));
         Assert.assertTrue(dispatchMap.containsKey(EventStrings.BROKER_APP));
         Assert.assertTrue(dispatchMap.containsKey(EventStrings.BROKER_VERSION));

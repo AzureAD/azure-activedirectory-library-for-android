@@ -23,15 +23,15 @@
 
 package com.microsoft.aad.adal;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class CacheKeyTests {
@@ -41,34 +41,55 @@ public class CacheKeyTests {
      */
     @Test
     public void testcreateCacheKey() {
-        String testKey = CacheKey.createCacheKey("Authority", "Resource", "ClientId", false, null, null);
+        String testKey =
+                CacheKey.createCacheKey("Authority", "Resource", "ClientId", false, null, null);
         assertEquals("expected key", "authority$Resource$clientid$n$null", testKey);
 
-        String testKeyMultiResource = CacheKey.createCacheKey("Authority123", "Resource123",
-                "ClientId123", true, null, null);
+        String testKeyMultiResource =
+                CacheKey.createCacheKey(
+                        "Authority123", "Resource123", "ClientId123", true, null, null);
         assertEquals("expected key", "authority123$null$clientid123$y$null", testKeyMultiResource);
 
-        String testKeyMultiResourceWithUser = CacheKey.createCacheKey("Authority123",
-                "Resource123", "ClientId123", true, "user123", null);
-        assertEquals("expected key", "authority123$null$clientid123$y$user123",
+        String testKeyMultiResourceWithUser =
+                CacheKey.createCacheKey(
+                        "Authority123", "Resource123", "ClientId123", true, "user123", null);
+        assertEquals(
+                "expected key",
+                "authority123$null$clientid123$y$user123",
                 testKeyMultiResourceWithUser);
 
-        String testKeyWithUser = CacheKey.createCacheKey("Authority123", "Resource123",
-                "ClientId123", false, "user123", null);
-        assertEquals("expected key", "authority123$Resource123$clientid123$n$user123",
-                testKeyWithUser);
+        String testKeyWithUser =
+                CacheKey.createCacheKey(
+                        "Authority123", "Resource123", "ClientId123", false, "user123", null);
+        assertEquals(
+                "expected key", "authority123$Resource123$clientid123$n$user123", testKeyWithUser);
 
-        String testKeySlash = CacheKey.createCacheKey("Authority123EndsSlash/", "Resource123",
-                "ClientId123", true, "user123", null);
-        assertEquals("expected key", "authority123endsslash$null$clientid123$y$user123",
+        String testKeySlash =
+                CacheKey.createCacheKey(
+                        "Authority123EndsSlash/",
+                        "Resource123",
+                        "ClientId123",
+                        true,
+                        "user123",
+                        null);
+        assertEquals(
+                "expected key", "authority123endsslash$null$clientid123$y$user123", testKeySlash);
+
+        testKeySlash =
+                CacheKey.createCacheKey(
+                        "Authority123EndsSlash/",
+                        "Resource123",
+                        "ClientId123",
+                        false,
+                        "user123",
+                        null);
+        assertEquals(
+                "expected key",
+                "authority123endsslash$Resource123$clientid123$n$user123",
                 testKeySlash);
 
-        testKeySlash = CacheKey.createCacheKey("Authority123EndsSlash/", "Resource123",
-                "ClientId123", false, "user123", null);
-        assertEquals("expected key", "authority123endsslash$Resource123$clientid123$n$user123",
-                testKeySlash);
-
-        final String testKeyWithFamilyClientId = CacheKey.createCacheKey("authority", null, null, true, "user123", "family123");
+        final String testKeyWithFamilyClientId =
+                CacheKey.createCacheKey("authority", null, null, true, "user123", "family123");
         assertEquals("authority$null$null$y$user123$foci-family123", testKeyWithFamilyClientId);
     }
 
@@ -118,13 +139,13 @@ public class CacheKeyTests {
             Assert.fail("not expected");
         } catch (Exception exc) {
             assertTrue("argument exception", exc instanceof IllegalArgumentException);
-            assertEquals("contains resource", "resource",
-                    exc.getMessage());
+            assertEquals("contains resource", "resource", exc.getMessage());
         }
 
-        // Test resource is null but the cache key is for MRRT. 
+        // Test resource is null but the cache key is for MRRT.
         try {
-            final String cacheKey = CacheKey.createCacheKey("authority", null, "clientid", true, "user123", null);
+            final String cacheKey =
+                    CacheKey.createCacheKey("authority", null, "clientid", true, "user123", null);
             assertEquals("authority$null$clientid$y$user123", cacheKey);
         } catch (final Exception e) {
             fail("Non expected exceptions");
@@ -140,13 +161,16 @@ public class CacheKeyTests {
             fail("Expect exceptions");
         } catch (Exception exc) {
             assertTrue("argument exception", exc instanceof IllegalArgumentException);
-            assertEquals("contains clientId", "both clientId and familyClientId are null",
+            assertEquals(
+                    "contains clientId",
+                    "both clientId and familyClientId are null",
                     exc.getMessage());
         }
 
         // Test client id is null but family client id is not null
         try {
-            final String key = CacheKey.createCacheKey("authority", null, null, true, "user123", "family123");
+            final String key =
+                    CacheKey.createCacheKey("authority", null, null, true, "user123", "family123");
             assertEquals("authority$null$null$y$user123$foci-family123", key);
         } catch (final Exception exception) {
             fail("Non-expected exception");

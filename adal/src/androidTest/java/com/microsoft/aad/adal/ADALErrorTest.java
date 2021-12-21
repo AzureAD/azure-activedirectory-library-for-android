@@ -23,6 +23,11 @@
 
 package com.microsoft.aad.adal;
 
+import static androidx.test.InstrumentationRegistry.getInstrumentation;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.res.Configuration;
@@ -39,10 +44,6 @@ import org.junit.runner.RunWith;
 
 import java.util.Locale;
 
-import static androidx.test.InstrumentationRegistry.getInstrumentation;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 @RunWith(AndroidJUnit4.class)
 public class ADALErrorTest {
 
@@ -53,23 +54,17 @@ public class ADALErrorTest {
     public void setUp() throws Exception {
         System.setProperty(
                 "dexmaker.dexcache",
-                androidx.test.platform.app.InstrumentationRegistry
-                        .getInstrumentation()
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
                         .getTargetContext()
                         .getCacheDir()
-                        .getPath()
-        );
+                        .getPath());
 
         System.setProperty(
                 "org.mockito.android.target",
-                ApplicationProvider
-                        .getApplicationContext()
-                        .getCacheDir()
-                        .getPath()
-        );
+                ApplicationProvider.getApplicationContext().getCacheDir().getPath());
 
-        AuthenticationSettings.INSTANCE
-                .setBrokerPackageName(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
+        AuthenticationSettings.INSTANCE.setBrokerPackageName(
+                AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         Logger.d(TAG, "mTestSignature is set");
     }
 
@@ -78,22 +73,35 @@ public class ADALErrorTest {
     public void testResourceOverwrite() {
         ADALError err = ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED;
         String msg = err.getDescription();
-        Logger.i(TAG, "", "Test context packagename:" + getInstrumentation().getTargetContext().getPackageName());
+        Logger.i(
+                TAG,
+                "",
+                "Test context packagename:"
+                        + getInstrumentation().getTargetContext().getPackageName());
         Locale locale2 = new Locale("de");
         Locale.setDefault(locale2);
         Configuration config = new Configuration();
         config.setLocale(locale2);
-        getInstrumentation().getContext().getResources().updateConfiguration(config,
-                getInstrumentation().getContext().getResources().getDisplayMetrics());
+        getInstrumentation()
+                .getContext()
+                .getResources()
+                .updateConfiguration(
+                        config,
+                        getInstrumentation().getContext().getResources().getDisplayMetrics());
         String localizedMsg = err.getLocalizedDescription(getInstrumentation().getContext());
 
-        assertFalse("Error description is different in resource", msg.equalsIgnoreCase(localizedMsg));
+        assertFalse(
+                "Error description is different in resource", msg.equalsIgnoreCase(localizedMsg));
 
         Locale localefr = new Locale("fr");
         Locale.setDefault(localefr);
         config.setLocale(localefr);
-        getInstrumentation().getContext().getResources().updateConfiguration(config,
-                getInstrumentation().getContext().getResources().getDisplayMetrics());
+        getInstrumentation()
+                .getContext()
+                .getResources()
+                .updateConfiguration(
+                        config,
+                        getInstrumentation().getContext().getResources().getDisplayMetrics());
         localizedMsg = err.getLocalizedDescription(getInstrumentation().getContext());
 
         assertFalse("Same as english", msg.equalsIgnoreCase(localizedMsg));

@@ -23,7 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-
 /**
  * usage authentication error.
  */

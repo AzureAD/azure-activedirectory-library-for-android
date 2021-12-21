@@ -56,7 +56,8 @@ final class AuthorityValidationMetadataCache {
 
     private static final String ALIASES = "aliases";
 
-    private static ConcurrentMap<String, InstanceDiscoveryMetadata> sAadAuthorityHostMetadata = new ConcurrentHashMap<>();
+    private static ConcurrentMap<String, InstanceDiscoveryMetadata> sAadAuthorityHostMetadata =
+            new ConcurrentHashMap<>();
 
     private AuthorityValidationMetadataCache() {
         // Utility class, no public constructor
@@ -67,8 +68,11 @@ final class AuthorityValidationMetadataCache {
     }
 
     static boolean isAuthorityValidated(final URL authorityUrl) {
-        InstanceDiscoveryMetadata discoveryMetadata = getCachedInstanceDiscoveryMetadata(authorityUrl);
-        return containsAuthorityHost(authorityUrl) && discoveryMetadata != null && discoveryMetadata.isValidated();
+        InstanceDiscoveryMetadata discoveryMetadata =
+                getCachedInstanceDiscoveryMetadata(authorityUrl);
+        return containsAuthorityHost(authorityUrl)
+                && discoveryMetadata != null
+                && discoveryMetadata.isValidated();
     }
 
     @Nullable
@@ -76,9 +80,12 @@ final class AuthorityValidationMetadataCache {
         return sAadAuthorityHostMetadata.get(authorityUrl.getHost().toLowerCase(Locale.US));
     }
 
-    static void processInstanceDiscoveryMetadata(final URL authorityUrl, final Map<String, String> discoveryResponse) throws JSONException {
+    static void processInstanceDiscoveryMetadata(
+            final URL authorityUrl, final Map<String, String> discoveryResponse)
+            throws JSONException {
         final String methodName = ":processInstanceDiscoveryMetadata";
-        final boolean isTenantDiscoveryEndpointReturned = discoveryResponse.containsKey(TENANT_DISCOVERY_ENDPOINT);
+        final boolean isTenantDiscoveryEndpointReturned =
+                discoveryResponse.containsKey(TENANT_DISCOVERY_ENDPOINT);
         final String metadata = discoveryResponse.get(META_DATA);
         final String authorityHost = authorityUrl.getHost().toLowerCase(Locale.US);
 
@@ -90,14 +97,16 @@ final class AuthorityValidationMetadataCache {
         // No metadata is returned, fill in the metadata with passed
         if (StringExtensions.isNullOrBlank(metadata)) {
             Logger.v(TAG + methodName, "No metadata returned from instance discovery.");
-            sAadAuthorityHostMetadata.put(authorityHost, new InstanceDiscoveryMetadata(authorityHost, authorityHost));
+            sAadAuthorityHostMetadata.put(
+                    authorityHost, new InstanceDiscoveryMetadata(authorityHost, authorityHost));
             return;
         }
 
         processInstanceDiscoveryResponse(metadata);
     }
 
-    static void updateInstanceDiscoveryMap(final String host, final InstanceDiscoveryMetadata metadata) {
+    static void updateInstanceDiscoveryMap(
+            final String host, final InstanceDiscoveryMetadata metadata) {
         sAadAuthorityHostMetadata.put(host.toLowerCase(Locale.US), metadata);
     }
 
@@ -109,18 +118,22 @@ final class AuthorityValidationMetadataCache {
         sAadAuthorityHostMetadata.clear();
     }
 
-    private static void processInstanceDiscoveryResponse(final String metadata) throws JSONException {
+    private static void processInstanceDiscoveryResponse(final String metadata)
+            throws JSONException {
         final JSONArray jsonArray = new JSONArray(metadata);
         for (int i = 0; i < jsonArray.length(); i++) {
-            final InstanceDiscoveryMetadata instanceDiscoveryMetadata = processSingleJsonArray(new JSONObject(jsonArray.get(i).toString()));
+            final InstanceDiscoveryMetadata instanceDiscoveryMetadata =
+                    processSingleJsonArray(new JSONObject(jsonArray.get(i).toString()));
             final List<String> aliases = instanceDiscoveryMetadata.getAliases();
             for (final String alias : aliases) {
-                sAadAuthorityHostMetadata.put(alias.toLowerCase(Locale.US), instanceDiscoveryMetadata);
+                sAadAuthorityHostMetadata.put(
+                        alias.toLowerCase(Locale.US), instanceDiscoveryMetadata);
             }
         }
     }
 
-    private static InstanceDiscoveryMetadata processSingleJsonArray(final JSONObject jsonObject) throws JSONException {
+    private static InstanceDiscoveryMetadata processSingleJsonArray(final JSONObject jsonObject)
+            throws JSONException {
         final String preferredNetwork = jsonObject.getString(PREFERRED_NETWORK);
         final String preferredCache = jsonObject.getString(PREFERRED_CACHE);
         final JSONArray aliasArray = jsonObject.getJSONArray(ALIASES);

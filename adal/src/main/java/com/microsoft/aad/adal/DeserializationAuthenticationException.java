@@ -37,5 +37,4 @@ class DeserializationAuthenticationException extends AuthenticationException {
     DeserializationAuthenticationException(String msg) {
         super(ADALError.INCOMPATIBLE_BLOB_VERSION, msg);
     }
-
 }

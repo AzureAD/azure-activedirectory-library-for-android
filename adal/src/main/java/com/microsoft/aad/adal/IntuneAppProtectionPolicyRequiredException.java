@@ -39,7 +39,12 @@ public class IntuneAppProtectionPolicyRequiredException extends AuthenticationEx
      * @param authorityUrl  The authority URL, used by Intune MAM enrollment to support
      *                      sovereign clouds.  If null, default public cloud will be used.
      */
-    public IntuneAppProtectionPolicyRequiredException(final String msg, String accountUpn, String accountUserId, String tenantId, String authorityUrl) {
+    public IntuneAppProtectionPolicyRequiredException(
+            final String msg,
+            String accountUpn,
+            String accountUserId,
+            String tenantId,
+            String authorityUrl) {
         super(ADALError.AUTH_FAILED_INTUNE_POLICY_REQUIRED, msg);
         this.mAccountUpn = accountUpn;
         this.mAccountUserId = accountUserId;

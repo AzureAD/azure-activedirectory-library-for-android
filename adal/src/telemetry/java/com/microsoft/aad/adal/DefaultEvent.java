@@ -23,13 +23,13 @@
 
 package com.microsoft.aad.adal;
 
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.provider.Settings.Secure;
 import android.text.TextUtils;
+
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
@@ -38,7 +38,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
 
 class DefaultEvent implements IEvents {
     private final List<Map.Entry<String, String>> mEventList;
@@ -121,13 +120,16 @@ class DefaultEvent implements IEvents {
         sClientId = clientId;
         sApplicationName = context.getPackageName();
         try {
-            sApplicationVersion = context.getPackageManager().getPackageInfo(sApplicationName, 0).versionName;
+            sApplicationVersion =
+                    context.getPackageManager().getPackageInfo(sApplicationName, 0).versionName;
         } catch (PackageManager.NameNotFoundException nnfe) {
             sApplicationVersion = "NA";
         }
 
         try {
-            sDeviceId = StringExtensions.createHash(Secure.getString(context.getContentResolver(), Secure.ANDROID_ID));
+            sDeviceId =
+                    StringExtensions.createHash(
+                            Secure.getString(context.getContentResolver(), Secure.ANDROID_ID));
         } catch (UnsupportedEncodingException | NoSuchAlgorithmException e) {
             sDeviceId = "";
         }
@@ -143,7 +145,8 @@ class DefaultEvent implements IEvents {
 
     // Sets the correlation id to the top of the list
     void setCorrelationId(final String correlationId) {
-        mEventList.add(0, new AbstractMap.SimpleEntry<>(EventStrings.CORRELATION_ID, correlationId));
+        mEventList.add(
+                0, new AbstractMap.SimpleEntry<>(EventStrings.CORRELATION_ID, correlationId));
         mDefaultEventCount++;
     }
 

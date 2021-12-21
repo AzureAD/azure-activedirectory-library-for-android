@@ -54,7 +54,10 @@ final class InstanceDiscoveryMetadata {
      * @param preferredCache
      * @param aliases
      */
-    InstanceDiscoveryMetadata(final String preferredNetwork, final String preferredCache, final List<String> aliases) {
+    InstanceDiscoveryMetadata(
+            final String preferredNetwork,
+            final String preferredCache,
+            final List<String> aliases) {
         mPreferredNetwork = preferredNetwork;
         mPreferredCache = preferredCache;
         mAliases.addAll(aliases);

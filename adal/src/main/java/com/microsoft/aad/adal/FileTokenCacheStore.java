@@ -79,7 +79,8 @@ public class FileTokenCacheStore implements ITokenCacheStore {
         final File directory = context.getDir(context.getPackageName(), Context.MODE_PRIVATE);
 
         if (directory == null) {
-            throw new IllegalStateException("It could not access the Authorization cache directory");
+            throw new IllegalStateException(
+                    "It could not access the Authorization cache directory");
         }
 
         // Initialize cache from file if it exists
@@ -97,7 +98,10 @@ public class FileTokenCacheStore implements ITokenCacheStore {
                 if (cacheObj instanceof MemoryTokenCacheStore) {
                     mInMemoryCache = (MemoryTokenCacheStore) cacheObj;
                 } else {
-                    Logger.w(TAG + methodName, "Existing cache format is wrong. ", "",
+                    Logger.w(
+                            TAG + methodName,
+                            "Existing cache format is wrong. ",
+                            "",
                             ADALError.DEVICE_FILE_CACHE_FORMAT_IS_WRONG);
 
                     // Write operation will replace with correct file
@@ -108,14 +112,15 @@ public class FileTokenCacheStore implements ITokenCacheStore {
                 mInMemoryCache = new MemoryTokenCacheStore();
             }
         } catch (IOException | ClassNotFoundException ex) {
-            Logger.e(TAG + methodName, "Exception during cache load. ",
+            Logger.e(
+                    TAG + methodName,
+                    "Exception during cache load. ",
                     ExceptionExtensions.getExceptionMessage(ex),
                     ADALError.DEVICE_FILE_CACHE_IS_NOT_LOADED_FROM_FILE);
             // if it is not possible to load the cache because of permissions or
             // similar, it will not work again. File cache is not working and
             // not make sense to use it.
             throw new IllegalStateException(ex);
-
         }
     }
 
@@ -134,7 +139,6 @@ public class FileTokenCacheStore implements ITokenCacheStore {
         mInMemoryCache.setItem(key, item);
         writeToFile();
     }
-
 
     @Override
     public void removeItem(String key) {
@@ -162,7 +166,9 @@ public class FileTokenCacheStore implements ITokenCacheStore {
                     outputStream.close();
 
                 } catch (IOException ex) {
-                    Logger.e(TAG, "Exception during cache flush",
+                    Logger.e(
+                            TAG,
+                            "Exception during cache flush",
                             ExceptionExtensions.getExceptionMessage(ex),
                             ADALError.DEVICE_FILE_CACHE_IS_NOT_WRITING_TO_FILE);
                 }

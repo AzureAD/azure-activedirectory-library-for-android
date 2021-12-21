@@ -100,16 +100,26 @@ class AuthenticationRequest implements Serializable {
      * userid), so this sets the type of the request.
      */
     enum UserIdentifierType {
-        UniqueId, LoginHint, NoUser
+        UniqueId,
+        LoginHint,
+        NoUser
     }
 
     AuthenticationRequest() {
         mIdentifierType = UserIdentifierType.NoUser;
     }
 
-    AuthenticationRequest(String authority, String resource, String client, String redirect,
-                          String loginhint, PromptBehavior prompt, String extraQueryParams, UUID correlationId,
-                          boolean isExtendedLifetimeEnabled, final String claimsChallenge) {
+    AuthenticationRequest(
+            String authority,
+            String resource,
+            String client,
+            String redirect,
+            String loginhint,
+            PromptBehavior prompt,
+            String extraQueryParams,
+            UUID correlationId,
+            boolean isExtendedLifetimeEnabled,
+            final String claimsChallenge) {
         mAuthority = authority;
         mResource = resource;
         mClientId = client;
@@ -124,8 +134,14 @@ class AuthenticationRequest implements Serializable {
         mClaimsChallenge = claimsChallenge;
     }
 
-    AuthenticationRequest(String authority, String resource, String client, String redirect,
-                          String loginhint, UUID requestCorrelationId, boolean isExtendedLifetimeEnabled) {
+    AuthenticationRequest(
+            String authority,
+            String resource,
+            String client,
+            String redirect,
+            String loginhint,
+            UUID requestCorrelationId,
+            boolean isExtendedLifetimeEnabled) {
         mAuthority = authority;
         mResource = resource;
         mClientId = client;
@@ -136,8 +152,13 @@ class AuthenticationRequest implements Serializable {
         mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
     }
 
-    AuthenticationRequest(String authority, String resource, String client, String redirect,
-                          String loginhint, boolean isExtendedLifetimeEnabled) {
+    AuthenticationRequest(
+            String authority,
+            String resource,
+            String client,
+            String redirect,
+            String loginhint,
+            boolean isExtendedLifetimeEnabled) {
         mAuthority = authority;
         mResource = resource;
         mClientId = client;
@@ -147,7 +168,8 @@ class AuthenticationRequest implements Serializable {
         mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
     }
 
-    AuthenticationRequest(String authority, String resource, String clientid, boolean isExtendedLifetimeEnabled) {
+    AuthenticationRequest(
+            String authority, String resource, String clientid, boolean isExtendedLifetimeEnabled) {
         mAuthority = authority;
         mResource = resource;
         mClientId = clientid;
@@ -163,8 +185,13 @@ class AuthenticationRequest implements Serializable {
      * @param userid        user id
      * @param correlationId for logging
      */
-    AuthenticationRequest(String authority, String resource, String clientid, String userid,
-                          UUID correlationId, boolean isExtendedLifetimeEnabled) {
+    AuthenticationRequest(
+            String authority,
+            String resource,
+            String clientid,
+            String userid,
+            UUID correlationId,
+            boolean isExtendedLifetimeEnabled) {
         mAuthority = authority;
         mResource = resource;
         mClientId = clientid;
@@ -173,8 +200,15 @@ class AuthenticationRequest implements Serializable {
         mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
     }
 
-    AuthenticationRequest(String authority, String resource, String clientid, String userid,
-                          UUID correlationId, boolean isExtendedLifetimeEnabled, boolean forceRefresh, String claimsChallenge) {
+    AuthenticationRequest(
+            String authority,
+            String resource,
+            String clientid,
+            String userid,
+            UUID correlationId,
+            boolean isExtendedLifetimeEnabled,
+            boolean forceRefresh,
+            String claimsChallenge) {
         mAuthority = authority;
         mResource = resource;
         mClientId = clientid;
@@ -185,25 +219,43 @@ class AuthenticationRequest implements Serializable {
         mClaimsChallenge = claimsChallenge;
     }
 
-    AuthenticationRequest(String assertion, String assertionType, String authority,
-                          String resource, String clientid, String userid, UUID correlationId,
-                          boolean isExtendedLifetimeEnabled, boolean forceRefresh, String claimsChallenge) {
-        this(authority, resource, clientid, userid, correlationId, isExtendedLifetimeEnabled,
-                forceRefresh, claimsChallenge);
+    AuthenticationRequest(
+            String assertion,
+            String assertionType,
+            String authority,
+            String resource,
+            String clientid,
+            String userid,
+            UUID correlationId,
+            boolean isExtendedLifetimeEnabled,
+            boolean forceRefresh,
+            String claimsChallenge) {
+        this(
+                authority,
+                resource,
+                clientid,
+                userid,
+                correlationId,
+                isExtendedLifetimeEnabled,
+                forceRefresh,
+                claimsChallenge);
 
         mSamlAssertion = assertion;
-        if (assertionType != AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML11_BEARER_VALUE &&
-                assertionType != AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML2_BEARER_VALUE) {
+        if (assertionType != AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML11_BEARER_VALUE
+                && assertionType != AuthenticationConstants.OAuth2.MSID_OAUTH2_SAML2_BEARER_VALUE) {
             mAssertionType = null;
         } else {
             mLoginHint = userid;
             mAssertionType = assertionType;
         }
-
     }
 
-    AuthenticationRequest(String authority, String resource, String clientId,
-                          UUID correlationId, boolean isExtendedLifetimeEnabled) {
+    AuthenticationRequest(
+            String authority,
+            String resource,
+            String clientId,
+            UUID correlationId,
+            boolean isExtendedLifetimeEnabled) {
         mAuthority = authority;
         mClientId = clientId;
         mResource = resource;
@@ -221,8 +273,13 @@ class AuthenticationRequest implements Serializable {
      * @param isExtendedLifetimeEnabled a boolean indicating if extended lifetime enabled
      * @param scope                     the scope requested
      */
-    AuthenticationRequest(@NonNull String authority, @Nullable String resource, @NonNull String clientId,
-                          @NonNull UUID correlationId, boolean isExtendedLifetimeEnabled, @NonNull String scope) {
+    AuthenticationRequest(
+            @NonNull String authority,
+            @Nullable String resource,
+            @NonNull String clientId,
+            @NonNull UUID correlationId,
+            boolean isExtendedLifetimeEnabled,
+            @NonNull String scope) {
         mAuthority = authority;
         mClientId = clientId;
         mResource = resource;

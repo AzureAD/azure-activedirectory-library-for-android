@@ -23,6 +23,11 @@
 
 package com.microsoft.aad.adal;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.google.gson.Gson;
@@ -54,11 +59,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 /**
  * webrequest tests related to get, put, post, delete requests
  */
@@ -85,7 +85,8 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
      */
     @Test
     public void testCorrelationIdInRequest() throws IOException {
-        final String testUrl = "https://login.microsoftonline.com/test.onmicrosoft.com/oauth2/token";
+        final String testUrl =
+                "https://login.microsoftonline.com/test.onmicrosoft.com/oauth2/token";
         final UUID testCorrelationId = UUID.randomUUID();
         Logger.d(TAG, "Test correlationid:" + testCorrelationId.toString());
 
@@ -101,26 +102,42 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
 
         Mockito.when(mockedConnection.getInputStream())
                 .thenReturn(Util.createInputStream(testCorrelationId.toString()));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_BAD_REQUEST);
+        Mockito.when(mockedConnection.getResponseCode())
+                .thenReturn(HttpURLConnection.HTTP_BAD_REQUEST);
 
-        final HttpWebResponse testResponse = sendCorrelationIdRequest(testUrl, testCorrelationId, false);
+        final HttpWebResponse testResponse =
+                sendCorrelationIdRequest(testUrl, testCorrelationId, false);
 
-        assertEquals("400 error code", HttpURLConnection.HTTP_BAD_REQUEST, testResponse.getStatusCode());
+        assertEquals(
+                "400 error code", HttpURLConnection.HTTP_BAD_REQUEST, testResponse.getStatusCode());
         final String responseBody = testResponse.getBody();
         Logger.i(TAG, "", "Test response:" + responseBody);
         assertNotNull("webresponse is not null", testResponse);
-        assertEquals("same correlationid", testCorrelationId.toString(), testResponse.getResponseHeaders()
-                .get(AuthenticationConstants.AAD.CLIENT_REQUEST_ID).get(0));
-        assertTrue("correlationid in response", responseBody.contains(testCorrelationId.toString()));
+        assertEquals(
+                "same correlationid",
+                testCorrelationId.toString(),
+                testResponse
+                        .getResponseHeaders()
+                        .get(AuthenticationConstants.AAD.CLIENT_REQUEST_ID)
+                        .get(0));
+        assertTrue(
+                "correlationid in response", responseBody.contains(testCorrelationId.toString()));
 
         // same id for next request
-        final HttpWebResponse testResponse2 = sendCorrelationIdRequest(testUrl, testCorrelationId, true);
-        assertEquals("same correlationid", testCorrelationId.toString(), testResponse2.getResponseHeaders()
-                .get(AuthenticationConstants.AAD.CLIENT_REQUEST_ID).get(0));
+        final HttpWebResponse testResponse2 =
+                sendCorrelationIdRequest(testUrl, testCorrelationId, true);
+        assertEquals(
+                "same correlationid",
+                testCorrelationId.toString(),
+                testResponse2
+                        .getResponseHeaders()
+                        .get(AuthenticationConstants.AAD.CLIENT_REQUEST_ID)
+                        .get(0));
     }
 
-    private HttpWebResponse sendCorrelationIdRequest(final String message, final UUID testID,
-                                                     final boolean withoutHeader) throws IOException {
+    private HttpWebResponse sendCorrelationIdRequest(
+            final String message, final UUID testID, final boolean withoutHeader)
+            throws IOException {
         Logger.d(TAG, "test get" + android.os.Process.myTid());
 
         WebRequestHandler request = new WebRequestHandler();
@@ -129,29 +146,35 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         if (!withoutHeader) {
             headers.put("Accept", "application/json");
         }
-        return request.sendPost(getUrl(message), headers, null,
-                "application/x-www-form-urlencoded");
+        return request.sendPost(
+                getUrl(message), headers, null, "application/x-www-form-urlencoded");
     }
 
     @Test
     public void testNullUrl() {
-        assertThrowsException(IllegalArgumentException.class, "url", new ThrowableRunnable() {
-            public void run() throws IOException {
-                WebRequestHandler request = new WebRequestHandler();
-                request.sendGet(null, new HashMap<String, String>());
-            }
-        });
+        assertThrowsException(
+                IllegalArgumentException.class,
+                "url",
+                new ThrowableRunnable() {
+                    public void run() throws IOException {
+                        WebRequestHandler request = new WebRequestHandler();
+                        request.sendGet(null, new HashMap<String, String>());
+                    }
+                });
     }
 
     @Test
     public void testWrongSchemeUrl() {
 
-        assertThrowsException(IllegalArgumentException.class, "url", new ThrowableRunnable() {
-            public void run() throws IOException {
-                WebRequestHandler request = new WebRequestHandler();
-                request.sendGet(getUrl("ftp://test.com"), new HashMap<String, String>());
-            }
-        });
+        assertThrowsException(
+                IllegalArgumentException.class,
+                "url",
+                new ThrowableRunnable() {
+                    public void run() throws IOException {
+                        WebRequestHandler request = new WebRequestHandler();
+                        request.sendGet(getUrl("ftp://test.com"), new HashMap<String, String>());
+                    }
+                });
     }
 
     @Test
@@ -166,8 +189,8 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
 
         final WebRequestHandler request = new WebRequestHandler();
-        HttpWebResponse httpResponse = request.sendGet(getUrl(TEST_WEBAPI_URL),
-                getTestHeaders("testabc", "value123"));
+        HttpWebResponse httpResponse =
+                request.sendGet(getUrl(TEST_WEBAPI_URL), getTestHeaders("testabc", "value123"));
 
         assertNotNull(httpResponse != null);
         assertTrue("status is 200", httpResponse.getStatusCode() == HttpURLConnection.HTTP_OK);
@@ -186,14 +209,21 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getInputStream())
-                .thenReturn(Util.createInputStream(AAD.ADAL_ID_PLATFORM + "-Android" + "dummy string"
-                        + AAD.ADAL_ID_VERSION + "-"
-                        + AuthenticationContext.getVersionName()));
+                .thenReturn(
+                        Util.createInputStream(
+                                AAD.ADAL_ID_PLATFORM
+                                        + "-Android"
+                                        + "dummy string"
+                                        + AAD.ADAL_ID_VERSION
+                                        + "-"
+                                        + AuthenticationContext.getVersionName()));
         Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
 
         final WebRequestHandler request = new WebRequestHandler();
-        HttpWebResponse httpResponse = request.sendGet(getUrl(TEST_WEBAPI_URL),
-                getTestHeaders("testClientTraceInHeaders", "valueYes"));
+        HttpWebResponse httpResponse =
+                request.sendGet(
+                        getUrl(TEST_WEBAPI_URL),
+                        getTestHeaders("testClientTraceInHeaders", "valueYes"));
 
         assertNotNull(httpResponse != null);
         assertTrue("status is 200", httpResponse.getStatusCode() == HttpURLConnection.HTTP_OK);
@@ -201,8 +231,8 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         assertTrue("request header check", responseMsg.contains(AAD.ADAL_ID_PLATFORM + "-Android"));
         assertTrue(
                 "request header check",
-                responseMsg.contains(AAD.ADAL_ID_VERSION + "-"
-                        + AuthenticationContext.getVersionName()));
+                responseMsg.contains(
+                        AAD.ADAL_ID_VERSION + "-" + AuthenticationContext.getVersionName()));
     }
 
     @Test
@@ -232,8 +262,8 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
 
         final WebRequestHandler request = new WebRequestHandler();
-        HttpWebResponse httpResponse = request.sendGet(getUrl(TEST_WEBAPI_URL + "/1"),
-                new HashMap<String, String>());
+        HttpWebResponse httpResponse =
+                request.sendGet(getUrl(TEST_WEBAPI_URL + "/1"), new HashMap<String, String>());
 
         assertTrue("status is 200", httpResponse.getStatusCode() == HttpURLConnection.HTTP_OK);
         final String responseMsg = httpResponse.getBody();
@@ -248,20 +278,26 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
-        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+        Mockito.when(mockedConnection.getOutputStream())
+                .thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream())
-                .thenReturn(Util.createInputStream(message.getAccessToken() + message.getUserName()));
+                .thenReturn(
+                        Util.createInputStream(message.getAccessToken() + message.getUserName()));
 
         Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
 
         final WebRequestHandler request = new WebRequestHandler();
-        final HttpWebResponse httpResponse = request.sendPost(getUrl(TEST_WEBAPI_URL),
-                new HashMap<String, String>(),
-                json.getBytes(StandardCharsets.UTF_8), "application/json");
+        final HttpWebResponse httpResponse =
+                request.sendPost(
+                        getUrl(TEST_WEBAPI_URL),
+                        new HashMap<String, String>(),
+                        json.getBytes(StandardCharsets.UTF_8),
+                        "application/json");
 
         assertTrue("status is 200", httpResponse.getStatusCode() == HttpURLConnection.HTTP_OK);
         final String responseMsg = httpResponse.getBody();
-        assertTrue("request body check",
+        assertTrue(
+                "request body check",
                 responseMsg.contains(message.getAccessToken() + message.getUserName()));
     }
 
@@ -276,8 +312,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
          * No args constructor for use in serialization for Gson to prevent usage of sun.misc.Unsafe
          */
         @SuppressWarnings("unused")
-        private TestMessage() {
-        }
+        private TestMessage() {}
 
         TestMessage(String token, String name) {
             mAccessToken = token;
@@ -299,7 +334,6 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         public void setUserName(String userName) {
             mUserName = userName;
         }
-
     }
 
     private HashMap<String, String> getTestHeaders(String key, String value) {

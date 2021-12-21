@@ -65,8 +65,7 @@ final class CoreAdapter {
                 account.getName(),
                 account.getFamilyName(),
                 account.getIdentityProvider(),
-                account.getDisplayableId()
-        );
+                account.getDisplayableId());
     }
 
     /**
@@ -75,8 +74,10 @@ final class CoreAdapter {
      * @param result The AuthenticationResult to transform.
      * @return The newly created AzureActiveDirectoryTokenResponse.
      */
-    public static AzureActiveDirectoryTokenResponse asAadTokenResponse(final AuthenticationResult result) {
-        final AzureActiveDirectoryTokenResponse adTokenResponse = new AzureActiveDirectoryTokenResponse();
+    public static AzureActiveDirectoryTokenResponse asAadTokenResponse(
+            final AuthenticationResult result) {
+        final AzureActiveDirectoryTokenResponse adTokenResponse =
+                new AzureActiveDirectoryTokenResponse();
         adTokenResponse.setAccessToken(result.getAccessToken());
         adTokenResponse.setTokenType(result.getAccessTokenType());
         adTokenResponse.setRefreshToken(result.getRefreshToken());
@@ -102,7 +103,6 @@ final class CoreAdapter {
         return adTokenResponse;
     }
 
-
     public static AuthenticationException asAuthenticationException(BaseException ex) {
         AuthenticationException newException = ADALError.fromCommon(ex);
         if (ex instanceof ServiceException) {
@@ -114,10 +114,10 @@ final class CoreAdapter {
         return newException;
     }
 
-
     public static AzureActiveDirectoryCloud asAadCloud(final InstanceDiscoveryMetadata cloud) {
-        final AzureActiveDirectoryCloud adCloud = new AzureActiveDirectoryCloud(cloud.getPreferredNetwork(), cloud.getPreferredCache(), cloud.getAliases());
+        final AzureActiveDirectoryCloud adCloud =
+                new AzureActiveDirectoryCloud(
+                        cloud.getPreferredNetwork(), cloud.getPreferredCache(), cloud.getAliases());
         return adCloud;
     }
-
 }

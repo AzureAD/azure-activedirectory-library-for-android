@@ -23,6 +23,8 @@
 
 package com.microsoft.aad.adal;
 
+import static com.microsoft.identity.common.java.AuthenticationConstants.UIRequest.BROWSER_FLOW;
+
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -35,8 +37,6 @@ import com.microsoft.identity.common.java.exception.ClientException;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-
-import static com.microsoft.identity.common.java.AuthenticationConstants.UIRequest.BROWSER_FLOW;
 
 /**
  * Internal class handling the detailed acquire token interactive logic. Will be responsible for showing the webview,
@@ -53,8 +53,10 @@ final class AcquireTokenInteractiveRequest {
      * Constructor for {@link AcquireTokenInteractiveRequest}.
      * {@link TokenCacheAccessor} could be null. If null, won't handle with cache.
      */
-    AcquireTokenInteractiveRequest(final Context context, final AuthenticationRequest authRequest,
-                                   final TokenCacheAccessor tokenCacheAccessor) {
+    AcquireTokenInteractiveRequest(
+            final Context context,
+            final AuthenticationRequest authRequest,
+            final TokenCacheAccessor tokenCacheAccessor) {
         mContext = context;
         mTokenCacheAccessor = tokenCacheAccessor;
         mAuthRequest = authRequest;
@@ -63,14 +65,17 @@ final class AcquireTokenInteractiveRequest {
     void acquireToken(final IWindowComponent activity, final AuthenticationDialog dialog)
             throws AuthenticationException {
         final String methodName = ":acquireToken";
-        //Check if there is network connection
+        // Check if there is network connection
         HttpUtil.throwIfNetworkNotAvailable(mContext);
 
-        // Update the PromptBehavior. Since we add the new prompt behavior(force_prompt) for broker apps to
-        // force prompt, if this flag is set in the embedded flow, we need to update it to always. For embed
+        // Update the PromptBehavior. Since we add the new prompt behavior(force_prompt) for broker
+        // apps to
+        // force prompt, if this flag is set in the embedded flow, we need to update it to always.
+        // For embed
         // flow, force_prompt is the same as always.
         if (PromptBehavior.FORCE_PROMPT == mAuthRequest.getPrompt()) {
-            Logger.v(TAG + methodName, "FORCE_PROMPT is set for embedded flow, reset it as Always.");
+            Logger.v(
+                    TAG + methodName, "FORCE_PROMPT is set for embedded flow, reset it as Always.");
             mAuthRequest.setPrompt(PromptBehavior.Always);
         }
 
@@ -96,7 +101,11 @@ final class AcquireTokenInteractiveRequest {
      */
     AuthenticationResult acquireTokenWithAuthCode(final String url) throws AuthenticationException {
         final String methodName = ":acquireTokenWithAuthCode";
-        Logger.v(TAG + methodName, "Start token acquisition with auth code.", mAuthRequest.getLogInfo(), null);
+        Logger.v(
+                TAG + methodName,
+                "Start token acquisition with auth code.",
+                mAuthRequest.getLogInfo(),
+                null);
 
         final Oauth2 oauthRequest = new Oauth2(mAuthRequest, new WebRequestHandler());
         final AuthenticationResult result;
@@ -106,29 +115,38 @@ final class AcquireTokenInteractiveRequest {
         } catch (final IOException | AuthenticationException exc) {
             final String msg = "Error in processing code to get token. " + getCorrelationInfo();
             throw new AuthenticationException(
-                    ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
-                    msg, exc);
+                    ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN, msg, exc);
         }
 
         if (result == null) {
-            Logger.e(TAG + methodName, "Returned result with exchanging auth code for token is null" + getCorrelationInfo(), "",
+            Logger.e(
+                    TAG + methodName,
+                    "Returned result with exchanging auth code for token is null"
+                            + getCorrelationInfo(),
+                    "",
                     ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN);
             throw new AuthenticationException(
                     ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN, getCorrelationInfo());
         }
 
         if (!StringExtensions.isNullOrBlank(result.getErrorCode())) {
-            Logger.e(TAG + methodName, " ErrorCode:" + result.getErrorCode(), " ErrorDescription:" + result.getErrorDescription(), ADALError.AUTH_FAILED);
-            throw new AuthenticationException(ADALError.AUTH_FAILED,
-                    " ErrorCode:" + result.getErrorCode());
+            Logger.e(
+                    TAG + methodName,
+                    " ErrorCode:" + result.getErrorCode(),
+                    " ErrorDescription:" + result.getErrorDescription(),
+                    ADALError.AUTH_FAILED);
+            throw new AuthenticationException(
+                    ADALError.AUTH_FAILED, " ErrorCode:" + result.getErrorCode());
         }
 
-        if (!StringExtensions.isNullOrBlank(result.getAccessToken()) && mTokenCacheAccessor != null) {
+        if (!StringExtensions.isNullOrBlank(result.getAccessToken())
+                && mTokenCacheAccessor != null) {
             // Developer may pass null for the acquireToken flow.
             try {
                 mTokenCacheAccessor.updateTokenCache(mAuthRequest, result);
             } catch (MalformedURLException e) {
-                throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e.getMessage(), e);
+                throw new AuthenticationException(
+                        ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e.getMessage(), e);
             } catch (ClientException e) {
                 throw ADALError.fromCommon(e);
             }
@@ -136,7 +154,6 @@ final class AcquireTokenInteractiveRequest {
 
         return result;
     }
-
 
     /**
      * @return True if intent is sent to start the activity, false otherwise.
@@ -146,7 +163,10 @@ final class AcquireTokenInteractiveRequest {
         final Intent intent = getAuthenticationActivityIntent();
 
         if (!resolveIntent(intent)) {
-            Logger.e(TAG + methodName, "Intent is not resolved", "",
+            Logger.e(
+                    TAG + methodName,
+                    "Intent is not resolved",
+                    "",
                     ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED);
             return false;
         }
@@ -156,8 +176,12 @@ final class AcquireTokenInteractiveRequest {
             // when it is done
             activity.startActivityForResult(intent, BROWSER_FLOW);
         } catch (ActivityNotFoundException e) {
-            Logger.e(TAG + methodName, "Activity login is not found after resolving intent", "",
-                    ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED, e);
+            Logger.e(
+                    TAG + methodName,
+                    "Activity login is not found after resolving intent",
+                    "",
+                    ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED,
+                    e);
             return false;
         }
 
@@ -171,7 +195,8 @@ final class AcquireTokenInteractiveRequest {
         final Intent intent = new Intent();
         if (AuthenticationSettings.INSTANCE.getActivityPackageName() != null) {
             // This will use the activity from another given package.
-            intent.setClassName(AuthenticationSettings.INSTANCE.getActivityPackageName(),
+            intent.setClassName(
+                    AuthenticationSettings.INSTANCE.getActivityPackageName(),
                     AuthenticationActivity.class.getName());
         } else {
             // This will lookup the authentication activity within this context

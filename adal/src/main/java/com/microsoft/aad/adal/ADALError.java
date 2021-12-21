@@ -120,7 +120,8 @@ public enum ADALError {
      * can occur for a number of different reasons
      * https://developer.android.com/reference/android/view/InflateException
      */
-    DEVELOPER_DIALOG_INFLATION_ERROR("An error occur when attempting to inflate the authentication dialog"),
+    DEVELOPER_DIALOG_INFLATION_ERROR(
+            "An error occur when attempting to inflate the authentication dialog"),
 
     /**
      * Invalid request to server.
@@ -230,7 +231,8 @@ public enum ADALError {
     /**
      * Unable to access the network due to power optimizations.
      */
-    NO_NETWORK_CONNECTION_POWER_OPTIMIZATION("Unable to access the network due to power optimizations"),
+    NO_NETWORK_CONNECTION_POWER_OPTIMIZATION(
+            "Unable to access the network due to power optimizations"),
 
     /**
      * onActivityResult is called with null intent data. Activity may be
@@ -363,7 +365,7 @@ public enum ADALError {
      * Broker failed to get the PRT.
      */
     BROKER_PRT_FAILED("Broker failed to get PRT"),
-    
+
     /**
      * Authenticator is not responding.
      */
@@ -438,7 +440,7 @@ public enum ADALError {
      * Signature is not saved.
      */
     BROKER_SIGNATURE_NOT_SAVED("Signature is not saved"),
-    
+
     /**
      * Device registration failed
      */
@@ -448,7 +450,7 @@ public enum ADALError {
      * Token request after resolving web interrupt failed.
      */
     BROKER_ACCOUNT_FAILED_RESOLVED_INTERRUPT("Token request after resolving web interrupt failed"),
-    
+
     /**
      * Device does not support the algorithm.
      */
@@ -621,7 +623,7 @@ public enum ADALError {
     BROKER_APP_INSTALLATION_STARTED("Broker app installation started"),
 
     /**
-     * Multiple parallel UI requests. Broker will only allow one UI request per app at a time. 
+     * Multiple parallel UI requests. Broker will only allow one UI request per app at a time.
      */
     PARALLEL_UI_REQUESTS("Parallel UI requests, cancelling and only one request will be allowed."),
 
@@ -670,7 +672,6 @@ public enum ADALError {
         return mDescription;
     }
 
-
     /**
      * Gets localized description if provided with context.
      *
@@ -685,38 +686,52 @@ public enum ADALError {
         // order.
         if (context != null) {
             Configuration conf = context.getResources().getConfiguration();
-            Resources resources = new Resources(context.getAssets(), context.getResources()
-                    .getDisplayMetrics(), conf);
-            return resources.getString(resources.getIdentifier(this.name(), "string",
-                    context.getPackageName()));
+            Resources resources =
+                    new Resources(
+                            context.getAssets(), context.getResources().getDisplayMetrics(), conf);
+            return resources.getString(
+                    resources.getIdentifier(this.name(), "string", context.getPackageName()));
         }
         return mDescription;
     }
 
-    private static final Map<String, ADALError> exceptionMap = new HashMap<String,ADALError>();
+    private static final Map<String, ADALError> exceptionMap = new HashMap<String, ADALError>();
 
     static {
         exceptionMap.put(ErrorStrings.ANDROIDKEYSTORE_FAILED, ADALError.ANDROIDKEYSTORE_FAILED);
-        exceptionMap.put(ErrorStrings.AUTHORITY_URL_NOT_VALID, ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE);
-        exceptionMap.put(ErrorStrings.AUTHORITY_VALIDATION_NOT_SUPPORTED, ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED);
+        exceptionMap.put(
+                ErrorStrings.AUTHORITY_URL_NOT_VALID,
+                ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE);
+        exceptionMap.put(
+                ErrorStrings.AUTHORITY_VALIDATION_NOT_SUPPORTED,
+                ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED);
         exceptionMap.put(ErrorStrings.DECRYPTION_ERROR, ADALError.DECRYPTION_FAILED);
-        exceptionMap.put(ErrorStrings.DEVICE_NETWORK_NOT_AVAILABLE, ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
-        exceptionMap.put(ErrorStrings.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION, ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION);
+        exceptionMap.put(
+                ErrorStrings.DEVICE_NETWORK_NOT_AVAILABLE,
+                ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
+        exceptionMap.put(
+                ErrorStrings.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION,
+                ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION);
         exceptionMap.put(ErrorStrings.ENCRYPTION_ERROR, ADALError.ENCRYPTION_ERROR);
         exceptionMap.put(ErrorStrings.INVALID_JWT, ADALError.JSON_PARSE_ERROR);
         exceptionMap.put(ErrorStrings.IO_ERROR, ADALError.IO_EXCEPTION);
         exceptionMap.put(ErrorStrings.SOCKET_TIMEOUT, ADALError.SOCKET_TIMEOUT_EXCEPTION);
         exceptionMap.put(ErrorStrings.JSON_PARSE_FAILURE, ADALError.JSON_PARSE_ERROR);
         // TODO: :O
-        exceptionMap.put(ErrorStrings.MALFORMED_URL, ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL);
-        exceptionMap.put(ErrorStrings.MULTIPLE_MATCHING_TOKENS_DETECTED, ADALError.AUTH_FAILED_USER_MISMATCH);
+        exceptionMap.put(
+                ErrorStrings.MALFORMED_URL, ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL);
+        exceptionMap.put(
+                ErrorStrings.MULTIPLE_MATCHING_TOKENS_DETECTED,
+                ADALError.AUTH_FAILED_USER_MISMATCH);
         exceptionMap.put(ErrorStrings.USER_MISMATCH, ADALError.AUTH_FAILED_USER_MISMATCH);
         exceptionMap.put(ErrorStrings.NO_SUCH_ALGORITHM, ADALError.DEVICE_NO_SUCH_ALGORITHM);
         exceptionMap.put(ErrorStrings.UNSUPPORTED_ENCODING, ADALError.ENCODING_IS_NOT_SUPPORTED);
 
         // The following mapping need a lot more brushing up
-        exceptionMap.put(ErrorStrings.ACCESS_DENIED, ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
-        exceptionMap.put(ErrorStrings.INVALID_INSTANCE, ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
+        exceptionMap.put(
+                ErrorStrings.ACCESS_DENIED, ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
+        exceptionMap.put(
+                ErrorStrings.INVALID_INSTANCE, ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
         exceptionMap.put(ErrorStrings.INVALID_REQUEST, ADALError.SERVER_INVALID_REQUEST);
         exceptionMap.put(ErrorStrings.REQUEST_TIMEOUT, ADALError.SERVER_ERROR);
         exceptionMap.put(ErrorStrings.SERVICE_NOT_AVAILABLE, ADALError.SERVER_ERROR);
@@ -724,16 +739,19 @@ public enum ADALError {
 
         // broker validation errors
         exceptionMap.put(ErrorStrings.PACKAGE_NAME_NOT_FOUND, ADALError.PACKAGE_NAME_NOT_FOUND);
-        exceptionMap.put(ErrorStrings.BROKER_APP_VERIFICATION_FAILED, ADALError.BROKER_APP_VERIFICATION_FAILED);
-        exceptionMap.put(ErrorStrings.APP_PACKAGE_NAME_NOT_FOUND, ADALError.APP_PACKAGE_NAME_NOT_FOUND);
-
+        exceptionMap.put(
+                ErrorStrings.BROKER_APP_VERIFICATION_FAILED,
+                ADALError.BROKER_APP_VERIFICATION_FAILED);
+        exceptionMap.put(
+                ErrorStrings.APP_PACKAGE_NAME_NOT_FOUND, ADALError.APP_PACKAGE_NAME_NOT_FOUND);
     }
 
     public static AuthenticationException fromCommon(final BaseException exception) {
         // What do we do if errorCode is null?
-        final ADALError adalError =  exceptionMap.get(exception.getErrorCode());
+        final ADALError adalError = exceptionMap.get(exception.getErrorCode());
         if (adalError == null) {
-            return new AuthenticationException(ADALError.MAPPING_FAILURE, exception.getMessage(), exception);
+            return new AuthenticationException(
+                    ADALError.MAPPING_FAILURE, exception.getMessage(), exception);
         }
         return new AuthenticationException(adalError, exception.getMessage(), exception);
     }

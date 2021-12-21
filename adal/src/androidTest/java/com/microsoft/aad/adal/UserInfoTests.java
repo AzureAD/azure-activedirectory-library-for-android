@@ -92,7 +92,8 @@ public class UserInfoTests extends TestCase {
     }
 
     @SmallTest
-    public void testIdTokenParamPassword() throws AuthenticationException, UnsupportedEncodingException {
+    public void testIdTokenParamPassword()
+            throws AuthenticationException, UnsupportedEncodingException {
         final String rawIdToken = getIdToken("objectid", "upnid", "email", "subj");
         final IdToken idToken = new IdToken(rawIdToken);
         final UserInfo info = new UserInfo(idToken);
@@ -105,15 +106,20 @@ public class UserInfoTests extends TestCase {
         assertEquals("same family name", "familyName", info.getFamilyName());
         assertEquals("same identity name", "provider", info.getIdentityProvider());
         assertEquals("check displayable", "upnid", info.getDisplayableId());
-        assertEquals("check expireson", expires.getTime().getTime() / MILLISECONDS_TO_SECONDS,
+        assertEquals(
+                "check expireson",
+                expires.getTime().getTime() / MILLISECONDS_TO_SECONDS,
                 info.getPasswordExpiresOn().getTime() / MILLISECONDS_TO_SECONDS);
-        assertEquals("check uri", Uri.parse(idToken.getPasswordChangeUrl()).toString(),
+        assertEquals(
+                "check uri",
+                Uri.parse(idToken.getPasswordChangeUrl()).toString(),
                 info.getPasswordChangeUrl().toString());
     }
 
     private String getIdToken(String objId, String upnStr, String emailStr, String subjectStr)
             throws UnsupportedEncodingException {
-        final String sIdTokenClaims = "{\"aud\":\"c3c7f5e5-7153-44d4-90e6-329686d48d76\",\"iss\":\"https://sts.windows.net/6fd1f5cd-a94c-4335-889b-6c598e6d8048/\",\"iat\":1387224169,\"nbf\":1387224170,\"exp\":1387227769,\"pwd_exp\":1387227772,\"pwd_url\":\"pwdUrl\",\"ver\":\"1.0\",\"tid\":\"%s\",\"oid\":\"%s\",\"upn\":\"%s\",\"uniqueName\":\"%s\",\"sub\":\"%s\",\"family_name\":\"%s\",\"given_name\":\"%s\",\"altsecid\":\"%s\",\"idp\":\"%s\",\"email\":\"%s\"}";
+        final String sIdTokenClaims =
+                "{\"aud\":\"c3c7f5e5-7153-44d4-90e6-329686d48d76\",\"iss\":\"https://sts.windows.net/6fd1f5cd-a94c-4335-889b-6c598e6d8048/\",\"iat\":1387224169,\"nbf\":1387224170,\"exp\":1387227769,\"pwd_exp\":1387227772,\"pwd_url\":\"pwdUrl\",\"ver\":\"1.0\",\"tid\":\"%s\",\"oid\":\"%s\",\"upn\":\"%s\",\"uniqueName\":\"%s\",\"sub\":\"%s\",\"family_name\":\"%s\",\"given_name\":\"%s\",\"altsecid\":\"%s\",\"idp\":\"%s\",\"email\":\"%s\"}";
         final String sIdTokenHeader = "{\"typ\":\"JWT\",\"alg\":\"none\"}";
         final String tid = "tenantid";
         final String oid = objId;
@@ -125,15 +131,29 @@ public class UserInfoTests extends TestCase {
         final String altsecid = "altsecid";
         final String idp = "provider";
         final String email = emailStr;
-        final String claims = String.format(sIdTokenClaims, tid, oid, upn, uniqueName, sub, familyName, givenName,
-                altsecid, idp, email);
-        return String.format("%s.%s.",
+        final String claims =
+                String.format(
+                        sIdTokenClaims,
+                        tid,
+                        oid,
+                        upn,
+                        uniqueName,
+                        sub,
+                        familyName,
+                        givenName,
+                        altsecid,
+                        idp,
+                        email);
+        return String.format(
+                "%s.%s.",
                 new String(
-                        Base64.encode(sIdTokenHeader.getBytes(StandardCharsets.UTF_8),
+                        Base64.encode(
+                                sIdTokenHeader.getBytes(StandardCharsets.UTF_8),
                                 Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE),
                         StandardCharsets.UTF_8),
                 new String(
-                        Base64.encode(claims.getBytes(StandardCharsets.UTF_8),
+                        Base64.encode(
+                                claims.getBytes(StandardCharsets.UTF_8),
                                 Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE),
                         StandardCharsets.UTF_8));
     }

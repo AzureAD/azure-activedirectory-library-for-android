@@ -41,22 +41,22 @@ class WebFingerMetadataRequestor
     private static final String TAG = WebFingerMetadataRequestor.class.getSimpleName();
 
     @Override
-    WebFingerMetadata requestMetadata(final WebFingerMetadataRequestParameters webFingerMetadataRequestParameters)
+    WebFingerMetadata requestMetadata(
+            final WebFingerMetadataRequestParameters webFingerMetadataRequestParameters)
             throws AuthenticationException {
         final URL domain = webFingerMetadataRequestParameters.getDomain();
         final DRSMetadata drsMetadata = webFingerMetadataRequestParameters.getDrsMetadata();
-        Logger.i(TAG, "Validating authority for auth endpoint. ", "Auth endpoint: " + domain.toString());
+        Logger.i(
+                TAG,
+                "Validating authority for auth endpoint. ",
+                "Auth endpoint: " + domain.toString());
         try {
             // create the URL
             URL webFingerUrl = buildWebFingerUrl(domain, drsMetadata);
 
             // make the request
             final HttpWebResponse webResponse =
-                    getWebrequestHandler()
-                            .sendGet(
-                                    webFingerUrl,
-                                    new HashMap<String, String>()
-                            );
+                    getWebrequestHandler().sendGet(webFingerUrl, new HashMap<String, String>());
 
             // get the status code
             final int statusCode = webResponse.getStatusCode();
@@ -64,8 +64,7 @@ class WebFingerMetadataRequestor
             if (HttpURLConnection.HTTP_OK != statusCode) { // check 200 OK
                 // non-200 codes mean not valid/trusted
                 throw new AuthenticationException(
-                        ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE
-                );
+                        ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE);
             }
 
             // parse the response
@@ -83,7 +82,8 @@ class WebFingerMetadataRequestor
      * @return the parsed response
      */
     @Override
-    WebFingerMetadata parseMetadata(final HttpWebResponse webResponse) throws AuthenticationException {
+    WebFingerMetadata parseMetadata(final HttpWebResponse webResponse)
+            throws AuthenticationException {
         Logger.v(TAG, "Parsing WebFinger response.");
         try {
             return parser().fromJson(webResponse.getBody(), WebFingerMetadata.class);
@@ -103,11 +103,8 @@ class WebFingerMetadataRequestor
     @SuppressWarnings("PMD")
     static URL buildWebFingerUrl(final URL resource, final DRSMetadata drsMetadata)
             throws MalformedURLException {
-        final URL passiveAuthEndpoint = new URL(
-                drsMetadata
-                        .getIdentityProviderService()
-                        .getPassiveAuthEndpoint()
-        );
+        final URL passiveAuthEndpoint =
+                new URL(drsMetadata.getIdentityProviderService().getPassiveAuthEndpoint());
 
         // build the url
         final StringBuilder webFingerUrlBuilder =

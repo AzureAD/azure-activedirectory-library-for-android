@@ -23,14 +23,14 @@
 
 package com.microsoft.aad.adal;
 
+import static com.microsoft.aad.adal.TelemetryUtils.CliTelemInfo;
+
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.net.URL;
 import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.microsoft.aad.adal.TelemetryUtils.CliTelemInfo;
 
 final class HttpEvent extends DefaultEvent {
 
@@ -112,14 +112,12 @@ final class HttpEvent extends DefaultEvent {
     void setServerSubErrorCode(final String subErrorCode) {
         if (!StringExtensions.isNullOrBlank(subErrorCode) && !subErrorCode.equals("0")) {
             setProperty(EventStrings.SERVER_SUBERROR_CODE, subErrorCode.trim());
-
         }
     }
 
     void setRefreshTokenAge(final String tokenAge) {
         if (!StringExtensions.isNullOrBlank(tokenAge)) {
             setProperty(EventStrings.TOKEN_AGE, tokenAge.trim());
-
         }
     }
 
@@ -142,7 +140,8 @@ final class HttpEvent extends DefaultEvent {
         if (countObject == null) {
             dispatchMap.put(EventStrings.HTTP_EVENT_COUNT, "1");
         } else {
-            dispatchMap.put(EventStrings.HTTP_EVENT_COUNT,
+            dispatchMap.put(
+                    EventStrings.HTTP_EVENT_COUNT,
                     Integer.toString(Integer.parseInt(countObject) + 1));
         }
 

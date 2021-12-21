@@ -44,9 +44,8 @@ public final class ReflectionUtils {
      * @throws IllegalAccessException
      * @throws InvocationTargetException
      */
-    public static Method getTestMethod(final Object object,
-                                       final String methodName,
-                                       final Class<?>... paramtypes)
+    public static Method getTestMethod(
+            final Object object, final String methodName, final Class<?>... paramtypes)
             throws IllegalArgumentException, NoSuchMethodException {
         final Class<?> c = object.getClass();
         final Method m = c.getDeclaredMethod(methodName, paramtypes);
@@ -61,19 +60,17 @@ public final class ReflectionUtils {
         return f.get(object);
     }
 
-    public static void setFieldValue(final Object object,
-                                     final String fieldName,
-                                     final Object value)
+    public static void setFieldValue(
+            final Object object, final String fieldName, final Object value)
             throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
         final Field f = object.getClass().getDeclaredField(fieldName);
         f.setAccessible(true);
         f.set(object, value);
     }
 
-    public static Object getInstance(final String className,
-                                     final Object... params)
+    public static Object getInstance(final String className, final Object... params)
             throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
-            InstantiationException, IllegalAccessException, InvocationTargetException {
+                    InstantiationException, IllegalAccessException, InvocationTargetException {
         final Class<?> c = Class.forName(className);
         final Class<?>[] paramTypes = getTypes(params);
         final Constructor<?> constructorParams = c.getDeclaredConstructor(paramTypes);
@@ -87,7 +84,7 @@ public final class ReflectionUtils {
         if (params != null) {
             paramTypes = new Class<?>[params.length];
             for (int i = 0; i < params.length; i++) {
-                //paramTypes[i] = params[i].getClass();
+                // paramTypes[i] = params[i].getClass();
                 if (params[i].getClass().getSimpleName().equals("Boolean")) {
                     paramTypes[i] = boolean.class;
                 } else {
@@ -98,5 +95,4 @@ public final class ReflectionUtils {
 
         return paramTypes;
     }
-
 }
