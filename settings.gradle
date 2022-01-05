@@ -7,9 +7,12 @@ pluginManagement {
     }
 }
 
-include ':adal', ':userappwithbroker', ':common', 'keyvault', 'labapi', 'testutils', ':common4j'
+include ':adal', ':userappwithbroker', ':common', 'keyvault', 'labapi', 'testutils', ':common4j',
+        ':LabApiUtilities'
+
 project(':common').projectDir = new File('common/common')
 project(':keyvault').projectDir = new File('common/keyvault')
 project(':labapi').projectDir = new File('common/labapi')
 project(':testutils').projectDir = new File('common/testutils')
 project(':common4j').projectDir = new File('common/common4j')
+project(':LabApiUtilities').projectDir = new File('common/LabApiUtilities')

@@ -131,6 +131,8 @@ android {
     useLibrary 'android.test.mock'
 }
 
+String commonVersion = project.hasProperty("distCommonVersion") ? project.distCommonVersion : "0.0.+"
+
 dependencies {
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
 
@@ -147,12 +149,11 @@ dependencies {
         transitive = true
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.4.5', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: commonVersion, changing: true)
 
     // 'dist' flavor dependencies
-    //TODO: we will have to change transitive to true once common4j is published
-    distApi("com.microsoft.identity:common:3.4.5") {
-        transitive = false
+    distApi("com.microsoft.identity:common:${commonVersion}") {
+        transitive = true
     }
 
     // Android Instrumented Test Dependencies
@@ -184,7 +185,7 @@ task sourcesJar(type: Jar) {
 task javadoc(type: Javadoc) {
     failOnError false
     source = android.sourceSets.main.java.srcDirs
-    classpath += configurations.api
+    classpath += configurations.compile
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
     classpath += configurations.javadocDeps
     exclude '**/*.aidl'
