@@ -10,7 +10,7 @@ pr: none
 trigger: none
 
 schedules:
-  - cron: "0 22 * * 1-5" # 10 PM everyday Mon-Fri
+  - cron: "0 6 * * 1-6" # 6:00 AM UTC everyday Mon-Sat
     displayName: Auth Client Android SDK dev build
     branches:
       include:
@@ -47,6 +47,8 @@ variables:
   broker4jVersionParam: -PdistBroker4jVersion=$(versionNumber)
   commonVersionParam: -PdistCommonVersion=$(versionNumber)
   linuxBrokerVersion: -PlinuxBrokerVersion=$(versionNumber)
+  androidProjectDependencyParam: --configuration=distReleaseRuntimeClasspath --write-locks
+  javaProjectDependencyParam: --configuration=runtimeClasspath --write-locks
 
 pool:
   vmImage: ubuntu-latest
@@ -70,13 +72,16 @@ stages:
           ENV_VSTS_MVN_ANDROIDCOMMON_ACCESSTOKEN: $(mvnAccessToken)
         inputs:
           tasks: common4j:assemble $(projVersionParam) common4j:publish $(projVersionParam)
+                 common4j:dependencies $(javaProjectDependencyParam)
       - task: Gradle@3
         displayName: Build and publish android common
         env:
           ENV_VSTS_MVN_ANDROIDCOMMON_USERNAME: $(mvnUserName)
           ENV_VSTS_MVN_ANDROIDCOMMON_ACCESSTOKEN: $(mvnAccessToken)
         inputs:
-          tasks: common:assembleDist $(projVersionParam) $(common4jVersionParam) common:publishDistReleasePublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(common4jVersionParam)
+          tasks: common:assembleDist $(projVersionParam) $(common4jVersionParam)
+                 common:publishDistReleasePublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(common4jVersionParam)
+                 common:dependencies $(androidProjectDependencyParam) $(projVersionParam) $(common4jVersionParam)
 - stage: 'publishBrokerLibraries'
   displayName: Broker - Build and publish
   dependsOn: publishCommonLibraries
@@ -94,21 +99,27 @@ stages:
             ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME: $(mvnUserName)
             ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN: $(mvnAccessToken)
           inputs:
-            tasks: broker4j:assemble $(projVersionParam) $(common4jVersionParam) broker4j:publishAarPublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(common4jVersionParam)
+            tasks: broker4j:assemble $(projVersionParam) $(common4jVersionParam)
+                   broker4j:publishAarPublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(common4jVersionParam)
+                   broker4j:dependencies $(javaProjectDependencyParam)
         - task: Gradle@3
           displayName: Build and publish android broker
           env:
             ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME: $(mvnUserName)
             ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN: $(mvnAccessToken)
           inputs:
-            tasks: AADAuthenticator:assembleDist $(projVersionParam) $(broker4jVersionParam) $(commonVersionParam) AADAuthenticator:publishAdAccountsPublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(broker4jVersionParam) $(commonVersionParam)
+            tasks: AADAuthenticator:assembleDist $(projVersionParam) $(broker4jVersionParam) $(commonVersionParam)
+                   AADAuthenticator:publishAdAccountsPublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(broker4jVersionParam) $(commonVersionParam)
+                   AADAuthenticator:dependencies $(androidProjectDependencyParam)
         - task: Gradle@3
           displayName: Build and publish linux broker
           env:
             ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME: $(mvnUserName)
             ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN: $(mvnAccessToken)
           inputs:
-            tasks: linuxBroker:assemble $(projVersionParam) $(broker4jVersionParam) $(common4jVersionParam) linuxBroker:publishAarPublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(broker4jVersionParam) $(common4jVersionParam)
+            tasks: linuxBroker:assemble $(projVersionParam) $(broker4jVersionParam) $(common4jVersionParam) 
+                   linuxBroker:publishAarPublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(broker4jVersionParam) $(common4jVersionParam)
+                   linuxBroker:dependencies $(javaProjectDependencyParam)     
         - task: Gradle@3
           displayName: Build and publish linux broker packager
           env:
@@ -154,8 +165,7 @@ stages:
           displayName: 'Publish Artifact: Java Linux Test App Deb'
           inputs:
             ArtifactName: Java Linux Test App Deb Package
-            TargetPath: $(build.artifactstagingdirectory)/java-linux-test-app    
-            
+            TargetPath: $(build.artifactstagingdirectory)/java-linux-test-app               
 - stage: 'publishMsal'
   displayName: Msal - Build and publish
   dependsOn: publishCommonLibraries
@@ -173,7 +183,9 @@ stages:
           ENV_VSTS_MVN_ANDROID_MSAL_USERNAME: $(mvnUserName)
           ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN: $(mvnAccessToken)
         inputs:
-          tasks: msal:assembleDistRelease $(projVersionParam) $(commonVersionParam) msal:publishMsalPublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(commonVersionParam)
+          tasks: msal:assembleDistRelease $(projVersionParam) $(commonVersionParam)
+                 msal:publishMsalPublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(commonVersionParam)
+                 msal:dependencies $(androidProjectDependencyParam)
 - stage: 'publishAdal'
   displayName: Adal - Build and publish
   dependsOn: publishCommonLibraries
@@ -191,5 +203,7 @@ stages:
           ENV_VSTS_MVN_ANDROIDADAL_USERNAME: $(mvnUserName)
           ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN: $(mvnAccessToken)
         inputs:
-          tasks: adal:assembleDist $(projVersionParam) $(commonVersionParam) adal:publishAdalPublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(commonVersionParam)
+          tasks: adal:assembleDist $(projVersionParam) $(commonVersionParam)
+                 adal:publishAdalPublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(commonVersionParam)
+                 adal:dependencies $(androidProjectDependencyParam)
 ...
