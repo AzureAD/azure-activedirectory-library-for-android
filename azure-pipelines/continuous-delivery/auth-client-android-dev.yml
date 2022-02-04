@@ -142,30 +142,7 @@ stages:
           displayName: 'Publish Artifact: LinuxBrokerPackage Linux Test App Deb'
           inputs:
             ArtifactName: LinuxBrokerPackage Deb Package
-            TargetPath: $(build.artifactstagingdirectory)
-        - task: Gradle@3 
-          displayName: Build and publish java linux broker test app
-          env:
-            ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME: $(mvnUserName)
-            ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN: $(mvnAccessToken)
-          inputs:
-            cwd: $(Build.SourcesDirectory)/broker-java-root
-            tasks: java-linux-test-app:clean java-linux-test-app:buildDeb $(linuxBrokerVersion) --build-cache --info
-            publishJUnitResults: false
-            jdkArchitecture: x86
-            sqAnalysisBreakBuildIfQualityGateFailed: false
-        - task: CopyFiles@2
-          name: CopyFiles2
-          displayName: Copy Files to Artifact Staging Directory
-          inputs:
-            SourceFolder: java-linux-test-app/build/distributions
-            TargetFolder: $(build.artifactstagingdirectory)/java-linux-test-app
-        - task: PublishPipelineArtifact@1
-          name: PublishPipelineArtifacts2
-          displayName: 'Publish Artifact: Java Linux Test App Deb'
-          inputs:
-            ArtifactName: Java Linux Test App Deb Package
-            TargetPath: $(build.artifactstagingdirectory)/java-linux-test-app               
+            TargetPath: $(build.artifactstagingdirectory)                       
 - stage: 'publishMsal'
   displayName: Msal - Build and publish
   dependsOn: publishCommonLibraries
