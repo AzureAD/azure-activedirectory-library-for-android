@@ -25,40 +25,40 @@ resources:
     endpoint: ANDROID_GITHUB
 
 jobs:
-  - job: build_deb
-    displayName: Build & Publish Deb for ${{ parameters.project }}
-    cancelTimeoutInMinutes: 1
-    pool:
-      vmImage: ubuntu-20.04
-    steps:
-      - checkout: broker
-        clean: true
-        submodules: recursive
-        persistCredentials: True
-      - task: CmdLine@1
-        displayName: Set MVN Access Token in Environment
-        inputs:
-          filename: echo
-          arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN]$(mvnAccessToken)'
-      - task: Gradle@1
-        name: Gradle1
-        displayName: Build Deb with Java Dependency
-        inputs:
-          cwd: $(Build.SourcesDirectory)/broker-java-root
-          tasks: ${{ parameters.project }}:clean ${{ parameters.project }}:buildDeb --build-cache --info
-          publishJUnitResults: false
-          jdkArchitecture: x86
-          sqAnalysisBreakBuildIfQualityGateFailed: false
-      - task: CopyFiles@2
-        name: CopyFiles1
-        displayName: Copy Files to Artifact Staging Directory
-        inputs:
-          SourceFolder: ${{ parameters.project }}/build/distributions
-          TargetFolder: $(build.artifactstagingdirectory)
-      - task: PublishPipelineArtifact@1
-        name: PublishPipelineArtifacts1
-        displayName: 'Publish Artifact: Linux Test App Deb'
-        inputs:
-          ArtifactName: ${{ parameters.project }} Deb Package
-          TargetPath: $(build.artifactstagingdirectory)
+- job: build_deb
+  displayName: Build & Publish Deb for ${{ parameters.project }}
+  cancelTimeoutInMinutes: 1
+  pool:
+    vmImage: ubuntu-20.04
+  steps:
+  - checkout: broker
+    clean: true
+    submodules: recursive
+    persistCredentials: True
+  - task: CmdLine@1
+    displayName: Set MVN Access Token in Environment
+    inputs:
+      filename: echo
+      arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN]$(mvnAccessToken)'
+  - task: Gradle@1
+    name: Gradle1
+    displayName: Build Deb with Java Dependency
+    inputs:
+      cwd: $(Build.SourcesDirectory)/broker-java-root
+      tasks: ${{ parameters.project }}:clean ${{ parameters.project }}:buildDeb --build-cache --info
+      publishJUnitResults: false
+      jdkArchitecture: x86
+      sqAnalysisBreakBuildIfQualityGateFailed: false
+  - task: CopyFiles@2
+    name: CopyFiles1
+    displayName: Copy Files to Artifact Staging Directory
+    inputs:
+      SourceFolder: ${{ parameters.project }}/build/distributions
+      TargetFolder: $(build.artifactstagingdirectory)
+  - task: PublishPipelineArtifact@1
+    name: PublishPipelineArtifacts1
+    displayName: 'Publish Artifact: Linux Test App Deb'
+    inputs:
+      ArtifactName: ${{ parameters.project }} Deb Package
+      TargetPath: $(build.artifactstagingdirectory)
 ...
