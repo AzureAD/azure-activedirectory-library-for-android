@@ -83,4 +83,8 @@ ext {
     mockitoLibraryVersion = "1.2"
     dexMakerLibraryVersion = "1.2"
     //#### The ABOVE are TSL version variables - END
+
+    kotlinVersion = '1.5.30'
+    spotBugsGradlePluginVersion = '4.7.1'
+    jupiterApiVersion = '5.6.0'
 }

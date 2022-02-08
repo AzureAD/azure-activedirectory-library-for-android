@@ -1,0 +1,7 @@
+// Variables for plugins project
+ext {
+    kotlinVersion = '1.5.30'
+    spotBugsGradlePluginVersion = '4.7.1'
+    jupiterApiVersion = '5.6.0'
+    gradleVersion = '4.1.0'
+}

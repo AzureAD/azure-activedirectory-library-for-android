@@ -1,0 +1,307 @@
+# run broker UI automation testcases
+# Variable: 'ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME' was defined in the Variables tab
+# Variable: 'gCloudProjectId' was defined in the Variables tab
+# Variable: 'mvnAccessToken' was defined in the Variables tab
+name: $(Build.BuildId)_$(Build.DefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger: none
+pr: none
+
+resources:
+  repositories:
+  - repository: msal
+    type: github
+    name: AzureAD/microsoft-authentication-library-for-android
+    ref: $(msal_branch)
+    endpoint: ANDROID_GITHUB
+  - repository: broker
+    type: github
+    name: AzureAD/ad-accounts-for-android
+    ref: $(broker_branch)
+    endpoint: ANDROID_GITHUB
+
+variables:
+  engineeringProjectId: 'fac9d424-53d2-45c0-91b5-ef6ba7a6bf26'
+  azureSamplePipelineId: 1458
+  msazureServiceConnection: AndroidBroker-CI
+  msazureFeedName: Android-Broker
+  msalApp: msalautomationapp-dist-AutoBroker-debug.apk
+  msalTestApp: msalautomationapp-dist-AutoBroker-debug-androidTest.apk
+  brokerApp: brokerautomationapp-dist-AutoBroker-debug.apk
+  brokerTestApp: brokerautomationapp-dist-AutoBroker-debug-androidTest.apk
+  azureSampleApk: AzureSample-external-release.apk
+  companyPortalApk: com.microsoft.windowsintune.companyportal-signed.apk
+  authenticatorApk: app-production-universal-release-signed.apk
+  firebaseTimeout: 45m
+  resultsHistoryName: Broker Release
+
+parameters:
+- name: firebaseDeviceId
+  displayName: Firebase Device Id
+  type: string
+  default: flame
+- name: firebaseDeviceAndroidVersion
+  displayName: Firebase Device Android Version
+  type: number
+  default: 29
+- name: authenticatorVersion
+  displayName: Authenticator Version
+  type: string
+  default: '*'
+- name: companyPortalVersion
+  displayName: Company Portal Version
+  type: string
+  default: '*'
+
+stages:
+# msalautomationapp
+- stage: 'msalautomationapp'
+  displayName: Build MSAL Automation APKs
+  jobs:
+  - job: 'msalautomationapp'
+    displayName: Build and Publish MSAL Automation app
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - checkout: msal
+      clean: true
+      submodules: recursive
+      persistCredentials: True
+    - bash: |
+        echo "##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN]$(mvnAccessToken)"
+      displayName: Set MVN Access Token in Environment
+    - task: AzureKeyVault@2
+      displayName: 'Get Key vault AndroidAutomationRunnerAppSecret'
+      inputs:
+        azureSubscription: 'MSIDLABS_ANDROID_KV'
+        KeyVaultName: 'ADALTestInfo'
+        SecretsFilter: 'AndroidAutomationRunnerAppSecret'
+        RunAsPreJob: false
+    - task: Gradle@2
+      displayName: 'Assemble MSAL Automation App'
+      inputs:
+        tasks: clean msalautomationapp:assembleDistAutoBrokerDebug -PlabSecret=$(AndroidAutomationRunnerAppSecret) -PbrokerSource=LocalApk
+        publishJUnitResults: false
+    - task: Gradle@2
+      displayName: 'Assemble MSAL Automation App Instrumented Tests'
+      inputs:
+        tasks: 'msalautomationapp:assembleDistAutoBrokerDebugAndroidTest -PlabSecret=$(AndroidAutomationRunnerAppSecret)'
+        publishJUnitResults: false
+    - task: CopyFiles@2
+      displayName: 'Copy apks for later use in the pipeline'
+      inputs:
+        flattenFolders: true
+        contents: '$(Build.SourcesDirectory)/msalautomationapp/build/outputs/apk/**/*.apk'
+        targetFolder: '$(Build.ArtifactStagingDirectory)/msal'
+    - publish: '$(Build.ArtifactStagingDirectory)/msal'
+      displayName: 'Publish apks for later use'
+      artifact: msalautomationapks
+# brokerautomationapp
+- stage: 'brokerautomationapp'
+  dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
+  displayName: Build Broker Automation APKs
+  jobs: 
+  - job: 'brokerautomationapp'
+    displayName: Build and Publish Broker Automation app
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - checkout: broker
+      clean: true
+      submodules: recursive
+      persistCredentials: True
+    - bash: |
+        echo "##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN]$(mvnAccessToken)"
+      displayName: Set MVN Access Token in Environment
+    - task: AzureKeyVault@2
+      displayName: 'Get Key vault AndroidAutomationRunnerAppSecret'
+      inputs:
+        azureSubscription: 'MSIDLABS_ANDROID_KV'
+        KeyVaultName: 'ADALTestInfo'
+        SecretsFilter: 'AndroidAutomationRunnerAppSecret'
+        RunAsPreJob: false
+    - task: Gradle@2
+      displayName: 'Assemble Broker Automation App'
+      inputs:
+        tasks: clean brokerautomationapp:assembleDistAutoBrokerDebug -PlabSecret=$(AndroidAutomationRunnerAppSecret) -PbrokerSource=LocalApk
+        publishJUnitResults: false
+    - task: Gradle@2
+      displayName: 'Assemble Broker Automation App Instrumented Tests'
+      inputs:
+        tasks: 'brokerautomationapp:assembleDistAutoBrokerDebugAndroidTest -PlabSecret=$(AndroidAutomationRunnerAppSecret)'
+        publishJUnitResults: false
+    - task: CopyFiles@2
+      displayName: 'Copy apks for later use in the pipeline'
+      inputs:
+        flattenFolders: true
+        contents: '$(Build.SourcesDirectory)/brokerautomationapp/build/outputs/apk/**/*.apk'
+        targetFolder: '$(Build.ArtifactStagingDirectory)/broker'
+    - publish: '$(Build.ArtifactStagingDirectory)/broker'
+      displayName: 'Publish apks for later use'
+      artifact: brokerautomationapks
+# Brokers
+- stage: 'brokers'
+  dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
+  displayName: Brokers and Azure Sample APKs
+  jobs: 
+  - job: 'download_brokers'
+    displayName: Download Brokers
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - checkout: none
+    - task: DownloadPipelineArtifact@2
+      displayName: 'Download latest Azure Sample'
+      inputs:
+        buildType: 'specific'
+        project: '$(engineeringProjectId)'
+        definition: '$(azureSamplePipelineId)'
+        artifactName: AzureSample
+        itemPattern: '**/*.apk'
+        targetPath: '$(Build.ArtifactStagingDirectory)/azuresample'
+        buildVersionToDownload: 'latest'
+    - script: mkdir cpauth
+      displayName: 'make cpauth dir'
+      workingDirectory: '$(Build.ArtifactStagingDirectory)'
+    - task: UniversalPackages@0
+      displayName: 'Download com.azure.authenticator'
+      inputs:
+        command: 'download'
+        downloadDirectory: '$(Build.ArtifactStagingDirectory)/cpauth'
+        feedsToUse: 'external'
+        externalFeedCredentials: '$(msazureServiceConnection)'
+        feedDownloadExternal: '$(msazureFeedName)'
+        packageDownloadExternal: 'com.azure.authenticator'
+        versionDownloadExternal: '${{ parameters.authenticatorVersion }}'
+    - task: UniversalPackages@0
+      displayName: 'Download com.microsoft.windowsintune.companyportal-signed'
+      inputs:
+        command: 'download'
+        downloadDirectory: '$(Build.ArtifactStagingDirectory)/cpauth'
+        feedsToUse: 'external'
+        externalFeedCredentials: '$(msazureServiceConnection)'
+        feedDownloadExternal: '$(msazureFeedName)'
+        packageDownloadExternal: 'com.microsoft.windowsintune.companyportal-signed'
+        versionDownloadExternal: '${{ parameters.companyPortalVersion }}'
+    - publish: $(Build.ArtifactStagingDirectory)/cpauth
+      displayName: 'Publish Broker apks for later use'
+      artifact: brokerapks
+    - publish: $(Build.ArtifactStagingDirectory)/azuresample
+      displayName: 'Publish Azure Sample apk for later use'
+      artifact: azuresample
+# MSAL with Broker Test Plan stage
+- stage: 'msal_with_broker'
+  dependsOn:
+  - msalautomationapp
+  - brokers
+  displayName: Running MSAL with Broker Test Plan
+  jobs: 
+  - job: 'msal_with_broker'
+    displayName: Running MSAL with Broker Test Plan
+    timeoutInMinutes: 90
+    pool:
+      vmImage: ubuntu-latest
+    variables:
+      resultsDir: "msalautomationapp-testpass-broker-$(Build.BuildId)-$(Build.BuildNumber)"
+    steps:
+    - checkout: none
+    - task: DownloadSecureFile@1
+      displayName: 'Download Firebase Service Account Key File'
+      name: gcServiceAccountKey
+      inputs:
+        secureFile: AndroidFirebaseServiceAccountKey.json
+        retryCount: 5
+    - download: current
+    - script: gcloud version
+      displayName: 'Check gcloud version'
+    - task: Bash@3
+      displayName: Run UI Automation on Firebase
+      inputs:
+        targetType: inline
+        script: |
+          gcloud auth activate-service-account --key-file "$(gcServiceAccountKey.secureFilePath)"
+          gcloud config set project "$(gCloudProjectId)"
+          gcloud firebase test android run \
+            --type instrumentation \
+            --app "$(Pipeline.Workspace)/msalautomationapks/$(msalApp)" \
+            --test "$(Pipeline.Workspace)/msalautomationapks/$(msaltestApp)" \
+            --device "model=${{ parameters.firebaseDeviceId }},version=${{ parameters.firebaseDeviceAndroidVersion }}" \
+            --timeout "$(firebaseTimeout)" \
+            --other-files \
+            "/data/local/tmp/CompanyPortal.apk=$(Pipeline.Workspace)/brokerapks/$(companyPortalApk),\
+            /data/local/tmp/Authenticator.apk=$(Pipeline.Workspace)/brokerapks/$(authenticatorApk),\
+            /data/local/tmp/AzureSample.apk=$(Pipeline.Workspace)/azuresample/$(azureSampleApk)" \
+            --results-dir "$(resultsDir)" \
+            --directories-to-pull "/sdcard" \
+            --use-orchestrator \
+            --environment-variables "clearPackageData=true" \
+            --results-history-name "$(resultsHistoryName)" \
+            --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker"
+    - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/${{ parameters.firebaseDeviceId }}-${{ parameters.firebaseDeviceAndroidVersion }}-en-portrait/test_result_1.xml" "$(Build.SourcesDirectory)"
+      displayName: Download Test Result File
+      condition: succeededOrFailed()
+    - task: PublishTestResults@2
+      displayName: Publish Test Results to ADO
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFiles: '*test_result*.xml'
+        searchFolder: $(Build.SourcesDirectory)
+        testRunTitle: 'Broker(MSAL) UI Automation - Build # $(Build.BuildNumber)'
+# ADAL with Broker Test Plan stage
+- stage: 'adal_with_broker'
+  dependsOn:
+  - brokerautomationapp
+  - brokers
+  displayName: ADAL with broker and Broker basic validation test plan
+  jobs: 
+  - job: 'adal_with_broker'
+    displayName: ADAL with broker and Broker basic validation test plan
+    timeoutInMinutes: 90
+    pool:
+      vmImage: ubuntu-latest
+    variables:
+      resultsDir: "brokerautomationapp-testpass-adal&basic-$(Build.BuildId)-$(Build.BuildNumber)"
+    steps:
+    - checkout: none
+    - task: DownloadSecureFile@1
+      displayName: 'Download Firebase Service Account Key File'
+      name: gcServiceAccountKey
+      inputs:
+        secureFile: AndroidFirebaseServiceAccountKey.json
+        retryCount: 5
+    - download: current
+    - script: gcloud version
+      displayName: 'Check gcloud version'
+    - task: Bash@3
+      displayName: Run UI Automation on Firebase
+      inputs:
+        targetType: inline
+        script: |
+          gcloud auth activate-service-account --key-file "$(gcServiceAccountKey.secureFilePath)"
+          gcloud config set project "$(gCloudProjectId)"
+          gcloud firebase test android run \
+            --type instrumentation \
+            --app "$(Pipeline.Workspace)/brokerautomationapks/$(brokerApp)" \
+            --test "$(Pipeline.Workspace)/brokerautomationapks/$(brokertestApp)" \
+            --device "model=${{ parameters.firebaseDeviceId }},version=${{ parameters.firebaseDeviceAndroidVersion }}" \
+            --timeout "$(firebaseTimeout)" \
+            --other-files \
+            "/data/local/tmp/CompanyPortal.apk=$(Pipeline.Workspace)/brokerapks/$(companyPortalApk),\
+            /data/local/tmp/Authenticator.apk=$(Pipeline.Workspace)/brokerapks/$(authenticatorApk),\
+            /data/local/tmp/AzureSample.apk=$(Pipeline.Workspace)/azuresample/$(azureSampleApk)" \
+            --results-dir "$(resultsDir)" \
+            --directories-to-pull "/sdcard" \
+            --use-orchestrator \
+            --environment-variables "clearPackageData=true" \
+            --results-history-name "$(resultsHistoryName)" \
+            --test-targets "notPackage com.microsoft.identity.client.broker.automationapp.testpass.local.adal"
+    - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/${{ parameters.firebaseDeviceId }}-${{ parameters.firebaseDeviceAndroidVersion }}-en-portrait/test_result_1.xml" "$(Build.SourcesDirectory)"
+      displayName: Download Test Result File
+      condition: succeededOrFailed()
+    - task: PublishTestResults@2
+      displayName: Publish Test Results to ADO
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFiles: '*test_result*.xml'
+        searchFolder: $(Build.SourcesDirectory)
+        testRunTitle: 'Broker(ADAL) UI Automation - Build # $(Build.BuildNumber)'

@@ -1,0 +1,162 @@
+# File: azure-pipelines/continuous-delivery/auth-client-android-dev.yml
+# Description: Assemble & publish dev builds of auth client android sdk libraries to internal maven feed
+#  Libraries include common4j, common, broker4j, broker, msal and adal
+# Variable: 'mvnUserName' user name to access internal maven feed
+# Variable: 'mvnAccessToken' access token to access internal maven feed
+
+name: 0.0.$(Date:yyyyMMdd)-dev$(Rev:.r) # $(Build.BuildNumber) = name
+
+pr: none
+trigger: none
+
+schedules:
+  - cron: "0 6 * * 1-6" # 6:00 AM UTC everyday Mon-Sat
+    displayName: Auth Client Android SDK dev build
+    branches:
+      include:
+      - master
+    always: true
+
+resources:
+  repositories:
+    - repository: common
+      type: github
+      name: AzureAD/microsoft-authentication-library-common-for-android
+      ref: $(commonBranch)
+      endpoint: ANDROID_GITHUB
+    - repository: broker
+      type: github
+      name: AzureAD/ad-accounts-for-android
+      ref: $(brokerBranch)
+      endpoint: ANDROID_GITHUB
+    - repository: msal
+      type: github
+      name: AzureAD/microsoft-authentication-library-for-android
+      ref: $(msalBranch)
+      endpoint: ANDROID_GITHUB
+    - repository: adal
+      type: github
+      name: AzureAD/azure-activedirectory-library-for-android
+      ref: $(adalBranch)
+      endpoint: ANDROID_GITHUB
+
+variables:
+  versionNumber: $(Build.BuildNumber)
+  projVersionParam: -PprojVersion=$(versionNumber)
+  common4jVersionParam: -PdistCommon4jVersion=$(versionNumber)
+  broker4jVersionParam: -PdistBroker4jVersion=$(versionNumber)
+  commonVersionParam: -PdistCommonVersion=$(versionNumber)
+  androidProjectDependencyParam: --configuration=distReleaseRuntimeClasspath --write-locks
+  javaProjectDependencyParam: --configuration=runtimeClasspath --write-locks
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+- stage: 'publishCommonLibraries'
+  displayName: Common - Build and publish
+  pool:
+    vmImage: ubuntu-latest
+  jobs:
+    - job: publishCommonLibraries
+      displayName: Build and publish common4j and android common to internal maven feed
+      steps:
+      - checkout: common
+        persistCredentials: True
+        clean: true
+      - task: Gradle@3
+        displayName: Build and publish common4j
+        env:
+          ENV_VSTS_MVN_ANDROIDCOMMON_USERNAME: $(mvnUserName)
+          ENV_VSTS_MVN_ANDROIDCOMMON_ACCESSTOKEN: $(mvnAccessToken)
+        inputs:
+          tasks: common4j:assemble $(projVersionParam) common4j:publish $(projVersionParam)
+                 common4j:dependencies $(javaProjectDependencyParam)
+      - task: Gradle@3
+        displayName: Build and publish android common
+        env:
+          ENV_VSTS_MVN_ANDROIDCOMMON_USERNAME: $(mvnUserName)
+          ENV_VSTS_MVN_ANDROIDCOMMON_ACCESSTOKEN: $(mvnAccessToken)
+        inputs:
+          tasks: common:assembleDist $(projVersionParam) $(common4jVersionParam)
+                 common:publishDistReleasePublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(common4jVersionParam)
+                 common:dependencies $(androidProjectDependencyParam) $(projVersionParam) $(common4jVersionParam)
+- stage: 'publishBrokerLibraries'
+  displayName: Broker - Build and publish
+  dependsOn: publishCommonLibraries
+  pool:
+    vmImage: ubuntu-latest
+  jobs:
+    - job: publishBrokerLibraries
+      displayName: Build and publish broker4j, android broker and linux broker libraries to internal maven feed
+      steps:
+        - checkout: broker
+          persistCredentials: True
+        - task: Gradle@3
+          displayName: Build and publish broker4j
+          env:
+            ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME: $(mvnUserName)
+            ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN: $(mvnAccessToken)
+          inputs:
+            tasks: broker4j:assemble $(projVersionParam) $(common4jVersionParam)
+                   broker4j:publishAarPublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(common4jVersionParam)
+                   broker4j:dependencies $(javaProjectDependencyParam)
+        - task: Gradle@3
+          displayName: Build and publish android broker
+          env:
+            ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME: $(mvnUserName)
+            ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN: $(mvnAccessToken)
+          inputs:
+            tasks: AADAuthenticator:assembleDist $(projVersionParam) $(broker4jVersionParam) $(commonVersionParam)
+                   AADAuthenticator:publishAdAccountsPublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(broker4jVersionParam) $(commonVersionParam)
+                   AADAuthenticator:dependencies $(androidProjectDependencyParam)
+        - task: Gradle@3
+          displayName: Build and publish linux broker
+          env:
+            ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME: $(mvnUserName)
+            ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN: $(mvnAccessToken)
+          inputs:
+            tasks: linuxBroker:assemble $(projVersionParam) $(broker4jVersionParam) $(common4jVersionParam)
+                   linuxBroker:publishAarPublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(broker4jVersionParam) $(common4jVersionParam)
+                   linuxBroker:dependencies $(javaProjectDependencyParam)
+- stage: 'publishMsal'
+  displayName: Msal - Build and publish
+  dependsOn: publishCommonLibraries
+  pool:
+    vmImage: ubuntu-latest
+  jobs:
+  - job: publishAndroidMsal
+    displayName: Build and publish msal for android to internal maven feed
+    steps:
+      - checkout: msal
+        persistCredentials: True
+      - task: Gradle@3
+        displayName: Build and publish msal
+        env:
+          ENV_VSTS_MVN_ANDROID_MSAL_USERNAME: $(mvnUserName)
+          ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN: $(mvnAccessToken)
+        inputs:
+          tasks: msal:assembleDistRelease $(projVersionParam) $(commonVersionParam)
+                 msal:publishMsalPublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(commonVersionParam)
+                 msal:dependencies $(androidProjectDependencyParam)
+- stage: 'publishAdal'
+  displayName: Adal - Build and publish
+  dependsOn: publishCommonLibraries
+  pool:
+    vmImage: ubuntu-latest
+  jobs:
+  - job: publishAndroidAdal
+    displayName: Build and publish adal for android to internal maven feed
+    steps:
+      - checkout: adal
+        persistCredentials: True
+      - task: Gradle@3
+        displayName: Build and publish adal
+        env:
+          ENV_VSTS_MVN_ANDROIDADAL_USERNAME: $(mvnUserName)
+          ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN: $(mvnAccessToken)
+        inputs:
+          tasks: adal:assembleDist $(projVersionParam) $(commonVersionParam)
+                 adal:publishAdalPublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(commonVersionParam)
+                 adal:dependencies $(androidProjectDependencyParam)
+...
