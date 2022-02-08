@@ -93,6 +93,8 @@ jobs:
       publishJUnitResults: false
       jdkArchitecture: x86
       sqAnalysisBreakBuildIfQualityGateFailed: false
+      gradleWrapperFile: $(Agent.BuildDirectory)/android-complete/gradlew
+      cwd: $(Agent.BuildDirectory)/android-complete
   - task: PublishPipelineArtifact@1
     displayName: Publish Adal Host APK
     inputs:
