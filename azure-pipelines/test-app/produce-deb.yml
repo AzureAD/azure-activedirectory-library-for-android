@@ -18,6 +18,7 @@ schedules:
 
 resources:
   repositories:
+  - repository: broker
     type: github
     name: AzureAD/ad-accounts-for-android
     ref: $(local_ad_accounts_branch)
