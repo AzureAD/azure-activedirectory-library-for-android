@@ -76,7 +76,7 @@ jobs:
     name: Gradle1
     displayName: Assemble msalTestApp
     inputs:
-      tasks: testapps:testapp:clean testapps:testapp:$(AssembleTask)
+      tasks: msalTestApp:clean msalTestApp:$(AssembleTask)
       publishJUnitResults: false
       jdkArchitecture: x86
       sqAnalysisBreakBuildIfQualityGateFailed: false
@@ -85,7 +85,7 @@ jobs:
   - task: PublishPipelineArtifact@1
     displayName: Publish MSAL Test App
     inputs:
-      targetPath: testapps/testapp/build/outputs/apk/${{ lower(parameters.productFlavors) }}/${{ lower(parameters.signingConfigurations) }}
+      targetPath: C:/temp/android_auth/msalTestApp/build/outputs/apk/${{ lower(parameters.productFlavors) }}/${{ lower(parameters.signingConfigurations) }}
       artifactName: msalTestApp
       patterns: '**/*.apk'
 ...
