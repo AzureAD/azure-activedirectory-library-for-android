@@ -52,7 +52,7 @@ jobs:
 - job: adal_test_app
   displayName: Build ADAL Test App ${{ parameters.productFlavors }} ${{ parameters.signingConfigurations }} APK
   pool:
-    name: Hosted Windows 2019 with VS2019
+    vmImage: 'windows-latest'
   steps:
   - checkout: self
     clean: true
@@ -98,7 +98,7 @@ jobs:
   - task: PublishPipelineArtifact@1
     displayName: Publish Adal Host APK
     inputs:
-      targetPath: C:/temp/android_auth/adalTestApp/build/outputs/apk/${{ lower(parameters.productFlavors) }}/${{ lower(parameters.signingConfigurations) }}
+      targetPath: C:/temp/android_auth/adalTestApp/outputs/apk/${{ lower(parameters.productFlavors) }}/${{ lower(parameters.signingConfigurations) }}
       artifactName: adalTestApp
       patterns: '**/*.apk'
 ...

@@ -45,10 +45,11 @@ jobs:
 - job: msal_test_app
   displayName: Build MSAL Test App ${{ parameters.productFlavors }} ${{ parameters.signingConfigurations }} ${{variables.msal_version}} APK
   pool:
-    name: Hosted Windows 2019 with VS2019
+    vmImage: 'windows-latest'
   steps:
   - checkout: self
     clean: true
+    path: android-complete
   - checkout: msal
     clean: true
     path: android-complete/msal
@@ -85,7 +86,7 @@ jobs:
   - task: PublishPipelineArtifact@1
     displayName: Publish MSAL Test App
     inputs:
-      targetPath: C:/temp/android_auth/msalTestApp/build/outputs/apk/${{ lower(parameters.productFlavors) }}/${{ lower(parameters.signingConfigurations) }}
+      targetPath: C:/temp/android_auth/msalTestApp/outputs/apk/${{ lower(parameters.productFlavors) }}/${{ lower(parameters.signingConfigurations) }}
       artifactName: msalTestApp
       patterns: '**/*.apk'
 ...

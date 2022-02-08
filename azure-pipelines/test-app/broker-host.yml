@@ -62,7 +62,7 @@ jobs:
 - job: brokerhost
   displayName: Build BrokerHost ${{ parameters.productFlavors }} ${{ parameters.signingConfigurations }} APK
   pool:
-    name: Hosted Windows 2019 with VS2019
+    vmImage: 'windows-latest'
   steps:
   - checkout: self
     clean: true
