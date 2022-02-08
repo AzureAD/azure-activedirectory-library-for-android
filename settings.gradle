@@ -94,8 +94,8 @@ project(':java-linux-test-app').projectDir = new File('broker/java-linux-test-ap
 include(":LinuxBrokerPackage")
 project(':LinuxBrokerPackage').projectDir = new File('/broker/LinuxBrokerPackage')
 
-//include(":AzureSample")
-//project(':AzureSample').projectDir = new File('azuresample/app')
+include(":AzureSample")
+project(':AzureSample').projectDir = new File('azuresample/app')
 
 //include(":tsl")
 //project(':tsl').projectDir = new File('tsl/tokenshare')
