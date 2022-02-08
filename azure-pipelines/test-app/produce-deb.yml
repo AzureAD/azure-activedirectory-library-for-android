@@ -1,0 +1,63 @@
+# File: azure-pipelines\test-app\produce-deb.yml
+# Description: Buil Deb and also publish the Deb as pipeline artifact.
+# Variable: 'ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME' was defined in the Variables tab
+# Variable: 'mvnAccessToken' was defined in the Variables tab
+# https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate
+
+name: $(Build.BuildId)_$(Build.DefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger: none
+pr: none
+
+schedules:
+  - cron: 0 3 * * *
+    branches:
+      include:
+        - master
+    always: true
+
+resources:
+  repositories:
+    type: github
+    name: AzureAD/ad-accounts-for-android
+    ref: $(local_ad_accounts_branch)
+    endpoint: ANDROID_GITHUB
+
+jobs:
+  - job: build_deb
+    displayName: Build & Publish Deb for ${{ parameters.project }}
+    cancelTimeoutInMinutes: 1
+    pool:
+      vmImage: ubuntu-20.04
+    steps:
+      - checkout: broker
+        clean: true
+        submodules: recursive
+        persistCredentials: True
+      - task: CmdLine@1
+        displayName: Set MVN Access Token in Environment
+        inputs:
+          filename: echo
+          arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN]$(mvnAccessToken)'
+      - task: Gradle@1
+        name: Gradle1
+        displayName: Build Deb with Java Dependency
+        inputs:
+          cwd: $(Build.SourcesDirectory)/broker-java-root
+          tasks: ${{ parameters.project }}:clean ${{ parameters.project }}:buildDeb --build-cache --info
+          publishJUnitResults: false
+          jdkArchitecture: x86
+          sqAnalysisBreakBuildIfQualityGateFailed: false
+      - task: CopyFiles@2
+        name: CopyFiles1
+        displayName: Copy Files to Artifact Staging Directory
+        inputs:
+          SourceFolder: ${{ parameters.project }}/build/distributions
+          TargetFolder: $(build.artifactstagingdirectory)
+      - task: PublishPipelineArtifact@1
+        name: PublishPipelineArtifacts1
+        displayName: 'Publish Artifact: Linux Test App Deb'
+        inputs:
+          ArtifactName: ${{ parameters.project }} Deb Package
+          TargetPath: $(build.artifactstagingdirectory)
+...
