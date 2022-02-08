@@ -35,6 +35,11 @@ parameters:
 
 resources:
   repositories:
+  - repository: common
+    type: github
+    name: AzureAD/microsoft-authentication-library-common-for-android
+    ref: $(local_common_branch)
+    endpoint: ANDROID_GITHUB
   - repository: msal
     type: github
     name: AzureAD/microsoft-authentication-library-for-android
@@ -53,7 +58,9 @@ jobs:
   - checkout: msal
     clean: true
     path: android-complete/msal
-    submodules: true
+  - checkout: common
+    clean: true
+    path: android-complete/common
   - ${{ if eq(parameters.productFlavors, 'Dist') }}:
     - task: PowerShell@2
       displayName: Generate Assemble Dist Task
