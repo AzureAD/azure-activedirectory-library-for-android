@@ -1,4 +1,4 @@
-# File: azure-pipelines\test-app\produce-deb.yml
+# File: azure-pipelines\test-app\java-linux-test-app.yml
 # Description: Buil Deb and also publish the Deb as pipeline artifact.
 # Variable: 'ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME' was defined in the Variables tab
 # Variable: 'mvnAccessToken' was defined in the Variables tab
@@ -26,7 +26,7 @@ resources:
 
 jobs:
 - job: build_deb
-  displayName: Build & Publish Deb for ${{ parameters.project }}
+  displayName: Build & Publish Deb for java-linux-test-app
   cancelTimeoutInMinutes: 1
   pool:
     vmImage: ubuntu-20.04
@@ -45,7 +45,7 @@ jobs:
     displayName: Build Deb with Java Dependency
     inputs:
       cwd: $(Build.SourcesDirectory)/broker-java-root
-      tasks: ${{ parameters.project }}:clean ${{ parameters.project }}:buildDeb --build-cache --info
+      tasks: java-linux-test-app:clean java-linux-test-app:buildDeb --build-cache --info
       publishJUnitResults: false
       jdkArchitecture: x86
       sqAnalysisBreakBuildIfQualityGateFailed: false
@@ -53,12 +53,12 @@ jobs:
     name: CopyFiles1
     displayName: Copy Files to Artifact Staging Directory
     inputs:
-      SourceFolder: ${{ parameters.project }}/build/distributions
+      SourceFolder: java-linux-test-app/build/distributions
       TargetFolder: $(build.artifactstagingdirectory)
   - task: PublishPipelineArtifact@1
     name: PublishPipelineArtifacts1
     displayName: 'Publish Artifact: Linux Test App Deb'
     inputs:
-      ArtifactName: ${{ parameters.project }} Deb Package
+      ArtifactName: java-linux-test-app Deb Package
       TargetPath: $(build.artifactstagingdirectory)
 ...
