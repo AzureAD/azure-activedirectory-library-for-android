@@ -31,10 +31,6 @@ buildscript {
 }
 
 allprojects {
-    if (org.gradle.internal.os.OperatingSystem.current().isWindows()) {
-        buildDir = "C:/temp/${rootProject.name}/${project.name}"
-    }
-
     repositories {
         mavenLocal()
         google()
