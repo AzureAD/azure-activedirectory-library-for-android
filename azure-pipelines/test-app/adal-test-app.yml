@@ -95,7 +95,6 @@ jobs:
       sqAnalysisBreakBuildIfQualityGateFailed: false
       gradleWrapperFile: $(Agent.BuildDirectory)/android-complete/gradlew
       cwd: $(Agent.BuildDirectory)/android-complete
-  - script: tree $(Agent.WorkFolder)\1 /f
   - task: PublishPipelineArtifact@1
     displayName: Publish Adal Host APK
     inputs:
