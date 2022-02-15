@@ -123,7 +123,7 @@ jobs:
   - task: PublishPipelineArtifact@1
     displayName: Publish Broker Host APK
     inputs:
-      targetPath: broker/userapp/build/outputs/apk/${{ lower(parameters.productFlavors) }}/${{ lower(parameters.signingConfigurations) }}
+      targetPath: android-complete/broker/userapp/build/outputs/apk/${{ lower(parameters.productFlavors) }}/${{ lower(parameters.signingConfigurations) }}
       artifactName: BrokerHost
       patterns: '**/*.apk'
 ...

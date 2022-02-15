@@ -93,7 +93,7 @@ jobs:
   - task: PublishPipelineArtifact@1
     displayName: Publish MSAL Test App
     inputs:
-      targetPath: msal/testapps/testapp/build/outputs/apk/${{ lower(parameters.productFlavors) }}/${{ lower(parameters.signingConfigurations) }}
+      targetPath: android-complete/msal/testapps/testapp/build/outputs/apk/${{ lower(parameters.productFlavors) }}/${{ lower(parameters.signingConfigurations) }}
       artifactName: msalTestApp
       patterns: '**/*.apk'
 ...
