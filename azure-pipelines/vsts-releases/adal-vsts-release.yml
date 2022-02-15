@@ -17,7 +17,7 @@ resources:
   - repository: common
     type: github
     name: AzureAD/microsoft-authentication-library-common-for-android
-    ref: dev
+    ref: pedroro/eoc-agents
     endpoint: ANDROID_GITHUB
 
 jobs:
@@ -27,4 +27,4 @@ jobs:
     envVstsMvnAndroidAccessTokenVar: ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN
     assembleTask: assembleDist
     publishTask: publish
-
+    sbomConfiguration: distReleaseRuntimeClasspath
