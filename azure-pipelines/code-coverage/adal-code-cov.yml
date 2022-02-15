@@ -59,7 +59,7 @@ jobs:
   - task: Gradle@2
     displayName: Run ADAL Code Coverage
     inputs:
-      tasks: adal:localDebugAdalUnitTestCoverageReport -Plabtest -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PcodeCoverageEnabled=true
+      tasks: adal:localDebugAdalUnitTestCoverageReport -Plabtest -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PcodeCoverageEnabled=true -PandroidTestsCodeCoverageEnabled=true
   - task: PublishCodeCoverageResults@1
     displayName: Publish Code Coverage Report
     inputs:

@@ -18,14 +18,20 @@ buildSystem {
     desugar = desugarCode
 }
 
-def enableCodeCoverage = false
+def enableCodeCoverage = true
+def enableAndroidTestsCodeCoverage = true
 
 if (project.hasProperty("codeCoverageEnabled")) {
     enableCodeCoverage = codeCoverageEnabled.toBoolean()
 }
 
+if (project.hasProperty("androidTestsCodeCoverageEnabled")) {
+    enableAndroidTestsCodeCoverage = androidTestsCodeCoverageEnabled.toBoolean()
+}
+
 codeCoverageReport {
     coverage.enabled = enableCodeCoverage
+    androidTests.enabled = enableAndroidTestsCodeCoverage
 }
 
 group = 'com.microsoft.aad'
