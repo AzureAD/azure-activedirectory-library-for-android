@@ -46,6 +46,7 @@ variables:
   common4jVersionParam: -PdistCommon4jVersion=$(versionNumber)
   broker4jVersionParam: -PdistBroker4jVersion=$(versionNumber)
   commonVersionParam: -PdistCommonVersion=$(versionNumber)
+  linuxBrokerVersion: -PlinuxBrokerVersion=$(versionNumber)
   androidProjectDependencyParam: --configuration=distReleaseRuntimeClasspath --write-locks
   javaProjectDependencyParam: --configuration=runtimeClasspath --write-locks
 
@@ -116,9 +117,32 @@ stages:
             ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME: $(mvnUserName)
             ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN: $(mvnAccessToken)
           inputs:
-            tasks: linuxBroker:assemble $(projVersionParam) $(broker4jVersionParam) $(common4jVersionParam)
+            tasks: linuxBroker:assemble $(projVersionParam) $(broker4jVersionParam) $(common4jVersionParam) 
                    linuxBroker:publishAarPublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(broker4jVersionParam) $(common4jVersionParam)
-                   linuxBroker:dependencies $(javaProjectDependencyParam)
+                   linuxBroker:dependencies $(javaProjectDependencyParam)     
+        - task: Gradle@3
+          displayName: Build and publish linux broker packager
+          env:
+            ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME: $(mvnUserName)
+            ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN: $(mvnAccessToken)
+          inputs:
+            cwd: $(Build.SourcesDirectory)/broker-java-root
+            tasks: LinuxBrokerPackage:clean LinuxBrokerPackage:buildDeb $(linuxBrokerVersion) --build-cache --info
+            publishJUnitResults: false
+            jdkArchitecture: x86
+            sqAnalysisBreakBuildIfQualityGateFailed: false
+        - task: CopyFiles@2
+          name: CopyFiles1
+          displayName: Copy Files to Artifact Staging Directory
+          inputs:
+            SourceFolder: LinuxBrokerPackage/build/distributions
+            TargetFolder: $(build.artifactstagingdirectory)
+        - task: PublishPipelineArtifact@1
+          name: PublishPipelineArtifacts1
+          displayName: 'Publish Artifact: LinuxBrokerPackage Linux Test App Deb'
+          inputs:
+            ArtifactName: LinuxBrokerPackage Deb Package
+            TargetPath: $(build.artifactstagingdirectory)                       
 - stage: 'publishMsal'
   displayName: Msal - Build and publish
   dependsOn: publishCommonLibraries
