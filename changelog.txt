@@ -1,5 +1,8 @@
 v.Next
 ----------
+
+Version 4.0.1
+-------------
 - [MINOR] Migrate BaseController to common4j (#1636)
 - [MAJOR] Migrate Token Caches to Common4j (#1633)
 - [MINOR] Adapt to migration of shared preferences. (#1624)
