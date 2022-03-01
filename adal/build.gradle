@@ -1,5 +1,5 @@
 plugins {
-    id 'com.microsoft.identity.buildsystem' version '0.1.0'
+    id 'com.microsoft.identity.buildsystem' version '0.2.3'
     id 'com.android.library'
     id 'pmd'
     id 'checkstyle'
@@ -16,6 +16,22 @@ if(project.hasProperty("sugar")){
 
 buildSystem {
     desugar = desugarCode
+}
+
+def enableCodeCoverage = true
+def enableAndroidTestsCodeCoverage = true
+
+if (project.hasProperty("codeCoverageEnabled")) {
+    enableCodeCoverage = codeCoverageEnabled.toBoolean()
+}
+
+if (project.hasProperty("androidTestsCodeCoverageEnabled")) {
+    enableAndroidTestsCodeCoverage = androidTestsCodeCoverageEnabled.toBoolean()
+}
+
+codeCoverageReport {
+    coverage.enabled = enableCodeCoverage
+    androidTests.enabled = enableAndroidTestsCodeCoverage
 }
 
 group = 'com.microsoft.aad'
@@ -68,7 +84,7 @@ android {
     }
     buildTypes {
         debug {
-            testCoverageEnabled false
+            testCoverageEnabled enableCodeCoverage
             debuggable true
             buildConfigField("String", "VERSION_NAME", "\"${versionName}\"")
         }
