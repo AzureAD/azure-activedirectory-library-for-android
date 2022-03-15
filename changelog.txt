@@ -1,6 +1,6 @@
 v.Next
 ----------
-
+- [PATCH] Update gson version to 2.8.9
 Version 4.0.1
 -------------
 - [MINOR] Migrate BaseController to common4j (#1636)
