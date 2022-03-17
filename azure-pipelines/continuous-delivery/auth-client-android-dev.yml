@@ -72,6 +72,16 @@ stages:
           ENV_VSTS_MVN_ANDROIDCOMMON_ACCESSTOKEN: $(mvnAccessToken)
         inputs:
           tasks: common4j:dependencies $(javaProjectDependencyParam)
+      - task: CopyFiles@2
+        displayName: Upload Lockfile common4j
+        inputs:
+          SourceFolder: common4j/gradle/dependency-locks
+          TargetFolder: $(build.artifactstagingdirectory)\common4j\dependency-locks
+      - task: PublishPipelineArtifact@1
+        displayName: 'Publish Artifact: Lockfile common4j'
+        inputs:
+          ArtifactName: Dependency-Locks
+          TargetPath: $(build.artifactstagingdirectory)\common4j\dependency-locks
       - task: Gradle@3
         displayName: Build and publish common4j
         env:
@@ -86,6 +96,16 @@ stages:
           ENV_VSTS_MVN_ANDROIDCOMMON_ACCESSTOKEN: $(mvnAccessToken)
         inputs:
           tasks: common:dependencies $(androidProjectDependencyParam) $(projVersionParam) $(common4jVersionParam)
+      - task: CopyFiles@2
+        displayName: Upload Lockfile android common
+        inputs:
+          SourceFolder: common/gradle/dependency-locks
+          TargetFolder: $(build.artifactstagingdirectory)\common\dependency-locks
+      - task: PublishPipelineArtifact@1
+        displayName: 'Publish Artifact: Lockfile common'
+        inputs:
+          ArtifactName: Dependency-Locks
+          TargetPath: $(build.artifactstagingdirectory)\common\dependency-locks
       - task: Gradle@3
         displayName: Build and publish android common
         env:
