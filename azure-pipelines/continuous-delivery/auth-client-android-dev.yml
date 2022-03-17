@@ -74,6 +74,13 @@ stages:
           tasks: common4j:assemble $(projVersionParam) common4j:publish $(projVersionParam)
                  common4j:dependencies $(javaProjectDependencyParam)
       - task: Gradle@3
+        displayName: Generate Lock File
+        env:
+          ENV_VSTS_MVN_ANDROIDCOMMON_USERNAME: $(mvnUserName)
+          ENV_VSTS_MVN_ANDROIDCOMMON_ACCESSTOKEN: $(mvnAccessToken)
+        inputs:
+          tasks: common:dependencies $(androidProjectDependencyParam) $(projVersionParam) $(common4jVersionParam)
+      - task: Gradle@3
         displayName: Build and publish android common
         env:
           ENV_VSTS_MVN_ANDROIDCOMMON_USERNAME: $(mvnUserName)
@@ -81,7 +88,6 @@ stages:
         inputs:
           tasks: common:assembleDist $(projVersionParam) $(common4jVersionParam)
                  common:publishDistReleasePublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(common4jVersionParam)
-                 common:dependencies $(androidProjectDependencyParam) $(projVersionParam) $(common4jVersionParam)
 - stage: 'publishBrokerLibraries'
   displayName: Broker - Build and publish
   dependsOn: publishCommonLibraries
