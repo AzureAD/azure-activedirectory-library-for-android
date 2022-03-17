@@ -66,15 +66,21 @@ stages:
         persistCredentials: True
         clean: true
       - task: Gradle@3
+        displayName: Generate Lockfile common4j
+        env:
+          ENV_VSTS_MVN_ANDROIDCOMMON_USERNAME: $(mvnUserName)
+          ENV_VSTS_MVN_ANDROIDCOMMON_ACCESSTOKEN: $(mvnAccessToken)
+        inputs:
+          tasks: common4j:dependencies $(javaProjectDependencyParam)
+      - task: Gradle@3
         displayName: Build and publish common4j
         env:
           ENV_VSTS_MVN_ANDROIDCOMMON_USERNAME: $(mvnUserName)
           ENV_VSTS_MVN_ANDROIDCOMMON_ACCESSTOKEN: $(mvnAccessToken)
         inputs:
           tasks: common4j:assemble $(projVersionParam) common4j:publish $(projVersionParam)
-                 common4j:dependencies $(javaProjectDependencyParam)
       - task: Gradle@3
-        displayName: Generate Lock File
+        displayName: Generate Lockfile android common
         env:
           ENV_VSTS_MVN_ANDROIDCOMMON_USERNAME: $(mvnUserName)
           ENV_VSTS_MVN_ANDROIDCOMMON_ACCESSTOKEN: $(mvnAccessToken)
@@ -100,6 +106,13 @@ stages:
         - checkout: broker
           persistCredentials: True
         - task: Gradle@3
+          displayName: Generate Lockfile broker4j
+          env:
+            ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME: $(mvnUserName)
+            ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN: $(mvnAccessToken)
+          inputs:
+            tasks: broker4j:dependencies $(javaProjectDependencyParam)
+        - task: Gradle@3
           displayName: Build and publish broker4j
           env:
             ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME: $(mvnUserName)
@@ -107,7 +120,13 @@ stages:
           inputs:
             tasks: broker4j:assemble $(projVersionParam) $(common4jVersionParam)
                    broker4j:publishAarPublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(common4jVersionParam)
-                   broker4j:dependencies $(javaProjectDependencyParam)
+        - task: Gradle@3
+          displayName: Generate Lockfile android broker
+          env:
+            ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME: $(mvnUserName)
+            ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN: $(mvnAccessToken)
+          inputs:
+            tasks: AADAuthenticator:dependencies $(androidProjectDependencyParam)
         - task: Gradle@3
           displayName: Build and publish android broker
           env:
@@ -116,7 +135,13 @@ stages:
           inputs:
             tasks: AADAuthenticator:assembleDist $(projVersionParam) $(broker4jVersionParam) $(commonVersionParam)
                    AADAuthenticator:publishAdAccountsPublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(broker4jVersionParam) $(commonVersionParam)
-                   AADAuthenticator:dependencies $(androidProjectDependencyParam)
+        - task: Gradle@3
+          displayName: Generate Lockfile linux broker
+          env:
+            ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME: $(mvnUserName)
+            ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN: $(mvnAccessToken)
+          inputs:
+            tasks: linuxBroker:dependencies $(javaProjectDependencyParam)
         - task: Gradle@3
           displayName: Build and publish linux broker
           env:
@@ -125,7 +150,6 @@ stages:
           inputs:
             tasks: linuxBroker:assemble $(projVersionParam) $(broker4jVersionParam) $(common4jVersionParam) 
                    linuxBroker:publishAarPublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(broker4jVersionParam) $(common4jVersionParam)
-                   linuxBroker:dependencies $(javaProjectDependencyParam)     
         - task: Gradle@3
           displayName: Build and publish linux broker packager
           env:
@@ -161,6 +185,13 @@ stages:
       - checkout: msal
         persistCredentials: True
       - task: Gradle@3
+        displayName: Generate Lockfile msal
+        env:
+          ENV_VSTS_MVN_ANDROID_MSAL_USERNAME: $(mvnUserName)
+          ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN: $(mvnAccessToken)
+        inputs:
+          tasks: msal:dependencies $(androidProjectDependencyParam)
+      - task: Gradle@3
         displayName: Build and publish msal
         env:
           ENV_VSTS_MVN_ANDROID_MSAL_USERNAME: $(mvnUserName)
@@ -168,7 +199,6 @@ stages:
         inputs:
           tasks: msal:assembleDistRelease $(projVersionParam) $(commonVersionParam)
                  msal:publishMsalPublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(commonVersionParam)
-                 msal:dependencies $(androidProjectDependencyParam)
 - stage: 'publishAdal'
   displayName: Adal - Build and publish
   dependsOn: publishCommonLibraries
@@ -181,6 +211,13 @@ stages:
       - checkout: adal
         persistCredentials: True
       - task: Gradle@3
+        displayName: Generate Lockfile adal
+        env:
+          ENV_VSTS_MVN_ANDROIDADAL_USERNAME: $(mvnUserName)
+          ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN: $(mvnAccessToken)
+        inputs:
+          tasks: adal:dependencies $(androidProjectDependencyParam)
+      - task: Gradle@3
         displayName: Build and publish adal
         env:
           ENV_VSTS_MVN_ANDROIDADAL_USERNAME: $(mvnUserName)
@@ -188,5 +225,4 @@ stages:
         inputs:
           tasks: adal:assembleDist $(projVersionParam) $(commonVersionParam)
                  adal:publishAdalPublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(commonVersionParam)
-                 adal:dependencies $(androidProjectDependencyParam)
 ...
