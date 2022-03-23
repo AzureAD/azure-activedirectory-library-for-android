@@ -30,9 +30,9 @@ jobs:
     envVstsMvnAndroidAccessTokenVar: ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN
     gradleAssembleReleaseTask: adal:clean adal:assembleDist adal:javadocJar
     gradleGeneratePomFiletask: adal:generatePomFileForAdalPublication
-    aarSourceFolder: adal\adal\build\outputs\aar
-    jarSourceFolder: adal\adal\build\outputs\jar
-    pomSourceFolder: adal\adal\build\publications\adal
+    aarSourceFolder: adal\build\outputs\aar
+    jarSourceFolder: adal\build\outputs\jar
+    pomSourceFolder: adal\build\publications\adal
     gpgAar: true
     gpgSourcesJar: true
     gpgJavadocJar: true
