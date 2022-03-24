@@ -18,7 +18,7 @@ resources:
   - repository: common
     type: github
     name: AzureAD/microsoft-authentication-library-common-for-android
-    ref: dev
+    ref: pedroro/fixAdalMavenRelease
     endpoint: ANDROID_GITHUB
 
 jobs:
