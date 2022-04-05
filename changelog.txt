@@ -1,6 +1,7 @@
 v.Next
 ----------
 - [PATCH] Update gson version to 2.8.9
+- [MINOR] Remove PKeyAuth support from ADAL (#1685)
 
 Version 4.0.1
 -------------
