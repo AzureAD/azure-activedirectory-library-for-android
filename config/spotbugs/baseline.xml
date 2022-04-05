@@ -157,6 +157,44 @@
       <Message>At DateTimeAdapter.java:[line 25]</Message>
     </SourceLine>
   </BugInstance>
+  <BugInstance type="URF_UNREAD_FIELD" priority="2" rank="18" abbrev="UrF" category="PERFORMANCE" instanceHash="7f6e9e94773ee54c2f5021b9814928c4" instanceOccurrenceNum="0" instanceOccurrenceMax="0">
+    <ShortMessage>Unread field</ShortMessage>
+    <LongMessage>Unread field: com.microsoft.aad.adal.ChallengeResponseBuilder$ChallengeRequest.mCertAuthorities</LongMessage>
+    <Class classname="com.microsoft.aad.adal.ChallengeResponseBuilder$ChallengeRequest" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.ChallengeResponseBuilder$ChallengeRequest" start="80" end="99" sourcefile="ChallengeResponseBuilder.java" sourcepath="com/microsoft/aad/adal/ChallengeResponseBuilder.java">
+        <Message>At ChallengeResponseBuilder.java:[lines 80-99]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.aad.adal.ChallengeResponseBuilder$ChallengeRequest</Message>
+    </Class>
+    <Field classname="com.microsoft.aad.adal.ChallengeResponseBuilder$ChallengeRequest" name="mCertAuthorities" signature="Ljava/util/List;" isStatic="false" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.ChallengeResponseBuilder$ChallengeRequest" sourcefile="ChallengeResponseBuilder.java" sourcepath="com/microsoft/aad/adal/ChallengeResponseBuilder.java">
+        <Message>In ChallengeResponseBuilder.java</Message>
+      </SourceLine>
+      <Message>Field com.microsoft.aad.adal.ChallengeResponseBuilder$ChallengeRequest.mCertAuthorities</Message>
+    </Field>
+    <SourceLine classname="com.microsoft.aad.adal.ChallengeResponseBuilder$ChallengeRequest" primary="true" start="80" end="80" startBytecode="3" endBytecode="3" sourcefile="ChallengeResponseBuilder.java" sourcepath="com/microsoft/aad/adal/ChallengeResponseBuilder.java">
+      <Message>At ChallengeResponseBuilder.java:[line 80]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="URF_UNREAD_FIELD" priority="2" rank="18" abbrev="UrF" category="PERFORMANCE" instanceHash="5d96c3c2f6288f579c8b4876267ed3f2" instanceOccurrenceNum="0" instanceOccurrenceMax="0">
+    <ShortMessage>Unread field</ShortMessage>
+    <LongMessage>Unread field: com.microsoft.aad.adal.ChallengeResponseBuilder$ChallengeRequest.mThumbprint</LongMessage>
+    <Class classname="com.microsoft.aad.adal.ChallengeResponseBuilder$ChallengeRequest" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.ChallengeResponseBuilder$ChallengeRequest" start="80" end="99" sourcefile="ChallengeResponseBuilder.java" sourcepath="com/microsoft/aad/adal/ChallengeResponseBuilder.java">
+        <Message>At ChallengeResponseBuilder.java:[lines 80-99]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.aad.adal.ChallengeResponseBuilder$ChallengeRequest</Message>
+    </Class>
+    <Field classname="com.microsoft.aad.adal.ChallengeResponseBuilder$ChallengeRequest" name="mThumbprint" signature="Ljava/lang/String;" isStatic="false" primary="true">
+      <SourceLine classname="com.microsoft.aad.adal.ChallengeResponseBuilder$ChallengeRequest" sourcefile="ChallengeResponseBuilder.java" sourcepath="com/microsoft/aad/adal/ChallengeResponseBuilder.java">
+        <Message>In ChallengeResponseBuilder.java</Message>
+      </SourceLine>
+      <Message>Field com.microsoft.aad.adal.ChallengeResponseBuilder$ChallengeRequest.mThumbprint</Message>
+    </Field>
+    <SourceLine classname="com.microsoft.aad.adal.ChallengeResponseBuilder$ChallengeRequest" primary="true" start="95" end="95" startBytecode="19" endBytecode="19" sourcefile="ChallengeResponseBuilder.java" sourcepath="com/microsoft/aad/adal/ChallengeResponseBuilder.java">
+      <Message>At ChallengeResponseBuilder.java:[line 95]</Message>
+    </SourceLine>
+  </BugInstance>
   <BugInstance type="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" priority="1" rank="15" abbrev="ST" category="STYLE" instanceHash="80d1522085ff7e41ac5eabfab0f479bb" instanceOccurrenceNum="0" instanceOccurrenceMax="0">
     <ShortMessage>Write to static field from instance method</ShortMessage>
     <LongMessage>Write to static field com.microsoft.aad.adal.DefaultEvent.sApplicationName from instance method com.microsoft.aad.adal.DefaultEvent.setDefaults(Context, String)</LongMessage>
