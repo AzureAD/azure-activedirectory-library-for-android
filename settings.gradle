@@ -42,8 +42,9 @@ project(':msalTestApp').projectDir = new File('msal/testapps/testapp')
 include(":package-inspector")
 project(':package-inspector').projectDir = new File('msal/package-inspector')
 
-include(":pop-benchmarker")
-project(':pop-benchmarker').projectDir = new File('msal/pop-benchmarker')
+
+//include(":pop-benchmarker")
+//project(':pop-benchmarker').projectDir = new File('msal/pop-benchmarker')
 
 include(":testutils")
 project(':testutils').projectDir = new File('common/testutils')
