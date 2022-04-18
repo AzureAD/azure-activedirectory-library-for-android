@@ -513,59 +513,6 @@ public class OauthTests {
     }
 
     @Test
-    public void testRefreshTokenWebResponseDeviceChallengePositive()
-            throws IOException, ClientException, NoSuchAlgorithmException {
-        final IWebRequestHandler mockWebRequest = mock(IWebRequestHandler.class);
-        final KeyPair keyPair = getKeyPair();
-        final RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
-        final RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
-        final String nonce = UUID.randomUUID().toString();
-        final String context = "CookieConABcdeded";
-        final X509Certificate mockCert = mock(X509Certificate.class);
-        final String thumbPrint = "thumbPrinttest";
-        AuthenticationSettings.INSTANCE.setDeviceCertificateProxyClass(MockDeviceCertProxy.class);
-        MockDeviceCertProxy.reset();
-        MockDeviceCertProxy.setIsValidIssuer(true);
-        MockDeviceCertProxy.setThumbPrint(thumbPrint);
-        MockDeviceCertProxy.setPrivateKey(privateKey);
-        MockDeviceCertProxy.setPublicKey(publicKey);
-        final JWSBuilder mockJwsBuilder = mock(JWSBuilder.class);
-        when(
-                mockJwsBuilder.generateSignedJWT(eq(nonce), any(String.class), eq(privateKey),
-                        eq(publicKey), eq(mockCert))).thenReturn("signedJwtHere");
-        final String challengeHeaderValue = AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE
-                + " Nonce=\"" + nonce + "\",  Version=\"1.0\", CertThumbprint=\"" + thumbPrint
-                + "\",  Context=\"" + context + "\"";
-        final String tokenPositiveResponse = "{\"access_token\":\"accessTokenHere\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshWithDeviceChallenge\",\"scope\":\"*\"}";
-        final Map<String, List<String>> headers = getHeader(
-                AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER, challengeHeaderValue);
-        final HttpWebResponse responeChallenge = new HttpWebResponse(
-                HttpURLConnection.HTTP_UNAUTHORIZED, null, headers);
-        final HttpWebResponse responseValid = new HttpWebResponse(
-                HttpURLConnection.HTTP_OK, tokenPositiveResponse, null);
-        // first call returns 401 and second call returns token
-        when(
-                mockWebRequest.sendPost(
-                        eq(new URL(TEST_AUTHORITY + "/oauth2/token")),
-                        Mockito.<String, String>anyMap(),
-                        any(byte[].class),
-                        eq("application/x-www-form-urlencoded"))
-        ).thenReturn(responeChallenge).thenReturn(responseValid);
-
-        // send request
-        final MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),
-                mockWebRequest, mockJwsBuilder, "testRefreshToken");
-
-        // Verify that callback can receive this error
-        assertNull("callback does not have error", testResult.getException());
-        assertNotNull("Result is not null", testResult.getAuthenticationResult());
-        assertEquals("Same access token", "accessTokenHere",
-                testResult.getAuthenticationResult().getAccessToken());
-        assertEquals("Same refresh token", "refreshWithDeviceChallenge",
-                testResult.getAuthenticationResult().getRefreshToken());
-    }
-
-    @Test
     public void testRefreshTokenWebResponseHeader() {
         Map<String, List<String>> headers = getHeader(
                 "Retry-After", "120");

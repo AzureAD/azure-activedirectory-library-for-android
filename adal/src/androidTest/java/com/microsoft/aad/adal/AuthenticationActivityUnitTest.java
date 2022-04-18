@@ -201,59 +201,6 @@ public class AuthenticationActivityUnitTest {
                 data.getIntExtra(AuthenticationConstants.Browser.REQUEST_ID, 0));
     }
 
-    /**
-     * Return authentication exception at setResult so that mActivity receives at
-     * onActivityResult
-     */
-    @Test
-    public void testWebviewAuthenticationException() throws Throwable {
-        mActivityRule.launchActivity(mIntentToStartActivity);
-        AuthenticationSettings.INSTANCE.setDeviceCertificateProxyClass(MockDeviceCertProxy.class);
-        MockDeviceCertProxy.reset();
-        MockDeviceCertProxy.setIsValidIssuer(true);
-        MockDeviceCertProxy.setPrivateKey(null);
-        final String url = AuthenticationConstants.Broker.PKEYAUTH_REDIRECT
-                + "?Nonce=nonce1234&CertAuthorities=ABC&Version=1.0&SubmitUrl=submiturl&Context=serverContext";
-        final WebViewClient client = getCustomWebViewClient();
-        mActivityRule.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                WebView mockview = new WebView(mActivityRule.getActivity().getApplicationContext());
-                try {
-                    ReflectionUtils.setFieldValue(mActivityRule.getActivity(), "mSpinner", null);
-                } catch (NoSuchFieldException e) {
-                    e.printStackTrace();
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                }
-                // Act
-                client.shouldOverrideUrlLoading(mockview, url);
-            }
-        });
-
-
-        // Verify result code that includes requestid. Activity will set the
-        // result back to caller.
-        TestLogResponse response = new TestLogResponse();
-        final CountDownLatch signal = new CountDownLatch(1);
-        response.listenForLogMessage("It is failed to create device certificate response", signal);
-        int counter = 0;
-        final int maxWaitIterations = 20;
-        while (!mActivityRule.getActivity().isFinishing() && counter < maxWaitIterations) {
-            Thread.sleep(DEVICE_RESPONSE_WAIT);
-            counter++;
-        }
-
-        Intent data = assertFinishCalledWithResult(BROWSER_CODE_AUTHENTICATION_EXCEPTION);
-        Serializable serialazable = data
-                .getSerializableExtra(AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION);
-        AuthenticationException exception = (AuthenticationException) serialazable;
-        assertNotNull("Exception is not null", exception);
-        assertEquals("Exception has AdalError for key", ADALError.KEY_CHAIN_PRIVATE_KEY_EXCEPTION,
-                exception.getCode());
-    }
-
-
     @Test
     public void testWebviewSslprotectedredirectURL() throws Throwable {
         mActivityRule.launchActivity(mIntentToStartActivity);

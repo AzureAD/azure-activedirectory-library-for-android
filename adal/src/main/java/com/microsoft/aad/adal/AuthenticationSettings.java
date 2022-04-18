@@ -120,26 +120,6 @@ public enum AuthenticationSettings {
     }
 
     /**
-     * set class for work place join related API. This is only used from
-     * Authenticator side.
-     *
-     * @param clazz class for workplace join
-     */
-    public void setDeviceCertificateProxyClass(Class clazz) {
-        com.microsoft.identity.common.java.AuthenticationSettings.INSTANCE.setDeviceCertificateProxyClass(clazz);
-    }
-
-    /**
-     * get class for work place join related API. This is only used from
-     * Authenticator side.
-     *
-     * @return Class
-     */
-    public Class<?> getDeviceCertificateProxy() {
-        return com.microsoft.identity.common.java.AuthenticationSettings.INSTANCE.getDeviceCertificateProxy();
-    }
-
-    /**
      * get package name to setup intent for AuthenticationActivity.
      *
      * @return Package name for activity
