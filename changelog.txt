@@ -3,6 +3,10 @@ v.Next
 - [PATCH] Update gson version to 2.8.9
 - [MINOR] Remove PKeyAuth support from ADAL (#1685)
 
+Version 4.0.2
+-------------
+- [PATCH] Update common@4.0.2
+
 Version 4.0.1
 -------------
 - [MINOR] Migrate BaseController to common4j (#1636)
