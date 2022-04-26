@@ -1,0 +1,47 @@
+# File: azure-pipelines/continuous-delivery/assemble&publish.yml
+# Description: Template to assemble & publish dev builds of auth client android sdk libraries to internal maven feed
+
+parameters:
+- name: repository
+- name: project
+- name: assembleCmd
+  default: assemble
+- name: publishCmd
+  default: publish
+- name: dependencyParams
+  default: ''
+- name: assembleParams
+  default: ''
+- name: publishParams
+  default: ''
+- name: vstsMvnAndroidUsername
+- name: vstsMvnAndroidAccessToken
+
+jobs:
+- job: publish${{ parameters.project }}Libraries
+  displayName: ${{ parameters.project }} build & publish for android to internal maven feed
+  pool:
+    vmImage: ubuntu-latest
+  variables:
+  - group: AndroidAuthClientVariables
+  steps:
+  - checkout: ${{ parameters.repository }}
+    persistCredentials: True
+  - task: Gradle@3
+    displayName: Generate Lockfile ${{ parameters.project }}
+    inputs:
+      tasks: -q ${{ parameters.project }}:dependencies ${{ parameters.dependencyParams }}
+    env:
+      ${{ parameters.vstsMvnAndroidUsername }}: $(AndroidAuthClient-Internal-Maven-Username)
+      ${{ parameters.vstsMvnAndroidAccessToken }}: $(AndroidAuthClient-Internal-Maven-Access-Token)
+  - task: Gradle@3
+    displayName: Build and Publish ${{ parameters.project }}
+    inputs:
+      tasks: ${{ parameters.project }}:${{ parameters.assembleCmd}} ${{ parameters.assembleParams}}
+             ${{ parameters.project }}:${{ parameters.publishCmd}} ${{ parameters.publishParams}}
+    env:
+      ${{ parameters.vstsMvnAndroidUsername }}: $(AndroidAuthClient-Internal-Maven-Username)
+      ${{ parameters.vstsMvnAndroidAccessToken }}: $(AndroidAuthClient-Internal-Maven-Access-Token)
+  - task: ComponentGovernanceComponentDetection@0
+    inputs:
+      sourceScanPath: $(Build.SourcesDirectory)/${{ parameters.project }}/gradle/dependency-locks/
