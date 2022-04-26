@@ -4,8 +4,8 @@
 # Variable: 'mvnUserName' user name to access internal maven feed
 # Variable: 'mvnAccessToken' access token to access internal maven feed
 
-#name: 0.0.$(Date:yyyyMMdd)-dev$(Rev:.r) # $(Build.BuildNumber) = name
-name: 0.0.pedroro-test
+name: 0.0.$(Date:yyyyMMdd)-dev$(Rev:.r) # $(Build.BuildNumber) = name
+
 pr: none
 trigger: none
 
