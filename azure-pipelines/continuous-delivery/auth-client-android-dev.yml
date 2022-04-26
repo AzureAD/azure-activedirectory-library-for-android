@@ -1,6 +1,6 @@
 # File: azure-pipelines/continuous-delivery/auth-client-android-dev.yml
 # Description: Assemble & publish dev builds of auth client android sdk libraries to internal maven feed
-#  Libraries include common4j, common, broker4j, broker, msal and adal
+#  Libraries include common4j, common, broker4j, linux broker, broker, msal and adal
 # Variable: 'mvnUserName' user name to access internal maven feed
 # Variable: 'mvnAccessToken' access token to access internal maven feed
 
@@ -50,179 +50,147 @@ variables:
   androidProjectDependencyParam: --configuration=distReleaseRuntimeClasspath --write-locks
   javaProjectDependencyParam: --configuration=runtimeClasspath --write-locks
 
-pool:
-  vmImage: ubuntu-latest
-
 stages:
+# Common4j - Build and publish
+- stage: 'publishCommon4jLibraries'
+  displayName: Common4j - Build and publish
+  jobs:
+  - template: assemble&publish.yml
+    parameters:
+      repository: common
+      project: common4j
+      dependencyParams: $(javaProjectDependencyParam)
+      assembleParams: $(projVersionParam)
+      publishParams: $(projVersionParam)
+      vstsMvnAndroidUsername: ENV_VSTS_MVN_ANDROIDCOMMON_USERNAME
+      vstsMvnAndroidAccessToken: ENV_VSTS_MVN_ANDROIDCOMMON_ACCESSTOKEN
+# Common - Build and publish
 - stage: 'publishCommonLibraries'
   displayName: Common - Build and publish
-  pool:
-    vmImage: ubuntu-latest
+  dependsOn: publishCommon4jLibraries
   jobs:
-    - job: publishCommonLibraries
-      displayName: Build and publish common4j and android common to internal maven feed
-      steps:
-      - checkout: common
-        persistCredentials: True
-        clean: true
-      - task: Gradle@3
-        displayName: Generate Lockfile common4j
-        env:
-          ENV_VSTS_MVN_ANDROIDCOMMON_USERNAME: $(mvnUserName)
-          ENV_VSTS_MVN_ANDROIDCOMMON_ACCESSTOKEN: $(mvnAccessToken)
-        inputs:
-          tasks: common4j:dependencies $(javaProjectDependencyParam)
-      - task: Gradle@3
-        displayName: Build and publish common4j
-        env:
-          ENV_VSTS_MVN_ANDROIDCOMMON_USERNAME: $(mvnUserName)
-          ENV_VSTS_MVN_ANDROIDCOMMON_ACCESSTOKEN: $(mvnAccessToken)
-        inputs:
-          tasks: common4j:assemble $(projVersionParam) common4j:publish $(projVersionParam)
-      - task: Gradle@3
-        displayName: Generate Lockfile android common
-        env:
-          ENV_VSTS_MVN_ANDROIDCOMMON_USERNAME: $(mvnUserName)
-          ENV_VSTS_MVN_ANDROIDCOMMON_ACCESSTOKEN: $(mvnAccessToken)
-        inputs:
-          tasks: common:dependencies $(androidProjectDependencyParam) $(projVersionParam) $(common4jVersionParam)
-      - task: Gradle@3
-        displayName: Build and publish android common
-        env:
-          ENV_VSTS_MVN_ANDROIDCOMMON_USERNAME: $(mvnUserName)
-          ENV_VSTS_MVN_ANDROIDCOMMON_ACCESSTOKEN: $(mvnAccessToken)
-        inputs:
-          tasks: common:assembleDist $(projVersionParam) $(common4jVersionParam)
-                 common:publishDistReleasePublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(common4jVersionParam)
-- stage: 'publishBrokerLibraries'
+  - template: assemble&publish.yml
+    parameters:
+      repository: common
+      project: common
+      assembleCmd: assembleDist
+      publishCmd: publishDistReleasePublicationToVsts-maven-adal-androidRepository
+      dependencyParams: $(androidProjectDependencyParam) $(projVersionParam) $(common4jVersionParam)
+      assembleParams: $(projVersionParam) $(common4jVersionParam)
+      publishParams: $(projVersionParam) $(common4jVersionParam)
+      vstsMvnAndroidUsername: ENV_VSTS_MVN_ANDROIDCOMMON_USERNAME
+      vstsMvnAndroidAccessToken: ENV_VSTS_MVN_ANDROIDCOMMON_ACCESSTOKEN
+# Broker4j - Build and publish
+- stage: 'publishBroke4jLibraries'
+  displayName: Broker4j - Build and publish
+  dependsOn: publishCommon4jLibraries
+  jobs:
+  - template: assemble&publish.yml
+    parameters:
+      repository: broker
+      project: broker4j
+      publishCmd: publishAarPublicationToVsts-maven-adal-androidRepository
+      dependencyParams: $(common4jVersionParam) $(javaProjectDependencyParam)
+      assembleParams: $(projVersionParam) $(common4jVersionParam)
+      publishParams: $(projVersionParam) $(common4jVersionParam)
+      vstsMvnAndroidUsername: ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME
+      vstsMvnAndroidAccessToken: ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN
+# Broker - Build and publish
+- stage: 'publishBrokeLibraries'
   displayName: Broker - Build and publish
   dependsOn: publishCommonLibraries
-  pool:
-    vmImage: ubuntu-latest
   jobs:
-    - job: publishBrokerLibraries
-      displayName: Build and publish broker4j, android broker and linux broker libraries to internal maven feed
-      steps:
-        - checkout: broker
-          persistCredentials: True
-        - task: Gradle@3
-          displayName: Generate Lockfile broker4j
-          env:
-            ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME: $(mvnUserName)
-            ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN: $(mvnAccessToken)
-          inputs:
-            tasks: broker4j:dependencies $(javaProjectDependencyParam)
-        - task: Gradle@3
-          displayName: Build and publish broker4j
-          env:
-            ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME: $(mvnUserName)
-            ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN: $(mvnAccessToken)
-          inputs:
-            tasks: broker4j:assemble $(projVersionParam) $(common4jVersionParam)
-                   broker4j:publishAarPublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(common4jVersionParam)
-        - task: Gradle@3
-          displayName: Generate Lockfile android broker
-          env:
-            ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME: $(mvnUserName)
-            ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN: $(mvnAccessToken)
-          inputs:
-            tasks: AADAuthenticator:dependencies $(androidProjectDependencyParam)
-        - task: Gradle@3
-          displayName: Build and publish android broker
-          env:
-            ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME: $(mvnUserName)
-            ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN: $(mvnAccessToken)
-          inputs:
-            tasks: AADAuthenticator:assembleDist $(projVersionParam) $(broker4jVersionParam) $(commonVersionParam)
-                   AADAuthenticator:publishAdAccountsPublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(broker4jVersionParam) $(commonVersionParam)
-        - task: Gradle@3
-          displayName: Generate Lockfile linux broker
-          env:
-            ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME: $(mvnUserName)
-            ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN: $(mvnAccessToken)
-          inputs:
-            tasks: linuxBroker:dependencies $(javaProjectDependencyParam)
-        - task: Gradle@3
-          displayName: Build and publish linux broker
-          env:
-            ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME: $(mvnUserName)
-            ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN: $(mvnAccessToken)
-          inputs:
-            tasks: linuxBroker:assemble $(projVersionParam) $(broker4jVersionParam) $(common4jVersionParam) 
-                   linuxBroker:publishAarPublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(broker4jVersionParam) $(common4jVersionParam)
-        - task: Gradle@3
-          displayName: Build and publish linux broker packager
-          env:
-            ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME: $(mvnUserName)
-            ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN: $(mvnAccessToken)
-          inputs:
-            cwd: $(Build.SourcesDirectory)/broker-java-root
-            tasks: LinuxBrokerPackage:clean LinuxBrokerPackage:buildDeb $(linuxBrokerVersion) --build-cache --info
-            publishJUnitResults: false
-            jdkArchitecture: x86
-            sqAnalysisBreakBuildIfQualityGateFailed: false
-        - task: CopyFiles@2
-          name: CopyFiles1
-          displayName: Copy Files to Artifact Staging Directory
-          inputs:
-            SourceFolder: LinuxBrokerPackage/build/distributions
-            TargetFolder: $(build.artifactstagingdirectory)
-        - task: PublishPipelineArtifact@1
-          name: PublishPipelineArtifacts1
-          displayName: 'Publish Artifact: LinuxBrokerPackage Linux Test App Deb'
-          inputs:
-            ArtifactName: LinuxBrokerPackage Deb Package
-            TargetPath: $(build.artifactstagingdirectory)                       
+  - template: assemble&publish.yml
+    parameters:
+      repository: broker
+      project: AADAuthenticator
+      assembleCmd: assembleDist
+      publishCmd: publishAdAccountsPublicationToVsts-maven-adal-androidRepository
+      dependencyParams: $(androidProjectDependencyParam)
+      assembleParams: $(projVersionParam) $(broker4jVersionParam) $(commonVersionParam)
+      publishParams: $(projVersionParam) $(broker4jVersionParam) $(commonVersionParam)
+      vstsMvnAndroidUsername: ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME
+      vstsMvnAndroidAccessToken: ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN
+# Linux Broker - Build and publish
+- stage: 'publishLinuxBrokeLibraries'
+  displayName: Linux Broker - Build and publish
+  dependsOn: 
+  - publishCommon4jLibraries
+  - publishBroke4jLibraries
+  jobs:
+  - template: assemble&publish.yml
+    parameters:
+      repository: broker
+      project: LinuxBroker
+      publishCmd: publishAarPublicationToVsts-maven-adal-androidRepository
+      dependencyParams: $(broker4jVersionParam) $(common4jVersionParam) $(javaProjectDependencyParam)
+      assembleParams: $(projVersionParam) $(broker4jVersionParam) $(common4jVersionParam)
+      publishParams: $(projVersionParam) $(broker4jVersionParam) $(common4jVersionParam)
+      vstsMvnAndroidUsername: ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME
+      vstsMvnAndroidAccessToken: ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN
+  - job: PublishLinuxBrokerPackage
+    dependsOn: publishLinuxBrokerLibraries
+    displayName: Publish Linux Broker Package
+    pool:
+      vmImage: ubuntu-latest
+    variables:
+    - group: AndroidAuthClientVariables
+    steps:
+    - checkout: broker
+      persistCredentials: True
+    - task: Gradle@3
+      displayName: Build and publish linux broker package
+      env:
+        ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME: $(AndroidAuthClient-Internal-Maven-Username)
+        ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN: $(AndroidAuthClient-Internal-Maven-Access-Token)
+      inputs:
+        cwd: $(Build.SourcesDirectory)/broker-java-root
+        tasks: LinuxBrokerPackage:clean LinuxBrokerPackage:buildDeb $(linuxBrokerVersion) --build-cache --info
+        publishJUnitResults: false
+        jdkArchitecture: x86
+        sqAnalysisBreakBuildIfQualityGateFailed: false
+    - task: CopyFiles@2
+      name: CopyFiles1
+      displayName: Copy Files to Artifact Staging Directory
+      inputs:
+        SourceFolder: LinuxBrokerPackage/build/distributions
+        TargetFolder: $(build.artifactstagingdirectory)
+    - task: PublishPipelineArtifact@1
+      name: PublishPipelineArtifacts1
+      displayName: 'Publish Artifact: LinuxBrokerPackage Linux Test App Deb'
+      inputs:
+        ArtifactName: LinuxBrokerPackage Deb Package
+        TargetPath: $(build.artifactstagingdirectory)
+# Msal - Build and publish      
 - stage: 'publishMsal'
   displayName: Msal - Build and publish
   dependsOn: publishCommonLibraries
-  pool:
-    vmImage: ubuntu-latest
   jobs:
-  - job: publishAndroidMsal
-    displayName: Build and publish msal for android to internal maven feed
-    steps:
-      - checkout: msal
-        persistCredentials: True
-      - task: Gradle@3
-        displayName: Generate Lockfile msal
-        env:
-          ENV_VSTS_MVN_ANDROID_MSAL_USERNAME: $(mvnUserName)
-          ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN: $(mvnAccessToken)
-        inputs:
-          tasks: msal:dependencies $(androidProjectDependencyParam)
-      - task: Gradle@3
-        displayName: Build and publish msal
-        env:
-          ENV_VSTS_MVN_ANDROID_MSAL_USERNAME: $(mvnUserName)
-          ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN: $(mvnAccessToken)
-        inputs:
-          tasks: msal:assembleDistRelease $(projVersionParam) $(commonVersionParam)
-                 msal:publishMsalPublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(commonVersionParam)
+  - template: assemble&publish.yml
+    parameters:
+      repository: msal
+      project: msal
+      assembleCmd: assembleDistRelease
+      publishCmd: publishMsalPublicationToVsts-maven-adal-androidRepository 
+      dependencyParams: $(androidProjectDependencyParam)
+      assembleParams: $(projVersionParam) $(commonVersionParam)
+      publishParams: $(projVersionParam) $(commonVersionParam)
+      vstsMvnAndroidUsername: ENV_VSTS_MVN_ANDROID_MSAL_USERNAME
+      vstsMvnAndroidAccessToken: ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN
+# Adal - Build and publish
 - stage: 'publishAdal'
   displayName: Adal - Build and publish
   dependsOn: publishCommonLibraries
-  pool:
-    vmImage: ubuntu-latest
   jobs:
-  - job: publishAndroidAdal
-    displayName: Build and publish adal for android to internal maven feed
-    steps:
-      - checkout: adal
-        persistCredentials: True
-      - task: Gradle@3
-        displayName: Generate Lockfile adal
-        env:
-          ENV_VSTS_MVN_ANDROIDADAL_USERNAME: $(mvnUserName)
-          ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN: $(mvnAccessToken)
-        inputs:
-          tasks: adal:dependencies $(androidProjectDependencyParam)
-      - task: Gradle@3
-        displayName: Build and publish adal
-        env:
-          ENV_VSTS_MVN_ANDROIDADAL_USERNAME: $(mvnUserName)
-          ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN: $(mvnAccessToken)
-        inputs:
-          tasks: adal:assembleDist $(projVersionParam) $(commonVersionParam)
-                 adal:publishAdalPublicationToVsts-maven-adal-androidRepository $(projVersionParam) $(commonVersionParam)
+  - template: assemble&publish.yml
+    parameters:
+      repository: adal
+      project: adal
+      assembleCmd: assembleDist
+      publishCmd: publishAdalPublicationToVsts-maven-adal-androidRepository 
+      dependencyParams: $(androidProjectDependencyParam)
+      assembleParams: $(projVersionParam) $(commonVersionParam)
+      publishParams: $(projVersionParam) $(commonVersionParam)
+      vstsMvnAndroidUsername: ENV_VSTS_MVN_ANDROIDADAL_USERNAME
+      vstsMvnAndroidAccessToken: ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN
 ...
