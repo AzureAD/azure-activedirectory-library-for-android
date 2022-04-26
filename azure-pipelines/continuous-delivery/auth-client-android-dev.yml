@@ -75,7 +75,7 @@ stages:
       project: common
       assembleCmd: assembleDist
       publishCmd: publishDistReleasePublicationToVsts-maven-adal-androidRepository
-      dependencyParams: $(androidProjectDependencyParam) $(projVersionParam) $(common4jVersionParam)
+      dependencyParams: $(androidProjectDependencyParam)
       assembleParams: $(projVersionParam) $(common4jVersionParam)
       publishParams: $(projVersionParam) $(common4jVersionParam)
       vstsMvnAndroidUsername: ENV_VSTS_MVN_ANDROIDCOMMON_USERNAME
