@@ -1,6 +1,5 @@
 v.Next
 ----------
-- [PATCH] Add YubiKit version variable to versions.gradle (#1689)
 - [PATCH] Update gson version to 2.8.9
 - [MINOR] Remove PKeyAuth support from ADAL (#1685)
 
