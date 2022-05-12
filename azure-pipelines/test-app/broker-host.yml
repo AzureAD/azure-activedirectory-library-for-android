@@ -125,6 +125,7 @@ jobs:
       SourceFolder: $(Agent.BuildDirectory)/android-complete/broker/userapp/build/outputs/apk
       targetFolder: $(Build.ArtifactStagingDirectory)
       contents: '**/*.apk'
+      flattenFolders: true
   - task: PublishPipelineArtifact@1
     displayName: Publish Broker Host APK (Pipeline Artifact)
     inputs:
