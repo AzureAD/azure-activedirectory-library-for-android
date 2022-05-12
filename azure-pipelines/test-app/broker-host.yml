@@ -121,9 +121,15 @@ jobs:
       gradleWrapperFile: $(Agent.BuildDirectory)/android-complete/gradlew
       cwd: $(Agent.BuildDirectory)/android-complete
   - task: PublishPipelineArtifact@1
-    displayName: Publish Broker Host APK
+    displayName: Publish Broker Host APK (Pipeline Artifact)
+    inputs:
+      targetPath: $(Agent.BuildDirectory)/android-complete/broker/userapp/build/outputs/apk/${{ lower(parameters.productFlavors) }}/${{ lower(parameters.signingConfigurations) }}
+      artifactName: BrokerHostApk
+      patterns: '**/*.apk'
+  - task: PublishBuildArtifacts@1
+    displayName: Publish Broker Host APK (Build Artifact)
     inputs:
       targetPath: $(Agent.BuildDirectory)/android-complete/broker/userapp/build/outputs/apk/${{ lower(parameters.productFlavors) }}/${{ lower(parameters.signingConfigurations) }}
       artifactName: BrokerHost
-      patterns: '**/*.apk'
+      
 ...
