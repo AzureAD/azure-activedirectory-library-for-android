@@ -120,10 +120,22 @@ jobs:
       sqAnalysisBreakBuildIfQualityGateFailed: false
       gradleWrapperFile: $(Agent.BuildDirectory)/android-complete/gradlew
       cwd: $(Agent.BuildDirectory)/android-complete
+  - task: CopyFiles@2
+    inputs:
+      SourceFolder: $(Agent.BuildDirectory)/android-complete/broker/userapp/build/outputs/apk
+      targetFolder: $(Build.ArtifactStagingDirectory)
+      contents: '**/*.apk'
+      flattenFolders: true
   - task: PublishPipelineArtifact@1
-    displayName: Publish Broker Host APK
+    displayName: Publish Broker Host APK (Pipeline Artifact)
     inputs:
       targetPath: $(Agent.BuildDirectory)/android-complete/broker/userapp/build/outputs/apk/${{ lower(parameters.productFlavors) }}/${{ lower(parameters.signingConfigurations) }}
       artifactName: BrokerHost
       patterns: '**/*.apk'
+  - task: PublishBuildArtifacts@1
+    displayName: Publish Broker Host APK (Build Artifact)
+    inputs:
+      pathToPublish: $(Build.ArtifactStagingDirectory)
+      artifactName: BrokerHostAPK
+      
 ...
