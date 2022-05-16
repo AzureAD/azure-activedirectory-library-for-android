@@ -1,5 +1,6 @@
 v.Next
 ----------
+- [MAJOR] Added YubiKit SDK to common, which requires host apps that use ADAL to upgrade to Java Version 8 (#1689)
 - [PATCH] Update gson version to 2.8.9
 - [MINOR] Remove PKeyAuth support from ADAL (#1685)
 
