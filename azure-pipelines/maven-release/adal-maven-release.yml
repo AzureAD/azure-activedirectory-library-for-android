@@ -34,6 +34,6 @@ jobs:
     jarSourceFolder: adal/outputs/jar
     pomSourceFolder: adal/publications/adal
     gpgAar: true
-    gpgSourcesJar: true
+    gpgSourcesJar: false
     gpgJavadocJar: true
     gpgJar: false
