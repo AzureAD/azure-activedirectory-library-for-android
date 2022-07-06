@@ -29,6 +29,8 @@ import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
 import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.java.crypto.BasicSigner;
+import com.microsoft.identity.common.java.crypto.DefaultCryptoFactory;
 import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.util.JWSBuilder;
 
@@ -155,7 +157,9 @@ class AcquireTokenSilentHandler {
 
 
         try {
-            final JWSBuilder jwsBuilder = new JWSBuilder();
+            final JWSBuilder jwsBuilder = new JWSBuilder(
+                    new BasicSigner(new DefaultCryptoFactory())
+            );
             final Oauth2 oauthRequest = new Oauth2(mAuthRequest, mWebRequestHandler, jwsBuilder);
 
             result = oauthRequest.refreshTokenUsingAssertion(samlAssertion, assertionType);
@@ -196,7 +200,8 @@ class AcquireTokenSilentHandler {
 
         final AuthenticationResult result;
         try {
-            final JWSBuilder jwsBuilder = new JWSBuilder();
+            final JWSBuilder jwsBuilder = new JWSBuilder(
+                    new BasicSigner(new DefaultCryptoFactory()));
             final Oauth2 oauthRequest = new Oauth2(mAuthRequest, mWebRequestHandler, jwsBuilder);
             result = oauthRequest.refreshToken(refreshToken);
             if (result != null && StringExtensions.isNullOrBlank(result.getRefreshToken())) {

@@ -45,6 +45,8 @@ import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
 
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.logging.Logger;
+import com.microsoft.identity.common.java.crypto.BasicSigner;
+import com.microsoft.identity.common.java.crypto.DefaultCryptoFactory;
 import com.microsoft.identity.common.java.util.JWSBuilder;
 
 import java.util.HashMap;
@@ -329,7 +331,9 @@ abstract class BasicWebViewClient extends WebViewClient {
                 public void run() {
                     try {
                         final ChallengeResponseBuilder certHandler = new ChallengeResponseBuilder(
-                                new JWSBuilder()
+                                new JWSBuilder(
+                                        new BasicSigner(new DefaultCryptoFactory())
+                                )
                         );
 
                         final ChallengeResponse challengeResponse = certHandler

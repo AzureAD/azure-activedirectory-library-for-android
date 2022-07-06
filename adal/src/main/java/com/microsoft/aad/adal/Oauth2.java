@@ -37,6 +37,8 @@ import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
 import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
 import com.microsoft.identity.common.adal.internal.util.HashMapExtensions;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.java.crypto.BasicSigner;
+import com.microsoft.identity.common.java.crypto.DefaultCryptoFactory;
 import com.microsoft.identity.common.java.exception.ServiceException;
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.ClientInfo;
 import com.microsoft.identity.common.java.util.JWSBuilder;
@@ -71,7 +73,9 @@ class Oauth2 {
 
     private IWebRequestHandler mWebRequestHandler;
 
-    private JWSBuilder mJWSBuilder = new JWSBuilder();
+    private JWSBuilder mJWSBuilder = new JWSBuilder(
+            new BasicSigner(new DefaultCryptoFactory())
+    );
 
     private String mTokenEndpoint;
 

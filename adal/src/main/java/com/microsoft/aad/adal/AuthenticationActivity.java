@@ -60,6 +60,8 @@ import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.ui.DualScreenActivity;
+import com.microsoft.identity.common.java.crypto.BasicSigner;
+import com.microsoft.identity.common.java.crypto.DefaultCryptoFactory;
 import com.microsoft.identity.common.java.util.JWSBuilder;
 
 import java.io.IOException;
@@ -143,7 +145,9 @@ public class AuthenticationActivity extends DualScreenActivity {
     private AccountAuthenticatorResponse mAccountAuthenticatorResponse = null;
     private Bundle mAuthenticatorResultBundle = null;
     private final IWebRequestHandler mWebRequestHandler = new WebRequestHandler();
-    private final JWSBuilder mJWSBuilder = new JWSBuilder();
+    private final JWSBuilder mJWSBuilder = new JWSBuilder(
+            new BasicSigner(new DefaultCryptoFactory())
+    );
     private boolean mPkeyAuthRedirect = false;
     private StorageHelper mStorageHelper;
     private UIEvent mUIEvent = null;
