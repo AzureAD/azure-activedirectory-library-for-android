@@ -16,7 +16,7 @@ allprojects {
     }
 }
 
-def adalVersion = "5.0.0"
+def adalVersion = "5.0.0-RC2"
 def commonVersion = "6.0.+"
 
 if (project.hasProperty("distAdalVersion")) {
