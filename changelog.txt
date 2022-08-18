@@ -1,7 +1,7 @@
 v.Next
 ----------
 - [PATCH] Update androidx appcompat version from 1.0.2 -> 1.1.0 (#1691)
-- [MAJOR] Added YubiKit SDK to common, which requires host apps that use ADAL to upgrade to Java Version 8 (#1689)
+- [MINOR] Added keyboard flag to configChanges in Manifest for YubiKey compatibility. (#1699)
 
 Version 4.1.0
 -------------
