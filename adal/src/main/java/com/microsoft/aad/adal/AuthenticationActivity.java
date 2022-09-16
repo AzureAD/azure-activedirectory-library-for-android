@@ -34,9 +34,6 @@ import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.security.KeyChain;
-import android.security.KeyChainAliasCallback;
-import android.security.KeyChainException;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -45,6 +42,7 @@ import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 
 import androidx.annotation.Nullable;
@@ -60,6 +58,7 @@ import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.ui.DualScreenActivity;
+import com.microsoft.identity.common.internal.ui.webview.challengehandlers.ClientCertAuthChallengeHandler;
 import com.microsoft.identity.common.java.util.JWSBuilder;
 
 import java.io.IOException;
@@ -68,9 +67,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
-import java.security.Principal;
-import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -134,6 +130,7 @@ public class AuthenticationActivity extends DualScreenActivity {
     private ProgressBar mSpinner;
     private String mRedirectUrl;
     private AuthenticationRequest mAuthRequest;
+    private WebViewClient mWebViewClient;
 
     // Broadcast receiver for cancel
     private ActivityBroadcastReceiver mReceiver = null;
@@ -385,6 +382,15 @@ public class AuthenticationActivity extends DualScreenActivity {
         } else {
             Logger.verbose(TAG + methodName, "Reuse webview");
         }
+
+        //For CBA, we need to clear the certificate choice cache here so that
+        // the user will be able to login with multiple accounts with CBA
+        //addressing on-device CBA bug: https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1776683
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            WebView.clearClientCertPreferences(null);
+        } else {
+            Logger.warn(TAG + methodName, "Client Cert Preferences cache not cleared due to SDK version < 21 (LOLLIPOP)");
+        }
     }
 
     private boolean isCallerBrokerInstaller() {
@@ -452,7 +458,8 @@ public class AuthenticationActivity extends DualScreenActivity {
         webSettings.setDomStorageEnabled(true);
         webSettings.setUseWideViewPort(true);
         webSettings.setBuiltInZoomControls(true);
-        mWebView.setWebViewClient(new CustomWebViewClient());
+        mWebViewClient = new CustomWebViewClient();
+        mWebView.setWebViewClient(mWebViewClient);
         mWebView.setVisibility(View.INVISIBLE);
     }
 
@@ -660,6 +667,7 @@ public class AuthenticationActivity extends DualScreenActivity {
 
     @Override
     public void onBackPressed() {
+        final String methodTag = TAG + ":onBackPressed";
         Logger.verbose(TAG, "Back button is pressed");
 
         // User should be able to click back button to cancel in case pkeyauth
@@ -671,6 +679,16 @@ public class AuthenticationActivity extends DualScreenActivity {
             // Don't use default back pressed action, since user can go back in
             // webview
             mWebView.goBack();
+        }
+
+        //For CBA, we need to clear the certificate choice cache here so that
+        // if the cert picker is exited (`cancel()`) or the flow has an error,
+        //the user can still try to login again with a cert.
+        //addressing on-device CBA bug: https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1776683
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            WebView.clearClientCertPreferences(null);
+        } else {
+            Logger.warn(methodTag, "Client Cert Preferences cache not cleared due to SDK version < 21 (LOLLIPOP)");
         }
     }
 
@@ -721,12 +739,19 @@ public class AuthenticationActivity extends DualScreenActivity {
                             EventStrings.UI_EVENT
                     );
         }
+        //For smartcard CBA
+        if (mWebViewClient instanceof CustomWebViewClient) {
+            ((CustomWebViewClient) mWebViewClient).onDestroy();
+        }
     }
 
     private class CustomWebViewClient extends BasicWebViewClient {
 
+        private final ClientCertAuthChallengeHandler mClientCertAuthChallengeHandler;
+
         CustomWebViewClient() {
             super(AuthenticationActivity.this, mRedirectUrl, mAuthRequest, mUIEvent);
+            mClientCertAuthChallengeHandler = new ClientCertAuthChallengeHandler(AuthenticationActivity.this);
         }
 
         public void processRedirectUrl(final WebView view, final String url) {
@@ -836,65 +861,20 @@ public class AuthenticationActivity extends DualScreenActivity {
                                                 final ClientCertRequest request) {
             final String methodName = ":onReceivedClientCertRequest";
             Logger.verbose(TAG + methodName, "Webview receives client TLS request.");
-
-            final Principal[] acceptableCertIssuers = request.getPrincipals();
-
-            // When ADFS server sends null or empty issuers, we'll continue with cert prompt.
-            if (acceptableCertIssuers != null) {
-                for (final Principal issuer : acceptableCertIssuers) {
-                    if (issuer.getName().contains("CN=MS-Organization-Access")) {
-                        //Checking if received acceptable issuers contain "CN=MS-Organization-Access"
-                        Logger.verbose(
-                                TAG + methodName,
-                                "Cancelling the TLS request, not respond to TLS challenge triggered by device authentication."
-                        );
-                        request.cancel();
-                        return;
-                    }
-                }
+            if (mClientCertAuthChallengeHandler != null) {
+                mClientCertAuthChallengeHandler.processChallenge(request);
+            } else {
+                Logger.error(TAG + methodName, "ClientCertRequest cannot be handled.", null);
             }
+        }
 
-            KeyChain.choosePrivateKeyAlias(
-                    AuthenticationActivity.this,
-                    new KeyChainAliasCallback() {
-
-                        @Override
-                        public void alias(final String alias) {
-                            if (alias == null) {
-                                Logger.verbose(
-                                        TAG + methodName,
-                                        "No certificate chosen by user, cancelling the TLS request."
-                                );
-                                request.cancel();
-                                return;
-                            }
-
-                            try {
-                                final X509Certificate[] certChain = KeyChain.getCertificateChain(getApplicationContext(), alias);
-                                final PrivateKey privateKey = KeyChain.getPrivateKey(getCallingContext(), alias);
-
-                                Logger.verbose(
-                                        TAG + methodName,
-                                        "Certificate is chosen by user, proceed with TLS request."
-                                );
-                                request.proceed(privateKey, certChain);
-                                return;
-                            } catch (final KeyChainException e) {
-                                Logger.error(TAG + methodName, "Keychain exception", null);
-                                Logger.errorPII(TAG + methodName, "Exception details:", e);
-                            } catch (final InterruptedException e) {
-                                Logger.error(TAG + methodName, "InterruptedException exception", e);
-                            }
-
-                            request.cancel();
-                        }
-                    },
-                    request.getKeyTypes(),
-                    request.getPrincipals(),
-                    request.getHost(),
-                    request.getPort(),
-                    null
-            );
+        public void onDestroy() {
+            final String methodName = ":onDestroy";
+            if (mClientCertAuthChallengeHandler != null) {
+                mClientCertAuthChallengeHandler.stopYubiKitManagerUsbDiscovery();
+            } else {
+                Logger.error(TAG + methodName, "Usb discovery could not terminate.", null);
+            }
         }
     }
 
