@@ -1,5 +1,9 @@
 v.Next
 ----------
+
+Version 4.2.0
+-------------
+- [PATCH] Update common@7.0.1
 - [PATCH] Update androidx appcompat version from 1.0.2 -> 1.1.0 (#1691)
 - [MINOR] Added keyboard flag to configChanges in Manifest for YubiKey compatibility. (#1699)
 
