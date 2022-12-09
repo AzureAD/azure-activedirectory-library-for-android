@@ -32,6 +32,10 @@ allprojects {
     tasks.withType(Javadoc) {
         options.addStringOption('Xdoclint:none', '-quiet')
     }
+
+    dependencyLocking {
+        lockAllConfigurations()
+    }
 }
 
 
