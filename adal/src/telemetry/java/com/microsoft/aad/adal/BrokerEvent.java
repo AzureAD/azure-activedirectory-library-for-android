@@ -25,8 +25,6 @@ package com.microsoft.aad.adal;
 
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
-import android.util.Pair;
-
 import java.util.List;
 import java.util.Map;
 
@@ -87,13 +85,13 @@ final class BrokerEvent extends DefaultEvent {
 
     @Override
     public void processEvent(final Map<String, String> dispatchMap) {
-        final List<Pair<String, String>> eventList = getEventList();
+        final List<Map.Entry<String, String>> eventList = getEventList();
 
         dispatchMap.put(EventStrings.BROKER_APP_USED, Boolean.toString(true));
-        for (Pair<String, String> eventPair : eventList) {
-            final String name = eventPair.first;
+        for (Map.Entry<String, String> eventKeyValuePair : eventList) {
+            final String name = eventKeyValuePair.getKey();
             if (!name.equals(EventStrings.EVENT_NAME)) {
-                dispatchMap.put(eventPair.first, eventPair.second);
+                dispatchMap.put(eventKeyValuePair.getKey(), eventKeyValuePair.getValue());
             }
         }
     }

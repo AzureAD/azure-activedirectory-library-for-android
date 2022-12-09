@@ -41,6 +41,7 @@ import org.mockito.Mockito;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.AUTHENTICATOR_MFA_LINKING_PREFIX;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.PLAY_STORE_INSTALL_PREFIX;
@@ -394,7 +395,7 @@ public class BasicWebViewClientTests {
 
             @Override
             public void sendResponse(int returnCode, Intent responseIntent) {
-                assertEquals(returnCode, AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR);
+                assertEquals(returnCode, BROWSER_CODE_ERROR);
                 final String errString = responseIntent.getStringExtra(RESPONSE_ERROR_CODE);
                 final String intentErrMsg = responseIntent.getStringExtra(RESPONSE_ERROR_MESSAGE);
                 assertTrue(errString.contains(String.valueOf(errCode)));

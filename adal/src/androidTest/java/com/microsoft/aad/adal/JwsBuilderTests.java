@@ -34,10 +34,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
 
 import static org.junit.Assert.assertTrue;
 
@@ -50,7 +50,7 @@ public class JwsBuilderTests extends AndroidTestHelper {
             IllegalAccessException, InvocationTargetException {
         final Object jwsBuilder = getInstance();
         final Method m = ReflectionUtils.getTestMethod(jwsBuilder, "generateSignedJWT", String.class,
-                String.class, RSAPrivateKey.class, RSAPublicKey.class, X509Certificate.class);
+                String.class, PrivateKey.class, PublicKey.class, X509Certificate.class);
 
         try {
             m.invoke(jwsBuilder, null, "https://someurl", null, null, null);
@@ -94,7 +94,7 @@ public class JwsBuilderTests extends AndroidTestHelper {
     private Object getInstance() throws ClassNotFoundException, InstantiationException,
             IllegalAccessException, IllegalArgumentException, InvocationTargetException,
             NoSuchMethodException {
-        final Class clazz = Class.forName("com.microsoft.identity.common.adal.internal.JWSBuilder");
+        final Class clazz = Class.forName("com.microsoft.identity.common.java.util.JWSBuilder");
         final Constructor<?> constructorParams = clazz.getDeclaredConstructor();
         constructorParams.setAccessible(true);
         return constructorParams.newInstance();

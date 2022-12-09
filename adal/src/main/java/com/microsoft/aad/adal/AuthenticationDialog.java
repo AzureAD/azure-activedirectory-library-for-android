@@ -40,9 +40,9 @@ import android.widget.ProgressBar;
 
 import androidx.annotation.Nullable;
 
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-
 import java.io.UnsupportedEncodingException;
+
+import static com.microsoft.identity.common.java.AuthenticationConstants.UIRequest.BROWSER_FLOW;
 
 @SuppressLint({
         "InflateParams", "SetJavaScriptEnabled", "ClickableViewAccessibility"
@@ -118,7 +118,7 @@ class AuthenticationDialog {
                     Intent resultIntent = new Intent();
                     resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID,
                             mRequest.getRequestId());
-                    mAcquireTokenRequest.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW,
+                    mAcquireTokenRequest.onActivityResult(BROWSER_FLOW,
                             AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
 
                     mHandlerInView.post(new Runnable() {
@@ -213,7 +213,7 @@ class AuthenticationDialog {
 
         resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mRequest.getRequestId());
 
-        mAcquireTokenRequest.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW,
+        mAcquireTokenRequest.onActivityResult(BROWSER_FLOW,
                 resultCode, resultIntent);
         if (mHandlerInView != null) {
             mHandlerInView.post(new Runnable() {
@@ -259,7 +259,7 @@ class AuthenticationDialog {
             // Close this dialog
             mDialog.dismiss();
             mAcquireTokenRequest.onActivityResult(
-                    AuthenticationConstants.UIRequest.BROWSER_FLOW,
+                    BROWSER_FLOW,
                     returnCode,
                     responseIntent
             );

@@ -1,0 +1,30 @@
+# File: azure-pipelines\vsts-releases\adal-vsts-release.yml
+# Description: Publish adal to internal feed
+# https://identitydivision.visualstudio.com/Engineering/_packaging?_a=package&feed=AndroidADAL&package=com.microsoft.aad%3Aadal&protocolType=maven
+# Variable 'ENV_VSTS_MVN_ANDROIDADAL_USERNAME' was defined in the Variables tab
+# Variable 'mvnAccessToken' was defined in the Variables tab
+# https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate
+name: $(date:yyyyMMdd)$(rev:.r)
+
+trigger: none
+pr: none
+
+resources:
+  repositories:
+  - repository: self
+    type: git
+    ref: master
+  - repository: common
+    type: github
+    name: AzureAD/microsoft-authentication-library-common-for-android
+    ref: dev
+    endpoint: ANDROID_GITHUB
+
+jobs:
+- template: azure-pipelines/templates/steps/vsts-release/vsts-release-template.yml@common
+  parameters:
+    project: adal
+    envVstsMvnAndroidAccessTokenVar: ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN
+    assembleTask: assembleDist
+    publishTask: publish
+    sbomConfiguration: distReleaseRuntimeClasspath

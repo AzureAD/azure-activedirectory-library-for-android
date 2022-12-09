@@ -20,9 +20,21 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+
 package com.microsoft.aad.adal;
 
-public final class DateTimeAdapter
-        extends com.microsoft.identity.common.adal.internal.cache.DateTimeAdapter {
-    // This class has moved to common. See super.
+import android.content.pm.PackageInfo;
+import android.content.pm.Signature;
+import android.os.Build;
+
+public class MockedPackageInfo extends PackageInfo {
+
+    public MockedSigningInfo signingInfo;
+
+    public MockedPackageInfo(Signature [] signatures) {
+        this.signingInfo = new MockedSigningInfo(signatures);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+            this.signatures = signatures;
+        }
+    }
 }

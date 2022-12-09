@@ -23,8 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import android.util.Pair;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,10 +56,10 @@ class DefaultDispatcher {
         }
 
         final Map<String, String> dispatchMap = new HashMap<>();
-        final List<Pair<String, String>> eventList = events.getEvents();
+        final List<Map.Entry<String, String>> eventList = events.getEvents();
 
-        for (final Pair<String, String> event : eventList) {
-            dispatchMap.put(event.first, event.second);
+        for (final Map.Entry<String, String> event : eventList) {
+            dispatchMap.put(event.getKey(), event.getValue());
         }
 
         mDispatcher.dispatchEvent(dispatchMap);

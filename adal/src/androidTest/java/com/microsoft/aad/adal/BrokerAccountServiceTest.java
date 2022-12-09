@@ -38,12 +38,10 @@ import android.content.pm.Signature;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Base64;
-import android.util.Pair;
 
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.rule.ServiceTestRule;
 
-import com.microsoft.identity.common.Util;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.internal.broker.PackageHelper;
 
@@ -59,13 +57,16 @@ import org.mockito.Mockito;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
 import static com.microsoft.aad.adal.OauthTests.createAuthenticationRequest;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -348,10 +349,10 @@ public final class BrokerAccountServiceTest {
     }
 
     private void verifyBrokerEventList(final BrokerEvent brokerEvent) {
-        final List<Pair<String, String>> eventLists = brokerEvent.getEvents();
-        assertTrue(eventLists.contains(new Pair<>(EventStrings.BROKER_ACCOUNT_SERVICE_STARTS_BINDING, Boolean.toString(true))));
-        assertTrue(eventLists.contains(new Pair<>(EventStrings.BROKER_ACCOUNT_SERVICE_BINDING_SUCCEED, Boolean.toString(true))));
-        assertTrue(eventLists.contains(new Pair<>(EventStrings.BROKER_ACCOUNT_SERVICE_CONNECTED, Boolean.toString(true))));
+        final List<Map.Entry<String, String>> eventLists = brokerEvent.getEvents();
+        assertTrue(eventLists.contains(new AbstractMap.SimpleEntry<>(EventStrings.BROKER_ACCOUNT_SERVICE_STARTS_BINDING, Boolean.toString(true))));
+        assertTrue(eventLists.contains(new AbstractMap.SimpleEntry<>(EventStrings.BROKER_ACCOUNT_SERVICE_BINDING_SUCCEED, Boolean.toString(true))));
+        assertTrue(eventLists.contains(new AbstractMap.SimpleEntry<>(EventStrings.BROKER_ACCOUNT_SERVICE_CONNECTED, Boolean.toString(true))));
     }
 
     private BrokerEvent getBrokerEvent() {
@@ -368,7 +369,7 @@ public final class BrokerAccountServiceTest {
 
         final AccountManager mockedAccountManager = Mockito.mock(AccountManager.class);
         final AuthenticatorDescription authenticatorDescription = new AuthenticatorDescription(
-                AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE, androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext().getPackageName(), 0, 0, 0, 0);
+                BROKER_ACCOUNT_TYPE, androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext().getPackageName(), 0, 0, 0, 0);
         Mockito.when(mockedAccountManager.getAuthenticatorTypes()).thenReturn(new AuthenticatorDescription[]{authenticatorDescription});
         mockContext.setMockedAccountManager(mockedAccountManager);
         return mockContext;
@@ -379,9 +380,8 @@ public final class BrokerAccountServiceTest {
         Mockito.when(packageManager.checkPermission(Mockito.contains("android.permission.GET_ACCOUNTS"),
                 Mockito.anyString())).thenReturn(PackageManager.PERMISSION_DENIED);
 
-        final PackageInfo packageInfo = Util.addSignatures(Mockito.mock(PackageInfo.class), new Signature[]{signature});
-
-        Mockito.when(packageManager.getPackageInfo(Mockito.anyString(), Mockito.anyInt())).thenReturn(packageInfo);
+        final PackageInfo mockedPackageInfo = new MockedPackageInfo(new Signature[]{signature});
+        Mockito.when(packageManager.getPackageInfo(Mockito.anyString(), Mockito.anyInt())).thenReturn(mockedPackageInfo);
 
         Mockito.when(packageManager.checkPermission(Mockito.contains("android.permission.GET_ACCOUNTS"),
                 Mockito.anyString())).thenReturn(PackageManager.PERMISSION_DENIED);

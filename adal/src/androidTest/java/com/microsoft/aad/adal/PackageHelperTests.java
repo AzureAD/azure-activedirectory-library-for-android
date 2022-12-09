@@ -26,7 +26,6 @@ package com.microsoft.aad.adal;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.Signature;
@@ -34,7 +33,6 @@ import android.util.Base64;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import com.microsoft.identity.common.Util;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.internal.broker.PackageHelper;
 
@@ -57,7 +55,6 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -109,35 +106,6 @@ public class PackageHelperTests {
     @After
     public void tearDown() {
         Logger.getInstance().setExternalLogger(null);
-    }
-
-    @Test
-    public void testGetCurrentSignatureForPackage() throws NameNotFoundException,
-            IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
-            InstantiationException, IllegalAccessException, InvocationTargetException {
-        final Context mockContext = getMockContext(
-                new Signature(mTestSignature),
-                mContext.getPackageName(),
-                0 // calling uid
-        );
-        final Object packageHelper = getInstance(mockContext);
-        final Method m = ReflectionUtils.getTestMethod(
-                packageHelper,
-                "getCurrentSignatureForPackage", // method name
-                String.class
-        );
-
-        // act
-        String actual = (String) m.invoke(packageHelper, mContext.getPackageName());
-
-        // assert
-        assertEquals("should be same info", mTestTag, actual);
-
-        // act
-        actual = (String) m.invoke(packageHelper, (String) null);
-
-        // assert
-        assertNull("should return null", actual);
     }
 
     @Test
@@ -220,7 +188,7 @@ public class PackageHelperTests {
                                              final String packageName,
                                              final int callingUID) throws NameNotFoundException {
         final PackageManager mockPackage = mock(PackageManager.class);
-        final PackageInfo info = Util.addSignatures(new PackageInfo(), new Signature[]{signature});
+        final MockedPackageInfo mockedPackageInfo = new MockedPackageInfo(new Signature[]{signature});
 
         final ApplicationInfo appInfo = new ApplicationInfo();
         appInfo.name = packageName;
@@ -228,9 +196,9 @@ public class PackageHelperTests {
         when(
                 mockPackage.getPackageInfo(
                         packageName,
-                        PackageHelper.getPackageManagerFlag()
+                        PackageHelper.getPackageManagerSignaturesFlag()
                 )
-        ).thenReturn(info);
+        ).thenReturn(mockedPackageInfo);
 
         when(mockPackage.getApplicationInfo(packageName, 0)).thenReturn(appInfo);
         Context mock = mock(Context.class);

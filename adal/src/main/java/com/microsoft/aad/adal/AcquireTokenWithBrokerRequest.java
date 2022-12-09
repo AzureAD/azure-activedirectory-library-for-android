@@ -29,6 +29,8 @@ import android.content.pm.PackageManager;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
+import static com.microsoft.identity.common.java.AuthenticationConstants.UIRequest.BROWSER_FLOW;
+
 /**
  * Internal class handling the logic for acquire token with Broker app(Either Company Portal or Azure Authenticator).
  * Including the logic for silent flow and interactive flow.
@@ -110,7 +112,7 @@ final class AcquireTokenWithBrokerRequest {
                 + " tid:" + android.os.Process.myTid() + "uid:"
                 + android.os.Process.myUid());
         Telemetry.getInstance().stopEvent(brokerEvent.getTelemetryRequestId(), brokerEvent, EventStrings.BROKER_REQUEST_INTERACTIVE);
-        activity.startActivityForResult(brokerIntent, AuthenticationConstants.UIRequest.BROWSER_FLOW);
+        activity.startActivityForResult(brokerIntent, BROWSER_FLOW);
 
         //It will start activity if callback is provided.
         //activity onActivityResult will receive the result, and result will be sent back via callback.
