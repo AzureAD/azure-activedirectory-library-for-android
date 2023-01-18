@@ -627,7 +627,11 @@ public final class AuthenticationContextTest {
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         final JWT decodedToken = JWTParser.parse(callback.getAuthenticationResult().getAccessToken());
-        Assert.assertNotNull(decodedToken.getJWTClaimsSet().getClaim("deviceid"));
+        final Object deviceIdClaim = decodedToken.getJWTClaimsSet().getClaim("deviceid");
+        Assert.assertNotNull(deviceIdClaim);
+
+        // Adal gets device id from token
+        Assert.assertEquals("761b45e9-2080-4573-bebb-b43d435ce1af", (String) deviceIdClaim);
     }
 
     @Test
