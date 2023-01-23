@@ -626,7 +626,10 @@ public final class AuthenticationContextTest {
                 TEST_IDTOKEN_UPN, PromptBehavior.Auto, null, "{\"access_token\":{\"deviceid\":{\"essential\":true}}}", callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
-        final JWT decodedToken = JWTParser.parse(callback.getAuthenticationResult().getAccessToken());
+        final String accessToken = callback.getAuthenticationResult().getAccessToken();
+        Assert.assertEquals(TEST_ACCESS_TOKEN_WITH_DEVICE_ID, accessToken);
+
+        final JWT decodedToken = JWTParser.parse(accessToken);
         final Object deviceIdClaim = decodedToken.getJWTClaimsSet().getClaim("deviceid");
         Assert.assertNotNull(deviceIdClaim);
 
