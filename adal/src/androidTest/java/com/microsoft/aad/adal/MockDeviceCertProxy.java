@@ -24,6 +24,7 @@
 package com.microsoft.aad.adal;
 
 import com.microsoft.identity.common.java.challengehandlers.IDeviceCertificate;
+import com.microsoft.identity.common.java.exception.ClientException;
 
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -58,12 +59,6 @@ public class MockDeviceCertProxy implements IDeviceCertificate {
         sValidIssuer = false;
     }
 
-    @Override
-    public X509Certificate getCertificate() {
-        return sCertificate;
-    }
-
-    @Override
     public PrivateKey getPrivateKey() {
         return sPrivateKey;
     }
@@ -78,9 +73,19 @@ public class MockDeviceCertProxy implements IDeviceCertificate {
     }
 
     @Override
+    public byte[] sign(String algorithm, byte[] dataToBeSigned) throws ClientException {
+        throw new UnsupportedOperationException("This is not supported in MockDeviceCertProxy");
+    }
+
+    @Override
     public boolean isValidIssuer(List<String> certAuthorities) {
         // TODO Auto-generated method stub
         return sValidIssuer;
+    }
+
+    @Override
+    public X509Certificate getX509() {
+        return sCertificate;
     }
 
     static final void setCertificate(final X509Certificate certificate) {
