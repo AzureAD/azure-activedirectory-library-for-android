@@ -384,6 +384,8 @@ public class TokenCacheAccessorTests {
         final ICacheRecord cacheRecord = msalCache.load(
                 CLIENT,
                 null,
+                null,
+                null,
                 accountRecord,
                 new BearerAuthenticationSchemeInternal()
         );
