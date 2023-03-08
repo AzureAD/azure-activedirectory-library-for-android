@@ -1,5 +1,10 @@
 v.Next
-----------
+-------------
+
+Version 4.4.1
+-------------
+- [PATCH] V4.4.0 was incorrectly built with RC versions, need to increment to V4.4.1
+- [PATCH] Update common@10.1.1
 
 Version 4.3.0
 -------------
