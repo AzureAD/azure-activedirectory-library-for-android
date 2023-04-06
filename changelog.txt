@@ -1,4 +1,4 @@
-v.Next
+Version 4.5.0
 -------------
 - [MINOR] Bumping YubiKit Versions to 2.2.0 (#1719)
 
