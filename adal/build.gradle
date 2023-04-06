@@ -131,7 +131,7 @@ android {
     useLibrary 'android.test.mock'
 }
 
-String commonVersion = project.hasProperty("distCommonVersion") ? project.distCommonVersion : "11.0.0-RC1"
+String commonVersion = project.hasProperty("distCommonVersion") ? project.distCommonVersion : "0.0.+"
 
 dependencies {
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
