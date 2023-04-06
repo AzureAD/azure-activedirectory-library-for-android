@@ -1,5 +1,6 @@
 Version 4.5.0
 -------------
+- [PATCH] Update common @11.0.0
 - [MINOR] Bumping YubiKit Versions to 2.2.0 (#1719)
 
 Version 4.4.1
