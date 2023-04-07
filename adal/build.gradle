@@ -169,7 +169,10 @@ dependencies {
     testImplementation "org.mockito:mockito-inline:$rootProject.ext.mockitoCoreVersion"
     testImplementation ("org.robolectric:robolectric:$rootProject.ext.robolectricVersion")
     testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"
-    testImplementation project(':testutils')
+    testLocalImplementation project(':testutils')
+    testDistImplementation("com.microsoft.identity:testutils:0.0.+") {
+        exclude group: 'com.microsoft.identity', module: 'LabApiUtilities'
+    }
 
     // Javadoc Dependencies
     javadocDeps "androidx.annotation:annotation:$rootProject.ext.annotationVersion"
