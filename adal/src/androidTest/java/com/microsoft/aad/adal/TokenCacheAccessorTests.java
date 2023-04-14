@@ -32,7 +32,7 @@ import android.util.Base64;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import com.microsoft.identity.common.AndroidPlatformComponents;
+import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory;
 import com.microsoft.identity.common.java.cache.CacheKeyValueDelegate;
 import com.microsoft.identity.common.java.cache.IAccountCredentialCache;
 import com.microsoft.identity.common.java.cache.MicrosoftStsAccountCredentialAdapter;
@@ -210,7 +210,7 @@ public class TokenCacheAccessorTests {
 
         // initialize the class under test
         mContext = new FileMockContext(getContext());
-        mComponents = AndroidPlatformComponents.createFromContext(mContext);
+        mComponents = AndroidPlatformComponentsFactory.createFromContext(mContext);
         final ITokenCacheStore tokenCacheStore = new DelegatingCache(mContext, new DefaultTokenCacheStore(mContext));
         mTokenCacheAccessor = new TokenCacheAccessor(
                 mContext,
@@ -365,7 +365,7 @@ public class TokenCacheAccessorTests {
         );
 
         final MsalOAuth2TokenCache msalCache =  new MsalOAuth2TokenCache(
-                AndroidPlatformComponents.createFromContext(mContext),
+                AndroidPlatformComponentsFactory.createFromContext(mContext),
                 accountCredentialCache,
                 new MicrosoftStsAccountCredentialAdapter()
         );
