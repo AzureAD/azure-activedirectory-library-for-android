@@ -23,12 +23,18 @@
 
 package com.microsoft.aad.adal;
 
+import static com.microsoft.identity.common.internal.util.AndroidKeyStoreUtil.applyKeyStoreLocaleWorkarounds;
+import static com.microsoft.identity.common.java.util.ported.DateUtilities.LOCALE_CHANGE_LOCK;
+import static com.microsoft.identity.common.java.util.ported.DateUtilities.isLocaleCalendarNonGregorian;
+
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.security.KeyPairGeneratorSpec;
 import android.util.Base64;
+
+import androidx.annotation.Nullable;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 
@@ -42,13 +48,16 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.security.DigestException;
 import java.security.GeneralSecurityException;
+import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.SecureRandom;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.spec.AlgorithmParameterSpec;
 import java.util.Calendar;
@@ -404,54 +413,93 @@ public class StorageHelper {
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private synchronized KeyPair generateKeyPairFromAndroidKeyStore()
             throws GeneralSecurityException, IOException {
-        final String methodName = ":generateKeyPairFromAndroidKeyStore";
-        final KeyStore keyStore = KeyStore.getInstance(ANDROID_KEY_STORE);
-        keyStore.load(null);
+        final String methodTag = TAG + ":generateKeyPairFromAndroidKeyStore";
 
-        Logger.v(TAG + methodName, "Generate KeyPair from AndroidKeyStore");
-        final Calendar start = Calendar.getInstance();
-        final Calendar end = Calendar.getInstance();
-        final int certValidYears = 100;
-        end.add(Calendar.YEAR, certValidYears);
+        synchronized (isLocaleCalendarNonGregorian(Locale.getDefault()) ? LOCALE_CHANGE_LOCK : new Object()) {
+            // Due to the following bug in lower API versions of keystore, locale workarounds may
+            // need to be applied
+            // https://issuetracker.google.com/issues/37095309
+            final Locale currentLocale = Locale.getDefault();
+            applyKeyStoreLocaleWorkarounds(currentLocale);
 
-        // self signed cert stored in AndroidKeyStore to asym. encrypt key
-        // to a file
-        final KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA",
-                ANDROID_KEY_STORE);
-        generator.initialize(getKeyPairGeneratorSpec(mContext, start.getTime(), end.getTime()));
-        try {
-            return generator.generateKeyPair();
-        } catch (final IllegalStateException exception) {
-            // There is an issue with AndroidKeyStore when attempting to generate keypair
-            // if user doesn't have pin/passphrase setup for their lock screen. 
-            // Issue 177459 : AndroidKeyStore KeyPairGenerator fails to generate 
-            // KeyPair after toggling lock type, even without setting the encryptionRequired 
-            // flag on the KeyPairGeneratorSpec. 
-            // https://code.google.com/p/android/issues/detail?id=177459
-            // The thrown exception in this case is: 
-            // java.lang.IllegalStateException: could not generate key in keystore
-            // To avoid app crashing, re-throw as checked exception
-            throw new KeyStoreException(exception);
+            /*
+            !!WARNING!!
+
+            Multiple apps as of Today (1/4/2022) can still share a linux user id, by configuring the sharedUserId attribute in their
+            Android Manifest file.  If multiple apps reference the same value for sharedUserId and are signed with the same keys
+            they will use the same AndroidKeyStore and may obtain access to the files and shared preferences of other applications
+            by invoking createPackageContext.
+
+            Support for sharedUserId is deprecated, however some applications still use this Android capability.
+            See: https://developer.android.com/guide/topics/manifest/manifest-element
+
+            To address apps in this scenario we will attempt to load an existing KeyPair instead of immediately generating
+            a new key pair.  This will use the same keypair to encrypt the symmetric key generated separately for each
+            application using a shared linux user id... and avoid these applications from "stomping"/overwriting
+            one another's keypair
+             */
+
+            final KeyPair existingPair = readKeyPair();
+            if (existingPair != null) {
+                Logger.v(methodTag, "Existing keypair was found.  Returning existing key rather than generating new one.");
+                return existingPair;
+            }
+
+            final KeyStore keyStore = KeyStore.getInstance(ANDROID_KEY_STORE);
+            keyStore.load(null);
+
+            Logger.v(methodTag, "Generate KeyPair from AndroidKeyStore");
+            final Calendar start = Calendar.getInstance();
+            final Calendar end = Calendar.getInstance();
+            final int certValidYears = 100;
+            end.add(Calendar.YEAR, certValidYears);
+
+            // self signed cert stored in AndroidKeyStore to asym. encrypt key
+            // to a file
+            final KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA",
+                    ANDROID_KEY_STORE);
+            generator.initialize(getKeyPairGeneratorSpec(mContext, start.getTime(), end.getTime()));
+            try {
+                return generator.generateKeyPair();
+            } catch (final IllegalStateException exception) {
+                // There is an issue with AndroidKeyStore when attempting to generate keypair
+                // if user doesn't have pin/passphrase setup for their lock screen.
+                // Issue 177459 : AndroidKeyStore KeyPairGenerator fails to generate
+                // KeyPair after toggling lock type, even without setting the encryptionRequired
+                // flag on the KeyPairGeneratorSpec.
+                // https://code.google.com/p/android/issues/detail?id=177459
+                // The thrown exception in this case is:
+                // java.lang.IllegalStateException: could not generate key in keystore
+                // To avoid app crashing, re-throw as checked exception
+                throw new KeyStoreException(exception);
+            } finally {
+                // Reset to our default locale after generating keys
+                Locale.setDefault(currentLocale);
+            }
         }
     }
 
     /**
      * Read KeyPair from AndroidKeyStore.
      */
+    @Nullable
     private synchronized KeyPair readKeyPair() throws GeneralSecurityException, IOException {
-        final String methodName = ":readKeyPair";
-        if (!doesKeyPairExist()) {
-            throw new KeyStoreException("KeyPair entry does not exist.");
-        }
+        final String methodTag = TAG + ":readKeyPair";
 
-        Logger.v(TAG + methodName, "Reading Key entry");
-        final KeyStore keyStore = KeyStore.getInstance(ANDROID_KEY_STORE);
-        keyStore.load(null);
-
-        final KeyStore.PrivateKeyEntry entry;
+        Logger.v(methodTag, "Reading Key entry");
         try {
-            entry = (KeyStore.PrivateKeyEntry) keyStore.getEntry(
-                    KEY_STORE_CERT_ALIAS, null);
+            final KeyStore keyStore = KeyStore.getInstance(ANDROID_KEY_STORE);
+            keyStore.load(null);
+
+            final Certificate cert = keyStore.getCertificate(KEY_STORE_CERT_ALIAS);
+            final Key privateKey = keyStore.getKey(KEY_STORE_CERT_ALIAS, null);
+
+            if (cert == null || privateKey == null) {
+                Logger.v(methodTag, "Key entry doesn't exist.");
+                return null;
+            }
+
+            return new KeyPair(cert.getPublicKey(), (PrivateKey) privateKey);
         } catch (final RuntimeException e) {
             // There is an issue in android keystore that resets keystore
             // Issue 61989:  AndroidKeyStore deleted after changing screen lock type
@@ -461,8 +509,6 @@ public class StorageHelper {
             // handle it as regular KeyStoreException
             throw new KeyStoreException(e);
         }
-
-        return new KeyPair(entry.getCertificate().getPublicKey(), entry.getPrivateKey());
     }
 
     /**
