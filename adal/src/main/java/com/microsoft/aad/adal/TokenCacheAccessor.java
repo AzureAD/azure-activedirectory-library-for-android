@@ -27,10 +27,9 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
-import com.microsoft.identity.common.AndroidPlatformComponents;
 import com.microsoft.identity.common.adal.internal.cache.ADALOAuth2TokenCache;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-import com.microsoft.identity.common.java.AuthenticationConstants;
+import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory;
 import com.microsoft.identity.common.java.cache.CacheKeyValueDelegate;
 import com.microsoft.identity.common.java.cache.IAccountCredentialCache;
 import com.microsoft.identity.common.java.cache.IShareSingleSignOnState;
@@ -38,6 +37,7 @@ import com.microsoft.identity.common.java.cache.MicrosoftStsAccountCredentialAda
 import com.microsoft.identity.common.java.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.java.cache.SharedPreferencesAccountCredentialCache;
 import com.microsoft.identity.common.java.constants.OAuth2ErrorCode;
+import com.microsoft.identity.common.java.interfaces.IPlatformComponents;
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectoryOAuth2Strategy;
 import com.microsoft.identity.common.java.exception.ClientException;
@@ -97,7 +97,7 @@ class TokenCacheAccessor {
         final MsalOAuth2TokenCache msalOAuth2TokenCache = getMsalOAuth2TokenCache(appContext);
 
         sharedSSOCaches.add(msalOAuth2TokenCache);
-        mCommonCache = new ADALOAuth2TokenCache(AndroidPlatformComponents.createFromContext(appContext), sharedSSOCaches);
+        mCommonCache = new ADALOAuth2TokenCache(AndroidPlatformComponentsFactory.createFromContext(appContext), sharedSSOCaches);
 
         if (mTokenCacheStore instanceof DelegatingCache) {
             final ITokenCacheStore delegate = ((DelegatingCache) mTokenCacheStore).getDelegateCache();
@@ -108,7 +108,7 @@ class TokenCacheAccessor {
     }
 
     static MsalOAuth2TokenCache getMsalOAuth2TokenCache(@NonNull final Context appContext) {
-        final AndroidPlatformComponents components = AndroidPlatformComponents.createFromContext(appContext);
+        final IPlatformComponents components = AndroidPlatformComponentsFactory.createFromContext(appContext);
         final IAccountCredentialCache accountCredentialCache = new SharedPreferencesAccountCredentialCache(
                 new CacheKeyValueDelegate(),
                         components.getEncryptedNameValueStore(DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
@@ -360,7 +360,7 @@ class TokenCacheAccessor {
         AzureActiveDirectoryOAuth2Strategy strategy = null;
         try {
             strategy = ad.createOAuth2Strategy(config,
-                    AndroidPlatformComponents.createFromContext(mContext));
+                    AndroidPlatformComponentsFactory.createFromContext(mContext));
 
             AzureActiveDirectoryAuthorizationRequest.Builder aadAuthRequestBuilder = new AzureActiveDirectoryAuthorizationRequest.Builder();
             aadAuthRequestBuilder

@@ -1,3 +1,7 @@
+VNext
+-------------
+- [MINOR] Remove dependency from common's storagehelper #1725
+
 Version 4.5.0
 -------------
 - [PATCH] Update common @11.0.0
