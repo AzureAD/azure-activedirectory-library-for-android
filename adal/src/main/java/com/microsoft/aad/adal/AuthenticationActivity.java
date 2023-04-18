@@ -37,6 +37,7 @@ import android.os.Bundle;
 import android.security.KeyChain;
 import android.security.KeyChainAliasCallback;
 import android.security.KeyChainException;
+import android.security.keystore.KeyProperties;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -48,6 +49,7 @@ import android.webkit.WebView;
 import android.widget.ProgressBar;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.gson.Gson;
@@ -128,6 +130,7 @@ public class AuthenticationActivity extends DualScreenActivity {
     static final int BACK_PRESSED_CANCEL_DIALOG_STEPS = -2;
 
     private static final String TAG = "AuthenticationActivity";
+    private static final String ECDSA_CONSTANT = "ECDSA";
     private boolean mRegisterReceiver = false;
     private WebView mWebView;
     private String mStartUrl;
@@ -830,7 +833,7 @@ public class AuthenticationActivity extends DualScreenActivity {
             mWebView.post(item);
         }
 
-        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+        @TargetApi(Build.VERSION_CODES.M)
         @Override
         public void onReceivedClientCertRequest(final WebView view,
                                                 final ClientCertRequest request) {
@@ -889,12 +892,36 @@ public class AuthenticationActivity extends DualScreenActivity {
                             request.cancel();
                         }
                     },
-                    request.getKeyTypes(),
+                    mapKeyTypes(request.getKeyTypes()),
                     request.getPrincipals(),
                     request.getHost(),
                     request.getPort(),
                     null
             );
+        }
+
+        /**
+         * Map instances of key types without a literal reference in {@link KeyProperties} to corresponding constants in KeyProperties.
+         * @param keyTypes array of key types.
+         * @return array of mapped key types.
+         */
+        @RequiresApi(api = Build.VERSION_CODES.M)
+        @Nullable
+        public String[] mapKeyTypes(@Nullable final String[] keyTypes) {
+            if (keyTypes == null) {
+                return null;
+            }
+            for (int i = 0; i < keyTypes.length; i++) {
+                //"ECDSA" isn't a constant in KeyProperties, so it should be getting mapped to "EC" via Chromium.
+                //But for some reason, Chromium's WebView bridge implementation adds "ECDSA" to the request key types String array, despite mapping it to "EC" in the web browser class.
+                //https://source.chromium.org/chromium/chromium/src/+/main:android_webview/browser/aw_contents_client_bridge.cc;l=184;bpv=1
+                //To mitigate this, we're going to map it to "EC" ourselves.
+                if (keyTypes[i].equals(ECDSA_CONSTANT)) {
+                    keyTypes[i] = KeyProperties.KEY_ALGORITHM_EC;
+                    break;
+                }
+            }
+            return keyTypes;
         }
     }
 
