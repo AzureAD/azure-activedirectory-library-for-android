@@ -34,11 +34,9 @@ import android.os.Build;
 import android.security.KeyPairGeneratorSpec;
 import android.util.Base64;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.java.util.ported.DateUtilities;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -441,9 +439,9 @@ public class StorageHelper {
             one another's keypair
              */
 
-            KeyPair existingPair = readKeyPair();
+            final KeyPair existingPair = readKeyPair();
             if (existingPair != null) {
-                com.microsoft.identity.common.logging.Logger.verbose(methodTag, "Existing keypair was found.  Returning existing key rather than generating new one.");
+                Logger.v(methodTag, "Existing keypair was found.  Returning existing key rather than generating new one.");
                 return existingPair;
             }
 
