@@ -128,7 +128,6 @@ public class AuthenticationActivity extends DualScreenActivity {
     static final int BACK_PRESSED_CANCEL_DIALOG_STEPS = -2;
 
     private static final String TAG = "AuthenticationActivity";
-    private static final String ECDSA_CONSTANT = "ECDSA";
     private boolean mRegisterReceiver = false;
     private WebView mWebView;
     private String mStartUrl;
