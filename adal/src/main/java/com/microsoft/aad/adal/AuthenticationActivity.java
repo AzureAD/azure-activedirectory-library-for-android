@@ -401,7 +401,7 @@ public class AuthenticationActivity extends DualScreenActivity {
 
             final BrokerValidator brokerValidator = new BrokerValidator(this);
 
-            final String signature = info.getCurrentSignatureForPackage(packageName);
+            final String signature = info.getCurrentSignatureForPackage(packageName, true);
 
             return brokerValidator.verifySignature(packageName) ||
                     signature.equals(AuthenticationSettings.INSTANCE.getBrokerSignature());
