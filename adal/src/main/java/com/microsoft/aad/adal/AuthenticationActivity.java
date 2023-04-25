@@ -115,6 +115,7 @@ import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROKER_R
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE;
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR;
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE;
+import static com.microsoft.identity.common.internal.ui.webview.certbasedauth.OnDeviceCertBasedAuthChallengeHandler.mapKeyTypes;
 
 /**
  * Authentication Activity to launch {@link WebView} for authentication.
@@ -829,7 +830,7 @@ public class AuthenticationActivity extends DualScreenActivity {
             mWebView.post(item);
         }
 
-        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+        @TargetApi(Build.VERSION_CODES.M)
         @Override
         public void onReceivedClientCertRequest(final WebView view,
                                                 final ClientCertRequest request) {
@@ -888,7 +889,7 @@ public class AuthenticationActivity extends DualScreenActivity {
                             request.cancel();
                         }
                     },
-                    request.getKeyTypes(),
+                    mapKeyTypes(request.getKeyTypes()),
                     request.getPrincipals(),
                     request.getHost(),
                     request.getPort(),
