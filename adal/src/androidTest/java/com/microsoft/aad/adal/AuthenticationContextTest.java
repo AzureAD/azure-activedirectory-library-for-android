@@ -264,9 +264,8 @@ public final class AuthenticationContextTest {
         final IPlatformComponents androidCommonComponents = AndroidPlatformComponentsFactory.createFromContext(context);
         final IAccountCredentialCache accountCredentialCache = new SharedPreferencesAccountCredentialCache(
                 new CacheKeyValueDelegate(),
-                androidCommonComponents.getEncryptedNameValueStore(
+                androidCommonComponents.getStorageSupplier().getNameValueStore(
                         DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
-                        androidCommonComponents.getStorageEncryptionManager(),
                         String.class
                 )
         );
