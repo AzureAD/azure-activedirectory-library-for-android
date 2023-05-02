@@ -111,8 +111,10 @@ class TokenCacheAccessor {
         final IPlatformComponents components = AndroidPlatformComponentsFactory.createFromContext(appContext);
         final IAccountCredentialCache accountCredentialCache = new SharedPreferencesAccountCredentialCache(
                 new CacheKeyValueDelegate(),
-                        components.getStorageSupplier().getNameValueStore(
-                                DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES, String.class)
+                        components.getEncryptedNameValueStore(DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
+                        components.getStorageEncryptionManager(),
+                        String.class
+                )
         );
 
         return new MsalOAuth2TokenCache(
