@@ -200,7 +200,7 @@ You can get the jar file from maven the repo and drop into the *libs* folder in 
     android:debuggable="true"
     android:icon="@drawable/ic_launcher"
     android:label="@string/app_name"
-    android:theme="@style/AppTheme" >
+    android:theme="@style/AzureTheme" >
 
     <activity
         android:name="com.microsoft.aad.adal.AuthenticationActivity"
