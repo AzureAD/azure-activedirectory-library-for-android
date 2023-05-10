@@ -1,5 +1,6 @@
 VNext
 -------------
+- [MAJOR] Consolidate Storage Supplier (breaking change introduced in common) #1729
 - [MINOR] Remove dependency from common's storagehelper #1725
 - [MINOR] Mapping ECDSA to EC in ClientCertRequest's keyTypes array (#1726)
 
