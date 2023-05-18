@@ -398,7 +398,7 @@ public final class BrokerAccountServiceTest {
         String signatureTag;
         for (final Signature signature : PackageHelper.getSignatures(info)) {
             signatureByte = signature.toByteArray();
-            MessageDigest md = MessageDigest.getInstance("SHA");
+            MessageDigest md = MessageDigest.getInstance("SHA-512");
             md.update(signatureByte);
             signatureTag = Base64.encodeToString(md.digest(), Base64.NO_WRAP);
             return new SignatureData(new Signature(signatureByte), signatureTag);
