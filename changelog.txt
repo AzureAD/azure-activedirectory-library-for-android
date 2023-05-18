@@ -1,6 +1,7 @@
 VNext
 -------------
 - [MAJOR] Consolidate Storage Supplier (breaking change introduced in common) #1729
+- [MINOR] Replacing SHA-1 used in broker validation with SHA-512 (#1732)
 
 Version 4.6.0
 -------------
