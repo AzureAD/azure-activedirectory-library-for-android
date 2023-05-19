@@ -322,7 +322,7 @@ public class AuthenticationActivity extends DualScreenActivity {
             mCallingPackage = getCallingPackage();
             mCallingUID = info.getUIDForPackage(mCallingPackage);
 
-            final String signatureDigest = info.getCurrentSignatureForPackage(mCallingPackage);
+            final String signatureDigest = info.getSha1SignatureForPackage(mCallingPackage);
             mStartUrl = getBrokerStartUrl(mStartUrl, mCallingPackage, signatureDigest);
 
             if (!isCallerBrokerInstaller()) {
@@ -402,7 +402,7 @@ public class AuthenticationActivity extends DualScreenActivity {
 
             final BrokerValidator brokerValidator = new BrokerValidator(this);
 
-            final String signature = info.getCurrentSignatureForPackage(packageName, true);
+            final String signature = info.getSha512SignatureForPackage(packageName);
 
             return brokerValidator.verifySignature(packageName) ||
                     signature.equals(AuthenticationSettings.INSTANCE.getBrokerSignature());
