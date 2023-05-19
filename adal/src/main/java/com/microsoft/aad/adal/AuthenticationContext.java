@@ -52,7 +52,6 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -61,7 +60,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.microsoft.aad.adal.TokenCacheAccessor.getMsalOAuth2TokenCache;
 import static com.microsoft.identity.common.java.AuthenticationConstants.UIRequest.BROWSER_FLOW;
 
 /**
@@ -268,7 +266,7 @@ public class AuthenticationContext {
 
         // First available signature. Applications can be signed with multiple
         // signatures.
-        final String signatureDigest = packageHelper.getCurrentSignatureForPackage(packageName);
+        final String signatureDigest = packageHelper.getSha1SignatureForPackage(packageName);
         final String redirectUri = PackageHelper.getBrokerRedirectUrl(packageName, signatureDigest);
         Logger.v(TAG + methodName, "Get expected redirect Uri. ", "Broker redirectUri:" + redirectUri + " packagename:" + packageName
                 + " signatureDigest:" + signatureDigest, null);
