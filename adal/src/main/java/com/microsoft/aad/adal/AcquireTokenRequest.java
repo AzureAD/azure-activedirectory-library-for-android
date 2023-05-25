@@ -763,7 +763,7 @@ class AcquireTokenRequest {
             base64URLEncodePackagename = URLEncoder.encode(mContext.getPackageName(),
                     AuthenticationConstants.ENCODING_UTF8);
             base64URLEncodeSignature = URLEncoder.encode(
-                    packageHelper.getCurrentSignatureForPackage(mContext.getPackageName()),
+                    packageHelper.getSha1SignatureForPackage(mContext.getPackageName()),
                     AuthenticationConstants.ENCODING_UTF8);
         } catch (final UnsupportedEncodingException e) {
             Logger.e(TAG + methodName, ADALError.ENCODING_IS_NOT_SUPPORTED.getDescription(), e.getMessage(), ADALError.ENCODING_IS_NOT_SUPPORTED, e);

@@ -139,7 +139,7 @@ public class BrokerProxyTests {
         // until it finds the correct one for ADAL broker.
         for (Signature signature : PackageHelper.getSignatures(info)) {
             mTestSignature = signature.toByteArray();
-            MessageDigest md = MessageDigest.getInstance("SHA");
+            MessageDigest md = MessageDigest.getInstance("SHA-512");
             md.update(mTestSignature);
             mTestTag = Base64.encodeToString(md.digest(), Base64.NO_WRAP);
             break;
