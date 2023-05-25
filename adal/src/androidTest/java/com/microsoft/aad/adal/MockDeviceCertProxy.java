@@ -47,15 +47,12 @@ public class MockDeviceCertProxy implements IDeviceCertificate {
 
     private static RSAPublicKey sPublicKey = null;
 
-    private static String sThumbPrint = null;
-
     private static boolean sValidIssuer = false;
 
     public static void reset() {
         sCertificate = null;
         sPrivateKey = null;
         sPublicKey = null;
-        sThumbPrint = null;
         sValidIssuer = false;
     }
 
@@ -65,11 +62,6 @@ public class MockDeviceCertProxy implements IDeviceCertificate {
 
     public PublicKey getPublicKey() {
         return sPublicKey;
-    }
-
-    @Override
-    public String getThumbPrint() {
-        return sThumbPrint;
     }
 
     @Override
@@ -98,10 +90,6 @@ public class MockDeviceCertProxy implements IDeviceCertificate {
 
     static final void setPublicKey(final RSAPublicKey publicKey) {
         sPublicKey = publicKey;
-    }
-
-    static final void setThumbPrint(final String thumbPrint) {
-        sThumbPrint = thumbPrint;
     }
 
     static final void setIsValidIssuer(final boolean isValidIssuer) {
