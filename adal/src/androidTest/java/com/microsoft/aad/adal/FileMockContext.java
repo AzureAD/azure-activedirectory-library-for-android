@@ -167,7 +167,7 @@ class FileMockContext extends MockContext {
         return mockContentResolver;
     }
 
-    public void setMockedAccountManager(final AccountManager mockedAccountManager) {
+    public void  setMockedAccountManager(final AccountManager mockedAccountManager) {
         if (mockedAccountManager == null) {
             throw new IllegalArgumentException("mockedAccountManager");
         }

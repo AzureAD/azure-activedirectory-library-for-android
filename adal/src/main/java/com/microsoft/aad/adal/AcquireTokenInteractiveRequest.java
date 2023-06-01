@@ -42,7 +42,7 @@ import static com.microsoft.identity.common.java.AuthenticationConstants.UIReque
  * Internal class handling the detailed acquire token interactive logic. Will be responsible for showing the webview,
  * auth code acquisition, token acquisition.
  */
-final class AcquireTokenInteractiveRequest {
+final class AcquireTokenInteractiveRequest  {
     private static final String TAG = AcquireTokenInteractiveRequest.class.getSimpleName();
 
     private final Context mContext;
