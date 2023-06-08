@@ -1,8 +1,9 @@
-VNext
+Version 4.7.0
 -------------
 - [MAJOR] Consolidate Storage Supplier (breaking change introduced in common) #1729
 - [MINOR] Replacing SHA-1 used in broker validation with SHA-512 (#1732)
 - [MINOR] Removing thumbprint check from PkeyAuthChallenge (#1733)
+- [PATCH] Update common @13.0.0
 
 Version 4.6.0
 -------------
