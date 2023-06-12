@@ -1,3 +1,6 @@
+VNext
+-------------
+
 Version 4.7.1
 -------------
 - [MAJOR] Consolidate Storage Supplier (breaking change introduced in common) #1729
