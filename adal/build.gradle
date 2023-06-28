@@ -362,5 +362,9 @@ tasks.whenTaskAdded { task ->
     if (task.name.contains('assemble')) {
         task.dependsOn 'lint'
     }
+
+    if (task.name == 'assembleLocal') {
+        task.dependsOn 'lintLocalDebug', 'pmd'
+    }
 }
 
