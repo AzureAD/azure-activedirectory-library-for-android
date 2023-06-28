@@ -170,10 +170,10 @@ dependencies {
     testImplementation ("org.robolectric:robolectric:$rootProject.ext.robolectricVersion")
     testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"
     testLocalImplementation project(':testutils')
-    testDistImplementation("com.microsoft.identity:testutils:0.0.+") {
-        exclude module: 'common'
-        exclude group: 'com.microsoft.identity', module: 'LabApiUtilities'
-    }
+//    testDistImplementation("com.microsoft.identity:testutils:0.0.+") {
+//        exclude module: 'common'
+//        exclude group: 'com.microsoft.identity', module: 'LabApiUtilities'
+//    }
 
     // Javadoc Dependencies
     javadocDeps "androidx.annotation:annotation:$rootProject.ext.annotationVersion"
@@ -358,9 +358,9 @@ tasks.whenTaskAdded { task ->
     if (task.name == 'assembleDebug' || task.name == 'assembleRelease') {
         task.dependsOn 'checkstyle', 'pmd', 'lint'
     }
-    
+
     if (task.name == 'assembleLocal') {
-        task.dependsOn 'lintLocalDebug', 'pmd'
+        task.dependsOn 'lintLocalDebug'
     }
 }
 
