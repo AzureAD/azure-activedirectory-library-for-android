@@ -33,7 +33,6 @@ jobs:
     submodules: recursive
     persistCredentials: True
   - template: azure-pipelines/templates/steps/automation-cert.yml@common
-
   - task: CmdLine@1
     displayName: Set Office MVN Access Token in Environment
     inputs:
