@@ -39,7 +39,6 @@ jobs:
     inputs:
       filename: echo
       arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN]$(System.AccessToken)'
-
   - task: Gradle@1
     displayName: Assemble Local
     inputs:
@@ -47,7 +46,6 @@ jobs:
       publishJUnitResults: false
       jdkArchitecture: x86
       sqAnalysisBreakBuildIfQualityGateFailed: false
-      
   - task: Gradle@1
     displayName: Lint Local debug
     inputs:
