@@ -53,7 +53,7 @@ jobs:
   - task: PublishPipelineArtifact@1
     displayName: 'Publish Artifact: Lint'
     inputs:
-      targetPath: '$(Build.SourcesDirectory)\${{ parameters.project }}\build\outputs\'
+      targetPath: '$(Build.SourcesDirectory)\build\outputs\'
       ArtifactName: 'outputs'
     condition: failed()
   - task: Semmle@1
