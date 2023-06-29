@@ -41,7 +41,6 @@ jobs:
       arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN]$(System.AccessToken)'
 
   - task: Gradle@1
-    name: Gradle1
     displayName: Assemble Local
     inputs:
       tasks: clean adal:assembleLocal
@@ -50,7 +49,6 @@ jobs:
       sqAnalysisBreakBuildIfQualityGateFailed: false
       
   - task: Gradle@1
-    name: Gradle1
     displayName: Lint Local debug
     inputs:
       tasks: clean adal:lintLocalDebug
