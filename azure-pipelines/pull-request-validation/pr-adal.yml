@@ -42,12 +42,18 @@ jobs:
 
   - task: Gradle@1
     name: Gradle1
-    displayName: Assemble Release
+    displayName: Assemble Local
     inputs:
-      tasks: clean adal:lintLocalDebug
+      tasks: clean adal:assembleLocal
       publishJUnitResults: false
       jdkArchitecture: x86
       sqAnalysisBreakBuildIfQualityGateFailed: false
+      
+  - task: Gradle@1
+    name: Gradle1
+    displayName: Lint Local debug
+    inputs:
+      tasks: clean adal:lintLocalDebug
   - template: azure-pipelines/templates/steps/spotbugs.yml@common
     parameters:
       project: adal
