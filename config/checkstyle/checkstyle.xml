@@ -20,7 +20,6 @@ android checkstyle
     <property name="tabWidth" value="4"/>
     <module name="JavadocMethod">
       <property name="scope" value="public"/>
-      <property name="suppressLoadErrors" value="true"/>
     </module>
     <module name="JavadocType">
       <property name="excludeScope" value="protected"/>
