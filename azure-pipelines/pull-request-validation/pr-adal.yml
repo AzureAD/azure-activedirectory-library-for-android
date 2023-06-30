@@ -15,41 +15,47 @@ trigger:
 
 resources:
   repositories:
-  - repository: common
+  - repository: android-complete
     type: github
-    name: AzureAD/microsoft-authentication-library-common-for-android
-    ref: dev
+    name: AzureAD/android-complete
+    ref: master
     endpoint: ANDROID_GITHUB
 
+pool:
+  name: Hosted Windows 2019 with VS2019
 jobs:
 - job: build_test
   displayName: Build & Test
   cancelTimeoutInMinutes: 1
-  pool:
-    name: Hosted Windows 2019 with VS2019
   steps:
   - checkout: self
     clean: true
     submodules: recursive
     persistCredentials: True
-  - template: azure-pipelines/templates/steps/automation-cert.yml@common
+  - task: Gradle@3
+    displayName: Assemble Local
+    inputs:
+      tasks: clean adal:assembleLocal
+      publishJUnitResults: false
+      jdkArchitecture: x86
+      sqAnalysisBreakBuildIfQualityGateFailed: false
+- job: lint_spotbugs
+  displayName: Lint and SpotBugs
+  steps:
+  - checkout: self
+    clean: true
+    submodules: recursive
+    persistCredentials: True
   - task: CmdLine@1
     displayName: Set Office MVN Access Token in Environment
     inputs:
       filename: echo
       arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN]$(System.AccessToken)'
-#  - task: Gradle@3
-#    displayName: Assemble Local
-#    inputs:
-#      tasks: clean adal:assembleLocal
-#      publishJUnitResults: false
-#      jdkArchitecture: x86
-#      sqAnalysisBreakBuildIfQualityGateFailed: false
-#  - task: Gradle@3
-#    displayName: Lint Local debug
-#    inputs:
-#      tasks: clean adal:lintLocalDebug
-#      publishJUnitResults: false
+  - task: Gradle@3
+    displayName: Lint Local debug
+    inputs:
+      tasks: clean adal:lintLocalDebug
+      publishJUnitResults: false
   - task: Semmle@1
     inputs:
       sourceCodeDirectory: '$(Build.SourcesDirectory)'
@@ -63,7 +69,7 @@ jobs:
       targetPath: '$(Build.SourcesDirectory)\build\outputs\'
       ArtifactName: 'outputs'
     condition: failed()
-  - template: azure-pipelines/templates/steps/spotbugs.yml@common
+  - template: azure-pipelines/templates/spotbugs.yml@android-complete
     parameters:
       project: adal
 ...
