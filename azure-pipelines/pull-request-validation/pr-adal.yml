@@ -18,7 +18,7 @@ resources:
   - repository: android-complete
     type: github
     name: AzureAD/android-complete
-    ref: master
+    ref: pedroro/spotbugs-template
     endpoint: ANDROID_GITHUB
 
 pool:
