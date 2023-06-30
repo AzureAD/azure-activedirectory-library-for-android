@@ -182,8 +182,8 @@ dependencies {
 
 task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
-    classifier = 'sources'
-    destinationDir = reporting.file("$project.buildDir/outputs/jar/")
+    archiveClassifier  = 'sources'
+    getDestinationDirectory().set(reporting.file("$project.buildDir/outputs/jar/"))
 }
 
 task javadoc(type: Javadoc) {
