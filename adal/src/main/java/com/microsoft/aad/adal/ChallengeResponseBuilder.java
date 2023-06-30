@@ -51,10 +51,6 @@ class ChallengeResponseBuilder {
         mJWSBuilder = jwsBuilder;
     }
 
-    public JWSBuilder getJWSBuilder() {
-        return mJWSBuilder;
-    }
-
     class ChallengeResponse {
         private String mSubmitUrl;
 

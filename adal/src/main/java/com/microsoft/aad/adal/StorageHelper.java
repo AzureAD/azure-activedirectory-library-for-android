@@ -511,6 +511,31 @@ public class StorageHelper {
         }
     }
 
+    /**
+     * Check if KeyPair exists on AndroidKeyStore.
+     */
+    private synchronized boolean doesKeyPairExist() throws GeneralSecurityException, IOException {
+        final KeyStore keyStore = KeyStore.getInstance(ANDROID_KEY_STORE);
+        keyStore.load(null);
+
+        final boolean isKeyStoreCertAliasExisted;
+        try {
+            isKeyStoreCertAliasExisted = keyStore.containsAlias(KEY_STORE_CERT_ALIAS);
+        } catch (final NullPointerException exception) {
+            // There is an issue with Android Keystore when remote service attempts
+            // to access Keystore.
+            // Changeset found for google source to address the related issue with
+            // remote service accessing keystore :
+            // https://android.googlesource.com/platform/external/sepolicy/+/0e30164b17af20f680635c7c6c522e670ecc3df3
+            // The thrown exception in this case is:
+            // java.lang.NullPointerException: Attempt to invoke interface method
+            // 'int android.security.IKeystoreService.exist(java.lang.String, int)' on a null object reference
+            // To avoid app from crashing, re-throw as checked exception
+            throw new KeyStoreException(exception);
+        }
+
+        return isKeyStoreCertAliasExisted;
+    }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private AlgorithmParameterSpec getKeyPairGeneratorSpec(final Context context, final Date start, final Date end) {
