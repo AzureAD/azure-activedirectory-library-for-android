@@ -24,31 +24,19 @@ resources:
 pool:
   name: Hosted Windows 2019 with VS2019
 jobs:
-- job: build_test
-  displayName: Build & Test
+- job: codeql
+  displayName: CodeQL
   cancelTimeoutInMinutes: 1
   steps:
   - checkout: self
     clean: true
     submodules: recursive
     persistCredentials: True
-#  - task: Gradle@3
-#    displayName: Assemble Local
-#    inputs:
-#      tasks: clean adal:assembleLocal
-#      publishJUnitResults: false
-#      jdkArchitecture: x86
-#      sqAnalysisBreakBuildIfQualityGateFailed: false
   - task: CmdLine@1
     displayName: Set Office MVN Access Token in Environment
     inputs:
       filename: echo
       arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN]$(System.AccessToken)'
-#  - task: Gradle@3
-#    displayName: Lint
-#    inputs:
-#      tasks: clean adal:lintLocalDebug
-#      publishJUnitResults: false
   - task: Semmle@1
     inputs:
       sourceCodeDirectory: '$(Build.SourcesDirectory)'
@@ -62,6 +50,49 @@ jobs:
       targetPath: '$(Build.SourcesDirectory)\build\outputs\'
       ArtifactName: 'outputs'
     condition: failed()
+
+- job: build_test
+  displayName: Build & Test
+  cancelTimeoutInMinutes: 1
+  steps:
+  - checkout: self
+    clean: true
+    submodules: recursive
+    persistCredentials: True
+  - task: Gradle@3
+    displayName: Assemble Local
+    inputs:
+      tasks: clean adal:assembleLocal
+      publishJUnitResults: false
+      jdkArchitecture: x86
+      sqAnalysisBreakBuildIfQualityGateFailed: false
+- job: lint
+  displayName: Lint
+  cancelTimeoutInMinutes: 1
+  steps:
+  - checkout: self
+    clean: true
+    submodules: recursive
+    persistCredentials: True
+  - task: CmdLine@1
+    displayName: Set Office MVN Access Token in Environment
+    inputs:
+      filename: echo
+      arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN]$(System.AccessToken)'
+  - task: Gradle@3
+    displayName: Lint
+    inputs:
+      tasks: clean adal:lintLocalDebug
+      publishJUnitResults: false
+
+- job: spotbugs
+  displayName: SpotBugs
+  cancelTimeoutInMinutes: 1
+  steps:
+  - checkout: self
+    clean: true
+    submodules: recursive
+    persistCredentials: True
   - template: azure-pipelines/templates/spotbugs.yml@android-complete
     parameters:
       project: adal
