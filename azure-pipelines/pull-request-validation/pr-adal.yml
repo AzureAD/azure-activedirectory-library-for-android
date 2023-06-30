@@ -39,20 +39,13 @@ jobs:
       publishJUnitResults: false
       jdkArchitecture: x86
       sqAnalysisBreakBuildIfQualityGateFailed: false
-- job: lint_spotbugs
-  displayName: Lint and SpotBugs
-  steps:
-  - checkout: self
-    clean: true
-    submodules: recursive
-    persistCredentials: True
   - task: CmdLine@1
     displayName: Set Office MVN Access Token in Environment
     inputs:
       filename: echo
       arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN]$(System.AccessToken)'
   - task: Gradle@3
-    displayName: Lint Local debug
+    displayName: Lint
     inputs:
       tasks: clean adal:lintLocalDebug
       publishJUnitResults: false
@@ -64,7 +57,7 @@ jobs:
       querySuite: 'Recommended'
       timeout: '1800'
   - task: PublishPipelineArtifact@1
-    displayName: 'Publish Artifact: Lint'
+    displayName: 'Publish code analysis artifacts'
     inputs:
       targetPath: '$(Build.SourcesDirectory)\build\outputs\'
       ArtifactName: 'outputs'
