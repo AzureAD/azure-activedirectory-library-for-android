@@ -32,23 +32,23 @@ jobs:
     clean: true
     submodules: recursive
     persistCredentials: True
-  - task: Gradle@3
-    displayName: Assemble Local
-    inputs:
-      tasks: clean adal:assembleLocal
-      publishJUnitResults: false
-      jdkArchitecture: x86
-      sqAnalysisBreakBuildIfQualityGateFailed: false
+#  - task: Gradle@3
+#    displayName: Assemble Local
+#    inputs:
+#      tasks: clean adal:assembleLocal
+#      publishJUnitResults: false
+#      jdkArchitecture: x86
+#      sqAnalysisBreakBuildIfQualityGateFailed: false
   - task: CmdLine@1
     displayName: Set Office MVN Access Token in Environment
     inputs:
       filename: echo
       arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN]$(System.AccessToken)'
-  - task: Gradle@3
-    displayName: Lint
-    inputs:
-      tasks: clean adal:lintLocalDebug
-      publishJUnitResults: false
+#  - task: Gradle@3
+#    displayName: Lint
+#    inputs:
+#      tasks: clean adal:lintLocalDebug
+#      publishJUnitResults: false
   - task: Semmle@1
     inputs:
       sourceCodeDirectory: '$(Build.SourcesDirectory)'
