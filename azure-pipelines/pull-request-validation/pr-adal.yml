@@ -54,7 +54,7 @@ jobs:
     inputs:
       sourceCodeDirectory: '$(Build.SourcesDirectory)'
       language: 'java'
-      buildCommandsString: 'gradle clean adal:assembleLocal'
+      buildCommandsString: 'gradlew.bat clean adal:assembleLocal'
       querySuite: 'Recommended'
       timeout: '1800'
   - task: PublishPipelineArtifact@1
