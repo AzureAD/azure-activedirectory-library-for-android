@@ -38,23 +38,23 @@ jobs:
     inputs:
       filename: echo
       arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN]$(System.AccessToken)'
-  - task: Gradle@3
-    displayName: Assemble Local
-    inputs:
-      tasks: clean adal:assembleLocal
-      publishJUnitResults: false
-      jdkArchitecture: x86
-      sqAnalysisBreakBuildIfQualityGateFailed: false
-  - task: Gradle@3
-    displayName: Lint Local debug
-    inputs:
-      tasks: clean adal:lintLocalDebug
-      publishJUnitResults: false
+#  - task: Gradle@3
+#    displayName: Assemble Local
+#    inputs:
+#      tasks: clean adal:assembleLocal
+#      publishJUnitResults: false
+#      jdkArchitecture: x86
+#      sqAnalysisBreakBuildIfQualityGateFailed: false
+#  - task: Gradle@3
+#    displayName: Lint Local debug
+#    inputs:
+#      tasks: clean adal:lintLocalDebug
+#      publishJUnitResults: false
   - task: Semmle@1
     inputs:
       sourceCodeDirectory: '$(Build.SourcesDirectory)'
       language: 'java'
-      buildCommandsString: 'clean adal:assembleLocal'
+      buildCommandsString: 'gradle clean adal:assembleLocal'
       querySuite: 'Recommended'
       timeout: '1800'
   - task: PublishPipelineArtifact@1
