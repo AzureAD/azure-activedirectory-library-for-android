@@ -15,33 +15,85 @@ trigger:
 
 resources:
   repositories:
-  - repository: common
+  - repository: android-complete
     type: github
-    name: AzureAD/microsoft-authentication-library-common-for-android
-    ref: dev
+    name: AzureAD/android-complete
+    ref: master
     endpoint: ANDROID_GITHUB
 
+pool:
+  name: Hosted Windows 2019 with VS2019
 jobs:
-- job: build_test
-  displayName: Build & Test
+- job: codeql
+  displayName: CodeQL
   cancelTimeoutInMinutes: 1
-  pool:
-    name: Hosted Windows 2019 with VS2019
   steps:
   - checkout: self
     clean: true
     submodules: recursive
     persistCredentials: True
-  - template: azure-pipelines/templates/steps/automation-cert.yml@common
-  - task: Gradle@1
-    name: Gradle1
-    displayName: Assemble Release
+  - task: CmdLine@1
+    displayName: Set Office MVN Access Token in Environment
+    inputs:
+      filename: echo
+      arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN]$(System.AccessToken)'
+  - task: Semmle@1
+    inputs:
+      sourceCodeDirectory: '$(Build.SourcesDirectory)'
+      language: 'java'
+      buildCommandsString: 'gradlew.bat clean adal:assembleLocal'
+      querySuite: 'Recommended'
+      timeout: '1800'
+  - task: PublishPipelineArtifact@1
+    displayName: 'Publish code analysis artifacts'
+    inputs:
+      targetPath: '$(Build.SourcesDirectory)\build\outputs\'
+      ArtifactName: 'outputs'
+    condition: failed()
+
+- job: build_test
+  displayName: Build & Test
+  cancelTimeoutInMinutes: 1
+  steps:
+  - checkout: self
+    clean: true
+    submodules: recursive
+    persistCredentials: True
+  - task: Gradle@3
+    displayName: Assemble Local
     inputs:
       tasks: clean adal:assembleLocal
       publishJUnitResults: false
       jdkArchitecture: x86
       sqAnalysisBreakBuildIfQualityGateFailed: false
-  - template: azure-pipelines/templates/steps/spotbugs.yml@common
+- job: lint
+  displayName: Lint
+  cancelTimeoutInMinutes: 1
+  steps:
+  - checkout: self
+    clean: true
+    submodules: recursive
+    persistCredentials: True
+  - task: CmdLine@1
+    displayName: Set Office MVN Access Token in Environment
+    inputs:
+      filename: echo
+      arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN]$(System.AccessToken)'
+  - task: Gradle@3
+    displayName: Lint
+    inputs:
+      tasks: clean adal:lintLocalDebug
+      publishJUnitResults: false
+
+- job: spotbugs
+  displayName: SpotBugs
+  cancelTimeoutInMinutes: 1
+  steps:
+  - checkout: self
+    clean: true
+    submodules: recursive
+    persistCredentials: True
+  - template: azure-pipelines/templates/spotbugs.yml@android-complete
     parameters:
       project: adal
 ...
