@@ -522,9 +522,9 @@ public class StorageHelper {
         try {
             isKeyStoreCertAliasExisted = keyStore.containsAlias(KEY_STORE_CERT_ALIAS);
         } catch (final NullPointerException exception) {
-            // There is an issue with Android Keystore when remote service attempts
-            // to access Keystore.
-            // Changeset found for google source to address the related issue with
+            // There is an issue with Android Keystore when remote service attempts 
+            // to access Keystore. 
+            // Changeset found for google source to address the related issue with 
             // remote service accessing keystore :
             // https://android.googlesource.com/platform/external/sepolicy/+/0e30164b17af20f680635c7c6c522e670ecc3df3
             // The thrown exception in this case is:
