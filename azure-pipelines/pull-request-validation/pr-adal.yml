@@ -50,18 +50,19 @@ jobs:
     inputs:
       tasks: clean adal:lintLocalDebug
       publishJUnitResults: false
+  - task: Semmle@1
+    inputs:
+      sourceCodeDirectory: '$(Build.SourcesDirectory)'
+      language: 'java'
+      buildCommandsString: 'clean adal:assembleLocal'
+      querySuite: 'Recommended'
+      timeout: '1800'
   - task: PublishPipelineArtifact@1
     displayName: 'Publish Artifact: Lint'
     inputs:
       targetPath: '$(Build.SourcesDirectory)\build\outputs\'
       ArtifactName: 'outputs'
     condition: failed()
-  - task: Semmle@1
-    inputs:
-      sourceCodeDirectory: '$(Build.SourcesDirectory)'
-      language: 'java'
-      querySuite: 'Recommended'
-      timeout: '1800'
   - template: azure-pipelines/templates/steps/spotbugs.yml@common
     parameters:
       project: adal
