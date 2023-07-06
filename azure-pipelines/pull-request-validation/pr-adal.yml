@@ -27,6 +27,8 @@ jobs:
 - job: codeql
   displayName: CodeQL
   cancelTimeoutInMinutes: 1
+  variables:
+    Semmle.UploadSnapshot: true
   steps:
   - checkout: self
     clean: true
@@ -38,6 +40,8 @@ jobs:
       filename: echo
       arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN]$(System.AccessToken)'
   - task: Semmle@1
+    env:
+      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
     inputs:
       sourceCodeDirectory: '$(Build.SourcesDirectory)'
       language: 'java'
