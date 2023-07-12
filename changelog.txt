@@ -1,3 +1,6 @@
+VNext
+-------------
+
 Version 4.7.2
 -------------
 - [PATCH] Update common @14.0.0
