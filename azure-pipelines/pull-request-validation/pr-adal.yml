@@ -28,28 +28,31 @@ jobs:
   displayName: CodeQL
   cancelTimeoutInMinutes: 1
   steps:
-    - checkout: self
-      clean: true
-      submodules: recursive
-      persistCredentials: True
-    - task: CmdLine@1
-      displayName: Set Office MVN Access Token in Environment
-      inputs:
-        filename: echo
-        arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN]$(System.AccessToken)'
-    - task: Semmle@1
-      inputs:
-        sourceCodeDirectory: '$(Build.SourcesDirectory)'
-        language: 'java'
-        buildCommandsString: 'gradlew.bat clean adal:assembleLocal'
-        querySuite: 'Recommended'
-        timeout: '1800'
-    - task: PublishPipelineArtifact@1
-      displayName: 'Publish code analysis artifacts'
-      inputs:
-        targetPath: '$(Build.SourcesDirectory)\build\outputs\'
-        ArtifactName: 'outputs'
-      condition: failed()
+  - checkout: self
+    clean: true
+    submodules: recursive
+    persistCredentials: True
+  - task: CmdLine@1
+    displayName: Set Office MVN Access Token in Environment
+    inputs:
+      filename: echo
+      arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN]$(System.AccessToken)'
+  # https://semmleportal.azurewebsites.net/codeql/guardian
+  - task: Semmle@1
+    env:
+      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+    inputs:
+      sourceCodeDirectory: '$(Build.SourcesDirectory)'
+      language: 'java'
+      buildCommandsString: 'gradlew.bat clean adal:assembleLocal'
+      querySuite: 'Recommended'
+      timeout: '1800'
+  - task: PublishPipelineArtifact@1
+    displayName: 'Publish code analysis artifacts'
+    inputs:
+      targetPath: '$(Build.SourcesDirectory)\build\outputs\'
+      ArtifactName: 'outputs'
+    condition: failed()
 
 - job: build_test
   displayName: Build & Test
