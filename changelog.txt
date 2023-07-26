@@ -1,3 +1,7 @@
+Version 4.7.4
+-------------
+- [PATCH] Fix crash due to IllegalArgumentException in StorageHelper.decrypt (#1749)
+
 Version 4.7.3
 -------------
 - [PATCH] Update common @14.0.1
