@@ -1,6 +1,7 @@
 VNext
 -------------
 - [PATCH] Update YubiKit version to 2.3.0 (#1744)
+- [PATCH] Updated target and compile SDK versions to 34 (#1747)
 
 Version 4.7.2
 -------------
