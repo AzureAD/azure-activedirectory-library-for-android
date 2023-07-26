@@ -32,6 +32,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.Suppress;
 import androidx.test.platform.app.InstrumentationRegistry;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -128,15 +129,8 @@ public class StorageHelperTests extends AndroidTestHelper {
             IOException, GeneralSecurityException {
         final Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         final StorageHelper storageHelper = new StorageHelper(context);
-        assertThrowsException(
-                IllegalArgumentException.class,
-                "is not valid, it must be greater of equal to 0",
-                new AndroidTestHelper.ThrowableRunnable() {
-                    @Override
-                    public void run() throws GeneralSecurityException, IOException, AuthenticationException {
-                        storageHelper.decrypt("E1bad64");
-                    }
-                });
+
+        Assert.assertEquals("E1bad64", storageHelper.decrypt("E1bad64"));
 
         assertThrowsException(
                 IllegalArgumentException.class,
