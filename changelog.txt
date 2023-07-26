@@ -1,3 +1,7 @@
+Version 4.6.1
+-------------
+- [PATCH] Fix crash due to IllegalArgumentException in StorageHelper.decrypt (#1748)
+
 Version 4.6.0
 -------------
 - [MINOR] Remove dependency from common's storagehelper #1725
