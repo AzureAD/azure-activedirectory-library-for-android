@@ -254,14 +254,22 @@ public class StorageHelper {
 
         int encodeVersionLength = encryptedBlob.charAt(0) - 'a';
         if (encodeVersionLength <= 0) {
-            throw new IllegalArgumentException(String.format(
-                    "Encode version length: '%s' is not valid, it must be greater of equal to 0",
-                    encodeVersionLength));
+            final String message = String.format(
+                    "Encode version length: '%s' is not valid, it must be greater of equal to 0. " +
+                            "Assuming string is not encrypted. Returning input blob.",
+                    encodeVersionLength
+            );
+            Logger.w(TAG + methodName, message);
+            return encryptedBlob;
         }
         if (!encryptedBlob.substring(1, 1 + encodeVersionLength).equals(ENCODE_VERSION)) {
-            throw new IllegalArgumentException(String.format(
-                    "Encode version received was: '%s', Encode version supported is: '%s'", encryptedBlob,
-                    ENCODE_VERSION));
+            final String message = String.format(
+                    "Unsupported encode version received. Encode version supported is: %s. " +
+                            "Assuming string is not encrypted. Returning input blob.",
+                    ENCODE_VERSION
+            );
+            Logger.w(TAG + methodName, message);
+            return encryptedBlob;
         }
 
         final byte[] bytes = Base64
