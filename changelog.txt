@@ -1,6 +1,7 @@
 VNext
 -------------
 - [PATCH] Update YubiKit version to 2.3.0 (#1744)
+- [PATCH] Fix Adal StorageHelper Decrypt crash (#1751)
 
 Version 4.7.3
 -------------
