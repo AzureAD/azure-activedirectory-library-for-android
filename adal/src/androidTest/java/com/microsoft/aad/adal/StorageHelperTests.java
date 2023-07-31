@@ -128,15 +128,8 @@ public class StorageHelperTests extends AndroidTestHelper {
             IOException, GeneralSecurityException {
         final Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         final StorageHelper storageHelper = new StorageHelper(context);
-        assertThrowsException(
-                IllegalArgumentException.class,
-                "is not valid, it must be greater of equal to 0",
-                new AndroidTestHelper.ThrowableRunnable() {
-                    @Override
-                    public void run() throws GeneralSecurityException, IOException, AuthenticationException {
-                        storageHelper.decrypt("E1bad64");
-                    }
-                });
+
+        assertEquals("E1bad64", storageHelper.decrypt("E1bad64"));
 
         assertThrowsException(
                 IllegalArgumentException.class,
