@@ -51,7 +51,7 @@ android {
         coreLibraryDesugaringEnabled true
         // Sets Java compatibility to Java 8
         sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
 
     compileSdkVersion rootProject.ext.compileSdkVersion
@@ -81,7 +81,20 @@ android {
     }
 
     flavorDimensions "main"
-
+    afterEvaluate {
+        // Gradle 6.1.1 and Android Gradle Plugin 4.0.1 doesn't rename the file (see 'outputFileName' above)
+        // Adding this work around to have the file properly renamed.
+        tasks.named("assembleDistRelease").configure {
+            def buildFile = file("$buildDir/outputs/aar/${archivesBaseName}-dist-release.aar")
+            print "Build file $buildFile"
+            doLast {
+                println "Renaming build file $buildFile to '$buildDir${File.separator}outputs${File.separator}aar${File.separator}${archivesBaseName}-${version}.aar'"
+                if (!buildFile.renameTo("$buildDir${File.separator}outputs${File.separator}aar${File.separator}${archivesBaseName}-${version}.aar")) {
+                    println "Rename failed!"
+                }
+            }
+        }
+    }
     productFlavors {
         // The 'local' productFlavor sources common from mavenLocal and is intended to be used
         // during development.
@@ -189,6 +202,7 @@ task sourcesJar(type: Jar) {
 task javadoc(type: Javadoc) {
     failOnError false
     source = android.sourceSets.main.java.srcDirs
+    configurations.implementation.setCanBeResolved(true)
     classpath += configurations.implementation
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
     classpath += configurations.javadocDeps
