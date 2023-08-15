@@ -5,7 +5,7 @@ ext {
     minSdkVersion = 16
     brokerProjectMinSdkVersion = 24
     automationAppMinSDKVersion = 21
-    targetSdkVersion = 34
+    targetSdkVersion = 33
     compileSdkVersion = 34
     buildToolsVersion = "28.0.3"
 
@@ -36,8 +36,8 @@ ext {
     localBroadcastManagerVersion = "1.0.0"
     lombokVersion = "1.18.22"
     materialVersion = "1.0.0"
-    mockitoCoreVersion = "3.6.28"
-    mockitoAndroidVersion = "3.6.28"
+    mockitoCoreVersion = "3.8.0"
+    mockitoAndroidVersion = "3.8.0"
     multidexVersion = "2.0.1"
     nimbusVersion = "9.9"
     powerMockVersion = "2.0.9"

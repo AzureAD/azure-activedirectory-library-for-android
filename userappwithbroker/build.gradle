@@ -42,7 +42,7 @@ if (project.hasProperty("buildApplicationId")) {
 println "Using application Id " + destApplicationId
 
 android {
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    compileSdk rootProject.ext.compileSdkVersion
 
     compileOptions {
         // Flag to enable support for the new language APIs
