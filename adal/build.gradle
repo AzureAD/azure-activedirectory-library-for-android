@@ -51,7 +51,7 @@ android {
         coreLibraryDesugaringEnabled true
         // Sets Java compatibility to Java 8
         sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     compileSdk rootProject.ext.compileSdkVersion
@@ -82,7 +82,7 @@ android {
 
     flavorDimensions "main"
     afterEvaluate {
-        // Gradle 6.1.1 and Android Gradle Plugin 4.0.1 doesn't rename the file (see 'outputFileName' above)
+        // Gradle 7.5 and Android Gradle Plugin 7.4.2 doesn't rename the file (see 'outputFileName' above)
         // Adding this work around to have the file properly renamed.
         tasks.named("assembleDistRelease").configure {
             def buildFile = file("$buildDir/outputs/aar/${archivesBaseName}-dist-release.aar")
