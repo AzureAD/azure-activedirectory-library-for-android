@@ -21,10 +21,10 @@ steps:
 - script: |
     echo Add other tasks to build, test, and deploy your project.
     echo See https://aka.ms/yaml
+    exit 1
   displayName: 'Run a multi-line script'
   ${{ if eq(variables.one,'ok') }}:
-    continueOnError: false
-  ${{ else }}:
     continueOnError: true
-  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+  ${{ else }}:
+    continueOnError: false
 - script: echo Add other tasks to build, test, and deploy your project.
