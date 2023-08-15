@@ -54,7 +54,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    compileSdk rootProject.ext.compileSdkVersion
 
     defaultConfig {
         multiDexEnabled true
