@@ -9,6 +9,11 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
+variables:
+- name: one
+  value: ok 
+
+
 steps:
 - script: echo Hello, world!
   displayName: 'Run a one-line script'
@@ -17,4 +22,9 @@ steps:
     echo Add other tasks to build, test, and deploy your project.
     echo See https://aka.ms/yaml
   displayName: 'Run a multi-line script'
-  continueOnError: true  
+  ${{ if eq(variables.one,'ok') }}:
+    continueOnError: false
+  ${{ else }}:
+    continueOnError: true
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+- script: echo Add other tasks to build, test, and deploy your project.
