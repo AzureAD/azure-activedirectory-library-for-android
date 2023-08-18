@@ -1,3 +1,7 @@
+V.Next
+-------------
+- [MINOR] Daily dev version dependency now uses 1.0.+ (#1756)
+
 Version 4.7.5
 -------------
 - [PATCH] Update YubiKit version to 2.3.0 (#1744)
