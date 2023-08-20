@@ -73,7 +73,7 @@ jobs:
     inputs:
       tasks: clean adal:assembleLocal
       publishJUnitResults: false
-      jdkArchitecture: x86
+      jdkArchitecture: x64
       jdkVersion: 1.11
 - job: lint
   displayName: Lint
