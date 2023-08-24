@@ -1,3 +1,7 @@
+vNext
+-------------
+- [MINOR] Target, compile SDK, AGP and gradle versions increased (#1755)
+
 Version 4.7.5
 -------------
 - [PATCH] Update YubiKit version to 2.3.0 (#1744)
