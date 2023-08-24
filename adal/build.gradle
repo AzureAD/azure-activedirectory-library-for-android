@@ -54,7 +54,7 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    compileSdk rootProject.ext.compileSdkVersion
 
     defaultConfig {
         multiDexEnabled true
@@ -190,7 +190,8 @@ task sourcesJar(type: Jar) {
 task javadoc(type: Javadoc) {
     failOnError false
     source = android.sourceSets.main.java.srcDirs
-    classpath += configurations.compile
+    configurations.implementation.setCanBeResolved(true)
+    classpath += configurations.implementation
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
     classpath += configurations.javadocDeps
     exclude '**/*.aidl'
@@ -206,10 +207,11 @@ task javadoc(type: Javadoc) {
     destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
 }
 
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
+tasks.register('javadocJar', Jar) {
+    dependsOn javadoc
+    classifier 'javadoc'
     from javadoc.destinationDir
-    destinationDir = reporting.file("$project.buildDir/outputs/jar/")
+    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
 }
 
 // For publishing to the remote maven repo.
@@ -323,7 +325,7 @@ pmd {
     reportsDir = file("$project.buildDir/outputs/")
 }
 
-task pmd(type: Pmd) {
+tasks.register('pmd', Pmd) {
     description 'Run pmd'
     group 'verification'
 
@@ -344,7 +346,7 @@ checkstyle {
     reportsDir = file("$project.buildDir/outputs/")
 }
 
-task checkstyle(type: Checkstyle) {
+tasks.register('checkstyle', Checkstyle) {
     configFile file("${project.rootDir}/config/checkstyle/checkstyle.xml")
 
     configProperties.checkstyleConfigDir = checkstyleConfigDir
@@ -355,7 +357,7 @@ task checkstyle(type: Checkstyle) {
     classpath = files()
 }
 
-tasks.whenTaskAdded { task ->
+tasks.configureEach { task ->
     if (task.name == 'assembleDebug' || task.name == 'assembleRelease') {
         task.dependsOn 'checkstyle', 'pmd', 'lint'
     }
