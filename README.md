@@ -1,17 +1,7 @@
----
-
-This library, ADAL for Android, will no longer receive new feature improvements. Instead, use the new library
-[MSAL for Android](https://github.com/AzureAD/microsoft-authentication-library-for-android).
-
-* If you are starting a new project, you can get started with the
-  [MSAL for Android docs](https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki)
-  for details about the scenarios, usage, and relevant concepts.
-* If your application is using the previous ADAL for Android library, you can follow this
-  [migration guide](https://docs.microsoft.com/azure/active-directory/develop/migrate-android-adal-msal)
-  to update to MSAL for Android.
-* Existing applications relying on ADAL for Android will continue to work.
-
----
+>**Warning**
+>ADAL for Android has been **deprecated** as of June 30, 2023. The library **should not be used in any production scenarios**. While existing applications will continue to work, we offer no support or new features for the library.
+>
+>Developers who use ADAL for Android should switch to [MSAL for Android](https://github.com/AzureAD/microsoft-authentication-library-for-android). The team has put together a [migration guide](https://learn.microsoft.com/azure/active-directory/develop/migrate-android-adal-msal) to help transition to the new library.
 
 | [Documentation](https://github.com/AzureAD/azure-activedirectory-library-for-android/wiki#documentation) | [Code Samples](https://github.com/azure-samples?utf8=✓&q=active-directory-android) | [Developer Guide](https://aka.ms/aaddev) | [Feedback](https://forms.office.com/r/Xx9tB8g8R4) |
 | --- | --- | --- | --- |
