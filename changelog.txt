@@ -1,6 +1,7 @@
 vNext
 -------------
 - [MINOR] Target, compile SDK, AGP and gradle versions increased (#1755)
+- [MINOR] Adding kotlinx.serialization version (#1757)
 
 Version 4.7.5
 -------------
