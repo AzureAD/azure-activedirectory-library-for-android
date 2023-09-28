@@ -1,5 +1,10 @@
-vNext
+Version 4.8.1
 -------------
+- [PATCH] Update common @16.0.1
+
+Version 4.8.0
+-------------
+- [PATCH] Update common @16.0.0
 - [MINOR] Target, compile SDK, AGP and gradle versions increased (#1755)
 
 Version 4.7.5
