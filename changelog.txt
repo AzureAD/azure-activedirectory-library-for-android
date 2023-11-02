@@ -1,4 +1,4 @@
-Version Next
+Version 4.8.3
 -------------
 - [PATCH] Updating JSON version (#1766)
 
