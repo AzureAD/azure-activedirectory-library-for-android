@@ -1,5 +1,6 @@
 Version Next
 -------------
+- [PATCH] Adding Credential Manager version (for compilation only) (#1772)
 
 Version 4.8.3
 -------------
