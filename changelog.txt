@@ -1,6 +1,10 @@
 Version Next
 -------------
+
+Version 4.8.4
+-------------
 - [PATCH] Adding Credential Manager version (for common, but note that ADAL will not include the passkey feature) (#1772)
+- [PATCH] Update common @17.0.0
 
 Version 4.8.3
 -------------
