@@ -59,6 +59,7 @@ android {
     defaultConfig {
         multiDexEnabled true
         minSdkVersion rootProject.ext.minSdkVersion
+        namespace "com.microsoft.aad.adal"
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode getAppVersionCode()
         versionName getAppVersionName()
@@ -183,7 +184,7 @@ dependencies {
 
 task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
-    classifier 'sources'
+    archiveClassifier.set("sources")
     destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
 }
 
@@ -209,7 +210,7 @@ task javadoc(type: Javadoc) {
 
 tasks.register('javadocJar', Jar) {
     dependsOn javadoc
-    classifier 'javadoc'
+    archiveClassifier.set("javadoc")
     from javadoc.destinationDir
     destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
 }
