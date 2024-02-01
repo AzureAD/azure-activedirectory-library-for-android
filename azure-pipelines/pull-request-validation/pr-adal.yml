@@ -33,9 +33,9 @@ jobs:
     submodules: recursive
     persistCredentials: True
   - task: JavaToolInstaller@0
-    displayName: Use Java 11
+    displayName: Use Java 17
     inputs:
-      versionSpec: '11'
+      versionSpec: '17'
       jdkArchitectureOption: x64
       jdkSourceOption: PreInstalled
   - task: CmdLine@1
@@ -74,7 +74,7 @@ jobs:
       tasks: clean adal:assembleLocal
       publishJUnitResults: false
       jdkArchitecture: x64
-      jdkVersion: 1.11
+      jdkVersion: 1.17
 - job: lint
   displayName: Lint
   cancelTimeoutInMinutes: 1
@@ -93,7 +93,7 @@ jobs:
     inputs:
       tasks: clean adal:lintLocalDebug
       publishJUnitResults: false
-      jdkVersion: 1.11
+      jdkVersion: 1.17
 
 - job: spotbugs
   displayName: SpotBugs
