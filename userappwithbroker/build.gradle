@@ -54,6 +54,7 @@ android {
 
    
     defaultConfig {
+        namespace "com.microsoft.aad.adal.example.userappwithbroker"
         multiDexEnabled true
         applicationId destApplicationId
         minSdkVersion rootProject.ext.minSdkVersion
@@ -112,6 +113,8 @@ android {
     lintOptions {
         abortOnError false
     }
+
+    buildFeatures.buildConfig true
 }
 
 dependencies {
