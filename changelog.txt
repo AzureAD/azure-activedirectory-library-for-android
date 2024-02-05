@@ -1,9 +1,9 @@
 Version Next
 -------------
 
-Version 4.8.6
+Version 4.8.6-RC2
 -------------
-- [PATCH] Update common @17.1.0
+- [PATCH] Update common @17.1.0-RC2
 
 Version 4.8.5
 -------------
