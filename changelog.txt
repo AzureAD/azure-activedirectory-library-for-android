@@ -1,3 +1,6 @@
+Version Next
+-------------
+
 Version 4.8.7
 -------------
 - [PATCH] Update common @17.2.0
