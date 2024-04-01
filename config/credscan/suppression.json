@@ -8,6 +8,43 @@
     {
         "file": "userappwithbroker/debug.keystore",
         "_justification": "general"
+    },
+    {
+        "file": "common/common/src/main/res/values-da/strings.xml", 
+        "_justification": "Credential used on testapps"
+    },
+    {
+        "file": "common/common/src/main/res/values-de/strings.xml", 
+        "_justification": "Credential used on testapps"
+    },
+    {
+        "file": "common/common/src/main/res/values-et/strings.xml", 
+        "_justification": "Credential used on testapps"
+    },
+    {
+        "file": "common/common/src/main/res/values-eu/strings.xml", 
+        "_justification": "Credential used on testapps"
+    },
+    {
+        "file": "common/common/src/main/res/values-nb/strings.xml", 
+        "_justification": "Credential used on testapps"
+    },
+    {
+        "file": "common/common/src/main/res/values-nl/strings.xml", 
+        "_justification": "Credential used on testapps"
+    },
+        {
+        "file": "common/common4j/src/test/com/microsoft/identity/common/java/platform/JweResponseTests.java", 
+        "_justification": "Credential used on testapps"
+    },
+    {
+        "file": "common/common4j/src/test/com/microsoft/identity/common/java/crypto/SP800108KeyGenTests.java", 
+        "_justification": "Credential used on testapps"
+    },
+    {
+        "file": "common/common4j/src/test/com/microsoft/identity/common/java/crypto/SP800108KeyGenTests.java", 
+        "_justification": "Credential used on testapps"
     }
+        
     ]
 }   
