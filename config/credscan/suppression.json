@@ -1,5 +1,13 @@
 {
     "tool": "Credential Scanner",
     "suppressions": [
+    {
+        "file": "adal/src/androidTest/java/com/microsoft/aad/adal/OauthTests.java",
+        "_justification": "general"
+    },
+    {
+        "file": "userappwithbroker/debug.keystore",
+        "_justification": "general"
+    }
     ]
 }   
