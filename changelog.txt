@@ -1,5 +1,6 @@
-Version Next
+Version 4.8.8
 -------------
+- [PATCH] Update to common@17.3.0
 
 Version 4.8.7
 -------------
