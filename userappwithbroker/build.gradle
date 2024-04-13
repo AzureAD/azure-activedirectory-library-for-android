@@ -16,8 +16,8 @@ allprojects {
     }
 }
 
-def adalVersion = "4.8.6"
-def commonVersion = "17.1.0"
+def adalVersion = "4.+"
+def commonVersion = "17.+"
 
 if (project.hasProperty("distAdalVersion")) {
     println "Overriding adal version to dist property " + distAdalVersion
