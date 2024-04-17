@@ -122,13 +122,20 @@ android {
         disable 'PackageManagerGetSignatures'
     }
 
-    libraryVariants.all { variant ->
-        variant.outputs.all {
-            outputFileName = "${archivesBaseName}-${version}.aar"
-        }
-    }
+//    libraryVariants.all { variant ->
+//        variant.outputs.all {
+//            outputFileName = "${archivesBaseName}-${version}.aar"
+//        }
+//    }
 
     useLibrary 'android.test.mock'
+
+    publishing {
+        singleVariant('distRelease') {
+            withSourcesJar()
+            withJavadocJar()
+        }
+    }
 }
 
 // In dev, we want to keep the dependencies(common4j, broker4j, common) to 1.0.+ to be able to be consumed by daily dev pipeline.
@@ -181,106 +188,79 @@ dependencies {
     javadocDeps "androidx.legacy:legacy-support-v4:$rootProject.ext.legacySupportV4Version"
 }
 
-task sourcesJar(type: Jar) {
-    from android.sourceSets.main.java.srcDirs
-    classifier 'sources'
-    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
-}
-
-task javadoc(type: Javadoc) {
-    failOnError false
-    source = android.sourceSets.main.java.srcDirs
-    configurations.implementation.setCanBeResolved(true)
-    classpath += configurations.implementation
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-    classpath += configurations.javadocDeps
-    exclude '**/*.aidl'
-
-    if (JavaVersion.current().isJava8Compatible()) {
-        allprojects {
-            tasks.withType(Javadoc) {
-                options.addStringOption('Xdoclint:none', '-quiet')
-            }
-        }
-    }
-
-    destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
-}
-
-tasks.register('javadocJar', Jar) {
-    dependsOn javadoc
-    classifier 'javadoc'
-    from javadoc.destinationDir
-    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
-}
+//task sourcesJar(type: Jar) {
+//    from android.sourceSets.main.java.srcDirs
+//    classifier 'sources'
+//    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
+//}
+//
+//task javadoc(type: Javadoc) {
+//    failOnError false
+//    source = android.sourceSets.main.java.srcDirs
+//    configurations.implementation.setCanBeResolved(true)
+//    classpath += configurations.implementation
+//    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+//    classpath += configurations.javadocDeps
+//    exclude '**/*.aidl'
+//
+//    if (JavaVersion.current().isJava8Compatible()) {
+//        allprojects {
+//            tasks.withType(Javadoc) {
+//                options.addStringOption('Xdoclint:none', '-quiet')
+//            }
+//        }
+//    }
+//
+//    destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
+//}
+//
+//tasks.register('javadocJar', Jar) {
+//    dependsOn javadoc
+//    classifier 'javadoc'
+//    from javadoc.destinationDir
+//    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
+//}
 
 // For publishing to the remote maven repo.
 publishing {
     publications {
         adal(MavenPublication) {
+            afterEvaluate {
+                from components.distRelease
+            }
             groupId 'com.microsoft.aad'
             artifactId 'adal'
             //Edit the 'version' here for VSTS RC build
             version = project.version
 
-            pom.withXml {
-                // Custom values
-
-                // Name
-                asNode().appendNode('name', 'adal')
-
-                // Description
-                asNode().appendNode(
-                        'description',
-                        'Azure active directory library for Android gives you the ability to add Windows Azure Active Directory authentication to your application with just a few lines of additional code. Using our ADAL SDKs you can quickly and easily extend your existing application to all the employees that use Windows Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.'
-                )
-
-                // URL
-                asNode().appendNode('url', 'https://github.com/AzureAD/azure-activedirectory-library-for-android')
-
-                // Inception Year
-                asNode().appendNode('inceptionYear', '2014')
-
-                // Licenses
-                asNode().appendNode('licenses').appendNode('license').appendNode('name', 'MIT License')
-
-                // Developers
-                def developerNode = asNode().appendNode('developers').appendNode('developer')
-                developerNode.appendNode('id', 'microsoft')
-                developerNode.appendNode('name', 'Microsoft')
-
-                // SCM
-                asNode().appendNode('scm').appendNode('url', 'https://github.com/AzureAD/azure-activedirectory-library-for-android/tree/master')
-
-                // Properties
-                def propertiesNode = asNode().appendNode('properties')
-                propertiesNode.appendNode('branch', 'master')
-                propertiesNode.appendNode('version', project.version)
-
-                def dependenciesNode = asNode().appendNode('dependencies')
-
-                def deps = configurations.implementation.allDependencies.asList()
-                if (project.version.toString().endsWith("SNAPSHOT")) {
-                    deps.addAll(configurations.snapshotApi.allDependencies.asList())
-                } else {
-                    deps.addAll(configurations.distApi.allDependencies.asList())
-                }
-
-                //Iterate over the implementation dependencies (we don't want the test ones), adding a <dependency> node for each
-                deps.each {
-                    if (it.group != null && it.name != null) {
-                        def dependencyNode = dependenciesNode.appendNode('dependency')
-                        dependencyNode.appendNode('groupId', it.group)
-                        dependencyNode.appendNode('artifactId', it.name)
-                        dependencyNode.appendNode('version', it.version)
+            pom {
+                name = 'adal'
+                description = 'Azure active directory library for Android gives you the ability to add Windows Azure Active Directory authentication to your application with just a few lines of additional code. Using our ADAL SDKs you can quickly and easily extend your existing application to all the employees that use Windows Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.'
+                url = 'https://github.com/AzureAD/azure-activedirectory-library-for-android'
+                developers {
+                    developer {
+                        id = 'microsoft'
+                        name = 'Microsoft'
                     }
                 }
-
+                licenses {
+                    license {
+                        name = 'MIT License'
+                    }
+                }
+                inceptionYear = '2014'
+                scm {
+                    url = 'https://github.com/AzureAD/azure-activedirectory-library-for-android/tree/master'
+                }
+                properties = [
+                        branch : 'master',
+                        version: project.version
+                ]
             }
 
-            artifact(sourcesJar)
-            artifact(javadocJar)
-            artifact("$buildDir/outputs/aar/adal-${project.version}.aar")
+//            artifact(sourcesJar)
+//            artifact(javadocJar)
+//            artifact("$buildDir/outputs/aar/adal-${project.version}.aar")
         }
 
     }
@@ -315,10 +295,10 @@ def getTimestamp() {
     return date.format('yyyyMMdd.HHmm')
 }
 
-artifacts {
-    archives javadocJar
-    archives sourcesJar
-}
+//artifacts {
+//    archives javadocJar
+//    archives sourcesJar
+//}
 
 pmd {
     ignoreFailures = false
