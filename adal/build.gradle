@@ -132,6 +132,13 @@ android {
     useLibrary 'android.test.mock'
 
     buildFeatures.buildConfig true
+
+    publishing {
+        singleVariant('distRelease') {
+            withSourcesJar()
+            withJavadocJar()
+        }
+    }
 }
 
 // In dev, we want to keep the dependencies(common4j, broker4j, common) to 1.0.+ to be able to be consumed by daily dev pipeline.
@@ -184,38 +191,38 @@ dependencies {
     javadocDeps "androidx.legacy:legacy-support-v4:$rootProject.ext.legacySupportV4Version"
 }
 
-task sourcesJar(type: Jar) {
-    from android.sourceSets.main.java.srcDirs
-    archiveClassifier.set("sources")
-    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
-}
-
-task javadoc(type: Javadoc) {
-    failOnError false
-    source = android.sourceSets.main.java.srcDirs
-    configurations.implementation.setCanBeResolved(true)
-    classpath += configurations.implementation
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-    classpath += configurations.javadocDeps
-    exclude '**/*.aidl'
-
-    if (JavaVersion.current().isJava8Compatible()) {
-        allprojects {
-            tasks.withType(Javadoc) {
-                options.addStringOption('Xdoclint:none', '-quiet')
-            }
-        }
-    }
-
-    destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
-}
-
-tasks.register('javadocJar', Jar) {
-    dependsOn javadoc
-    archiveClassifier.set("javadoc")
-    from javadoc.destinationDir
-    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
-}
+//task sourcesJar(type: Jar) {
+//    from android.sourceSets.main.java.srcDirs
+//    archiveClassifier.set("sources")
+//    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
+//}
+//
+//task javadoc(type: Javadoc) {
+//    failOnError false
+//    source = android.sourceSets.main.java.srcDirs
+//    configurations.implementation.setCanBeResolved(true)
+//    classpath += configurations.implementation
+//    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+//    classpath += configurations.javadocDeps
+//    exclude '**/*.aidl'
+//
+//    if (JavaVersion.current().isJava8Compatible()) {
+//        allprojects {
+//            tasks.withType(Javadoc) {
+//                options.addStringOption('Xdoclint:none', '-quiet')
+//            }
+//        }
+//    }
+//
+//    destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
+//}
+//
+//tasks.register('javadocJar', Jar) {
+//    dependsOn javadoc
+//    archiveClassifier.set("javadoc")
+//    from javadoc.destinationDir
+//    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
+//}
 
 // For publishing to the remote maven repo.
 publishing {
@@ -281,9 +288,9 @@ publishing {
 
             }
 
-            artifact(sourcesJar)
-            artifact(javadocJar)
-            artifact("$buildDir/outputs/aar/adal-${project.version}.aar")
+//            artifact(sourcesJar)
+//            artifact(javadocJar)
+//            artifact("$buildDir/outputs/aar/adal-${project.version}.aar")
         }
 
     }
@@ -318,10 +325,10 @@ def getTimestamp() {
     return date.format('yyyyMMdd.HHmm')
 }
 
-artifacts {
-    archives javadocJar
-    archives sourcesJar
-}
+//artifacts {
+//    archives javadocJar
+//    archives sourcesJar
+//}
 
 pmd {
     ignoreFailures = false
