@@ -1,60 +1,60 @@
-Version Next
--------------
+V.Next
+---------
 
 Version 4.8.7
--------------
+---------
 - [PATCH] Update common @17.2.0
 
 Version 4.8.6
--------------
+---------
 - [PATCH] Update common @17.1.0
 
 Version 4.8.5
--------------
+---------
 - [PATCH] Update common @17.0.1
 
 Version 4.8.4
--------------
+---------
 - [PATCH] Adding Credential Manager version (for common, but note that ADAL will not include the passkey feature) (#1772)
 - [PATCH] Update common @17.0.0
 
 Version 4.8.3
--------------
+---------
 - [PATCH] Updating JSON version (#1766)
 - [PATCH] Update common @16.2.0
 
 Version 4.8.2
--------------
+---------
 - [PATCH] Update common @16.1.0
 
 Version 4.8.1
--------------
+---------
 - [PATCH] Update common @16.0.1
 
 Version 4.8.0
--------------
+---------
 - [PATCH] Update common @16.0.0
 - [MINOR] Target, compile SDK, AGP and gradle versions increased (#1755)
 
 Version 4.7.5
--------------
+---------
 - [PATCH] Update YubiKit version to 2.3.0 (#1744)
 - [PATCH] Update common @15.0.0
 
 Version 4.7.4
--------------
+---------
 - [PATCH] Fix crash due to IllegalArgumentException in StorageHelper.decrypt (#1749)
 
 Version 4.7.3
--------------
+---------
 - [PATCH] Update common @14.0.1
 
 Version 4.7.2
--------------
+---------
 - [PATCH] Update common @14.0.0
 
 Version 4.7.1
--------------
+---------
 - [MAJOR] Consolidate Storage Supplier (breaking change introduced in common) #1729
 - [MINOR] Replacing SHA-1 used in broker validation with SHA-512 (#1732)
 - [MINOR] Removing thumbprint check from PkeyAuthChallenge (#1733)
@@ -62,59 +62,59 @@ Version 4.7.1
 - [PATCH] Version 4.7.0 was built with common which had lint errors, updated to consume common after resolving errors
 
 Version 4.6.0
--------------
+---------
 - [MINOR] Remove dependency from common's storagehelper #1725
 - [MINOR] Mapping ECDSA to EC in ClientCertRequest's keyTypes array (#1726)
 - [PATCH] Update common @12.0.0
 
 Version 4.5.0
--------------
+---------
 - [PATCH] Update common @11.0.0
 - [MINOR] Bumping YubiKit Versions to 2.2.0 (#1719)
 
 Version 4.4.1
--------------
+---------
 - [PATCH] V4.4.0 was incorrectly built with RC versions, need to increment to V4.4.1
 - [PATCH] Update common@10.1.1
 
 Version 4.3.0
--------------
+---------
 - [PATCH] Update common@10.0.0
 
 Version 4.2.4
--------------
+---------
 - [PATCH] Update common@9.1.0
 
 Version 4.2.3
--------------
+---------
 - [PATCH] Update common@9.0.0
 
 Version 4.2.2
--------------
+---------
 - [PATCH] Update common@8.0.2
 
 Version 4.2.1
--------------
+---------
 - [PATCH] Update common@8.0.0
 
 Version 4.2.0
--------------
+---------
 - [PATCH] Update common@7.0.1
 - [PATCH] Update androidx appcompat version from 1.0.2 -> 1.1.0 (#1691)
 - [MINOR] Added keyboard flag to configChanges in Manifest for YubiKey compatibility. (#1699)
 
 Version 4.1.0
--------------
+---------
 - [PATCH] Update common@4.2.0
 - [PATCH] Update gson version to 2.8.9 (#1680)
 - [MINOR] Remove PKeyAuth support from ADAL (#1685)
 
 Version 4.0.2
--------------
+---------
 - [PATCH] Update common@4.0.2
 
 Version 4.0.1
--------------
+---------
 - [MINOR] Migrate BaseController to common4j (#1636)
 - [MAJOR] Migrate Token Caches to Common4j (#1633)
 - [MINOR] Adapt to migration of shared preferences. (#1624)
@@ -130,34 +130,34 @@ Version 4.0.1
 - [PATCH] Updates to README File. 
 
 Version 3.1.3
--------------
+---------
 - Adds exception handling for ADAL cache crash on malformed JSON (#1606)
 - Implements a fix for ADAL cache replication (#1616)
 
 Version 3.1.2
--------------
+---------
 - Android changes for SDK30, see [the android developers notice](https://android-developers.googleblog.com/2020/07/preparing-your-build-for-package-visibility-in-android-11.html).
 - Updates common dependency to 3.0.6
     * Provides Android 11 support fixes; see common@3.0.6 changelog for details.
 
 Version 3.1.1
--------------
+---------
 - Fix ADAL/1073 - Explicitly disable Content Provider access from WebViews
 - Fix ADAL/1074 - Set WebSettings#setAllowFileAccess(false)
 - Fix ADAL/1354 - Close FileInputStream in getVersionProps in version_tasks.gradle
 - Clear the MSAL cache replica if the ADAL cache is cleared
 
 Version 3.1.0
--------------
+---------
 - Save tokens in cache for AcquireTokenByRefreshToken API (if resource and openid scope provided)
 - Changes to acquire token via SAML assertion
 
 Version 3.0.2
--------------
+---------
 - Returns idToken with a silent broker response (msal#997)
 
 Version 3.0.1
--------------
+---------
 - Adding dual screen support for Surface Duo.
   * Please exclude classes under "com.microsoft.device.display" in your proguard file.
   * For apps that would like to include their own copy of Surface Duo SDK, please exclude the SDK inside ADAL as follows.
@@ -168,7 +168,7 @@ Version 3.0.1
 - Adds support for multiple IdToken lookups in a single call when dual stacking with FoCi (common#871)
 
 Version 3.0.0
--------------
+---------
 - Bumping a major version due to some versioning issue on server side with old preview builds.
 - No breaking API changes on the client side, it can be treated as a bug fix release.
 - Uses common version: 2.0.3
@@ -178,7 +178,7 @@ Version 3.0.0
     * Resolves a common memory leak resulting from successful auth requests
 
 Version 2.0.0
--------------
+---------
 - Please note: ADAL 2.0.0 (released March 2020) is neither API-compatible nor cache-compatible with the following versions:
     * 2.0-alpha   (released 2015-07-27)
     * 2.0.1-alpha (released 2015-09-25)
@@ -190,57 +190,57 @@ Version 2.0.0
     * Fixed an issue whereby tokens from a sovereign cloud environment would result in cache-misses
 
 Version 1.16.4
--------------
+---------
 - AndroidX migration
 - Bugfix : Resolved ADAL/726
     * Fixed a bug where WebView errors are treated as cancel.
 - common dependency : 2.0.1
 
 Version 1.16.3-hf2
--------------
+---------
 - Catch/Log an IllegalStateException in cache to avoid app crashes.
 - Fix connection close to fix emulator issue
 - common dependency : 0.0.10-hf2
 
 Version 1.16.3-hf1
---------------
+----------
 - Nimbus version update to 8.2
 - Remove connection close to fix emulator issue.
 
 Version 1.16.3
---------------
+----------
 - Updates dependency com.microsoft.identity:common to 0.0.10
 
 Version 1.16.2
---------------
+----------
 - Bugfix: Resolves COMMON/#379
     * ClientInfo must implement Serializable so that ADAL/AuthenticationResult can be serialized.
 
 Version 1.16.1
---------------
+----------
 Bugfix : Resolved ADAL/1378
     * Fixed a bug where the token is refreshed if Client capabilities are set.
 Bugfix: Resolves COMMON/#343
     * Fix the discrepancy on idToken claim of Account object in v1.15.1.
 
 Version 1.16.0
---------------
+----------
 Added new acquireTokenSilent overloads to supports adding claims parameter.
 Changes to send app name and app version to auth and token endpoints.
 Updated common dependency to 0.0.7.
 
 Version 1.15.1-hf1
---------------
+----------
 Picks up changes in common/0.0.4-hf1
     * Bugfix: Corrects an issue parsing query parameters with null or "" values (ex. CertAuthorities="")
 Removes duplicated HashMapExtensions class and associated test class.
 
 Version 1.15.1
---------------
+----------
 Support Sovereign and PPE authority setting in Common.
 
 Version 1.15.0
---------------
+----------
 Update Android target and build tools to 27.
 Added support for forceRefresh.
 Support to handle Intune Policy Required errors.
@@ -261,11 +261,11 @@ Updates to reference docs.
 Fix unit test errors. Update checkstyle suppressions.xml.
 
 Version 1.14.1
---------------
+----------
 (Hotfix) Fix for crash on devices where PRNG fixes is used.
 
 Version 1.14.0
--------------
+---------
 Add support for GDPR PII/OII Filtering.
 Add support for Sovereign Cloud.
 With this release and the corresponding broker release, ADAL Android now supports the guest scenario. 
@@ -277,11 +277,11 @@ Fix the utilization of locks in PRNGFixes.
 Stopped crashing the app if TSL export of token fails.
 
 Version 1.13.3
--------------
+---------
 (Hotfix) Fix the crash when broker returns null for getIntentForInteractiveRequest
 
 Version 1.13.2
--------------
+---------
 Add cache update for authority migration. New token will always be written into the preferred cache location. For read, try preferred_cache first, followed by provided authority and aliased authority.
 Add telemetry to capture x-ms-clitelem header (tracks errors, suberrors, rt age, and SPE ring)
 Fix the error code issue when communication with broker fails
@@ -293,13 +293,13 @@ Add network checking for authority validation
 Fix for the ArrayIndexOutOfBoundsException when adding event into the arraylist
 
 Version 1.13.1
--------------
+---------
 Add support for handling doze and app standby mode
 Add telemetry and log around brokerAccountServiceBinding
 revert cache miss fix
 
 Version 1.13.0
--------------
+---------
 Add support for sending conditional access claims to acquire token call
 Remove deadcode around defunct ApplicationReceiver
 Disable autocomplete in automation app for request EditText
@@ -314,7 +314,7 @@ Fix broken headings in MarkDown files
 Fix for err_cache_miss in webview
 
 Version 1.12.0
---------------
+----------
 Adding telemetry interfaces and event to ADAL
 Adding 2 modes of telemetry events
 Adding 2 new APIs for telemetry to the public interface of ADAL
@@ -328,13 +328,13 @@ Fixing loadSecretKeyForDecryption using the cached key without checking the blob
 Fixing a crash in application receiver due to empty string being passed to canSwitchToBroker
 
 Version 1.11.0
---------------
+----------
 AuthRequest no longer waits for broker to install for broker auth.
 Remove the appended query string when responding to pkeyauth challenge.
 adding the pom.xml to gitignore.
 
 Version 1.10.0
---------------
+----------
 Move from using Eclipse to Android Studio
 Upgrade the SDK to Marshmallow and Target SDK version to 23
 Fix to better support Marshmallow. If ADAL does not have permission to access the AccountManager when the broker needs to be invoked then ADAL will throw a specific exception.
@@ -343,15 +343,15 @@ The code is Checkstyle, PMD, Findbugs and Lint warnings clean. These are now tre
 Fix for favoring RT in local cache over going to the broker.
 
 Version 1.2.2
---------------
+----------
 Fix for silent RT request, if TokenCacheItem desn't contain RT, don't continue with RT request. 
 
 Version 1.2.1
---------------
+----------
 Add certificate chain validation
 
 Version 1.2.0
---------------
+----------
 Add support for family ClientId
 Add support for serialize/deserialize cache per user base
 Add FORCE_PROMPT support for authentication via broker
@@ -361,15 +361,15 @@ Fix date time parsing for 24 hour format
 Update to reuse existing sockets
 
 Version 1.1.19
---------------
+----------
 (Hotfix) To avoid app crashing from runtime exceptions thrown by AndroidKeystore, catch and rethrow as checked exception
 
 Version 1.1.18
---------------
+----------
 (Hotfix) Revert the checking for private key before unwrapping
 
 Version 1.1.17
---------------
+----------
 Fix for checking retrieved private key before unwrapping symmetric key, avoid the crash for InvalidArgumentException when key data is wiped by keystore but not alias
 Update the cache lookup logic for multi-resource refresh token
 Update token cache removal logic to only remove stored token when receiving invalid_grant as oauth2 error
@@ -380,18 +380,18 @@ Add the function to resume broker request after clicking on "Get the app" page a
 Update BrokerProxy to recognize company portal for adding account during conditional access flow
 
 Version 1.1.16
---------------
+----------
 Hot fix for catching RuntimeException thrown due to AndroidKeyStore bug, so App won't crash due to keystore got reset
 
 Version 1.1.15
---------------
+----------
 Update check for null to prevent null pointer exception
 Update AuthenticationException to extend from Exception instead of RuntimeException
 Update for PoliCheck result
 Type update for Challenge
 
 Version 1.1.14 (hot fix)
---------------
+----------
 Add the support for FamilyClientID
 Fix the bug of redirect URI verification for silent request (hot fix)
 Refactor the broker usage flag and change the public API for using broker and broker is not used by default
@@ -399,110 +399,110 @@ Add the UsageAuthenticationException to handle the errors that the developer mig
 Fix breaking tests
 
 Version 1.1.13
---------------
+----------
 Remove catching generic exceptions and catch only expected ones
 Add broker redirect uri verify before talking to broker
 Fix for default token cache removing token when there is decryption failure
 Remove static class variable for solving decryption problem when two both broker apps are involved
 
 Version 1.1.12
---------------
+----------
 Update cert prompt for TLS request(not responding to TLS request for device authentication)
 Update Travis to compile Android 21
 Remove warnings for unused code
 
 Version 1.1.11
---------------
+----------
 Fix for reading tenant id, and expiration data from broker return
 Add support for authenticating user using client certificate
 Update target version to android 5
 
 Version 1.1.10
---------------
+----------
 fix issue #420: pick up device cert based on either cert authority or cert thumbprint
 
 Version 1.1.9
---------------
+----------
 fix issue #388, #407, #408
 
 Version 1.1.8
---------------
+----------
 hide keyboard at on pause at AuthenticationActivity.
 Update applicationreceiver to use only Azure Authenticator as broker.
 Check broker user for multi account usage.
 fix issue #388, #407, #408
 
 Version 1.1.7
---------------
+----------
 Fix issue with acquireTokenSilent for new authenticator version.
 
 Version 1.1.6
---------------
+----------
 Fix issue with failing wpj through Azure Authenticator
 
 Version 1.1.5
---------------
+----------
 Send extra query parameter to Authenticator with Bundle options
 
 Version 1.1.4
---------------
+----------
 ApplicationReceiver to resume after install of Azure Authenticator
 Gson datetime adapter to handle locale changes
 
 Version 1.1.3
---------------
+----------
 Update maven plugin
 Load resource from context for authenticationDialog
 add tenantid to refresh token result if idtoken is missing in the result
 
 Version 1.1.2
---------------
+----------
 Fix for token broker handling
 Update to pom file for build automation
 
 Version 1.1.1
---------------
+----------
 Enroll button fix
 Updated webviewhelper class
 
 
 Version 1.1.0
---------------
+----------
 HttpAuth dialog for ntlm challange
 getBrokerUsers support
 whitelisted login.microsoftonline.com
 
 Version 1.0.9
---------------
+----------
 Bug fixes for Oauth2.java and loginhint usage
 
 Version 1.0.8
---------------
+----------
 Adding client metrics information to be sent to AAD
 Detect webui cancel
 Update logger for correlationid
 Update PRNGfixes to allow different providers to be installed
 
 Version 1.0.7
---------------
+----------
 Send PkeyAuth flag from embeded adal usage.
 Fix issue with promptBehavior param in broker usage.
 
 Version 1.0.6
---------------
+----------
 Fragment and dialog support
 
 Version 1.0.5
---------------
+----------
 Change broker redirectUri requirement to msauth://packagename/base64urlencodedSignature
 
 Version 1.0.4
---------------
+----------
 Intune specific fix: Rollback logic for connecting to authenticator
 Add version to logs
 
 Version 1.0.3
---------------
+----------
 Release Date: 10-3-2014
 * Dismiss spinner to resolve some UI issues
 * Use broker signature and authenticator type for checks. Get broker package from authenticator.
