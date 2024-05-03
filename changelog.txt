@@ -1,6 +1,10 @@
 V.Next
 ---------
 
+Version 4.8.9-RC1
+---------
+- [PATCH] Update common @17.4.0-RC1
+
 Version 4.8.8
 -------------
 - [PATCH] Update to common@17.3.0
