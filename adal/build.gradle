@@ -122,12 +122,6 @@ android {
         disable 'PackageManagerGetSignatures'
     }
 
-//    libraryVariants.all { variant ->
-//        variant.outputs.all {
-//            outputFileName = "${archivesBaseName}-${version}.aar"
-//        }
-//    }
-
     useLibrary 'android.test.mock'
 
     publishing {
@@ -190,39 +184,6 @@ dependencies {
     javadocDeps "androidx.legacy:legacy-support-v4:$rootProject.ext.legacySupportV4Version"
 }
 
-//task sourcesJar(type: Jar) {
-//    from android.sourceSets.main.java.srcDirs
-//    classifier 'sources'
-//    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
-//}
-//
-//task javadoc(type: Javadoc) {
-//    failOnError false
-//    source = android.sourceSets.main.java.srcDirs
-//    configurations.implementation.setCanBeResolved(true)
-//    classpath += configurations.implementation
-//    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-//    classpath += configurations.javadocDeps
-//    exclude '**/*.aidl'
-//
-//    if (JavaVersion.current().isJava8Compatible()) {
-//        allprojects {
-//            tasks.withType(Javadoc) {
-//                options.addStringOption('Xdoclint:none', '-quiet')
-//            }
-//        }
-//    }
-//
-//    destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
-//}
-//
-//tasks.register('javadocJar', Jar) {
-//    dependsOn javadoc
-//    classifier 'javadoc'
-//    from javadoc.destinationDir
-//    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
-//}
-
 // For publishing to the remote maven repo.
 publishing {
     publications {
@@ -259,10 +220,6 @@ publishing {
                         version: project.version
                 ]
             }
-
-//            artifact(sourcesJar)
-//            artifact(javadocJar)
-//            artifact("$buildDir/outputs/aar/adal-${project.version}.aar")
         }
 
     }
@@ -296,11 +253,6 @@ def getTimestamp() {
     def date = new Date()
     return date.format('yyyyMMdd.HHmm')
 }
-
-//artifacts {
-//    archives javadocJar
-//    archives sourcesJar
-//}
 
 pmd {
     ignoreFailures = false
