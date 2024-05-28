@@ -1,5 +1,6 @@
 V.Next
 ---------
+- [PATCH] Update publishing tasks (#1792)
 
 Version 4.8.9
 ---------
