@@ -1,5 +1,6 @@
 V.Next
 ---------
+- [PATCH] YubiKit 2.5.0 and CredMan 1.2.2 (#1793)
 
 Version 4.8.9
 ---------
