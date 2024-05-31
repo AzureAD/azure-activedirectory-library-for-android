@@ -224,60 +224,33 @@ publishing {
             artifactId 'adal'
             //Edit the 'version' here for VSTS RC build
             version = project.version
+            afterEvaluate {
+                from components.distRelease
+            }
 
-            pom.withXml {
-                // Custom values
-
-                // Name
-                asNode().appendNode('name', 'adal')
-
-                // Description
-                asNode().appendNode(
-                        'description',
-                        'Azure active directory library for Android gives you the ability to add Windows Azure Active Directory authentication to your application with just a few lines of additional code. Using our ADAL SDKs you can quickly and easily extend your existing application to all the employees that use Windows Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.'
-                )
-
-                // URL
-                asNode().appendNode('url', 'https://github.com/AzureAD/azure-activedirectory-library-for-android')
-
-                // Inception Year
-                asNode().appendNode('inceptionYear', '2014')
-
-                // Licenses
-                asNode().appendNode('licenses').appendNode('license').appendNode('name', 'MIT License')
-
-                // Developers
-                def developerNode = asNode().appendNode('developers').appendNode('developer')
-                developerNode.appendNode('id', 'microsoft')
-                developerNode.appendNode('name', 'Microsoft')
-
-                // SCM
-                asNode().appendNode('scm').appendNode('url', 'https://github.com/AzureAD/azure-activedirectory-library-for-android/tree/master')
-
-                // Properties
-                def propertiesNode = asNode().appendNode('properties')
-                propertiesNode.appendNode('branch', 'master')
-                propertiesNode.appendNode('version', project.version)
-
-                def dependenciesNode = asNode().appendNode('dependencies')
-
-                def deps = configurations.implementation.allDependencies.asList()
-                if (project.version.toString().endsWith("SNAPSHOT")) {
-                    deps.addAll(configurations.snapshotApi.allDependencies.asList())
-                } else {
-                    deps.addAll(configurations.distApi.allDependencies.asList())
-                }
-
-                //Iterate over the implementation dependencies (we don't want the test ones), adding a <dependency> node for each
-                deps.each {
-                    if (it.group != null && it.name != null) {
-                        def dependencyNode = dependenciesNode.appendNode('dependency')
-                        dependencyNode.appendNode('groupId', it.group)
-                        dependencyNode.appendNode('artifactId', it.name)
-                        dependencyNode.appendNode('version', it.version)
+            pom {
+                name = 'adal'
+                description = 'Azure active directory library for Android gives you the ability to add Windows Azure Active Directory authentication to your application with just a few lines of additional code. Using our ADAL SDKs you can quickly and easily extend your existing application to all the employees that use Windows Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.'
+                url = 'https://github.com/AzureAD/azure-activedirectory-library-for-android'
+                developers {
+                    developer {
+                        id = 'microsoft'
+                        name = 'Microsoft'
                     }
                 }
-
+                licenses {
+                    license {
+                        name = 'MIT License'
+                    }
+                }
+                inceptionYear = '2014'
+                scm {
+                    url = 'https://github.com/AzureAD/azure-activedirectory-library-for-android/tree/master'
+                }
+                properties = [
+                        branch : 'master',
+                        version: project.version
+                ]
             }
 
             artifact(sourcesJar)
