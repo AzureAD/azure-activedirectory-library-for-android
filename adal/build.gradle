@@ -252,10 +252,6 @@ publishing {
                         version: project.version
                 ]
             }
-
-            artifact(sourcesJar)
-            artifact(javadocJar)
-            artifact("$buildDir/outputs/aar/adal-${project.version}.aar")
         }
 
     }
