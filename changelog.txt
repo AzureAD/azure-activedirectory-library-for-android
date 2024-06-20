@@ -1,5 +1,9 @@
 V.Next
 ---------
+
+Version 4.8.10
+---------
+- [PATCH] Update common @17.5.0
 - [PATCH] YubiKit 2.5.0 and CredMan 1.2.2 (#1793)
 - [PATCH] Editing pom task (#1794)
 
