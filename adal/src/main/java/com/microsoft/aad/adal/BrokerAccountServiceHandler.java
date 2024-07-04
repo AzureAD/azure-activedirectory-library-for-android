@@ -359,7 +359,15 @@ final class BrokerAccountServiceHandler {
         }
         final CallbackExecutor<BrokerAccountServiceConnection> callbackExecutor = new CallbackExecutor<>(callback);
         mPendingConnections.put(connection, callbackExecutor);
-        final boolean serviceBound = context.bindService(brokerAccountServiceToBind, connection, Context.BIND_AUTO_CREATE);
+
+        boolean serviceBound = false;
+        try {
+            // Handle exception when Context#bindService fails.
+            serviceBound = context.bindService(brokerAccountServiceToBind, connection, Context.BIND_AUTO_CREATE);
+        } catch (SecurityException exception) {
+            Logger.e(TAG + methodName, "SecurityException when binding service to broker app.", exception);
+        }
+
         Logger.v(TAG + methodName, "The status for brokerAccountService bindService call is: " + Boolean.valueOf(serviceBound));
         if (brokerEvent != null) {
             brokerEvent.setBrokerAccountServiceBindingSucceed(serviceBound);

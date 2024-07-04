@@ -141,6 +141,7 @@ Version 4.0.1
 - [PATCH] Disregard pageload errors for the non-primary frame during interactive auth (#1603)
 - [PATCH] Updates Nimbus version 8.2 -> 9.9 (#1600)
 - [PATCH] Fix for ADAL cache replication to Msal/Common-Cache (#1616)
+- [PATCH] Fix SecurityException thrown when binding service to broker app (#1665)
 - [PATCH] Updates to README File. 
 
 Version 3.1.3
