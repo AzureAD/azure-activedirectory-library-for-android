@@ -1,9 +1,9 @@
 V.Next
 ---------
 
-Version 4.8.11
+Version 4.8.12
 ---------
-- [PATCH] Update common @17.6.0
+- [PATCH] Update common @17.6.1
 
 Version 4.8.10
 ---------
