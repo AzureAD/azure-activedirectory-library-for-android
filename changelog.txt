@@ -3,7 +3,7 @@ V.Next
 
 Version 4.8.13
 ---------
-- [PATCH] Update common @17.7.0-RC1
+- [PATCH] Update common @17.7.0
 
 Version 4.8.12
 ---------
