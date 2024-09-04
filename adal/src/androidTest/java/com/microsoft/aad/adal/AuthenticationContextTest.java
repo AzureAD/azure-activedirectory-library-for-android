@@ -790,6 +790,7 @@ public final class AuthenticationContextTest {
     }
 
     @Test
+    @Ignore("ConnectionService check is now disabled by default")
     public void testAcquireTokenByRefreshTokenConnectionNotAvailable() throws InterruptedException {
         FileMockContext mockContext = new FileMockContext(getInstrumentation().getContext());
         mockContext.setConnectionAvailable(false);
