@@ -46,6 +46,9 @@ allprojects {
 
 android {
 
+    namespace = "com.microsoft.aad.adal"
+    buildFeatures.buildConfig = true
+
     compileOptions {
         // Flag to enable support for the new language APIs
         coreLibraryDesugaringEnabled true
@@ -183,91 +186,91 @@ dependencies {
     javadocDeps "androidx.legacy:legacy-support-v4:$rootProject.ext.legacySupportV4Version"
 }
 
-task sourcesJar(type: Jar) {
-    from android.sourceSets.main.java.srcDirs
-    classifier 'sources'
-    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
-}
-
-task javadoc(type: Javadoc) {
-    failOnError false
-    source = android.sourceSets.main.java.srcDirs
-    configurations.implementation.setCanBeResolved(true)
-    classpath += configurations.implementation
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-    classpath += configurations.javadocDeps
-    exclude '**/*.aidl'
-
-    if (JavaVersion.current().isJava8Compatible()) {
-        allprojects {
-            tasks.withType(Javadoc) {
-                options.addStringOption('Xdoclint:none', '-quiet')
-            }
-        }
-    }
-
-    destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
-}
-
-tasks.register('javadocJar', Jar) {
-    dependsOn javadoc
-    classifier 'javadoc'
-    from javadoc.destinationDir
-    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
-}
+//task sourcesJar(type: Jar) {
+//    from android.sourceSets.main.java.srcDirs
+//    classifier 'sources'
+//    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
+//}
+//
+//task javadoc(type: Javadoc) {
+//    failOnError false
+//    source = android.sourceSets.main.java.srcDirs
+//    configurations.implementation.setCanBeResolved(true)
+//    classpath += configurations.implementation
+//    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+//    classpath += configurations.javadocDeps
+//    exclude '**/*.aidl'
+//
+//    if (JavaVersion.current().isJava8Compatible()) {
+//        allprojects {
+//            tasks.withType(Javadoc) {
+//                options.addStringOption('Xdoclint:none', '-quiet')
+//            }
+//        }
+//    }
+//
+//    destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
+//}
+//
+//tasks.register('javadocJar', Jar) {
+//    dependsOn javadoc
+//    classifier 'javadoc'
+//    from javadoc.destinationDir
+//    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
+//}
 
 // For publishing to the remote maven repo.
-publishing {
-    publications {
-        adal(MavenPublication) {
-            groupId 'com.microsoft.aad'
-            artifactId 'adal'
-            //Edit the 'version' here for VSTS RC build
-            version = project.version
-            afterEvaluate {
-                from components.distRelease
-            }
-
-            pom {
-                name = 'adal'
-                description = 'Azure active directory library for Android gives you the ability to add Windows Azure Active Directory authentication to your application with just a few lines of additional code. Using our ADAL SDKs you can quickly and easily extend your existing application to all the employees that use Windows Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.'
-                url = 'https://github.com/AzureAD/azure-activedirectory-library-for-android'
-                developers {
-                    developer {
-                        id = 'microsoft'
-                        name = 'Microsoft'
-                    }
-                }
-                licenses {
-                    license {
-                        name = 'MIT License'
-                    }
-                }
-                inceptionYear = '2014'
-                scm {
-                    url = 'https://github.com/AzureAD/azure-activedirectory-library-for-android/tree/master'
-                }
-                properties = [
-                        branch : 'master',
-                        version: project.version
-                ]
-            }
-        }
-
-    }
-
-    // Repositories to which Gradle can publish artifacts
-    repositories {
-        maven {
-            name "vsts-maven-adal-android"
-            url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
-            credentials {
-                username System.getenv("ENV_VSTS_MVN_ANDROIDADAL_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_ANDROIDADAL_USERNAME") : project.findProperty("vstsUsername")
-                password System.getenv("ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
-            }
-        }
-    }
-}
+//publishing {
+//    publications {
+//        adal(MavenPublication) {
+//            groupId 'com.microsoft.aad'
+//            artifactId 'adal'
+//            //Edit the 'version' here for VSTS RC build
+//            version = project.version
+//            afterEvaluate {
+//                from components.distRelease
+//            }
+//
+//            pom {
+//                name = 'adal'
+//                description = 'Azure active directory library for Android gives you the ability to add Windows Azure Active Directory authentication to your application with just a few lines of additional code. Using our ADAL SDKs you can quickly and easily extend your existing application to all the employees that use Windows Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.'
+//                url = 'https://github.com/AzureAD/azure-activedirectory-library-for-android'
+//                developers {
+//                    developer {
+//                        id = 'microsoft'
+//                        name = 'Microsoft'
+//                    }
+//                }
+//                licenses {
+//                    license {
+//                        name = 'MIT License'
+//                    }
+//                }
+//                inceptionYear = '2014'
+//                scm {
+//                    url = 'https://github.com/AzureAD/azure-activedirectory-library-for-android/tree/master'
+//                }
+//                properties = [
+//                        branch : 'master',
+//                        version: project.version
+//                ]
+//            }
+//        }
+//
+//    }
+//
+//    // Repositories to which Gradle can publish artifacts
+//    repositories {
+//        maven {
+//            name "vsts-maven-adal-android"
+//            url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
+//            credentials {
+//                username System.getenv("ENV_VSTS_MVN_ANDROIDADAL_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_ANDROIDADAL_USERNAME") : project.findProperty("vstsUsername")
+//                password System.getenv("ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
+//            }
+//        }
+//    }
+//}
 
 // Repositories from which Gradle can fetch dependencies
 repositories {
@@ -286,10 +289,10 @@ def getTimestamp() {
     return date.format('yyyyMMdd.HHmm')
 }
 
-artifacts {
-    archives javadocJar
-    archives sourcesJar
-}
+//artifacts {
+//    archives javadocJar
+//    archives sourcesJar
+//}
 
 pmd {
     ignoreFailures = false
