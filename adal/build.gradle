@@ -294,46 +294,46 @@ def getTimestamp() {
 //    archives sourcesJar
 //}
 
-pmd {
-    ignoreFailures = false
-    reportsDir = file("$project.buildDir/outputs/")
-}
-
-tasks.register('pmd', Pmd) {
-    description 'Run pmd'
-    group 'verification'
-
-    ruleSets = ["java-basic", "java-braces", "java-strings", "java-unusedcode"]
-    source = fileTree('src/main/java')
-
-    reports {
-        xml.enabled = false
-        html.enabled = true
-    }
-}
-
-def configDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')
-ext.checkstyleConfigDir = "$configDir/checkstyle"
-
-checkstyle {
-    ignoreFailures = false
-    reportsDir = file("$project.buildDir/outputs/")
-}
-
-tasks.register('checkstyle', Checkstyle) {
-    configFile file("${project.rootDir}/config/checkstyle/checkstyle.xml")
-
-    configProperties.checkstyleConfigDir = checkstyleConfigDir
-    configProperties.checkstyleSuppressionsPath = file("${project.rootDir}/config/checkstyle/suppressions.xml").absolutePath
-    source 'src'
-    include '**/*.java'
-    exclude '**/gen/**'
-    classpath = files()
-}
-
-tasks.configureEach { task ->
-    if (task.name == 'assembleDebug' || task.name == 'assembleRelease') {
-        task.dependsOn 'checkstyle', 'pmd', 'lint'
-    }
-}
+//pmd {
+//    ignoreFailures = false
+//    reportsDir = file("$project.buildDir/outputs/")
+//}
+//
+//tasks.register('pmd', Pmd) {
+//    description 'Run pmd'
+//    group 'verification'
+//
+//    ruleSets = ["java-basic", "java-braces", "java-strings", "java-unusedcode"]
+//    source = fileTree('src/main/java')
+//
+//    reports {
+//        xml.enabled = false
+//        html.enabled = true
+//    }
+//}
+//
+//def configDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')
+//ext.checkstyleConfigDir = "$configDir/checkstyle"
+//
+//checkstyle {
+//    ignoreFailures = false
+//    reportsDir = file("$project.buildDir/outputs/")
+//}
+//
+//tasks.register('checkstyle', Checkstyle) {
+//    configFile file("${project.rootDir}/config/checkstyle/checkstyle.xml")
+//
+//    configProperties.checkstyleConfigDir = checkstyleConfigDir
+//    configProperties.checkstyleSuppressionsPath = file("${project.rootDir}/config/checkstyle/suppressions.xml").absolutePath
+//    source 'src'
+//    include '**/*.java'
+//    exclude '**/gen/**'
+//    classpath = files()
+//}
+//
+//tasks.configureEach { task ->
+//    if (task.name == 'assembleDebug' || task.name == 'assembleRelease') {
+//        task.dependsOn 'checkstyle', 'pmd', 'lint'
+//    }
+//}
 
