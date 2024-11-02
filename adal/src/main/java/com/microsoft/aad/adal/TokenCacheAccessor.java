@@ -23,6 +23,7 @@
 package com.microsoft.aad.adal;
 
 import android.content.Context;
+import android.util.Base64;
 
 import androidx.annotation.NonNull;
 
@@ -49,6 +50,7 @@ import com.microsoft.identity.common.java.providers.microsoft.azureactivedirecto
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -656,7 +658,12 @@ class TokenCacheAccessor {
     }
 
     private String getUniqueIdentifierForCacheKey(final String userId, final String tenantId) {
-        return StringExtensions.base64UrlEncodeToString(userId) + "." + StringExtensions.base64UrlEncodeToString(tenantId);
+        return getEncodedStringForKey(userId) + "." + getEncodedStringForKey(tenantId);
+    }
+
+    private String getEncodedStringForKey(final String message) {
+        return Base64.encodeToString(message.getBytes(Charset.forName(AuthenticationConstants.ENCODING_UTF8)),
+                Base64.URL_SAFE | Base64.NO_WRAP);
     }
 
     private boolean isUserMisMatch(final String user, final TokenCacheItem tokenCacheItem) {
