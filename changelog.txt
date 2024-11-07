@@ -1,4 +1,4 @@
-vNext
+Version 4.8.16-RC1
 ---------
 - [PATCH] Migrate Base64 away from Msebera
 
