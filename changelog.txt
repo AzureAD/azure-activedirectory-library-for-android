@@ -1,6 +1,3 @@
-vNext
----------
-
 Version 4.8.16
 ---------
 - [PATCH] Update common @18.2.0
