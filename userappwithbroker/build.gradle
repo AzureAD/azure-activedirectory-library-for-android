@@ -54,10 +54,12 @@ android {
 
    
     defaultConfig {
+        namespace "com.microsoft.aad.adal.example.userappwithbroker"
         multiDexEnabled true
         applicationId destApplicationId
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
+        buildFeatures.buildConfig true
     }
 
     signingConfigs {

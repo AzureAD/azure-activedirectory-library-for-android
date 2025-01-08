@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.microsoft.aad.adal.example.userappwithbroker"
     android:versionCode="1"
-    android:versionName="1.0" >
+    android:versionName="1.0">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
     <uses-permission android:name="android.permission.USE_CREDENTIALS" />
+    <!-- Min Sdk version for YubiKit is 19, as well as for various libraries within CredMan, so override is needed to avoid build errors -->
+    <uses-sdk tools:overrideLibrary="com.yubico.yubikit.android, androidx.credentials, com.google.android.libraries.identity.googleid" />
 
     <application
         android:name=".ADALSampleApp"
