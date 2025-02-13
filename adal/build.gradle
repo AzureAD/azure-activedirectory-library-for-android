@@ -328,8 +328,10 @@ tasks.register('pmd', Pmd) {
     source = fileTree('src/main/java')
 
     reports {
-        xml.enabled = false
-        html.enabled = true
+//        xml.enabled = false
+//        html.enabled = true
+        xml.required.set(false)
+        html.required.set(true)
     }
 }
 
