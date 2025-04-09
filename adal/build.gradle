@@ -49,8 +49,8 @@ android {
         // Flag to enable support for the new language APIs
         coreLibraryDesugaringEnabled true
         // Sets Java compatibility to Java 8
-//        sourceCompatibility JavaVersion.VERSION_1_8
-//        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
     buildFeatures {
         buildConfig = true
@@ -231,14 +231,10 @@ afterEvaluate{
         publications {
             distRelease(MavenPublication) {
                 from components.findByName('distRelease')
-//            adal(MavenPublication) {
                 groupId 'com.microsoft.aad'
                 artifactId 'adal'
                 //Edit the 'version' here for VSTS RC build
                 version = project.version
-//              afterEvaluate {
-//                  from components.distRelease
-//              }
                 pom {
                     name = 'adal'
                     description = 'Azure active directory library for Android gives you the ability to add Windows Azure Active Directory authentication to your application with just a few lines of additional code. Using our ADAL SDKs you can quickly and easily extend your existing application to all the employees that use Windows Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.'
@@ -315,10 +311,9 @@ tasks.register('pmd', Pmd) {
     source = fileTree('src/main/java')
 
     reports {
-//        xml.enabled = false
-//        html.enabled = true
-        xml.required.set(false)
-        html.required.set(true)
+        xml.required = false
+        html.required = true
+
     }
 }
 
