@@ -1,7 +1,7 @@
 Version 4.8.19
 ---------
 - [PATCH] Update common @19.0.0
-- [MINOR] Upgrade AGP Version to 8.1.0
+- [MINOR] Upgrade AGP Version to 8.1.1
 
 Version 4.8.18
 ---------
