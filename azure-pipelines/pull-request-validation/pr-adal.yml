@@ -18,7 +18,7 @@ resources:
   - repository: android-complete
     type: github
     name: AzureAD/android-complete
-    ref: gradleVersionChange
+    ref: dev
     endpoint: ANDROID_GITHUB
 
 pool:
