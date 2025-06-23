@@ -65,7 +65,7 @@ public class MockDeviceCertProxy implements IDeviceCertificate {
     }
 
     @Override
-    public byte[] sign(String algorithm, byte[] dataToBeSigned) throws ClientException {
+    public byte[] sign(byte[] dataToBeSigned) throws ClientException {
         throw new UnsupportedOperationException("This is not supported in MockDeviceCertProxy");
     }
 

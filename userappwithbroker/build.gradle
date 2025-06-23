@@ -40,8 +40,8 @@ if (project.hasProperty("buildApplicationId")) {
 }
 
 println "Using application Id " + destApplicationId
-
 android {
+    namespace "com.microsoft.aad.adal.example.userappwithbroker"
     compileSdk rootProject.ext.compileSdkVersion
 
     compileOptions {
@@ -52,7 +52,9 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
-   
+   buildFeatures {
+       buildConfig = true
+   }
     defaultConfig {
         multiDexEnabled true
         applicationId destApplicationId

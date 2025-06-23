@@ -2,7 +2,7 @@
 // Taken from android-complete.
 ext {
     // SDK
-    minSdkVersion = 16
+    minSdkVersion = 21
     brokerProjectMinSdkVersion = 24
     automationAppMinSDKVersion = 21
     targetSdkVersion = 33
@@ -10,7 +10,7 @@ ext {
     buildToolsVersion = "28.0.3"
 
     // Plugins
-    gradleVersion = '7.4.2'
+    gradleVersion = '8.1.1'
     kotlinVersion = '1.7.21'
     spotBugsGradlePluginVersion = '4.7.1'
     jupiterApiVersion = '5.6.0'
