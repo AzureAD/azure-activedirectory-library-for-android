@@ -678,7 +678,7 @@ public class StorageHelper {
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     @SuppressLint("GetInstance")
     private SecretKey unwrap(final byte[] keyBlob) throws GeneralSecurityException {
-        final Cipher wrapCipher = Cipher.getInstance(WRAP_ALGORITHM);
+        final Cipher wrapCipher = Cipher.getInstance(WRAP_ALGORITHM);  // CodeQL [SM05136] ADAL is deprecated, no more updates will be made.
         wrapCipher.init(Cipher.UNWRAP_MODE, mKeyPair.getPrivate());
         try {
             return (SecretKey) wrapCipher.unwrap(keyBlob, KEYSPEC_ALGORITHM, Cipher.SECRET_KEY);
