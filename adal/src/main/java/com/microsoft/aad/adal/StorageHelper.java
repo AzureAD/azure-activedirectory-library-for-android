@@ -670,7 +670,7 @@ public class StorageHelper {
     @SuppressLint("GetInstance")
     private byte[] wrap(final SecretKey key) throws GeneralSecurityException {
         Logger.v(TAG, "Wrap secret key.");
-        final Cipher wrapCipher = Cipher.getInstance(WRAP_ALGORITHM);
+        final Cipher wrapCipher = Cipher.getInstance(WRAP_ALGORITHM); // CodeQL [SM05136] ADAL is deprecated, no more updates will be made.
         wrapCipher.init(Cipher.WRAP_MODE, mKeyPair.getPublic());
         return wrapCipher.wrap(key);
     }
