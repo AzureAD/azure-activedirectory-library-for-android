@@ -1,3 +1,7 @@
+VNext
+---------
+- [MAJOR] Bump TargetSdk to 35, minSdk to 24, AGP to 8.10.0 (#3164)
+
 Version 4.8.19
 ---------
 - [PATCH] Update common @19.0.0
