@@ -56,7 +56,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -91,7 +91,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -282,11 +282,11 @@ public final class AcquireTokenRequestTest {
                 times(1)
         ).getAuthToken(
                 Mockito.any(Account.class),
-                Matchers.anyString(),
-                Matchers.any(Bundle.class),
-                Matchers.eq(false),
-                (AccountManagerCallback<Bundle>) Matchers.eq(null),
-                Matchers.any(Handler.class)
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.any(Bundle.class),
+                ArgumentMatchers.eq(false),
+                (AccountManagerCallback<Bundle>) ArgumentMatchers.eq(null),
+                ArgumentMatchers.any(Handler.class)
         );
 
         // verify returned AT is as expected
@@ -412,11 +412,11 @@ public final class AcquireTokenRequestTest {
                                 times(1)
                         ).getAuthToken(
                                 Mockito.any(Account.class),
-                                Matchers.anyString(),
-                                Matchers.any(Bundle.class),
-                                Matchers.eq(false),
-                                (AccountManagerCallback<Bundle>) Matchers.eq(null),
-                                Matchers.any(Handler.class)
+                                ArgumentMatchers.anyString(),
+                                ArgumentMatchers.any(Bundle.class),
+                                ArgumentMatchers.eq(false),
+                                (AccountManagerCallback<Bundle>) ArgumentMatchers.eq(null),
+                                ArgumentMatchers.any(Handler.class)
                         );
 
                         assertNotNull(result);
@@ -536,11 +536,11 @@ public final class AcquireTokenRequestTest {
                 times(0)
         ).getAuthToken(
                 Mockito.any(Account.class),
-                Matchers.anyString(),
-                Matchers.any(Bundle.class),
-                Matchers.eq(false),
-                (AccountManagerCallback<Bundle>) Matchers.eq(null),
-                Matchers.any(Handler.class)
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.any(Bundle.class),
+                ArgumentMatchers.eq(false),
+                (AccountManagerCallback<Bundle>) ArgumentMatchers.eq(null),
+                ArgumentMatchers.any(Handler.class)
         );
 
         // verify returned AT is as expected
@@ -617,24 +617,24 @@ public final class AcquireTokenRequestTest {
                 times(1)
         ).getAuthToken(
                 Mockito.any(Account.class),
-                Matchers.anyString(),
-                Matchers.any(Bundle.class),
-                Matchers.eq(false),
-                (AccountManagerCallback<Bundle>) Matchers.eq(null),
-                Matchers.any(Handler.class)
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.any(Bundle.class),
+                ArgumentMatchers.eq(false),
+                (AccountManagerCallback<Bundle>) ArgumentMatchers.eq(null),
+                ArgumentMatchers.any(Handler.class)
         );
 
         verify(
                 mockedAccountManager,
                 times(1)
         ).addAccount(
-                Matchers.refEq(BROKER_ACCOUNT_TYPE),
+                ArgumentMatchers.refEq(BROKER_ACCOUNT_TYPE),
                 anyString(),
-                (String[]) Matchers.eq(null),
-                Matchers.any(Bundle.class),
-                (Activity) Matchers.eq(null),
-                (AccountManagerCallback<Bundle>) Matchers.eq(null),
-                Matchers.any(Handler.class)
+                (String[]) ArgumentMatchers.eq(null),
+                ArgumentMatchers.any(Bundle.class),
+                (Activity) ArgumentMatchers.eq(null),
+                (AccountManagerCallback<Bundle>) ArgumentMatchers.eq(null),
+                ArgumentMatchers.any(Handler.class)
         );
 
         assertFalse(cacheStore.getAll().hasNext());
@@ -686,24 +686,24 @@ public final class AcquireTokenRequestTest {
                 times(1)
         ).getAuthToken(
                 Mockito.any(Account.class),
-                Matchers.anyString(),
-                Matchers.any(Bundle.class),
-                Matchers.eq(false),
-                (AccountManagerCallback<Bundle>) Matchers.eq(null),
-                Matchers.any(Handler.class)
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.any(Bundle.class),
+                ArgumentMatchers.eq(false),
+                (AccountManagerCallback<Bundle>) ArgumentMatchers.eq(null),
+                ArgumentMatchers.any(Handler.class)
         );
 
         verify(
                 mockedAccountManager,
                 times(0)
         ).addAccount(
-                Matchers.refEq(BROKER_ACCOUNT_TYPE),
+                ArgumentMatchers.refEq(BROKER_ACCOUNT_TYPE),
                 anyString(),
-                (String[]) Matchers.eq(null),
-                Matchers.any(Bundle.class),
-                (Activity) Matchers.eq(null),
-                (AccountManagerCallback<Bundle>) Matchers.eq(null),
-                Matchers.any(Handler.class)
+                (String[]) ArgumentMatchers.eq(null),
+                ArgumentMatchers.any(Bundle.class),
+                (Activity) ArgumentMatchers.eq(null),
+                (AccountManagerCallback<Bundle>) ArgumentMatchers.eq(null),
+                ArgumentMatchers.any(Handler.class)
         );
 
         assertFalse(cacheStore.getAll().hasNext());
@@ -949,7 +949,7 @@ public final class AcquireTokenRequestTest {
 
         latch.await();
 
-        Mockito.verifyZeroInteractions(mockedConnection);
+        Mockito.verifyNoInteractions(mockedConnection);
     }
 
     public void testEmbeddedAuthCacheNotSkippedClaimsSentInExtraQp()
@@ -1146,14 +1146,14 @@ public final class AcquireTokenRequestTest {
                 never()
         ).getAuthToken(
                 Mockito.any(Account.class),
-                Matchers.anyString(),
-                Matchers.any(Bundle.class),
-                Matchers.eq(false),
-                (AccountManagerCallback<Bundle>) Matchers.eq(null),
-                Matchers.any(Handler.class)
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.any(Bundle.class),
+                ArgumentMatchers.eq(false),
+                (AccountManagerCallback<Bundle>) ArgumentMatchers.eq(null),
+                ArgumentMatchers.any(Handler.class)
         );
 
-        Mockito.verifyZeroInteractions(mockedConnection);
+        Mockito.verifyNoInteractions(mockedConnection);
     }
 
     private ITokenCacheStore getTokenCache(final Date expiresOn,
@@ -2204,7 +2204,7 @@ public final class AcquireTokenRequestTest {
             throws OperationCanceledException, IOException, AuthenticatorException {
         final Account account = new Account(TEST_UPN, BROKER_ACCOUNT_TYPE);
         when(mockedAccountManger.getAccountsByType(
-                Matchers.refEq(BROKER_ACCOUNT_TYPE)
+                ArgumentMatchers.refEq(BROKER_ACCOUNT_TYPE)
         )).thenReturn(new Account[]{account});
 
         final Bundle bundle = new Bundle();
@@ -2215,12 +2215,12 @@ public final class AcquireTokenRequestTest {
         when(mockedResult.getResult()).thenReturn(bundle);
 
         when(mockedAccountManger.updateCredentials(
-                Matchers.any(Account.class),
-                Matchers.anyString(),
-                Matchers.any(Bundle.class),
-                (Activity) Matchers.eq(null),
-                (AccountManagerCallback<Bundle>) Matchers.eq(null),
-                (Handler) Matchers.eq(null))
+                ArgumentMatchers.any(Account.class),
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.any(Bundle.class),
+                (Activity) ArgumentMatchers.eq(null),
+                (AccountManagerCallback<Bundle>) ArgumentMatchers.eq(null),
+                (Handler) ArgumentMatchers.eq(null))
         ).thenReturn(mockedResult);
     }
 
@@ -2232,11 +2232,11 @@ public final class AcquireTokenRequestTest {
         when(
                 mockedAccountManager.getAuthToken(
                         Mockito.any(Account.class),
-                        Matchers.anyString(),
-                        Matchers.any(Bundle.class),
-                        Matchers.eq(false),
-                        (AccountManagerCallback<Bundle>) Matchers.eq(null),
-                        Matchers.any(Handler.class)
+                        ArgumentMatchers.anyString(),
+                        ArgumentMatchers.any(Bundle.class),
+                        ArgumentMatchers.eq(false),
+                        (AccountManagerCallback<Bundle>) ArgumentMatchers.eq(null),
+                        ArgumentMatchers.any(Handler.class)
                 )
         ).thenReturn(mockedResult);
     }
@@ -2260,11 +2260,11 @@ public final class AcquireTokenRequestTest {
         when(
                 mockedAccountManager.getAuthToken(
                         Mockito.any(Account.class),
-                        Matchers.anyString(),
-                        Matchers.any(Bundle.class),
-                        Matchers.eq(false),
-                        (AccountManagerCallback<Bundle>) Matchers.eq(null),
-                        Matchers.any(Handler.class)
+                        ArgumentMatchers.anyString(),
+                        ArgumentMatchers.any(Bundle.class),
+                        ArgumentMatchers.eq(false),
+                        (AccountManagerCallback<Bundle>) ArgumentMatchers.eq(null),
+                        ArgumentMatchers.any(Handler.class)
                 )
         ).thenReturn(mockedResult);
     }
@@ -2279,13 +2279,13 @@ public final class AcquireTokenRequestTest {
         when(
                 mockedAccountManager
                         .addAccount(
-                                Matchers.refEq(BROKER_ACCOUNT_TYPE),
+                                ArgumentMatchers.refEq(BROKER_ACCOUNT_TYPE),
                                 anyString(),
-                                (String[]) Matchers.eq(null),
-                                Matchers.any(Bundle.class),
-                                (Activity) Matchers.eq(null),
-                                (AccountManagerCallback<Bundle>) Matchers.eq(null),
-                                Matchers.any(Handler.class)
+                                (String[]) ArgumentMatchers.eq(null),
+                                ArgumentMatchers.any(Bundle.class),
+                                (Activity) ArgumentMatchers.eq(null),
+                                (AccountManagerCallback<Bundle>) ArgumentMatchers.eq(null),
+                                ArgumentMatchers.any(Handler.class)
                         )
         ).thenReturn(mockedResult);
     }

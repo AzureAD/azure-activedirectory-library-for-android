@@ -66,7 +66,6 @@ import javax.crypto.spec.SecretKeySpec;
 
 import static androidx.test.InstrumentationRegistry.getInstrumentation;
 import static com.microsoft.aad.adal.AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
-import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION;
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL;
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR;
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE;
@@ -74,8 +73,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;

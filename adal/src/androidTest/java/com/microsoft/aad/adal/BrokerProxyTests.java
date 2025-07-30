@@ -63,7 +63,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -83,10 +82,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -399,7 +398,7 @@ public class BrokerProxyTests {
         AuthenticatorDescription[] descriptions = getAuthenticator(authenticatorType, brokerPackage);
         Context mockContext = getMockContext(signature, brokerPackage, brokerPackage, true);
         when(mockAcctManager.getAuthenticatorTypes()).thenReturn(descriptions);
-        when(mockAcctManager.getAccountsByType(Matchers.refEq(authenticatorType))).thenReturn(new Account[]{});
+        when(mockAcctManager.getAccountsByType(ArgumentMatchers.refEq(authenticatorType))).thenReturn(new Account[]{});
         when(mockContext.getPackageName()).thenReturn(brokerPackage);
         BrokerValidator mockBrokerValidator = mock(BrokerValidator.class);
         when(mockBrokerValidator.verifySignature(brokerPackage)).thenReturn(true);
@@ -1095,8 +1094,8 @@ public class BrokerProxyTests {
 
     private AccountManager getMockedAccountManager(final AccountManagerFuture<Bundle> mockedAccountManagerFuture) {
         final AccountManager mockedAccoutManager = Mockito.mock(AccountManager.class);
-        Mockito.when(mockedAccoutManager.addAccount(Matchers.anyString(), Mockito.anyString(), Matchers.any(String[].class),
-                Matchers.any(Bundle.class), Matchers.any(Activity.class), Matchers.any(AccountManagerCallback.class),
+        Mockito.when(mockedAccoutManager.addAccount(ArgumentMatchers.anyString(), Mockito.anyString(), ArgumentMatchers.any(String[].class),
+                ArgumentMatchers.any(Bundle.class), ArgumentMatchers.any(Activity.class), ArgumentMatchers.any(AccountManagerCallback.class),
                 Mockito.any(Handler.class))).thenReturn(mockedAccountManagerFuture);
 
         return mockedAccoutManager;
@@ -1167,7 +1166,7 @@ public class BrokerProxyTests {
         when(mockContext.getPackageName()).thenReturn(contextPackageName);
         List<ResolveInfo> mockList = new ArrayList<>();
         mockList.add(new ResolveInfo());
-        when(mockPackageManager.queryIntentActivities(Matchers.any(Intent.class), anyInt())).thenReturn(mockList);
+        when(mockPackageManager.queryIntentActivities(ArgumentMatchers.any(Intent.class), anyInt())).thenReturn(mockList);
         return mockContext;
     }
 
@@ -1212,3 +1211,4 @@ public class BrokerProxyTests {
                 .thenReturn(activities);
     }
 }
+
