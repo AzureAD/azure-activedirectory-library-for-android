@@ -660,6 +660,7 @@ public class AuthenticationActivity extends DualScreenActivity {
 
     @Override
     public void onBackPressed() {
+        super.onBackPressed();
         Logger.verbose(TAG, "Back button is pressed");
 
         // User should be able to click back button to cancel in case pkeyauth
