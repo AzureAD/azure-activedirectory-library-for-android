@@ -14,9 +14,12 @@ java_bin=$JAVA_HOME/jre/bin
 keytool=$java_bin/keytool
 
 debug_key_store=$HOME/.android/debug.keystore
-release_alias="androiddebugkey"
-release_key_store=$HOME/.android/release.keystore
-release_password="android"
+debug_alias="androiddebugkey"
+debug_password="android"
+
+release_key_store=$HOME/.android/ms-release-key.keystore
+release_alias=""
+release_password=""
 android_key_store=
 
 usage() {
@@ -91,12 +94,30 @@ rawurlencode() {
   echo "${encoded}"    # You can either set a return variable (FASTER) 
   REPLY="${encoded}"   #+or echo the result (EASIER)... or both... :p
 }
+
+urlencode() {
+    # urlencode <string>
+    local length="${#1}"
+    for (( i = 0; i < length; i++ )); do
+        local c="${1:i:1}"
+        case $c in
+            [a-zA-Z0-9.~_-]) printf "$c" ;;
+            *) printf '%%%02X' "'$c"
+        esac
+    done
+}
 #---------------------------------
 
 #---------------------------------
 # Simple Func() to generate the hash from the certificate provided by the android keystore.
 makeTag() {
    tag=`$keytool -storepass $release_password -exportcert -alias $release_alias -keystore $android_key_store | openssl sha1 -binary |  openssl base64`
+   tag=$(urlencode $tag)
+}
+
+makeDebugTag() {
+   tag=`$keytool -storepass $debug_password -exportcert -alias $debug_alias -keystore $android_key_store | openssl sha1 -binary |  openssl base64`
+   tag=$(urlencode $tag)
 }
 #---------------------------------
 
@@ -140,11 +161,11 @@ makedebug() {
     
     echo "We are using the following values"
     printf "Package Name: %s\n" $package_name
-    printf "Keystore alias: %s\n" $release_alias
-    printf "Keystore password: %s\n" $release_password
+    printf "Keystore alias: %s\n" $debug_alias
+    printf "Keystore password: %s\n" $debug_password
     printf "Keystore: %s\n" $android_key_store
 
-    makeTag
+    makeDebugTag
     echo "Debug Redirect URI is:"
     makeReplyURL
 
@@ -171,7 +192,3 @@ fi
 if [ "$release" = "1" ]; then
     makerelease
 fi
-
-
-
-
