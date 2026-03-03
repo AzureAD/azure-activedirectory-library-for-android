@@ -48,7 +48,7 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 
 @RunWith(AndroidJUnit4.class)
@@ -107,8 +107,7 @@ public class TelemetryTest {
         when(mockedSignature.toByteArray()).thenReturn(Base64.decode(
                 Util.ENCODED_SIGNATURE, Base64.NO_WRAP));
 
-        final PackageInfo mockedPackageInfo = com.microsoft.identity.common.Util.addSignatures(Mockito.mock(PackageInfo.class), new Signature[]{mockedSignature});
-
+        final PackageInfo mockedPackageInfo = new MockedPackageInfo(new Signature[]{mockedSignature});
         final PackageManager mockedPackageManager = Mockito.mock(PackageManager.class);
         when(mockedPackageManager.getPackageInfo(Mockito.anyString(), anyInt())).thenReturn(mockedPackageInfo);
 

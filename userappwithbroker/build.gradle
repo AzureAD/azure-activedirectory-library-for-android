@@ -16,31 +16,46 @@ allprojects {
     }
 }
 
-def adalVersion = "3.1.2"
-def commonVersion = "0.0.+"
+def adalVersion = "4.8.18"
+def commonVersion = "18.2.2"
 
 if (project.hasProperty("distAdalVersion")) {
+    println "Overriding adal version to dist property " + distAdalVersion
     adalVersion = distAdalVersion
 }
 
+println "Building with adal " + adalVersion
+
 if (project.hasProperty("distCommonVersion")) {
+    println "Overriding common version to dist property " + distCommonVersion
     commonVersion = distCommonVersion
 }
 
+println "Building with common " + commonVersion
+
+def destApplicationId = "com.microsoft.aad.adal.userappwithbroker"
+if (project.hasProperty("buildApplicationId")) {
+    println "Overriding applicationId to " + buildApplicationId
+    destApplicationId = buildApplicationId
+}
+
+println "Using application Id " + destApplicationId
 android {
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    namespace "com.microsoft.aad.adal.example.userappwithbroker"
+    compileSdk rootProject.ext.compileSdkVersion
 
     compileOptions {
-        // Flag to enable support for the new language APIs
-        coreLibraryDesugaringEnabled true
         // Sets Java compatibility to Java 8
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+   buildFeatures {
+       buildConfig = true
+   }
     defaultConfig {
         multiDexEnabled true
-        applicationId "com.microsoft.aad.adal.userappwithbroker"
+        applicationId destApplicationId
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
     }
@@ -58,6 +73,16 @@ android {
             storePassword 'android'
             keyAlias 'androiddebugkey'
             keyPassword 'android'
+        }
+
+        release {
+            def debugKeyFile = rootProject.file("gradle/debug.keystore")
+            if(debugKeyFile.exists()){
+                storeFile rootProject.file("gradle/debug.keystore")
+                storePassword "android"
+                keyAlias "androiddebugkey"
+                keyPassword "android"
+            }
         }
     }
 
@@ -90,16 +115,14 @@ android {
 }
 
 dependencies {
-
-    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
-
     // Compile Dependencies
     implementation "com.google.android.material:material:$rootProject.ext.materialVersion"
 
     localImplementation(project(':adal')) {
         exclude module: 'common'
     }
-    distApi(group: 'com.microsoft.aad', name: 'adal', version: "${adalVersion}") {
+
+    distImplementation("com.microsoft.aad:adal:${adalVersion}") {
         exclude module: 'support-v4'
         exclude module: 'android'
         exclude module: 'common'

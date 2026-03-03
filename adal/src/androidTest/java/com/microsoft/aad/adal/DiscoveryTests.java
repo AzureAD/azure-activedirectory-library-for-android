@@ -34,6 +34,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -369,6 +370,7 @@ public class DiscoveryTests extends AndroidTestHelper {
     }
 
     @Test
+    @Ignore("ConnectionService check is now disabled by default")
     public void testValidateAuthorityFailedWithoutNetwork() throws IOException {
         final FileMockContext context = new FileMockContext(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext());
         final Discovery discovery = new Discovery(context);

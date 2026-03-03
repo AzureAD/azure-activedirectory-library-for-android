@@ -51,7 +51,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 
 class FileMockContext extends MockContext {
@@ -110,6 +110,11 @@ class FileMockContext extends MockContext {
     public File getDir(String name, int mode) {
         mDirName = name;
         mFileWriteMode = mode;
+        return null;
+    }
+
+    @Override
+    public File getCacheDir() {
         return null;
     }
 

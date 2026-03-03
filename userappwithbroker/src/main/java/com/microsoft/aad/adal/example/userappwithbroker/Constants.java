@@ -54,6 +54,7 @@ public class Constants {
         SHAREPOINT_MS_DEV("https://msdevex-my.sharepoint.com"),
         SHAREPOINT("00000003-0000-0ff1-ce00-000000000000"),
         OFFICE_ONEDRIVE("6a9b9266-8161-4a7b-913a-a9eda19da220"),
+        OUTLOOK("https://outlook.office365.com"),
         SIMPLE("00000002-0000-0000-c000-000000000000");
 
 
@@ -74,6 +75,7 @@ public class Constants {
         MOONCAKE("920cd637-4ca3-496b-8a6a-f7c6ca1b2b82"),
         ONEDRIVE("af124e86-4e96-495a-b70a-90f90ab96707"),
         OFFICE("d3590ed6-52b3-4102-aeff-aad2292ab01c"),
+        OUTLOOK("27922004-5251-4030-b22d-91ecd9a37ea4"),
         APPCHECK2_BF("f5d01c1c-abe6-4207-ae2d-5bc9af251724"),
         GUESTCLIENT("ea5c8087-2476-489c-ae03-ad44a2ac399d"),
         ADFSV3("68a10fc3-ead9-41b8-ac5e-5b78af044736"),
@@ -96,6 +98,10 @@ public class Constants {
         Regular(BuildConfig.REGULAR_REDIDRECT_URI),
         Regular2("msauth://com.microsoft.aad.adal.userappwithbroker/L8kGVGYgNOaxbhn9Y7vR%2F6LIEG8%3D"),
         Mooncake("msauth://com.msft.identity.client.sample.local/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D"),
+        Mooncake1( "msauth://com.microsoft.aad.adal.userappwithbroker/QK0hWtPIQviyU3IX8AhunaS0IY4%3D"),
+        Mooncake2( "msauth://com.microsoft.aad.adal.userappwithbroker/L8kGVGYgNOaxbhn9Y7vR%2F6LIEG8%3D"),
+        Mooncake3( "msauth://com.microsoft.aad.adal.userappwithbroker/IcB5PxIyvbLkbFVtBI%2FitkW%2Fejk%3D"),
+        Mooncake4( "msauth://com.microsoft.aad.adal.userappwithbroker/2%2BQqCWt1ilKg0IrfKT6CkdMpPqk%3D"),
         Broker("urn:ietf:wg:oauth:2.0:oob"),
         LABS("msauth://com.microsoft.aad.adal.userappwithbroker/2%2BQqCWt1ilKg0IrfKT6CkdMpPqk%3D"),
         LABSDEBUG("msauth://com.microsoft.aad.adal.userappwithbroker/1wIqXSqBj7w%2bh11ZifsnqwgyKrY%3d");

@@ -1,0 +1,79 @@
+# File: azure-pipelines\pull-request-validation\pr-adal.yml
+# Description: Assemble adal
+# Variable: 'ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME' was defined in the Variables tab
+# Variable: 'mvnAccessToken' was defined in the Variables tab
+# https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate
+name: $(date:yyyyMMdd)$(rev:.r)
+
+trigger:
+  branches:
+    include:
+    - dev
+    - master
+    - release/*
+  batch: True
+
+resources:
+  repositories:
+  - repository: android-complete
+    type: github
+    name: AzureAD/android-complete
+    ref: master
+    endpoint: ANDROID_GITHUB
+
+pool:
+  name: Hosted Windows 2019 with VS2019
+jobs:
+- job: build_test
+  displayName: Build & Test
+  cancelTimeoutInMinutes: 1
+  variables:
+    Codeql.Enabled: true
+  steps:
+  - checkout: self
+    clean: true
+    submodules: recursive
+    persistCredentials: True
+  - task: CodeQL3000Init@0
+  - task: Gradle@3
+    displayName: Assemble Local
+    inputs:
+      tasks: clean adal:assembleLocal
+      publishJUnitResults: false
+      jdkArchitecture: x64
+      javaHomeOption: JDKVersion
+      jdkVersion: 1.17
+  - task: CodeQL3000Finalize@0
+- job: lint
+  displayName: Lint
+  cancelTimeoutInMinutes: 1
+  steps:
+  - checkout: self
+    clean: true
+    submodules: recursive
+    persistCredentials: True
+  - task: CmdLine@1
+    displayName: Set Office MVN Access Token in Environment
+    inputs:
+      filename: echo
+      arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN]$(System.AccessToken)'
+  - task: Gradle@3
+    displayName: Lint
+    inputs:
+      tasks: clean adal:lintLocalDebug
+      publishJUnitResults: false
+      javaHomeOption: JDKVersion
+      jdkVersion: 1.17
+
+- job: spotbugs
+  displayName: SpotBugs
+  cancelTimeoutInMinutes: 1
+  steps:
+  - checkout: self
+    clean: true
+    submodules: recursive
+    persistCredentials: True
+  - template: azure-pipelines/templates/spotbugs.yml@android-complete
+    parameters:
+      project: adal
+...

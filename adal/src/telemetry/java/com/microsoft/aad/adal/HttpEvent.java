@@ -25,9 +25,8 @@ package com.microsoft.aad.adal;
 
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
-import android.util.Pair;
-
 import java.net.URL;
+import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
 
@@ -38,7 +37,7 @@ final class HttpEvent extends DefaultEvent {
     private static final String TAG = HttpEvent.class.getSimpleName();
 
     HttpEvent(final String eventName) {
-        getEventList().add(Pair.create(EventStrings.EVENT_NAME, eventName));
+        getEventList().add(new AbstractMap.SimpleEntry<>(EventStrings.EVENT_NAME, eventName));
     }
 
     void setUserAgent(final String userAgent) {
@@ -180,9 +179,9 @@ final class HttpEvent extends DefaultEvent {
             dispatchMap.remove(EventStrings.SPE_INFO);
         }
 
-        final List<Pair<String, String>> eventList = getEventList();
-        for (Pair<String, String> eventPair : eventList) {
-            final String name = eventPair.first;
+        final List<Map.Entry<String, String>> eventList = getEventList();
+        for (Map.Entry<String, String> eventKeyValuePair : eventList) {
+            final String name = eventKeyValuePair.getKey();
 
             if (name.equals(EventStrings.HTTP_RESPONSE_CODE)
                     || name.equals(EventStrings.REQUEST_ID_HEADER)
@@ -192,7 +191,7 @@ final class HttpEvent extends DefaultEvent {
                     || name.equals(EventStrings.SERVER_SUBERROR_CODE)
                     || name.equals(EventStrings.TOKEN_AGE)
                     || name.equals(EventStrings.SPE_INFO)) {
-                dispatchMap.put(name, eventPair.second);
+                dispatchMap.put(name, eventKeyValuePair.getValue());
             }
         }
     }

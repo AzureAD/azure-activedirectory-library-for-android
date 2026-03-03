@@ -52,7 +52,6 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -61,7 +60,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.microsoft.aad.adal.TokenCacheAccessor.getMsalOAuth2TokenCache;
+import static com.microsoft.identity.common.java.AuthenticationConstants.UIRequest.BROWSER_FLOW;
 
 /**
  * ADAL context to get access token, refresh token, and lookup from cache.
@@ -176,46 +175,8 @@ public class AuthenticationContext {
         mValidateAuthority = validateAuthority;
 
         if (null != tokenCacheStore) {
-            mTokenCacheStore = wrapCache(tokenCacheStore);
+            mTokenCacheStore = new DelegatingCache(mContext, tokenCacheStore);
         }
-    }
-
-    private ITokenCacheStore wrapCache(@NonNull final ITokenCacheStore originalCache) {
-        return new ITokenCacheStore() {
-            @Override
-            public synchronized TokenCacheItem getItem(final String key) {
-                return originalCache.getItem(key);
-            }
-
-            @Override
-            public synchronized Iterator<TokenCacheItem> getAll() {
-                return originalCache.getAll();
-            }
-
-            @Override
-            public synchronized boolean contains(final String key) {
-                return originalCache.contains(key);
-            }
-
-            @Override
-            public synchronized void setItem(final String key, final TokenCacheItem item) {
-                originalCache.setItem(key, item);
-            }
-
-            @Override
-            public synchronized void removeItem(final String key) {
-                originalCache.removeItem(key);
-            }
-
-            @Override
-            public synchronized void removeAll() {
-                // Clear our original cache
-                originalCache.removeAll();
-
-                // clear our replica cache
-                getMsalOAuth2TokenCache(mContext).clearAll();
-            }
-        };
     }
 
     /**
@@ -305,7 +266,7 @@ public class AuthenticationContext {
 
         // First available signature. Applications can be signed with multiple
         // signatures.
-        final String signatureDigest = packageHelper.getCurrentSignatureForPackage(packageName);
+        final String signatureDigest = packageHelper.getSha1SignatureForPackage(packageName);
         final String redirectUri = PackageHelper.getBrokerRedirectUrl(packageName, signatureDigest);
         Logger.v(TAG + methodName, "Get expected redirect Uri. ", "Broker redirectUri:" + redirectUri + " packagename:" + packageName
                 + " signatureDigest:" + signatureDigest, null);
@@ -1155,7 +1116,7 @@ public class AuthenticationContext {
      */
     public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         final String methodName = ":onActivityResult";
-        if (requestCode == AuthenticationConstants.UIRequest.BROWSER_FLOW) {
+        if (requestCode == BROWSER_FLOW) {
 
             if (data == null) {
                 // If data is null, RequestId is unknown. It could not find

@@ -169,7 +169,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         prepareRequestParameters(requestOptions);
 
         callAcquireTokenWithResource(requestOptions.getDataProfile().getText(), requestOptions.getBehavior(),
-                requestOptions.getLoginHint(), requestOptions.getClientId().getText(), requestOptions.getRedirectUri().getText(), requestOptions.getExtraQp());
+                requestOptions.getLoginHint(), requestOptions.getClientId().getText(),
+                requestOptions.getRedirectUri().getText(), requestOptions.getExtraQp(),
+                requestOptions.getClaims());
     }
 
     @Override
@@ -323,9 +325,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void callAcquireTokenWithResource(final String resource, PromptBehavior prompt, final String loginHint,
-                                              final String clientId, final String redirectUri, final String extraQp) {
+                                              final String clientId, final String redirectUri,
+                                              final String extraQp, final String claims) {
         mAuthContext.acquireToken(MainActivity.this, resource, clientId, redirectUri, loginHint,
-                prompt, extraQp, new AuthenticationCallback<AuthenticationResult>() {
+                prompt, extraQp, claims, new AuthenticationCallback<AuthenticationResult>() {
 
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {

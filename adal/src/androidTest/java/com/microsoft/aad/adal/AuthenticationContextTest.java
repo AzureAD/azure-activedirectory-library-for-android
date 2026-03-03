@@ -23,6 +23,29 @@
 
 package com.microsoft.aad.adal;
 
+import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION;
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL;
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE;
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR;
+import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE;
+import static com.microsoft.identity.common.java.AuthenticationConstants.UIRequest.BROWSER_FLOW;
+import static com.microsoft.identity.common.java.cache.SharedPreferencesAccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
@@ -41,24 +64,23 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.google.gson.Gson;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.adal.internal.net.HttpUrlConnectionFactory;
+import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory;
 import com.microsoft.identity.common.internal.broker.PackageHelper;
-import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
-import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
-import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentialAdapter;
-import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
-import com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache;
-import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
-import com.microsoft.identity.common.internal.dto.AccountRecord;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryCloud;
-
-import junit.framework.Assert;
+import com.microsoft.identity.common.java.cache.CacheKeyValueDelegate;
+import com.microsoft.identity.common.java.cache.IAccountCredentialCache;
+import com.microsoft.identity.common.java.cache.SharedPreferencesAccountCredentialCache;
+import com.microsoft.identity.common.java.dto.AccountRecord;
+import com.microsoft.identity.common.java.interfaces.IPlatformComponents;
+import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
+import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectoryCloud;
+import com.nimbusds.jwt.JWT;
+import com.nimbusds.jwt.JWTParser;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -77,6 +99,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -101,23 +124,6 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
-import static com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 @RunWith(AndroidJUnit4.class)
 public final class AuthenticationContextTest {
 
@@ -141,6 +147,8 @@ public final class AuthenticationContextTest {
     private static final int EXPIRES_ON_ADJUST_MINS = 10;
 
     static final String TEST_IDTOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiJlNzBiMTE1ZS1hYzBhLTQ4MjMtODVkYS04ZjRiN2I0ZjAwZTYiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8zMGJhYTY2Ni04ZGY4LTQ4ZTctOTdlNi03N2NmZDA5OTU5NjMvIiwibmJmIjoxMzc2NDI4MzEwLCJleHAiOjEzNzY0NTcxMTAsInZlciI6IjEuMCIsInRpZCI6IjMwYmFhNjY2LThkZjgtNDhlNy05N2U2LTc3Y2ZkMDk5NTk2MyIsIm9pZCI6IjRmODU5OTg5LWEyZmYtNDExZS05MDQ4LWMzMjIyNDdhYzYyYyIsInVwbiI6ImFkbWluQGFhbHRlc3RzLm9ubWljcm9zb2Z0LmNvbSIsInVuaXF1ZV9uYW1lIjoiYWRtaW5AYWFsdGVzdHMub25taWNyb3NvZnQuY29tIiwic3ViIjoiVDU0V2hGR1RnbEJMN1VWYWtlODc5UkdhZEVOaUh5LXNjenNYTmFxRF9jNCIsImZhbWlseV9uYW1lIjoiU2VwZWhyaSIsImdpdmVuX25hbWUiOiJBZnNoaW4ifQ.";
+
+    static final String TEST_ACCESS_TOKEN_WITH_DEVICE_ID = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Ii1LSTNROW5OUjdiUm9meG1lWm9YcWJIWkdldyIsImtpZCI6Ii1LSTNROW5OUjdiUm9meG1lWm9YcWJIWkdldyJ9.eyJhdWQiOiJodHRwczovL2dyYXBoLndpbmRvd3MubmV0IiwiaXNzIjoiaHR0cHM6Ly9zdHMud2luZG93cy5uZXQvZjY0NWFkOTItZTM4ZC00ZDFhLWI1MTAtZDFiMDlhNzRhOGNhLyIsImlhdCI6MTY3MzgzNTUyNywibmJmIjoxNjczODM1NTI3LCJleHAiOjE2NzM4NDAwOTMsImFjciI6IjEiLCJhaW8iOiJBVFFBeS84VEFBQUFqTlBGYnQyakZHdmJMOGw2dUMvdG5lYUEvL0FKQWJTazhOS1NiVWJ5WWt0bTZmSHQwa2IxR0JFNXhRYThsTVVUIiwiYW1yIjpbInB3ZCIsInJzYSJdLCJhcHBpZCI6IjRiMGRiOGMyLTlmMjYtNDQxNy04YmRlLTNmMGUzNjU2ZjhlMCIsImFwcGlkYWNyIjoiMCIsImRldmljZWlkIjoiNzYxYjQ1ZTktMjA4MC00NTczLWJlYmItYjQzZDQzNWNlMWFmIiwiZmFtaWx5X25hbWUiOiJCYXNpYyBVc2VyIDEiLCJnaXZlbl9uYW1lIjoiQ2xvdWQgSURMQUIiLCJpcGFkZHIiOiI2OC4yMjYuNjcuMTIiLCJuYW1lIjoiQ2xvdWQgSURMQUIgQmFzaWMgVXNlciAxIiwib2lkIjoiNTk3Zjg2Y2QtMTNmMy00NGMwLWJlY2UtYTFlNzdiYTQzMjI4IiwicHVpZCI6IjEwMDMyMDAwOUM2NkIyMDUiLCJyaCI6IjAuQVJ3QWtxMUY5bzNqR2syMUVOR3dtblNveWdJQUFBQUFBQUFBd0FBQUFBQUFBQUFjQUNRLiIsInNjcCI6IkFncmVlbWVudC5SZWFkLkFsbCBBZ3JlZW1lbnQuUmVhZFdyaXRlLkFsbCBBZ3JlZW1lbnRBY2NlcHRhbmNlLlJlYWQgQWdyZWVtZW50QWNjZXB0YW5jZS5SZWFkLkFsbCBBcHBDYXRhbG9nLlJlYWRXcml0ZS5BbGwgQXVkaXRMb2cuUmVhZC5BbGwgQm9va2luZ3MuTWFuYWdlLkFsbCBCb29raW5ncy5SZWFkLkFsbCBCb29raW5ncy5SZWFkV3JpdGUuQWxsIEJvb2tpbmdzQXBwb2ludG1lbnQuUmVhZFdyaXRlLkFsbCBDYWxlbmRhcnMuUmVhZCBDYWxlbmRhcnMuUmVhZC5TaGFyZWQgQ2FsZW5kYXJzLlJlYWRXcml0ZSBDYWxlbmRhcnMuUmVhZFdyaXRlLlNoYXJlZCBDb250YWN0cy5SZWFkIENvbnRhY3RzLlJlYWQuU2hhcmVkIENvbnRhY3RzLlJlYWRXcml0ZSBDb250YWN0cy5SZWFkV3JpdGUuU2hhcmVkIERldmljZS5Db21tYW5kIERldmljZS5SZWFkIERldmljZU1hbmFnZW1lbnRBcHBzLlJlYWQuQWxsIERldmljZU1hbmFnZW1lbnRBcHBzLlJlYWRXcml0ZS5BbGwgRGV2aWNlTWFuYWdlbWVudENvbmZpZ3VyYXRpb24uUmVhZC5BbGwgRGV2aWNlTWFuYWdlbWVudENvbmZpZ3VyYXRpb24uUmVhZFdyaXRlLkFsbCBEZXZpY2VNYW5hZ2VtZW50TWFuYWdlZERldmljZXMuUHJpdmlsZWdlZE9wZXJhdGlvbnMuQWxsIERldmljZU1hbmFnZW1lbnRNYW5hZ2VkRGV2aWNlcy5SZWFkLkFsbCBEZXZpY2VNYW5hZ2VtZW50TWFuYWdlZERldmljZXMuUmVhZFdyaXRlLkFsbCBEZXZpY2VNYW5hZ2VtZW50UkJBQy5SZWFkLkFsbCBEZXZpY2VNYW5hZ2VtZW50UkJBQy5SZWFkV3JpdGUuQWxsIERldmljZU1hbmFnZW1lbnRTZXJ2aWNlQ29uZmlnLlJlYWQuQWxsIERldmljZU1hbmFnZW1lbnRTZXJ2aWNlQ29uZmlnLlJlYWRXcml0ZS5BbGwgRGlyZWN0b3J5LkFjY2Vzc0FzVXNlci5BbGwgRGlyZWN0b3J5LlJlYWQuQWxsIERpcmVjdG9yeS5SZWFkV3JpdGUuQWxsIEVBUy5BY2Nlc3NBc1VzZXIuQWxsIEVkdUFkbWluaXN0cmF0aW9uLlJlYWQgRWR1QWRtaW5pc3RyYXRpb24uUmVhZFdyaXRlIEVkdUFzc2lnbm1lbnRzLlJlYWQgRWR1QXNzaWdubWVudHMuUmVhZEJhc2ljIEVkdUFzc2lnbm1lbnRzLlJlYWRXcml0ZSBFZHVBc3NpZ25tZW50cy5SZWFkV3JpdGVCYXNpYyBFZHVSb3N0ZXIuUmVhZCBFZHVSb3N0ZXIuUmVhZEJhc2ljIEVkdVJvc3Rlci5SZWFkV3JpdGUgRmlsZXMuUmVhZCBGaWxlcy5SZWFkLkFsbCBGaWxlcy5SZWFkLlNlbGVjdGVkIEZpbGVzLlJlYWRXcml0ZSBGaWxlcy5SZWFkV3JpdGUuQWxsIEZpbGVzLlJlYWRXcml0ZS5BcHBGb2xkZXIgRmlsZXMuUmVhZFdyaXRlLlNlbGVjdGVkIEZpbmFuY2lhbHMuUmVhZFdyaXRlLkFsbCBHcm91cC5SZWFkLkFsbCBHcm91cC5SZWFkV3JpdGUuQWxsIElkZW50aXR5UHJvdmlkZXIuUmVhZC5BbGwgSWRlbnRpdHlQcm92aWRlci5SZWFkV3JpdGUuQWxsIElkZW50aXR5Umlza0V2ZW50LlJlYWQuQWxsIE1haWwuUmVhZCBNYWlsLlJlYWQuU2hhcmVkIE1haWwuUmVhZFdyaXRlIE1haWwuUmVhZFdyaXRlLlNoYXJlZCBNYWlsLlNlbmQgTWFpbC5TZW5kLlNoYXJlZCBNYWlsYm94U2V0dGluZ3MuUmVhZCBNYWlsYm94U2V0dGluZ3MuUmVhZFdyaXRlIE1lbWJlci5SZWFkLkhpZGRlbiBOb3Rlcy5DcmVhdGUgTm90ZXMuUmVhZCBOb3Rlcy5SZWFkLkFsbCBOb3Rlcy5SZWFkV3JpdGUgTm90ZXMuUmVhZFdyaXRlLkFsbCBOb3Rlcy5SZWFkV3JpdGUuQ3JlYXRlZEJ5QXBwIFBlb3BsZS5SZWFkIFBlb3BsZS5SZWFkLkFsbCBQcml2aWxlZ2VkQWNjZXNzLlJlYWRXcml0ZS5BenVyZUFEIFByaXZpbGVnZWRBY2Nlc3MuUmVhZFdyaXRlLkF6dXJlUmVzb3VyY2VzIFJlcG9ydHMuUmVhZC5BbGwgU2VjdXJpdHlFdmVudHMuUmVhZC5BbGwgU2VjdXJpdHlFdmVudHMuUmVhZFdyaXRlLkFsbCBTaXRlcy5GdWxsQ29udHJvbC5BbGwgU2l0ZXMuTWFuYWdlLkFsbCBTaXRlcy5SZWFkLkFsbCBTaXRlcy5SZWFkV3JpdGUuQWxsIFN1YnNjcmlwdGlvbi5SZWFkLkFsbCBUYXNrcy5SZWFkIFRhc2tzLlJlYWQuU2hhcmVkIFRhc2tzLlJlYWRXcml0ZSBUYXNrcy5SZWFkV3JpdGUuU2hhcmVkIFVzZXIuRXhwb3J0LkFsbCBVc2VyLkludml0ZS5BbGwgVXNlci5SZWFkIFVzZXIuUmVhZC5BbGwgVXNlci5SZWFkQmFzaWMuQWxsIFVzZXIuUmVhZFdyaXRlIFVzZXIuUmVhZFdyaXRlLkFsbCBVc2VyQWN0aXZpdHkuUmVhZFdyaXRlLkNyZWF0ZWRCeUFwcCBVc2VyVGltZWxpbmVBY3Rpdml0eS5Xcml0ZS5DcmVhdGVkQnlBcHAiLCJzdWIiOiJPZzgyUWk1OTJqLTlzUEQwZnM5dEJDeWpXMGlUSzVNY1ozT2VUbDlFbDlRIiwidGVuYW50X3JlZ2lvbl9zY29wZSI6Ik5BIiwidGlkIjoiZjY0NWFkOTItZTM4ZC00ZDFhLWI1MTAtZDFiMDlhNzRhOGNhIiwidW5pcXVlX25hbWUiOiJpZGxhYjFAbXNpZGxhYjQub25taWNyb3NvZnQuY29tIiwidXBuIjoiaWRsYWIxQG1zaWRsYWI0Lm9ubWljcm9zb2Z0LmNvbSIsInV0aSI6IjRLakI1T3BzVFVXSDRScEtGX1VpQUEiLCJ2ZXIiOiIxLjAiLCJ4bXNfY2MiOlsiQ1AxIl19.UsxmiVwSy8oUbWnYF8Cp0niClgJVNpvxtK7IOz73sHdkY28FYA8zIdMPKBdOX5CufIUn59d78X4WevEPrK9USaeD67c7S0W76HUmRjgfVjqqOhNj15rPwYTHhpYbI_7hOw_Lo68H2q5V7joZx59sosW2Vy3zawob02EaQpvHh_cQp6cMF-oJt5JT8J4iQblo03KndRZVaNh_n3oVDQmMaEzur4tBB4lnUAoaExE6hNFOWi25h59PNctiPRGEBe17MrJqTNuey8zICsCnCrTG9yVe1GVEZ2aF2JXH-JsqTxxoCA7JVnpU4CwxN3ONLYeg-mLYwDtYxybelSvVV-LitA";
 
     static final String TEST_IDTOKEN_USERID = "4f859989-a2ff-411e-9048-c322247ac62c";
 
@@ -196,7 +204,7 @@ public final class AuthenticationContextTest {
         AuthenticationSettings.INSTANCE.setUseBroker(false);
         // ADAL is set to this signature for now
         PackageInfo info = getInstrumentation().getContext().getPackageManager()
-                .getPackageInfo(getInstrumentation().getContext().getPackageName(), PackageHelper.getPackageManagerFlag());
+                .getPackageInfo(getInstrumentation().getContext().getPackageName(), PackageHelper.getPackageManagerSignaturesFlag());
 
         // Broker App can be signed with multiple certificates. It will look
         // all of them
@@ -253,12 +261,12 @@ public final class AuthenticationContextTest {
         final Context context = getInstrumentation().getContext();
 
         // Create an instance of the MSAL cache, populate it with some data
+        final IPlatformComponents androidCommonComponents = AndroidPlatformComponentsFactory.createFromContext(context);
         final IAccountCredentialCache accountCredentialCache = new SharedPreferencesAccountCredentialCache(
                 new CacheKeyValueDelegate(),
-                new SharedPreferencesFileManager(
-                        context,
+                androidCommonComponents.getStorageSupplier().getEncryptedNameValueStore(
                         DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
-                        new StorageHelper(context)
+                        String.class
                 )
         );
 
@@ -582,6 +590,53 @@ public final class AuthenticationContextTest {
     }
 
     @Test
+    public void testTokenContainsDeviceId() throws InterruptedException, IOException, ParseException, PackageManager.NameNotFoundException {
+        FileMockContext mockContext = new FileMockContext(getInstrumentation().getContext());
+        ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        final AuthenticationContext context = getAuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, mockCache);
+
+        final MockActivity testActivity = new MockActivity();
+        final CountDownLatch signal = new CountDownLatch(1);
+        testActivity.mSignal = signal;
+        MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
+        final String response = "{\"id_token\":\""
+                + TEST_IDTOKEN
+                + "\",\"access_token\":\"" + TEST_ACCESS_TOKEN_WITH_DEVICE_ID + "\",\"token_type\":\"Bearer\",\"expires_in\":\"-10\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\",\"deviceid\":\"1234\", \"client_info\":\"" + Util.TEST_CLIENT_INFO + "\"}";
+
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
+        Util.prepareMockedUrlConnection(mockedConnection);
+        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response));
+        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response));
+        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response));
+        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response));
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
+
+        final PackageManager mockedPackageManager = Mockito.mock(PackageManager.class);
+        final PackageInfo mockPackageInfo = new PackageInfo();
+        mockPackageInfo.setLongVersionCode(Long.MAX_VALUE);
+        Mockito.when(mockedPackageManager.getPackageInfo(Mockito.anyString(), Mockito.anyInt())).thenReturn(mockPackageInfo);
+        mockContext.setMockedPackageManager(mockedPackageManager);
+
+        // Call acquire token which will try refresh token based on cache
+        context.acquireToken(testActivity.getTestActivity(), "resource", "clientid", "redirectUri",
+                TEST_IDTOKEN_UPN, PromptBehavior.Auto, null, "{\"access_token\":{\"deviceid\":{\"essential\":true}}}", callback);
+        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+
+        final String accessToken = callback.getAuthenticationResult().getAccessToken();
+        Assert.assertEquals(TEST_ACCESS_TOKEN_WITH_DEVICE_ID, accessToken);
+
+        final JWT decodedToken = JWTParser.parse(accessToken);
+        final Object deviceIdClaim = decodedToken.getJWTClaimsSet().getClaim("deviceid");
+        Assert.assertNotNull(deviceIdClaim);
+
+        // Adal gets device id from token
+        Assert.assertEquals("761b45e9-2080-4573-bebb-b43d435ce1af", (String) deviceIdClaim);
+    }
+
+    @Test
     public void testExtraParams() throws InterruptedException {
         FileMockContext mockContext = new FileMockContext(getInstrumentation().getContext());
         final AuthenticationContext context = getAuthenticationContext(mockContext,
@@ -735,6 +790,7 @@ public final class AuthenticationContextTest {
     }
 
     @Test
+    @Ignore("ConnectionService check is now disabled by default")
     public void testAcquireTokenByRefreshTokenConnectionNotAvailable() throws InterruptedException {
         FileMockContext mockContext = new FileMockContext(getInstrumentation().getContext());
         mockContext.setConnectionAvailable(false);
@@ -884,7 +940,7 @@ public final class AuthenticationContextTest {
         // Check response in callback result
         assertNull("Error is null", callback.getException());
         assertEquals("Activity was attempted to start with request code",
-                AuthenticationConstants.UIRequest.BROWSER_FLOW,
+                BROWSER_FLOW,
                 testActivity.mStartActivityRequestCode);
     }
 
@@ -908,7 +964,7 @@ public final class AuthenticationContextTest {
         // Check correlationID that was set in the Discovery obj
         assertNull("Error is null", callback.getException());
         assertEquals("Activity was attempted to start with request code",
-                AuthenticationConstants.UIRequest.BROWSER_FLOW,
+                BROWSER_FLOW,
                 testActivity.mStartActivityRequestCode);
     }
 
@@ -989,7 +1045,7 @@ public final class AuthenticationContextTest {
                 ((AuthenticationException) callback.getException()).getCode());
         assertTrue(
                 "Activity was not attempted to start with request code",
-                AuthenticationConstants.UIRequest.BROWSER_FLOW != testActivity.mStartActivityRequestCode);
+                BROWSER_FLOW != testActivity.mStartActivityRequestCode);
 
         // Sync test
         try {
@@ -1028,7 +1084,7 @@ public final class AuthenticationContextTest {
         // Check response in callback result
         assertNull("Error is null", callback.getException());
         assertEquals("Activity was attempted to start with request code",
-                AuthenticationConstants.UIRequest.BROWSER_FLOW,
+                BROWSER_FLOW,
                 testActivity.mStartActivityRequestCode);
         clearCache(context);
     }
@@ -1254,8 +1310,7 @@ public final class AuthenticationContextTest {
      * @throws AuthenticationException
      */
     @Test
-    public void testFamilyClientIdCorrectlyStoredInCache() throws IOException, InterruptedException,
-            AuthenticationException, JSONException {
+    public void testFamilyClientIdCorrectlyStoredInCache() throws Exception {
 
         FileMockContext mockContext = new FileMockContext(getInstrumentation().getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
@@ -1288,7 +1343,7 @@ public final class AuthenticationContextTest {
         verifyRefreshTokenResponse(mockCache, callback.getException(),
                 callback.getAuthenticationResult());
         verifyFamilyIdStoredInTokenCacheItem(mockCache,
-                CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientId", TEST_IDTOKEN_UPN), "1");
+                CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, /*"resource",*/ "clientId", TEST_IDTOKEN_UPN), "1");
 
         // Do silent token request and return idtoken in the result
         AuthenticationResult result = context.acquireTokenSilentSync("resource", "clientid",
@@ -1296,8 +1351,7 @@ public final class AuthenticationContextTest {
         assertEquals("Returned assess token is not as expected.", "I am a new access token", result.getAccessToken());
         assertEquals("Returned refresh token is not as expected.", "I am a new refresh token", result.getRefreshToken());
         assertEquals("Returned id token is not as expected.", TEST_IDTOKEN, result.getIdToken());
-        verifyFamilyIdStoredInTokenCacheItem(mockCache, CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientId",
-                TEST_IDTOKEN_UPN), "familyClientId");
+        verifyFamilyIdStoredInTokenCacheItem(mockCache, CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, /*"resource",*/ "clientId", TEST_IDTOKEN_UPN), "familyClientId");
         clearCache(context);
     }
 
@@ -1569,7 +1623,7 @@ public final class AuthenticationContextTest {
                 final String encodedState = Base64.encodeToString(state.getBytes(StandardCharsets.UTF_8), Base64.NO_PADDING | Base64.URL_SAFE);
                 intent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, callback.hashCode());
                 intent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, "https://login.windows.net/common?code=1234&state=" + encodedState);
-                context.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW, AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE, intent);
+                context.onActivityResult(BROWSER_FLOW, BROWSER_CODE_COMPLETE, intent);
                 return null;
             }
         }).when(mockedActivity).startActivityForResult(Mockito.any(Intent.class), Mockito.anyInt());
@@ -1718,7 +1772,7 @@ public final class AuthenticationContextTest {
     }
 
     private void verifyFamilyIdStoredInTokenCacheItem(final ITokenCacheStore cacheStore, final String cacheKey,
-                                                      final String expectedFamilyClientId) {
+                                                      final String expectedFamilyClientId) throws Exception {
 
         final TokenCacheItem tokenCacheItem = cacheStore.getItem(cacheKey);
         assertNotNull(tokenCacheItem);
@@ -1751,11 +1805,11 @@ public final class AuthenticationContextTest {
 
         // Activity will start
         assertEquals("Activity was attempted to start.",
-                AuthenticationConstants.UIRequest.BROWSER_FLOW,
+                BROWSER_FLOW,
                 testActivity.mStartActivityRequestCode);
 
         context.onActivityResult(testActivity.mStartActivityRequestCode,
-                AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE, responseIntent);
+                BROWSER_CODE_COMPLETE, responseIntent);
         signalOnActivityResult.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
     }
 
@@ -1996,7 +2050,6 @@ public final class AuthenticationContextTest {
      */
     @Test
     public void testAcquireTokenCacheLookup() throws InterruptedException {
-
         final FileMockContext mockContext = new FileMockContext(getInstrumentation().getContext());
         final String tokenToTest = "accessToken=" + UUID.randomUUID();
         final String resource = "Resource" + UUID.randomUUID();
@@ -2233,8 +2286,8 @@ public final class AuthenticationContextTest {
         FileMockContext mockContext = new FileMockContext(getInstrumentation().getContext());
         final AuthenticationContext authContext = getAuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, null);
-        int requestCode = AuthenticationConstants.UIRequest.BROWSER_FLOW;
-        int resultCode = AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE;
+        int requestCode = BROWSER_FLOW;
+        int resultCode = TOKEN_BROKER_RESPONSE;
         TestLogResponse logResponse = new TestLogResponse();
         String msgToCheck = "onActivityResult BROWSER_FLOW data is null";
         logResponse.listenLogForMessageSegments(msgToCheck);
@@ -2258,8 +2311,8 @@ public final class AuthenticationContextTest {
         final FileMockContext mockContext = new FileMockContext(getInstrumentation().getContext());
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, cache);
-        final int requestCode = AuthenticationConstants.UIRequest.BROWSER_FLOW;
-        final int resultCode = AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL;
+        final int requestCode = BROWSER_FLOW;
+        final int resultCode = BROWSER_CODE_CANCEL;
         final TestAuthCallback callback = new TestAuthCallback();
 
         final Intent data = new Intent();
@@ -2286,8 +2339,8 @@ public final class AuthenticationContextTest {
         final FileMockContext mockContext = new FileMockContext(getInstrumentation().getContext());
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, cache);
-        final int requestCode = AuthenticationConstants.UIRequest.BROWSER_FLOW;
-        final int resultCode = AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR;
+        final int requestCode = BROWSER_FLOW;
+        final int resultCode = BROWSER_CODE_ERROR;
         final TestAuthCallback callback = new TestAuthCallback();
 
         // act
@@ -2310,8 +2363,8 @@ public final class AuthenticationContextTest {
         final FileMockContext mockContext = new FileMockContext(getInstrumentation().getContext());
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, cache);
-        final int requestCode = AuthenticationConstants.UIRequest.BROWSER_FLOW;
-        final int resultCode = AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION;
+        final int requestCode = BROWSER_FLOW;
+        final int resultCode = BROWSER_CODE_AUTHENTICATION_EXCEPTION;
         final TestAuthCallback callback = new TestAuthCallback();
 
         // act
@@ -2341,8 +2394,8 @@ public final class AuthenticationContextTest {
         final FileMockContext mockContext = new FileMockContext(getInstrumentation().getContext());
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, cache);
-        final int requestCode = AuthenticationConstants.UIRequest.BROWSER_FLOW;
-        final int resultCode = AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION;
+        final int requestCode = BROWSER_FLOW;
+        final int resultCode = BROWSER_CODE_AUTHENTICATION_EXCEPTION;
         final TestAuthCallback callback = new TestAuthCallback();
 
         // act
@@ -2370,8 +2423,8 @@ public final class AuthenticationContextTest {
         final FileMockContext mockContext = new FileMockContext(getInstrumentation().getContext());
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, cache);
-        final int requestCode = AuthenticationConstants.UIRequest.BROWSER_FLOW;
-        final int resultCode = AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE;
+        final int requestCode = BROWSER_FLOW;
+        final int resultCode = TOKEN_BROKER_RESPONSE;
         final TestAuthCallback callback = new TestAuthCallback();
 
         // act
@@ -3118,11 +3171,11 @@ public final class AuthenticationContextTest {
 
         // Activity will start
         assertEquals("Activity was attempted to start.",
-                AuthenticationConstants.UIRequest.BROWSER_FLOW,
+                BROWSER_FLOW,
                 testActivity.mStartActivityRequestCode);
 
         context.onActivityResult(testActivity.mStartActivityRequestCode,
-                AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE,
+                BROWSER_CODE_COMPLETE,
                 getResponseIntent(callback, "resource", "clientid", "redirect", TEST_IDTOKEN_UPN));
         signalCallback.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 

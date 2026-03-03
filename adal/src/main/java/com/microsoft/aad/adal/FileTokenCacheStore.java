@@ -47,7 +47,7 @@ public class FileTokenCacheStore implements ITokenCacheStore {
      */
     private static final long serialVersionUID = -8252291336171327870L;
 
-    private static final String TAG = null;
+    private static final String TAG = FileTokenCacheStore.class.getSimpleName();
 
     private final File mFile;
 

@@ -50,9 +50,4 @@ public final class StringExtensions {
             UnsupportedEncodingException {
         return com.microsoft.identity.common.adal.internal.util.StringExtensions.createHash(msg);
     }
-
-    public static String encodeBase64URLSafeString(final byte[] bytes)
-            throws UnsupportedEncodingException {
-        return com.microsoft.identity.common.adal.internal.util.StringExtensions.encodeBase64URLSafeString(bytes);
-    }
 }

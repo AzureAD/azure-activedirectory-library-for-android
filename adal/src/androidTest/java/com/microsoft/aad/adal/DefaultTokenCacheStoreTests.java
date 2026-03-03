@@ -30,8 +30,6 @@ import android.content.SharedPreferences;
 import androidx.test.InstrumentationRegistry;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

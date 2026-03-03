@@ -27,7 +27,7 @@ import android.net.Uri;
 import android.os.Bundle;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.adal.internal.util.DateExtensions;
+import com.microsoft.identity.common.java.util.DateExtensions;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import java.io.Serializable;

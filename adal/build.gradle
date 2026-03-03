@@ -1,9 +1,16 @@
-apply plugin: 'com.android.library'
-apply plugin: 'pmd'
-apply plugin: 'checkstyle'
-apply plugin: 'maven-publish'
+plugins {
+    id 'com.microsoft.identity.buildsystem' version '0.2.5'
+    id 'com.android.library'
+    id 'pmd'
+    id 'checkstyle'
+    id 'maven-publish'
+}
+
 apply from: 'versioning/version_tasks.gradle'
-apply plugin: 'maven'
+
+buildSystem {
+    desugar = false
+}
 
 group = 'com.microsoft.aad'
 
@@ -30,26 +37,18 @@ allprojects {
         mavenCentral()
     }
 }
-
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-    }
-}
-
 android {
-
+    namespace "com.microsoft.aad.adal"
     compileOptions {
-        // Flag to enable support for the new language APIs
-        coreLibraryDesugaringEnabled true
         // Sets Java compatibility to Java 8
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    buildFeatures {
+        buildConfig = true
+    }
 
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    compileSdk rootProject.ext.compileSdkVersion
 
     defaultConfig {
         multiDexEnabled true
@@ -61,18 +60,23 @@ android {
         project.version = android.defaultConfig.versionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
+    publishing {
+        multipleVariants {
+            withJavadocJar()
+            withSourcesJar()
+        }
+    }
     buildTypes {
         debug {
             testCoverageEnabled false
             debuggable true
-            buildConfigField("String", "VERSION_NAME", "\"${versionName}\"")
-
+            buildConfigField("String", "VERSION_NAME", "\"${project.version}\"")
         }
         release {
             minifyEnabled false
             debuggable false
             proguardFiles getDefaultProguardFile('proguard-android.txt')
-            buildConfigField("String", "VERSION_NAME", "\"${versionName}\"")
+            buildConfigField("String", "VERSION_NAME", "\"${project.version}\"")
         }
     }
 
@@ -127,10 +131,12 @@ android {
     useLibrary 'android.test.mock'
 }
 
+// In dev, we want to keep the dependencies(common4j, broker4j, common) to 1.0.+ to be able to be consumed by daily dev pipeline.
+def commonVersion = "1.0.+"
+if (project.hasProperty("distCommonVersion")) {
+    commonVersion = project.distCommonVersion
+}
 dependencies {
-
-    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
-
     // Dependencies
     implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
@@ -141,14 +147,14 @@ dependencies {
 
     // 'local' flavor dependencies
     localApi(project(":common")) {
-        transitive = false
+        transitive = true
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.2.0', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: commonVersion, changing: true)
 
     // 'dist' flavor dependencies
-    distApi("com.microsoft.identity:common:3.2.0") {
-        transitive = false
+    distApi("com.microsoft.identity:common:${commonVersion}") {
+        transitive = true
     }
 
     // Android Instrumented Test Dependencies
@@ -159,6 +165,14 @@ dependencies {
 
     // Test Dependencies
     testImplementation "junit:junit:$rootProject.ext.junitVersion"
+    testImplementation "org.mockito:mockito-core:$rootProject.ext.mockitoCoreVersion"
+    testImplementation ("org.robolectric:robolectric:$rootProject.ext.robolectricVersion")
+    testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"
+    testLocalImplementation project(':testutils')
+    testDistImplementation("com.microsoft.identity:testutils:0.0.+") {
+        exclude module: 'common'
+        exclude group: 'com.microsoft.identity', module: 'LabApiUtilities'
+    }
 
     // Javadoc Dependencies
     javadocDeps "androidx.annotation:annotation:$rootProject.ext.annotationVersion"
@@ -167,14 +181,15 @@ dependencies {
 
 task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
-    classifier = 'sources'
-    destinationDir = reporting.file("$project.buildDir/outputs/jar/")
+    archiveClassifier.set('sources')
+    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
 }
 
 task javadoc(type: Javadoc) {
     failOnError false
     source = android.sourceSets.main.java.srcDirs
-    classpath += configurations.compile
+    configurations.implementation.setCanBeResolved(true)
+    classpath += configurations.implementation
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
     classpath += configurations.javadocDeps
     exclude '**/*.aidl'
@@ -190,91 +205,59 @@ task javadoc(type: Javadoc) {
     destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
 }
 
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
+tasks.register('javadocJar', Jar) {
+    dependsOn javadoc
+    archiveClassifier.set('javadoc')
     from javadoc.destinationDir
-    destinationDir = reporting.file("$project.buildDir/outputs/jar/")
+    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
 }
 
 // For publishing to the remote maven repo.
-publishing {
-    publications {
-        adal(MavenPublication) {
-            groupId 'com.microsoft.aad'
-            artifactId 'adal'
-            //Edit the 'version' here for VSTS RC build
-            version = project.version
-
-            pom.withXml {
-                // Custom values
-
-                // Name
-                asNode().appendNode('name', 'adal')
-
-                // Description
-                asNode().appendNode(
-                        'description',
-                        'Azure active directory library for Android gives you the ability to add Windows Azure Active Directory authentication to your application with just a few lines of additional code. Using our ADAL SDKs you can quickly and easily extend your existing application to all the employees that use Windows Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.'
-                )
-
-                // URL
-                asNode().appendNode('url', 'https://github.com/AzureAD/azure-activedirectory-library-for-android')
-
-                // Inception Year
-                asNode().appendNode('inceptionYear', '2014')
-
-                // Licenses
-                asNode().appendNode('licenses').appendNode('license').appendNode('name', 'MIT License')
-
-                // Developers
-                def developerNode = asNode().appendNode('developers').appendNode('developer')
-                developerNode.appendNode('id', 'microsoft')
-                developerNode.appendNode('name', 'Microsoft')
-
-                // SCM
-                asNode().appendNode('scm').appendNode('url', 'https://github.com/AzureAD/azure-activedirectory-library-for-android/tree/master')
-
-                // Properties
-                def propertiesNode = asNode().appendNode('properties')
-                propertiesNode.appendNode('branch', 'master')
-                propertiesNode.appendNode('version', project.version)
-
-                def dependenciesNode = asNode().appendNode('dependencies')
-
-                def deps = configurations.implementation.allDependencies.asList()
-                if (project.version.toString().endsWith("SNAPSHOT")) {
-                    deps.addAll(configurations.snapshotApi.allDependencies.asList())
-                } else {
-                    deps.addAll(configurations.distApi.allDependencies.asList())
-                }
-
-                //Iterate over the implementation dependencies (we don't want the test ones), adding a <dependency> node for each
-                deps.each {
-                    if (it.group != null && it.name != null) {
-                        def dependencyNode = dependenciesNode.appendNode('dependency')
-                        dependencyNode.appendNode('groupId', it.group)
-                        dependencyNode.appendNode('artifactId', it.name)
-                        dependencyNode.appendNode('version', it.version)
+afterEvaluate{
+    publishing {
+        publications {
+            distRelease(MavenPublication) {
+                from components.findByName('distRelease')
+                groupId 'com.microsoft.aad'
+                artifactId 'adal'
+                //Edit the 'version' here for VSTS RC build
+                version = project.version
+                pom {
+                    name = 'adal'
+                    description = 'Azure active directory library for Android gives you the ability to add Windows Azure Active Directory authentication to your application with just a few lines of additional code. Using our ADAL SDKs you can quickly and easily extend your existing application to all the employees that use Windows Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.'
+                    url = 'https://github.com/AzureAD/azure-activedirectory-library-for-android'
+                    developers {
+                        developer {
+                            id = 'microsoft'
+                            name = 'Microsoft'
+                        }
                     }
+                    licenses {
+                        license {
+                            name = 'MIT License'
+                        }
+                    }
+                    inceptionYear = '2014'
+                    scm {
+                        url = 'https://github.com/AzureAD/azure-activedirectory-library-for-android/tree/master'
+                    }
+                    properties = [
+                            branch : 'master',
+                            version: project.version
+                    ]
                 }
-
             }
-
-            artifact(sourcesJar)
-            artifact(javadocJar)
-            artifact("$buildDir/outputs/aar/adal-${project.version}.aar")
         }
 
-    }
-
     // Repositories to which Gradle can publish artifacts
-    repositories {
-        maven {
-            name "vsts-maven-adal-android"
-            url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
-            credentials {
-                username System.getenv("ENV_VSTS_MVN_ANDROIDADAL_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_ANDROIDADAL_USERNAME") : project.findProperty("vstsUsername")
-                password System.getenv("ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
+        repositories {
+            maven {
+                name "vsts-maven-adal-android"
+                url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
+                credentials {
+                    username System.getenv("ENV_VSTS_MVN_ANDROIDADAL_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_ANDROIDADAL_USERNAME") : project.findProperty("vstsUsername")
+                    password System.getenv("ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_ANDROIDADAL_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
+                }
             }
         }
     }
@@ -307,7 +290,7 @@ pmd {
     reportsDir = file("$project.buildDir/outputs/")
 }
 
-task pmd(type: Pmd) {
+tasks.register('pmd', Pmd) {
     description 'Run pmd'
     group 'verification'
 
@@ -315,8 +298,9 @@ task pmd(type: Pmd) {
     source = fileTree('src/main/java')
 
     reports {
-        xml.enabled = false
-        html.enabled = true
+        xml.required = false
+        html.required = true
+
     }
 }
 
@@ -328,7 +312,7 @@ checkstyle {
     reportsDir = file("$project.buildDir/outputs/")
 }
 
-task checkstyle(type: Checkstyle) {
+tasks.register('checkstyle', Checkstyle) {
     configFile file("${project.rootDir}/config/checkstyle/checkstyle.xml")
 
     configProperties.checkstyleConfigDir = checkstyleConfigDir
@@ -339,7 +323,7 @@ task checkstyle(type: Checkstyle) {
     classpath = files()
 }
 
-tasks.whenTaskAdded { task ->
+tasks.configureEach { task ->
     if (task.name == 'assembleDebug' || task.name == 'assembleRelease') {
         task.dependsOn 'checkstyle', 'pmd', 'lint'
     }

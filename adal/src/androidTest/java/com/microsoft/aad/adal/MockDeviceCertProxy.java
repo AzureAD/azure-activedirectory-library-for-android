@@ -23,6 +23,11 @@
 
 package com.microsoft.aad.adal;
 
+import com.microsoft.identity.common.java.challengehandlers.IDeviceCertificate;
+import com.microsoft.identity.common.java.exception.ClientException;
+
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
@@ -42,41 +47,37 @@ public class MockDeviceCertProxy implements IDeviceCertificate {
 
     private static RSAPublicKey sPublicKey = null;
 
-    private static String sThumbPrint = null;
-
     private static boolean sValidIssuer = false;
 
     public static void reset() {
         sCertificate = null;
         sPrivateKey = null;
         sPublicKey = null;
-        sThumbPrint = null;
         sValidIssuer = false;
     }
 
-    @Override
-    public X509Certificate getCertificate() {
-        return sCertificate;
-    }
-
-    @Override
-    public RSAPrivateKey getRSAPrivateKey() {
+    public PrivateKey getPrivateKey() {
         return sPrivateKey;
     }
 
-    public RSAPublicKey getRSAPublicKey() {
+    public PublicKey getPublicKey() {
         return sPublicKey;
     }
 
     @Override
-    public String getThumbPrint() {
-        return sThumbPrint;
+    public byte[] sign(byte[] dataToBeSigned) throws ClientException {
+        throw new UnsupportedOperationException("This is not supported in MockDeviceCertProxy");
     }
 
     @Override
     public boolean isValidIssuer(List<String> certAuthorities) {
         // TODO Auto-generated method stub
         return sValidIssuer;
+    }
+
+    @Override
+    public X509Certificate getX509() {
+        return sCertificate;
     }
 
     static final void setCertificate(final X509Certificate certificate) {
@@ -89,10 +90,6 @@ public class MockDeviceCertProxy implements IDeviceCertificate {
 
     static final void setPublicKey(final RSAPublicKey publicKey) {
         sPublicKey = publicKey;
-    }
-
-    static final void setThumbPrint(final String thumbPrint) {
-        sThumbPrint = thumbPrint;
     }
 
     static final void setIsValidIssuer(final boolean isValidIssuer) {

@@ -36,8 +36,6 @@ public enum AuthenticationSettings {
 
     private static final int DEFAULT_READ_CONNECT_TIMEOUT = 30000;
 
-    private Class<?> mClazzDeviceCertProxy;
-
     private String mActivityPackageName;
 
     private boolean mEnableHardwareAcceleration = true;
@@ -119,30 +117,6 @@ public enum AuthenticationSettings {
      */
     public void setBrokerSignature(String brokerSignature) {
         com.microsoft.identity.common.adal.internal.AuthenticationSettings.INSTANCE.setBrokerSignature(brokerSignature);
-    }
-
-    /**
-     * set class for work place join related API. This is only used from
-     * Authenticator side.
-     *
-     * @param clazz class for workplace join
-     */
-    public void setDeviceCertificateProxyClass(Class clazz) {
-        if (IDeviceCertificate.class.isAssignableFrom(clazz)) {
-            mClazzDeviceCertProxy = clazz;
-        } else {
-            throw new IllegalArgumentException("clazz");
-        }
-    }
-
-    /**
-     * get class for work place join related API. This is only used from
-     * Authenticator side.
-     *
-     * @return Class
-     */
-    public Class<?> getDeviceCertificateProxy() {
-        return mClazzDeviceCertProxy;
     }
 
     /**

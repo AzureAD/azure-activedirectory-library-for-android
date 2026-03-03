@@ -23,49 +23,29 @@
 
 package com.microsoft.aad.adal;
 
-import java.security.cert.X509Certificate;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
-import java.util.List;
+import android.content.pm.Signature;
 
-/**
- * Work place join related certificate is required to respond device challenge.
- */
-public interface IDeviceCertificate {
+public class MockedSigningInfo {
 
-    /**
-     * Checks valid issuer for cert authorities.
-     *
-     * @param certAuthorities list of cert authorities
-     * @return status if valid issue
-     */
-    boolean isValidIssuer(final List<String> certAuthorities);
+    private final Signature[] signatures;
 
-    /**
-     * Gets certificate.
-     *
-     * @return {@link X509Certificate}
-     */
-    X509Certificate getCertificate();
+    public MockedSigningInfo(Signature[] signatures) {
+        this.signatures = signatures;
+    }
 
-    /**
-     * Gets RSA private key.
-     *
-     * @return RSA private key
-     */
-    RSAPrivateKey getRSAPrivateKey();
+    public boolean hasMultipleSigners() {
+        return signatures != null && signatures.length > 1;
+    }
 
-    /**
-     * Gets thumbPrint for certificate.
-     *
-     * @return thumbPrint for certificate.
-     */
-    String getThumbPrint();
+    public boolean hasPastSigningCertificates() {
+        return false;
+    }
 
-    /**
-     * Gets RSA public key.
-     *
-     * @return RSA public key.
-     */
-    RSAPublicKey getRSAPublicKey();
+    public Signature[] getSigningCertificateHistory() {
+        return signatures;
+    }
+
+    public Signature[] getApkContentsSigners() {
+        return signatures;
+    }
 }

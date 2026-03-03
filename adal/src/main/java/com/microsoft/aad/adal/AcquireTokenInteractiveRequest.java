@@ -31,9 +31,12 @@ import android.content.pm.ResolveInfo;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.java.exception.ClientException;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+
+import static com.microsoft.identity.common.java.AuthenticationConstants.UIRequest.BROWSER_FLOW;
 
 /**
  * Internal class handling the detailed acquire token interactive logic. Will be responsible for showing the webview,
@@ -126,6 +129,8 @@ final class AcquireTokenInteractiveRequest {
                 mTokenCacheAccessor.updateTokenCache(mAuthRequest, result);
             } catch (MalformedURLException e) {
                 throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e.getMessage(), e);
+            } catch (ClientException e) {
+                throw ADALError.fromCommon(e);
             }
         }
 
@@ -149,7 +154,7 @@ final class AcquireTokenInteractiveRequest {
         try {
             // Start activity from callers context so that caller can intercept
             // when it is done
-            activity.startActivityForResult(intent, AuthenticationConstants.UIRequest.BROWSER_FLOW);
+            activity.startActivityForResult(intent, BROWSER_FLOW);
         } catch (ActivityNotFoundException e) {
             Logger.e(TAG + methodName, "Activity login is not found after resolving intent", "",
                     ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED, e);

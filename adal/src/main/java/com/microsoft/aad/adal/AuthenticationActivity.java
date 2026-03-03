@@ -52,14 +52,14 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.gson.Gson;
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
-import com.microsoft.identity.common.adal.internal.JWSBuilder;
-import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
+
 import com.microsoft.identity.common.adal.internal.net.IWebRequestHandler;
 import com.microsoft.identity.common.adal.internal.net.WebRequestHandler;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.ui.DualScreenActivity;
+import com.microsoft.identity.common.java.util.JWSBuilder;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -115,6 +115,7 @@ import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROKER_R
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE;
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR;
 import static com.microsoft.aad.adal.AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE;
+import static com.microsoft.identity.common.internal.ui.webview.certbasedauth.OnDeviceCertBasedAuthChallengeHandler.mapKeyTypes;
 
 /**
  * Authentication Activity to launch {@link WebView} for authentication.
@@ -321,7 +322,7 @@ public class AuthenticationActivity extends DualScreenActivity {
             mCallingPackage = getCallingPackage();
             mCallingUID = info.getUIDForPackage(mCallingPackage);
 
-            final String signatureDigest = info.getCurrentSignatureForPackage(mCallingPackage);
+            final String signatureDigest = info.getSha1SignatureForPackage(mCallingPackage);
             mStartUrl = getBrokerStartUrl(mStartUrl, mCallingPackage, signatureDigest);
 
             if (!isCallerBrokerInstaller()) {
@@ -401,7 +402,7 @@ public class AuthenticationActivity extends DualScreenActivity {
 
             final BrokerValidator brokerValidator = new BrokerValidator(this);
 
-            final String signature = info.getCurrentSignatureForPackage(packageName);
+            final String signature = info.getSha512SignatureForPackage(packageName);
 
             return brokerValidator.verifySignature(packageName) ||
                     signature.equals(AuthenticationSettings.INSTANCE.getBrokerSignature());
@@ -659,6 +660,7 @@ public class AuthenticationActivity extends DualScreenActivity {
 
     @Override
     public void onBackPressed() {
+        super.onBackPressed();
         Logger.verbose(TAG, "Back button is pressed");
 
         // User should be able to click back button to cancel in case pkeyauth
@@ -829,7 +831,7 @@ public class AuthenticationActivity extends DualScreenActivity {
             mWebView.post(item);
         }
 
-        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+        @TargetApi(Build.VERSION_CODES.M)
         @Override
         public void onReceivedClientCertRequest(final WebView view,
                                                 final ClientCertRequest request) {
@@ -888,7 +890,7 @@ public class AuthenticationActivity extends DualScreenActivity {
                             request.cancel();
                         }
                     },
-                    request.getKeyTypes(),
+                    mapKeyTypes(request.getKeyTypes()),
                     request.getPrincipals(),
                     request.getHost(),
                     request.getPort(),
