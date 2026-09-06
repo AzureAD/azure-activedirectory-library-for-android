@@ -16,8 +16,8 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - uses: actions/checkout@v2
-      - uses: dangoslen/changelog-enforcer@v1.4.0
+      - uses: actions/checkout@0717577d45739eb3c851188b29f50ed6c0b2194e # v2.8.0
+      - uses: dangoslen/changelog-enforcer@ffce1319f3a67073e3a3610304e4064f86f71816 # v1.4.0
         with:
           changeLogPath: 'changelog.txt'
           skipLabel: 'No-Changelog'
